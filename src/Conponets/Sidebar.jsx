@@ -111,6 +111,54 @@ function Sidebar() {
                 <span className="menu-title">Job Posts</span>
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink
+                to="/manage-applicants"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Manage Applicants</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/shortlist-candidates"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Bookmark Resumes</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/candidates-search"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Candidate Search</span>
+              </NavLink>
+            </li>
 
             {/* Repeat for other links as needed */}
           </ul>

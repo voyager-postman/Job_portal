@@ -55,7 +55,7 @@ function Header() {
         <div className="desktop-nav">
           <div className="container-fluid">
             <nav className="navbar navbar-expand-md navbar-light">
-              <a className="navbar-brand" href="/">
+              <Link className="navbar-brand" to="/">
                 <img
                   src="/jobPortal/assets/images/logo.png"
                   className="main-logo"
@@ -66,7 +66,7 @@ function Header() {
                   className="white-logo"
                   alt="logo"
                 />
-              </a>
+              </Link>
               <div
                 className="collapse navbar-collapse mean-menu"
                 id="navbarSupportedContent"

@@ -25,6 +25,11 @@ import JobDetails from "./Pages/JobDetails";
 import YourJobPosts from "./Pages/YourJobPosts";
 import JobDetailsForm from "./Pages/JobDetailsForm";
 import CandidateDashboard from "./Pages/CandidateDashboard";
+import ManagesJobApplication from "./Pages/ManagesJobApplication";
+import EmployerFilterCandinateList from "./Pages/EmployerFilterCandinateList";
+import EmployerShortListCandinate from "./Pages/EmployerShortListCandinate";
+import CandinatesList from "./Pages/CandinatesList";
+import CandinateProfileDetails from "./Pages/CandinateProfileDetails";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -37,8 +42,13 @@ function LayoutWrapper() {
     "/companies-details",
     "/job-details",
     "/your-job-posts",
+    "/manage-applicants",
+    "/shortlist-candidates",
+    "/candidates-search",
     "/job-details-form",
-    "/candidate-dashboard"
+    "/candidate-dashboard",
+    // "/candidates-profile-details",
+    "/manage-job-application",
   ];
 
   const showSidebar = sidebarRoutes.some((route) =>
@@ -115,6 +125,14 @@ function LayoutWrapper() {
           }
         />
         <Route
+          path="/manage-job-application"
+          element={
+            <PrivateRoute>
+              <ManagesJobApplication />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/your-job-posts"
           element={
             <PrivateRoute>
@@ -122,6 +140,39 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/manage-applicants"
+          element={
+            <PrivateRoute>
+              <EmployerFilterCandinateList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/shortlist-candidates"
+          element={
+            <PrivateRoute>
+              <EmployerShortListCandinate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/candidates-search"
+          element={
+            <PrivateRoute>
+              <CandinatesList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/candidates-profile-details"
+          element={
+            <PrivateRoute>
+              <CandinateProfileDetails />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/job-search"
           element={

@@ -16,7 +16,8 @@ function JobDetails() {
                 <i className="fa-solid fa-angle-right" /> Dashboard
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />Job Details 
+                <i className="fa-solid fa-angle-right" />
+                Job Details
               </li>
             </ol>
           </div>
@@ -30,9 +31,14 @@ function JobDetails() {
                     Senior Back-end Software Engineer PHP (F/M) - Sophia
                     Antipolis
                   </h2>
-                  <p>
-                    <strong>Company Name: </strong>Integra Technologies
-                  </p>
+                  <Link
+                    to="/companies-details"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <p style={{ cursor: "pointer" }}>
+                      <strong>Company Name: </strong>Integra Technologies
+                    </p>
+                  </Link>
                   <p>
                     <strong>Posted by: </strong>Vcloud Technologies Investment
                   </p>

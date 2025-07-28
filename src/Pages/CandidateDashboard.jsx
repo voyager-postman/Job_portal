@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function CandidateDashboard() {
   return (
     <>
@@ -20,7 +21,7 @@ function CandidateDashboard() {
           <section className="candidate-dashboard-info-area">
             <div className="candidate-dashboard-box-info">
               <div className="candidate-dashboard-box">
-                <a href="#">
+                <Link to="/manage-job-application">
                   <div className="dashboard-box-icon-content">
                     <div className="box-icon">
                       <i className="fa-solid fa-file" />
@@ -30,7 +31,7 @@ function CandidateDashboard() {
                       <h5>100</h5>
                     </div>
                   </div>
-                </a>
+                </Link>
                 <a href="#">
                   <div className="dashboard-box-icon-content">
                     <div className="box-icon">
