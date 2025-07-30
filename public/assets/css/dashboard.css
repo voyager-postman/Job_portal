@@ -3208,14 +3208,21 @@ color:#0066CC;
 margin-right:5px; 
 }
 
+
 .available-job-save-job i {
 color: #fff;
-padding:4px;
-cursor:pointer;
-font-size: 20px;
-border-radius: 5px; 
+width: 25px;
+height: 25px;
+font-size: 16px;
+cursor: pointer;
+line-height: 25px;
+margin-left:5px;
+border-radius: 5px;
+text-align: center;
 background: #0066CC;
 }
+
+
 
 .available-job-save-job i:hover {
 background:#FF6600;  
@@ -4346,6 +4353,10 @@ padding: 5px 10px;
 
 /*Company Details page css start here*/
 
+.company-detail-info-area{
+padding-top: 50px;
+padding-bottom: 50px;
+}
 .company-img-short-detail {
 padding:30px 30px;
 background:#fff;  

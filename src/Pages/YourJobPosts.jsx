@@ -1077,7 +1077,7 @@ function YourJobPosts() {
             </div>
           </div>
           {/* Your Job Posts Info */}
-           <div className="copy-right-area bg-f0f4fc">
+          <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-left-content">
@@ -1085,8 +1085,8 @@ function YourJobPosts() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Jaba.</span> All Rights
-                    Reserved
+                    <span className="template-name"> Connect Work.ma </span> All
+                    Rights Reserved
                   </p>
                 </div>
               </div>
@@ -1095,7 +1095,7 @@ function YourJobPosts() {
                   <p>
                     Designed By{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      HiBootstrap
+                      Webnmobapps Solution Pvt. Ltd
                     </a>
                   </p>
                 </div>

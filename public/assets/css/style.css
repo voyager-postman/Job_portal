@@ -16208,3 +16208,582 @@ button.btn {
 }
 
 /*employer Candidates List filter css end here*/
+/*employer Candidates List filter css start here*/
+
+.employer-candidate-info-area {
+  margin-bottom: 50px;
+}
+
+.employer-candidate-search-box {
+  display: flex;
+  margin: 40px 0px;
+}
+
+.employer-candidate-input-icon {
+  width: 100%;
+  display: flex;
+  padding: 0px 20px;
+  align-items: center;
+  background: #f0f5f7;
+}
+
+.employer-candidate-input-area {
+  width: 100%;
+}
+
+.employer-candidate-input-area .form-control {
+  border: none;
+  height: 50px;
+  font-size: 15px;
+  background: transparent;
+}
+
+.employer-candidate-btn-area .default-btn {
+  font-size: 16px;
+  padding: 14px 40px;
+}
+
+.employer-candidate-filter-box .single-sidebar-widget {
+  padding: 10px;
+}
+
+.employer-candidate-filter-box .single-sidebar-widget h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.employer-candidate-filter-box .single-sidebar-widget .form-control {
+  height: 45px;
+  font-size: 14px;
+  padding-left: 5px;
+}
+
+.employer-candidate-number-counting {
+  display: flex;
+  padding: 0px 10px;
+  border-radius: 5px;
+  background: #f0f5f7;
+  align-items: center;
+  margin-bottom: 20px;
+  justify-content: space-between;
+}
+
+.employer-candidate-number h4 {
+  margin: 0px;
+  font-size: 20px;
+}
+
+.employer-candidate-profile-count ul {
+  display: flex;
+  margin: 0px;
+  padding: 20px 10px;
+  background: #f0f5f7;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.employer-candidate-profile-count ul li {
+  list-style: none;
+  margin-left: 10px;
+  padding-right: 10px;
+  border-right: 1px solid #cdcdcd;
+}
+
+.employer-candidate-profile-count ul li:last-child {
+  border: none;
+}
+
+.employer-candidate-card-info {
+  height: 940px;
+  overflow-x: hidden;
+}
+
+.employer-candidate-card-info:-webkit-scrollbar {
+  width: 0 !important;
+  display: none;
+}
+
+.employer-candidate-card-info {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.employer-candidate-card-info .candidate-list-info.single-freelancer-card {
+  border-radius: 0px;
+  border: 1px solid #ccc;
+  box-shadow: 0px 0px 0px 0px #ccc;
+}
+
+.employer-candidate-detail-new-info {
+  display: flex;
+  padding: 15px 15px 10px 15px;
+  box-shadow: 0px 0px 5px 0px #ccc;
+}
+
+.employer-candidate-img-content-info {
+  width: 100%;
+  display: flex;
+}
+
+.employer-candidate-img-info {
+  width: 25%;
+  overflow: hidden;
+  margin-right: 15px;
+}
+
+.employer-candidate-img-info img {
+  border-radius: 10px;
+}
+
+.employers-condidate-content {
+  width: 50%;
+}
+
+.employers-condidate-content h3 {
+  font-size: 15px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.employers-condidate-content h3 strong {
+  width: 25%;
+  display: inline-block;
+}
+
+.employer-candidate-dcv-btn {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.employer-candidate-dcv-btn .default-btn {
+  padding: 10px 15px;
+}
+
+.employer-candidate-icon-info ul {
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  list-style: none;
+  align-items: center;
+}
+
+.employer-candidate-icon-info ul li a {
+  height: 25px;
+  width: 25px;
+  color: #fff;
+  font-size: 14px;
+  margin-left: 7px;
+  line-height: 27px;
+  text-align: center;
+  border-radius: 50px;
+  background: #0066cc;
+  display: inline-block;
+}
+
+.employer-candidate-icon-info ul li a:hover {
+  background: #ff6600;
+}
+
+.employer-candidate-card-filter-info .form-control {
+  height: 44px;
+}
+
+.employer-candidate-card-filter-info {
+  margin-bottom: 20px;
+}
+
+.employer-candidate-alert-profiles {
+  text-align: right;
+  margin-bottom: 25px;
+}
+
+.employer-candidate-detail-info-area {
+  height: 800px;
+  overflow: auto;
+  margin-top: 35px;
+  padding: 15px 15px;
+  box-shadow: 0px 0px 5px 0px #ccc;
+}
+
+.employer-candidate-cv-heading h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeee;
+}
+
+.employer-candidate-cv-details h5 {
+  font-size: 17px;
+  margin: 0px 0px 0px 0px;
+}
+
+.employer-candidate-profile-skill-info ul {
+  padding: 0px;
+}
+
+.employer-candidate-profile-skill-info ul li {
+  color: #fff;
+  cursor: pointer;
+  list-style: none;
+  margin-top: 10px;
+  padding: 5px 10px;
+  margin-right: 15px;
+  border-radius: 5px;
+  background: #0066cc;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.employer-candidate-pagination-info .pagination {
+  margin-top: 30px;
+  box-shadow: 0px 0px 5px 0px #ccc;
+}
+
+.employer-candidate-pagination-info .page-item .page-link {
+  color: #0066cc;
+  border-radius: 0px !important;
+}
+
+.employer-candidate-pagination-info .page-item .page-link.active {
+  color: #fff;
+  background: #ff6600;
+  border: 1px solid #ff6600;
+}
+
+/*employer Candidates List here*/
+
+/*home page css start here*/
+
+
+/*owl-carousel slider css start here*/
+.carousel-wrap {
+  margin:10px auto;
+  /*padding: 0 5%;*/
+  width:100%;
+  position: relative;
+}
+
+/* fix blank or flashing items on carousel */
+.owl-carousel .item {
+  position: relative;
+  z-index: 100; 
+  -webkit-backface-visibility: hidden; 
+}
+
+/* end fix */
+.owl-nav > div {
+  margin-top: -26px;
+  position: absolute;
+  top: 50%;
+}
+
+.owl-nav i {
+  color:#088bd1;
+  font-size: 52px;
+}
+
+.owl-nav .owl-prev {
+top:100px;
+left: -30px;
+position:absolute;
+}
+
+.owl-nav .owl-next {
+top:100px;
+right: -30px;
+position:absolute;
+}
+
+/*owl-carousel slider css end here*/
+
+
+.companies-week-slider-info {
+margin: 0px 0px 0px 0px;
+padding: 80px 0px 0px 0px; 
+}
+
+
+.companies-week-box-info {
+padding: 10px;
+margin-top: 30px;
+position: relative;
+background: #f0f5f7;
+}
+
+.companies-week-logo {
+top: 15px;
+left: 15px;
+width: 40%;
+padding: 5px 5px;
+background: #fff;
+position: absolute;
+}
+
+
+.companies-week-content h4 {
+font-size: 17px;
+margin-top: 10px;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+
+.companies-week-content ul {
+list-style: none;
+padding: 0px 0px 0px 0px;
+margin: 0px 0px 0px 0px;
+}
+
+.companies-week-content ul li {
+font-size: 15px;
+overflow: hidden;
+margin-bottom: 10px;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+
+.companies-week-content ul li:hover {
+color: #FF6600;
+}
+
+.companies-week-content ul li i {
+color: #0066CC;
+padding-right: 5px;
+}
+
+
+.companies-week-slider-info .section-title {
+max-width:100%;
+text-align:center;
+margin:0px 0px 0px 0px;
+}
+
+/*home page css end here*/
+/*Please Confirm Your Profile Basic Info css start here*/
+
+.profile-basic-info-heading {
+padding:60px 0px 0px 0px;  
+margin:0px 0px 0px 0px; 
+}
+
+.profile-basic-info-form{
+padding:0px 0px 60px 0px;  
+margin:0px 0px 0px 0px; 
+}
+
+.personal-info-area {
+margin-bottom:20px;  
+}
+
+.profile-basic-info-form .form-group {
+ margin-bottom:25px; 
+}
+
+.profile-basic-info-form .form-group label {
+font-size:16px;
+font-weight: 500;
+color: #202124;
+margin-bottom: 10px; 
+}
+
+.profile-basic-info-form .form-control {
+border-radius: unset;
+background-color: #f0f5f7;
+border: 1px solid rgba(32, 33, 34, 0.08); 
+}
+
+
+/* Custom file upload styling */
+.custom-file-upload {
+cursor: pointer;
+background:#f0f5f7;
+transition: all 0.3s ease;
+padding: 30px;
+border: 2px dashed #0066CC;
+border-radius: 10px;
+text-align: center;
+font-size: 1.2rem;
+}
+
+/*.custom-file-upload:hover {
+background: #e9ecef;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}*/
+
+.file-text {
+font-weight: 500;
+color: #495057;
+font-size: 1.1rem;
+}
+
+.custom-file-upload i {
+transition: transform 0.3s ease;
+font-size: 40px;
+color:#0066CC;
+margin-bottom: 10px;
+}
+
+.custom-file-upload:hover i {
+transform: scale(1.1);
+color:#FF6600;
+}
+
+.file-selected {
+border-color: #28a745;
+background: #e7f1ff;
+}
+
+.file-selected i {
+color: #28a745;
+}
+
+/* Hide the default input */
+#file-upload {
+display: none;
+}
+
+/* Bigger button styling */
+button.btn {
+padding: 12px 30px;
+font-size: 1.2rem;
+border-radius: 8px;
+}
+
+.personal-info-btn {
+margin-top:50px;
+text-align:center; 
+}
+
+.personal-info-btn .default-btn {
+font-size:18px;
+padding: 10px 60px;
+}
+
+
+.job-category-tags ul {
+padding:0px 0px 0px 0px;  
+}
+
+.job-category-tags ul li {
+color: #fff;
+cursor:pointer;
+border-radius: 5px;
+list-style: none;
+padding: 7px 10px;
+background: #0066CC;
+display: inline-block;
+margin: 10px 13px 10px 0px;
+}
+
+.job-category-tags ul li.active {
+background:#FF6600;  
+}
+
+.job-category-tags ul li:before {
+position: absolute;
+content: "";
+background-color: #FF6600;
+height: 100%;
+width: 0%;
+border-radius: 0 5px 5px 0;
+-webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+bottom: 0;
+right: 0;
+transition: all ease 0.5s;
+z-index: -1; 
+}
+
+.job-category-tags ul li:hover:before {
+width: 60%;
+height: 100%;
+}
+
+
+.job-category-tags ul li:after {
+position: absolute;
+content: "";
+background-color: #0066CC;
+height: 100%;
+width: 0%;
+border-radius: 5px 0 0 5px;
+-webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+top: 0;
+left: 0;
+transition: all ease 0.5s;
+z-index: -1;
+} 
+
+.job-category-tags ul li:hover:after {
+width: 60%;
+height: 100%;
+}
+
+
+.location-select-option ul {
+padding: 0px 0px 0px 0px; 
+}
+
+.location-select-option ul li {
+color: #fff;
+width: 48%;
+cursor: pointer;
+border-radius: 5px;
+list-style: none;
+padding: 10px 10px;
+background: #0066CC;
+display: inline-block;
+text-align: center;
+margin-top: 10px;
+margin-right: 20px;
+}
+
+.location-select-option ul li.active {
+background: #FF6600;
+}
+
+
+
+.personal-info-cv-linkedin-upload-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 20px 0px 20px 0px;
+}
+
+
+.personal-info-upload-cv-btn {
+margin-right: 20px; 
+}
+
+.personal-info-upload-cv-btn a i {
+font-size:15px;
+margin-right:10px;  
+}
+
+.personal-info-upload-content-linkedin a i {
+font-size: 17px;
+margin-right:8px;  
+}
+
+.personal-info-area p {
+font-size:16px;  
+}
+
+/*Please Confirm Your Profile Basic Info css end here*/
+/*select language css start here*/
+
+
+.header-language-toggleg {
+margin-left: 10px;  
+}
+
+.header-language-toggleg .form-control {
+height:45px;  
+}
+
+
+
+/*select language css end  here*/

@@ -82,8 +82,34 @@
 
 // export default Login;
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function EmployerRegister() {
+  const navigate = useNavigate();
+  const handleRegister = async () => {
+    navigate("/employer-login");
+    // try {
+    //   const response = await axios.post(`${API_BASE_URL}user/register`, {
+    //     email,
+    //     password,
+    //   });
+    //   console.log(response);
+    //   if (response.status === 200 || response.status === 201) {
+    //     toast.success("Registration successful!");
+    //     login(); // set auth context / localStorage
+    //     navigate("/login");
+    //   } else {
+    //     toast.error("Something went wrong, please try again.");
+    //   }
+    // } catch (error) {
+    //   console.error("Register error:", error);
+    //   toast.error(
+    //     error.response?.data?.message || "Registration failed. Try again."
+    //   );
+    // } finally {
+    //   setLoading(false);
+    // }
+  };
   return (
     <>
       <div>
@@ -140,7 +166,7 @@ function EmployerRegister() {
                   <div className="register-btn">
                     <button
                       type="button"
-                      onclick="location.href='profile-basic-info.html'"
+                      onClick={handleRegister}
                       className="default-btn btn"
                     >
                       Register

@@ -121,12 +121,11 @@ function Header() {
                       </li>
                     </ul>
                   </li>
-
                   <li className="nav-item">
                     <NavLink
                       to="/employers"
                       className={({ isActive }) =>
-                        "nav-link" + (isActive ? " active" : "")
+                        "nav-link dropdown-toggle" + (isActive ? " active" : "")
                       }
                     >
                       Employers
@@ -144,30 +143,37 @@ function Header() {
                       </li>
                     </ul>
                   </li>
-
-                  <li className="nav-item">
-                    <NavLink
-                      to="/blog"
-                      className={({ isActive }) =>
-                        "nav-link dropdown-toggle" + (isActive ? " active" : "")
-                      }
-                    >
-                      Blog
-                    </NavLink>
-                    <ul className="dropdown-menu">
-                      <li className="nav-item">
-                        <NavLink to="/blog/listing" className="nav-link">
-                          Blog
-                        </NavLink>
-                      </li>
-                      <li className="nav-item">
-                        <NavLink to="/blog/details" className="nav-link">
-                          Blog Details
-                        </NavLink>
-                      </li>
-                    </ul>
-                  </li>
-
+                  {userRole === "employer_type" && (
+                    <li className="nav-item">
+                      <NavLink
+                        to="/blog"
+                        className={({ isActive }) =>
+                          "nav-link dropdown-toggle" +
+                          (isActive ? " active" : "")
+                        }
+                      >
+                        Candidates
+                      </NavLink>
+                      <ul className="dropdown-menu">
+                        <li className="nav-item">
+                          <NavLink
+                            to="/employer-candidates-list"
+                            className="nav-link"
+                          >
+                            Candidates Listing
+                          </NavLink>
+                        </li>
+                        <li className="nav-item">
+                          <NavLink
+                            to="/candidates-profile-details"
+                            className="nav-link"
+                          >
+                            Candidates Details
+                          </NavLink>
+                        </li>
+                      </ul>
+                    </li>
+                  )}
                   <li className="nav-item">
                     <NavLink
                       to="/contact-us"
@@ -338,6 +344,15 @@ function Header() {
                     </>
                   )}
                 </div>
+                <div className="header-language-toggleg">
+                  <select
+                    className="form-select form-control"
+                    aria-label="Default select example"
+                  >
+                    <option selected>English</option>
+                    <option value={1}>French</option>
+                  </select>
+                </div>
               </div>
             </nav>
           </div>
@@ -441,6 +456,7 @@ function Header() {
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalRegister"
+                      style={{ cursor: "pointer", color: "#007bff" }}
                     >
                       {" "}
                       Register{" "}
@@ -527,6 +543,7 @@ function Header() {
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalLogin"
+                      style={{ cursor: "pointer", color: "#007bff" }}
                     >
                       <i className="fa-regular fa-user" /> Sign in
                     </span>

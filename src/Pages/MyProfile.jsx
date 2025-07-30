@@ -197,39 +197,98 @@ function MyProfile() {
             <form>
               <div className="personal-info-area">
                 <h3 className="heading-bottom-line">Attachments</h3>
+                <p>
+                  Use a CV parser for a LinkedIn parser for automatically fill
+                  this form
+                </p>
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
-                    <div className="form-group">
-                      <label className="fw-bold fs-5">Attachments</label>
-                      <p>
-                        Upload and manage multiple CVs/resumes and cover letters
-                      </p>
-                      <div className="custom-file-upload-box">
-                        <input
-                          type="file"
-                          id="file-upload"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={handleFileChange}
-                          className="input-hidden"
-                        />
-                        <label htmlFor="file-upload" className="upload-area">
-                          <p>Upload Your File (PDF/JPG/PNG)</p>
-                          <i
-                            className="fas fa-cloud-upload-alt fa-2x"
-                            style={{ color: "#007bff" }}
-                          ></i>
-                          <p>Click to Upload or drag & drop</p>
-                        </label>
-                        {error && (
-                          <div className="invalid-feedback d-block mt-2">
-                            {error}
+                    <div className="personal-info-cv-linkedin-upload-btn">
+                      <div className="personal-info-upload-cv-btn">
+                        <a
+                          href="#"
+                          className="default-btn btn"
+                          data-bs-toggle="modal"
+                          data-bs-target="#exampleModal"
+                        >
+                          <i className="fa-solid fa-file" />
+                          Upload CV
+                        </a>
+                        {/* Modal */}
+                        <div
+                          className="modal fade"
+                          id="exampleModal"
+                          tabIndex={-1}
+                          aria-labelledby="exampleModalLabel"
+                          aria-hidden="true"
+                        >
+                          <div className="modal-dialog">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5
+                                  className="modal-title"
+                                  id="exampleModalLabel"
+                                >
+                                  Upload CV
+                                </h5>
+                                <button
+                                  type="button"
+                                  className="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                />
+                              </div>
+                              <div className="modal-body">
+                                <div className="form-group">
+                                  <div className="custom-file-upload">
+                                    <label
+                                      htmlFor="file-upload"
+                                      className="fw-bold"
+                                    >
+                                      Upload Your File (PDF/JPG/PNG)
+                                    </label>
+                                    <input
+                                      type="file"
+                                      id="file-upload"
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                      required
+                                      onChange={handleFileChange}
+                                      className="input-hidden"
+                                    />
+                                    <label
+                                      htmlFor="file-upload"
+                                      className="file-text"
+                                    >
+                                      <i className="fas fa-cloud-upload-alt" />
+                                      <br />
+                                      Click to Upload or drag & drop
+                                    </label>
+                                    {error && (
+                                      <div className="invalid-feedback d-block mt-2">
+                                        {error}
+                                      </div>
+                                    )}
+                                    {file && (
+                                      <div className="mt-2 text-success">
+                                        Selected: {file.name}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        )}
-                        {file && (
-                          <div className="mt-2 text-success">
-                            Selected: {file.name}
-                          </div>
-                        )}
+                        </div>
+                      </div>
+                      <div className="personal-info-upload-content-linkedin">
+                        <a
+                          href="https://www.linkedin.com/login"
+                          target="_blank"
+                          className="default-btn btn"
+                        >
+                          <i className="fa-brands fa-linkedin-in" />
+                          Upload Content from LinkedIn
+                        </a>
                       </div>
                     </div>
                   </div>

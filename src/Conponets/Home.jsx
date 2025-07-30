@@ -8,6 +8,11 @@ import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
 import { useInView } from "react-intersection-observer";
 import "odometer/themes/odometer-theme-default.css";
+import "owl.carousel/dist/assets/owl.carousel.css";
+import "owl.carousel/dist/assets/owl.theme.default.css";
+import OwlCarousel from "react-owl-carousel3";
+import { Link } from "react-router-dom";
+
 const NextArrow = ({ onClick }) => (
   <button className="custom-arrow next-arrow" onClick={onClick}>
     <FaArrowRight />
@@ -73,7 +78,33 @@ function Home() {
       });
     }
   }, []);
-
+  const options = {
+    margin: 20,
+    nav: true,
+    dots: false,
+    loop: true,
+    autoplay: true,
+    autoplayTimeout: 3000,
+    smartSpeed: 800,
+    navText: [
+      '<span class="custom-nav-arrow left">&#8249;</span>', // ‹
+      '<span class="custom-nav-arrow right">&#8250;</span>', // ›
+    ],
+    responsive: {
+      0: {
+        items: 1,
+      },
+      576: {
+        items: 2,
+      },
+      768: {
+        items: 3,
+      },
+      992: {
+        items: 4, // show 4 items at desktop width
+      },
+    },
+  };
   const settings4 = {
     dots: false,
     infinite: true,
@@ -402,6 +433,63 @@ function Home() {
           </div>
         </div>
       </div>
+
+      <section className="companies-week-slider-info">
+        <div className="container">
+          <div className="section-title text-center">
+            <h2>
+              Companies of <label className="oragneColor">the Week</label>
+            </h2>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt.
+            </p>
+          </div>
+
+          <OwlCarousel className="owl-theme" {...options}>
+            {[...Array(6)].map((_, index) => (
+              <div className="item" key={index}>
+                <div className="companies-week-box-info">
+                  <div className="companies-week-logo">
+                    <img
+                      src="/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                      alt="logo"
+                    />
+                  </div>
+                  <div className="companies-week-img">
+                    <img
+                      src="/jobPortal/assets/images/company/company-img-1.jpg"
+                      alt="company"
+                    />
+                  </div>
+                  <div className="companies-week-content">
+                    <h4>Hauts De Seine Department</h4>
+                    <ul>
+                      <li>
+                        <i className="fa-solid fa-location-dot" />{" "}
+                        Levallois-Perret
+                      </li>
+                      <li>
+                        <i className="fa-solid fa-user" /> 1000 - 20000
+                      </li>
+                      <li>
+                        <i className="fa-solid fa-globe" /> Technicien support
+                        VIP Anglais
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="available-company-btn">
+                    <Link to="/companies-details" className="default-btn btn">
+                      View the Company
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </OwlCarousel>
+        </div>
+      </section>
+
       <div className="job-categories-area ptb-100">
         <div className="container">
           <div className="section-title">

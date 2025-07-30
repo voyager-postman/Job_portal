@@ -1,31 +1,34 @@
 import React from "react";
 import { Link } from "react-router-dom";
-function CompanyDetailsPage() {
+function CompanyDetailsInfo() {
   return (
     <>
       <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Companies Details</h1>
-            <ul>
-              <li>
-                <a href="index-2.html">Home</a>
-              </li>
-              <li>Companies Details</li>
-            </ul>
+            <div className="container">
+              <div className="page-banner-content">
+                <h1>Company Details</h1>
+                <ul>
+                  <li>
+                    <Link to="/" className="nav-link">
+                      {" "}
+                      Home
+                    </Link>
+                  </li>
+                  <li>Company Details</li>
+                </ul>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <section className="company-detail-info-area">
-        <div className="container">
-          <div className="row">
+      <div className="container">
+        <div className="row">
+          <section className="company-detail-info-area">
             <div className="company-img-short-detail">
               <div className="company-img-info">
-                <img src="/jobPortal/assets/images/company/company-img-1.jpg" />
+                <img src="assets/images/company/company-img-1.jpg" />
               </div>
               <div className="company-short-detail-info">
                 <div className="company-short-detail-img">
-                  <img src="/jobPortal/assets/images/partner-logo/partner-logo-2.png" />
+                  <img src="assets/images/partner-logo/partner-logo-2.png" />
                 </div>
                 <div className="company-about-short-detail">
                   <h4>Hauts De Seine Department</h4>
@@ -49,10 +52,7 @@ function CompanyDetailsPage() {
                       Services
                     </li>
                     <li>
-                      <a
-                        href="https://itdevelopmentservices.com/jobPortal/"
-                        target="_blank"
-                      >
+                      <a href="#" target="_blank">
                         <i className="fa-solid fa-arrow-up-right-from-square" />
                         Visit the company website
                       </a>
@@ -728,11 +728,11 @@ function CompanyDetailsPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
+      </div>
     </>
   );
 }
 
-export default CompanyDetailsPage;
+export default CompanyDetailsInfo;

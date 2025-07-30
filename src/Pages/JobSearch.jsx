@@ -160,15 +160,7 @@ function JobSearch() {
                             />
                             <label htmlFor="vehicle1"> Part Time</label>
                           </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Remote</label>
-                          </li>
+
                           <li>
                             <input
                               type="checkbox"
@@ -186,6 +178,24 @@ function JobSearch() {
                               defaultValue="Other Preferences"
                             />
                             <label htmlFor="vehicle1"> Internship</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Remote</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Hybrid Jobs</label>
                           </li>
                         </ul>
                       </div>
@@ -207,7 +217,7 @@ function JobSearch() {
                           className="form-select form-control"
                           aria-label="Default select example"
                         >
-                          <option selected>Select Job type</option>
+                          <option selected>Select Location</option>
                           <option value={1}>India</option>
                           <option value={2}>USA</option>
                           <option value={3}>Paris</option>
@@ -218,89 +228,54 @@ function JobSearch() {
                       </div>
                     </div>
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
+                    <div class="job-filter-search-area">
+                      <div class="job-filter-heading-cancel">
+                        <div class="job-filter-heading">
                           <h4>
-                            <i className="fa-solid fa-globe" /> Remote Jobs
+                            <i class="fas fa-signal"></i> Experience Level
                           </h4>
                         </div>
-                        <div className="job-filter-cancel-heading">
+                        <div class="job-filter-cancel-heading">
                           <h4>Clear</h4>
                         </div>
                       </div>
-                      <div className="job-filter-select-info">
-                        <input
-                          type="checkbox"
-                          id="OtherPreferences"
-                          name="OtherPreferences"
-                          defaultValue="Other Preferences"
-                        />
-                        <label htmlFor="vehicle1"> Remote</label>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fa-solid fa-gear" /> Hybrid Jobs
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <input
-                          type="checkbox"
-                          id="OtherPreferences"
-                          name="OtherPreferences"
-                          defaultValue="Other Preferences"
-                        />
-                        <label htmlFor="vehicle1"> Hybrid Jobs</label>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fas fa-signal" /> Experience Level
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
+                      <div class="job-filter-select-info">
                         <ul>
                           <li>
                             <input
                               type="checkbox"
                               id="OtherPreferences"
                               name="OtherPreferences"
-                              defaultValue="Other Preferences"
+                              value="Other Preferences"
                             />
-                            <label htmlFor="vehicle1"> Junior</label>
+                            <label for="vehicle1"> 0 - 2 Years</label>
                           </li>
                           <li>
                             <input
                               type="checkbox"
                               id="OtherPreferences"
                               name="OtherPreferences"
-                              defaultValue="Other Preferences"
+                              value="Other Preferences"
                             />
-                            <label htmlFor="vehicle1"> Mid</label>
+                            <label for="vehicle1"> 2 - 4 Years</label>
                           </li>
                           <li>
                             <input
                               type="checkbox"
                               id="OtherPreferences"
                               name="OtherPreferences"
-                              defaultValue="Other Preferences"
+                              value="Other Preferences"
                             />
-                            <label htmlFor="vehicle1"> Senior</label>
+                            <label for="vehicle1"> 5 - 7 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              value="Other Preferences"
+                            />
+                            <label for="vehicle1"> 8 - 10 Years</label>
                           </li>
                         </ul>
                       </div>
@@ -432,7 +407,21 @@ function JobSearch() {
                             </h4>
                           </div>
                           <div className="available-job-save-job">
-                            <i className="fa-regular fa-heart" />
+                            <a href="job-details.html">
+                              <i className="fa-regular fa-heart" />
+                            </a>
+                            <a
+                              href="https://www.linkedin.com/login"
+                              target="_blank"
+                            >
+                              <i className="fa-brands fa-linkedin-in" />
+                            </a>
+                            <a href="https://www.facebook.com/" target="_blank">
+                              <i className="fa-brands fa-facebook-f" />
+                            </a>
+                            <a href="https://web.whatsapp.com/" target="_blank">
+                              <i className="fa-brands fa-whatsapp" />
+                            </a>
                           </div>
                         </div>
                         <div className="available-job-type-details">
@@ -462,7 +451,7 @@ function JobSearch() {
                         </div>
                       </div>
                     </Link>
-                        <Link to="/job-details">
+                    <Link to="/job-details">
                       <div className="available-job-posts-box">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
@@ -472,7 +461,21 @@ function JobSearch() {
                             </h4>
                           </div>
                           <div className="available-job-save-job">
-                            <i className="fa-regular fa-heart" />
+                            <a href="job-details.html">
+                              <i className="fa-regular fa-heart" />
+                            </a>
+                            <a
+                              href="https://www.linkedin.com/login"
+                              target="_blank"
+                            >
+                              <i className="fa-brands fa-linkedin-in" />
+                            </a>
+                            <a href="https://www.facebook.com/" target="_blank">
+                              <i className="fa-brands fa-facebook-f" />
+                            </a>
+                            <a href="https://web.whatsapp.com/" target="_blank">
+                              <i className="fa-brands fa-whatsapp" />
+                            </a>
                           </div>
                         </div>
                         <div className="available-job-type-details">
@@ -502,7 +505,7 @@ function JobSearch() {
                         </div>
                       </div>
                     </Link>
-                        <Link to="/job-details">
+                    <Link to="/job-details">
                       <div className="available-job-posts-box">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
@@ -512,7 +515,21 @@ function JobSearch() {
                             </h4>
                           </div>
                           <div className="available-job-save-job">
-                            <i className="fa-regular fa-heart" />
+                            <a href="job-details.html">
+                              <i className="fa-regular fa-heart" />
+                            </a>
+                            <a
+                              href="https://www.linkedin.com/login"
+                              target="_blank"
+                            >
+                              <i className="fa-brands fa-linkedin-in" />
+                            </a>
+                            <a href="https://www.facebook.com/" target="_blank">
+                              <i className="fa-brands fa-facebook-f" />
+                            </a>
+                            <a href="https://web.whatsapp.com/" target="_blank">
+                              <i className="fa-brands fa-whatsapp" />
+                            </a>
                           </div>
                         </div>
                         <div className="available-job-type-details">
@@ -542,7 +559,7 @@ function JobSearch() {
                         </div>
                       </div>
                     </Link>
-                        <Link to="/job-details">
+                    <Link to="/job-details">
                       <div className="available-job-posts-box">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
@@ -552,7 +569,21 @@ function JobSearch() {
                             </h4>
                           </div>
                           <div className="available-job-save-job">
-                            <i className="fa-regular fa-heart" />
+                            <a href="job-details.html">
+                              <i className="fa-regular fa-heart" />
+                            </a>
+                            <a
+                              href="https://www.linkedin.com/login"
+                              target="_blank"
+                            >
+                              <i className="fa-brands fa-linkedin-in" />
+                            </a>
+                            <a href="https://www.facebook.com/" target="_blank">
+                              <i className="fa-brands fa-facebook-f" />
+                            </a>
+                            <a href="https://web.whatsapp.com/" target="_blank">
+                              <i className="fa-brands fa-whatsapp" />
+                            </a>
                           </div>
                         </div>
                         <div className="available-job-type-details">
@@ -584,7 +615,7 @@ function JobSearch() {
                     </Link>
                   </div>
                 </div>
-              </div>  
+              </div>
             </div>
           </div>
 

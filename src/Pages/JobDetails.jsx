@@ -59,6 +59,21 @@ function JobDetails() {
                     <li>
                       <i className="fa-regular fa-heart" />
                     </li>
+                    <li>
+                      <a href="https://www.linkedin.com/login" target="_blank">
+                        <i className="fa-brands fa-linkedin-in" />
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://www.facebook.com/" target="_blank">
+                        <i className="fa-brands fa-facebook-f" />
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://web.whatsapp.com/" target="_blank">
+                        <i className="fa-brands fa-whatsapp" />
+                      </a>
+                    </li>
                   </ul>
                 </div>
                 <div className="job-apply-btn">
