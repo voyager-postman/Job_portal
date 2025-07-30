@@ -30,7 +30,7 @@ function Header() {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-
+{/* <h1>ujjjjjjjjjjjjjjjjj</h1> */}
   return (
     <>
       <div className="navbar-area bg-f0f4fc">
