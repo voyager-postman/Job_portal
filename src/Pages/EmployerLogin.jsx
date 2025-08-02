@@ -30,37 +30,51 @@ function EmployerLogin() {
     }
     return true;
   };
-  const handleLogin = (e) => {
-    e.preventDefault(); // ✅ Add this
+
+  const handleLogin = async () => {
+  
     if (!validateForm()) return;
 
     setLoading(true);
 
-    setTimeout(() => {
-      const dummyUser = {
-        id: "123456",
+    try {
+      const response = await axios.post(`${API_BASE_URL}user/login`, {
         email: formData.email,
-        role: "employer_type",
-        name: "John Doe",
-      };
+        password: formData.password,
+      });
+      console.log(response);
+      if (response.status === 200 && response.data.success) {
+        const { token, user } = response.data;
 
-      const dummyToken = "static_token_123456";
-
-      localStorage.setItem("token", dummyToken);
-      localStorage.setItem("user", JSON.stringify(dummyUser));
-      localStorage.setItem("user_id", dummyUser.id);
-      localStorage.setItem("user_email", dummyUser.email);
-      localStorage.setItem("user_role", dummyUser.role);
-
-      login();
-      toast.success("Login successful!");
-      navigate("/employer-basic-info");
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(token));
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("user_email", user.email);
+        localStorage.setItem("user_role", user.role);
+         localStorage.setItem("first_name", user.first_name);
+        localStorage.setItem("last_name", user.last_name);
+        login();
+        toast.success("Login successful!");
+        navigate("/employer-basic-info");
+      } else {
+        toast.error(response.data?.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      if (Array.isArray(error.response?.data?.errors)) {
+        error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
+      } else {
+        toast.error(
+          error.response?.data?.message || "Login failed. Please try again."
+        );
+      }
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
-
   return (
     <>
+      <ToastContainer />
       <div>
         <div className="page-banner-area bg-f0f4fc">
           <div className="container">

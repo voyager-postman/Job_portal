@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-
+// import { Modal } from "bootstrap";
 const categories = [
   "Information systems / Networks",
   "Software Engineering / Web Development",
@@ -18,6 +18,8 @@ const categories = [
   "Information Technology Management",
 ];
 function MyProfile() {
+  const [showModal, setShowModal] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -47,9 +49,14 @@ function MyProfile() {
     const selectedFile = e.target.files[0];
 
     if (selectedFile) {
-      const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword", // .doc
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      ];
+
       if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Only PDF, JPG, JPEG, and PNG files are allowed.");
+        setError("Only PDF, DOC, and DOCX files are allowed.");
         return;
       }
 
@@ -57,13 +64,13 @@ function MyProfile() {
       setFile(selectedFile); // for display
       setFormData((prev) => ({
         ...prev,
-        attachment: selectedFile, // ✅ set in formData
+        attachment: selectedFile,
       }));
     }
   };
 
   const handleCategoryClick = (index) => {
-    setActiveIndex(index); // for styling (active/inactive class)
+    setActiveIndex(index);
     setFormData((prev) => ({
       ...prev,
       selectedCategory: categories[index],
@@ -77,15 +84,15 @@ function MyProfile() {
     }));
   };
   const validate = () => {
-    if (!formData.attachment) {
-      toast.error("Resume file is required.");
-      return false;
-    }
-    if (!formData.firstName) {
+    // if (!formData.attachment) {
+    //   toast.error("Resume file is required.");
+    //   return false;
+    // }
+    if (!formData.firstName?.trim()) {
       toast.error("First name is required.");
       return false;
     }
-    if (!formData.lastName) {
+    if (!formData.lastName?.trim()) {
       toast.error("Last name is required.");
       return false;
     }
@@ -93,76 +100,156 @@ function MyProfile() {
       toast.error("City is required.");
       return false;
     }
-    if (!formData.jobTitle) {
-      toast.error("Job title is required.");
-      return false;
-    }
-    if (!formData.experience) {
-      toast.error("Experience is required.");
-      return false;
-    }
-    if (!formData.employmentType) {
-      toast.error("Employment type is required.");
-      return false;
-    }
-    if (!formData.occupationType) {
-      toast.error("Occupation type is required.");
-      return false;
-    }
-    if (!formData.salaryType) {
-      toast.error("Salary type is required.");
-      return false;
-    }
-    if (!formData.salaryAmount) {
-      toast.error("Salary amount is required.");
-      return false;
-    }
-    if (!formData.selectedCategory) {
-      toast.error("Job category is required.");
-      return false;
-    }
+    // if (!formData.jobTitle?.trim()) {
+    //   toast.error("Job title is required.");
+    //   return false;
+    // }
+    // if (!formData.experience?.trim()) {
+    //   toast.error("Experience is required.");
+    //   return false;
+    // }
+    // if (!formData.employmentType) {
+    //   toast.error("Employment type is required.");
+    //   return false;
+    // }
+    // if (!formData.occupationType) {
+    //   toast.error("Occupation type is required.");
+    //   return false;
+    // }
+    // if (!formData.salaryType) {
+    //   toast.error("Salary type is required.");
+    //   return false;
+    // }
+    // if (!formData.salaryAmount?.trim()) {
+    //   toast.error("Salary amount is required.");
+    //   return false;
+    // }
+    // if (!formData.selectedCategory) {
+    //   toast.error("Job category is required.");
+    //   return false;
+    // }
+    // if (!formData.eligibleInFrance) {
+    //   toast.error("Eligibility to work in France is required.");
+    //   return false;
+    // }
 
-    return true; // ✅ All fields are valid
+    return true;
   };
 
   const candidateLogin = async () => {
-    navigate("/candidate-dashboard");
-    // if (!validate()) return;
+    if (!validate()) return;
 
-    // const data = new FormData();
-    // data.append("firstname", formData.firstName);
-    // data.append("lastname", formData.lastName);
-    // data.append("city", formData.city);
-    // data.append("jobTitle", formData.jobTitle);
-    // data.append("yearOfExprerience", formData.experience);
-    // data.append("jobCategory", formData.selectedCategory);
-    // data.append("DesiredEmploymentType", formData.employmentType);
-    // data.append("DesiredOccupationType", formData.occupationType);
-    // data.append(
-    //   "MinimumDesiredSalary",
-    //   JSON.stringify({
-    //     salaryType: formData.salaryType,
-    //     salaryAmount: formData.salaryAmount,
-    //   })
-    // );
-    // const isEligible = formData.eligibleInFrance.toLowerCase() === "yes";
-    // data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
+    const data = new FormData();
+    data.append("firstname", formData.firstName);
+    data.append("lastname", formData.lastName);
+    data.append("city", formData.city);
+    data.append("jobTitle", formData.jobTitle);
+    data.append("yearOfExprerience", formData.experience);
+    data.append("jobCategory", formData.selectedCategory);
+    data.append("DesiredEmploymentType", formData.employmentType);
+    data.append("DesiredOccupationType", formData.occupationType);
+    data.append(
+      "MinimumDesiredSalary",
+      JSON.stringify({
+        type: formData.salaryType || "Yearly",
+        amount: formData.salaryAmount,
+        currency: "EUR",
+      })
+    );
+    const isEligible = formData.eligibleInFrance?.toLowerCase() === "yes";
+    data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
 
-    // data.append("resume", formData.attachment);
+    data.append("resume", formData.attachment);
 
-    // try {
-    //   const res = await axios.post(
-    //     `${API_BASE_URL}createCandidateProfile`,
-    //     data
-    //   );
-    //   toast.success("Profile created successfully!");
-    //   navigate("/candidate-profile");
-    // } catch (err) {
-    //   console.error("Error:", err.response?.data || err.message);
-    //   toast.error("Failed to create profile. Try again.");
-    // }
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        `${API_BASE_URL}createCandidateProfile`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success("Profile created successfully!", {
+        autoClose: 5000,
+        theme: "colored",
+      });
+      navigate("/candidate-profile");
+    } catch (err) {
+      console.error("Error:", err.response?.data || err.message);
+      toast.error("Failed to create profile. Try again.");
+    }
   };
 
+  // const uploadResume = async () => {
+  //   const data = new FormData();
+  //   data.append("resume", formData.attachment);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+
+  //     toast.success("Resume uploaded successfully!");
+
+  //     // Close modal programmatically
+  //     const modalElement = document.getElementById("exampleModal");
+  //     const modalInstance =
+  //       Modal.getInstance(modalElement) || new Modal(modalElement);
+  //     modalInstance.hide();
+
+  //     // Optional: Reset file input or form data
+  //     // setFormData({ ...formData, attachment: null });
+  //     // setFile(null);
+  //   } catch (err) {
+  //     console.error("Error:", err.response?.data || err.message);
+  //     toast.error("Failed to upload resume. Try again.");
+  //   }
+  // };
+  const uploadResume = async () => {
+    const data = new FormData();
+    data.append("resume", formData.attachment);
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+
+      if (res.data.success && res.data.data) {
+        setShowModal(false);
+        toast.success("Resume uploaded successfully!");
+
+        const extracted = res.data.data;
+
+        // Map API response to form fields
+        setFormData((prev) => ({
+          ...prev,
+          firstName: extracted.firstName || "",
+          lastName: extracted.lastName || "",
+          city: extracted.city || "",
+          jobTitle: extracted.jobTitle || "",
+          experience: extracted.experience || "",
+          employmentType: extracted.employmentType || "",
+          occupationType: extracted.occupationType || "",
+          salaryType: extracted.desiredSalaryType || "",
+          salaryAmount: extracted.desiredSalaryAmount || "",
+          eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
+          selectedCategory: extracted.jobCategory || "",
+        }));
+
+        // Close modal
+        // const modalElement = document.getElementById("exampleModal");
+        // const modalInstance =
+        //   Modal.getInstance(modalElement) || new Modal(modalElement);
+        // modalInstance.hide();
+      } else {
+        toast.error("Upload succeeded but data extraction failed.");
+      }
+    } catch (err) {
+      console.error("Error:", err.response?.data || err.message);
+      toast.error("Failed to upload resume. Try again.");
+    }
+  };
   return (
     <>
       <ToastContainer />
@@ -183,8 +270,8 @@ function MyProfile() {
         <div className="profile-basic-info-heading">
           <div className="section-title">
             <h2>
-              Please Confirm Your Profile{" "}
-              <label className="oragneColor">Basic Info</label>{" "}
+              Please Fill in your Basic &nbsp;
+              <label className="oragneColor">Profile Information</label>{" "}
             </h2>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -197,10 +284,7 @@ function MyProfile() {
             <form>
               <div className="personal-info-area">
                 <h3 className="heading-bottom-line">Attachments</h3>
-                <p>
-                  Use a CV parser for a LinkedIn parser for automatically fill
-                  this form
-                </p>
+                <p>Auto-Fill Form Using Your Resume or LinkedIn</p>
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
                     <div className="personal-info-cv-linkedin-upload-btn">
@@ -208,77 +292,85 @@ function MyProfile() {
                         <a
                           href="#"
                           className="default-btn btn"
-                          data-bs-toggle="modal"
-                          data-bs-target="#exampleModal"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowModal(true);
+                          }}
                         >
                           <i className="fa-solid fa-file" />
-                          Upload CV
+                          Upload Resume
                         </a>
-                        {/* Modal */}
-                        <div
-                          className="modal fade"
-                          id="exampleModal"
-                          tabIndex={-1}
-                          aria-labelledby="exampleModalLabel"
-                          aria-hidden="true"
-                        >
-                          <div className="modal-dialog">
-                            <div className="modal-content">
-                              <div className="modal-header">
-                                <h5
-                                  className="modal-title"
-                                  id="exampleModalLabel"
-                                >
-                                  Upload CV
-                                </h5>
-                                <button
-                                  type="button"
-                                  className="btn-close"
-                                  data-bs-dismiss="modal"
-                                  aria-label="Close"
-                                />
-                              </div>
-                              <div className="modal-body">
-                                <div className="form-group">
-                                  <div className="custom-file-upload">
-                                    <label
-                                      htmlFor="file-upload"
-                                      className="fw-bold"
-                                    >
-                                      Upload Your File (PDF/JPG/PNG)
-                                    </label>
-                                    <input
-                                      type="file"
-                                      id="file-upload"
-                                      accept=".pdf,.jpg,.jpeg,.png"
-                                      required
-                                      onChange={handleFileChange}
-                                      className="input-hidden"
-                                    />
-                                    <label
-                                      htmlFor="file-upload"
-                                      className="file-text"
-                                    >
-                                      <i className="fas fa-cloud-upload-alt" />
-                                      <br />
-                                      Click to Upload or drag & drop
-                                    </label>
-                                    {error && (
-                                      <div className="invalid-feedback d-block mt-2">
-                                        {error}
-                                      </div>
-                                    )}
-                                    {file && (
-                                      <div className="mt-2 text-success">
-                                        Selected: {file.name}
-                                      </div>
-                                    )}
+
+                        {showModal && (
+                          <div className="modal show d-block" tabIndex="-1">
+                            <div className="modal-dialog">
+                              <div className="modal-content">
+                                <div className="modal-header">
+                                  <h5 className="modal-title">Upload CV</h5>
+                                  <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => {
+                                      setShowModal(false);
+                                      setFile(null); // clear selected file
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        attachment: null, // clear from formData
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                                <div className="modal-body">
+                                  <div className="form-group">
+                                    <div className="custom-file-upload">
+                                      <label
+                                        htmlFor="file-upload"
+                                        className="fw-bold"
+                                      >
+                                        Upload Your File (PDF/JPG/PNG)
+                                      </label>
+                                      <input
+                                        type="file"
+                                        id="file-upload"
+                                        accept=".pdf,.doc,.docx"
+                                        required
+                                        onChange={handleFileChange}
+                                        className="input-hidden"
+                                      />
+                                      <label
+                                        htmlFor="file-upload"
+                                        className="file-text"
+                                      >
+                                        <i className="fas fa-cloud-upload-alt" />
+                                        <br />
+                                        Click to Upload or drag & drop
+                                      </label>
+                                      {error && (
+                                        <div className="invalid-feedback d-block mt-2">
+                                          {error}
+                                        </div>
+                                      )}
+                                      {file && (
+                                        <div className="mt-2 text-success">
+                                          Selected: {file.name}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="text-center">
+                                      <button
+                                        type="button"
+                                        className="mt-3 default-btn btn"
+                                        onClick={uploadResume}
+                                      >
+                                        Upload
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                       <div className="personal-info-upload-content-linkedin">
                         <a
@@ -287,7 +379,7 @@ function MyProfile() {
                           className="default-btn btn"
                         >
                           <i className="fa-brands fa-linkedin-in" />
-                          Upload Content from LinkedIn
+                          Import from LinkedIn
                         </a>
                       </div>
                     </div>
@@ -391,7 +483,6 @@ function MyProfile() {
                   </ul>
                 </div>
               </div>
-
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">

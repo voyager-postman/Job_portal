@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-
+import { API_BASE_URL } from "../Url/Url";
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext"; // adjust path as needed
@@ -30,7 +30,9 @@ function Header() {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-{/* <h1>ujjjjjjjjjjjjjjjjj</h1> */}
+  {
+    /* <h1>ujjjjjjjjjjjjjjjjj</h1> */
+  }
   return (
     <>
       <div className="navbar-area bg-f0f4fc">
@@ -114,11 +116,6 @@ function Header() {
                           Post A Job
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink to="/jobs/details" className="nav-link">
-                          Job Details
-                        </NavLink>
-                      </li>
                     </ul>
                   </li>
                   <li className="nav-item">
@@ -136,14 +133,9 @@ function Header() {
                           Employers Listing
                         </NavLink>
                       </li>
-                      <li className="nav-item">
-                        <NavLink to="/employers/details" className="nav-link">
-                          Employers Details
-                        </NavLink>
-                      </li>
                     </ul>
                   </li>
-                  {userRole === "employer_type" && (
+                  {userRole === "Recruiter" && (
                     <li className="nav-item">
                       <NavLink
                         to="/blog"
@@ -163,14 +155,14 @@ function Header() {
                             Candidates Listing
                           </NavLink>
                         </li>
-                        <li className="nav-item">
+                        {/* <li className="nav-item">
                           <NavLink
                             to="/candidates-profile-details"
                             className="nav-link"
                           >
                             Candidates Details
                           </NavLink>
-                        </li>
+                        </li> */}
                       </ul>
                     </li>
                   )}
@@ -201,7 +193,7 @@ function Header() {
                         >
                           <div className="menu-profile">
                             <img
-                              src="/jobPortal/assets/images/dashboard/dashboard-img-1.png"
+                              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
                               className="rounded-circle"
                               alt="image"
                             />
@@ -215,18 +207,56 @@ function Header() {
                           <div className="dropdown-header d-flex flex-column align-items-center">
                             <div className="figure mb-3">
                               <img
-                                src="/jobPortal/assets/images/dashboard/dashboard-img-1.png"
+                                src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
                                 className="rounded-circle"
                                 alt="image"
                               />
                             </div>
                             <div className="info text-center">
-                              <span className="name">Andy Smith</span>
-                              <p className="mb-3 email">
-                                <a href="#" className="__cf_email__">
-                                  andy@example.com
-                                </a>
-                              </p>
+                              {(() => {
+                                const firstName =
+                                  localStorage.getItem("first_name");
+                                const lastName =
+                                  localStorage.getItem("last_name");
+
+                                const hasValidName =
+                                  (firstName &&
+                                    firstName !== "null" &&
+                                    firstName !== "undefined") ||
+                                  (lastName &&
+                                    lastName !== "null" &&
+                                    lastName !== "undefined");
+
+                                return (
+                                  hasValidName && (
+                                    <span className="name">
+                                      {firstName &&
+                                      firstName !== "null" &&
+                                      firstName !== "undefined"
+                                        ? firstName
+                                        : ""}{" "}
+                                      {lastName &&
+                                      lastName !== "null" &&
+                                      lastName !== "undefined"
+                                        ? lastName
+                                        : ""}
+                                    </span>
+                                  )
+                                );
+                              })()}
+
+                              {localStorage.getItem("user_email") && (
+                                <p className="mb-3 email">
+                                  <a
+                                    href={`mailto:${localStorage.getItem(
+                                      "user_email"
+                                    )}`}
+                                    className="__cf_email__"
+                                  >
+                                    {localStorage.getItem("user_email")}
+                                  </a>
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="dropdown-body">
@@ -234,7 +264,7 @@ function Header() {
                               <li className="nav-item active">
                                 <Link
                                   to={
-                                    userRole === "skiller_type"
+                                    userRole === "JobSeeker"
                                       ? "/candidate-dashboard"
                                       : "/your-job-posts"
                                   }
@@ -426,7 +456,12 @@ function Header() {
                     <p>or</p>
                   </div>
                   <div className="register-option-info-are">
-                    <button className="default-btn btn">
+                    <button
+                      className="default-btn btn"
+                      onClick={() =>
+                        (window.location.href = `${API_BASE_URL}auth/linkedin/`)
+                      }
+                    >
                       <div className="social-icon">
                         <img src="/jobPortal/assets/images/icon/linkedin-icon.png" />
                       </div>

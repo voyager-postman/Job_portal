@@ -31,77 +31,55 @@ function Login() {
     return true;
   };
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   if (!validateForm()) return;
-
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await axios.post(`${API_BASE_URL}user/login`, {
-  //       email: formData.email,
-  //       password: formData.password,
-  //     });
-
-  //     if (response.status === 200 && response.data.success) {
-  //       const { token, user } = response.data;
-
-  //       localStorage.setItem("token", token);
-  //       localStorage.setItem("user", JSON.stringify(user));
-  //       localStorage.setItem("user_id", user.id);
-  //       localStorage.setItem("user_email", user.email);
-  //       localStorage.setItem("user_role", user.role);
-
-  //       login();
-
-  //       toast.success("Login successful!");
-  //       navigate("/profile-basic-info");
-  //     } else {
-  //       toast.error(response.data?.message || "Invalid credentials");
-  //     }
-  //   } catch (error) {
-  //     console.error("Login error:", error);
-  //     if (Array.isArray(error.response?.data?.errors)) {
-  //       error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
-  //     } else {
-  //       toast.error(
-  //         error.response?.data?.message || "Login failed. Please try again."
-  //       );
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setLoading(true);
 
-    setTimeout(() => {
-      // Simulate login success with static credentials
-      const dummyUser = {
-        id: "123456",
+    try {
+      const response = await axios.post(`${API_BASE_URL}user/login`, {
         email: formData.email,
-        role: "skiller_type", // or "candidate" as needed
-        name: "John Doe",
-      };
+        password: formData.password,
+      });
 
-      const dummyToken = "static_token_123456";
+      if (response.status === 200 && response.data.success) {
+        const { token, user } = response.data;
 
-      localStorage.setItem("token", dummyToken);
-      localStorage.setItem("user", JSON.stringify(dummyUser));
-      localStorage.setItem("user_id", dummyUser.id);
-      localStorage.setItem("user_email", dummyUser.email);
-      localStorage.setItem("user_role", dummyUser.role);
+        // Save login data
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("user_email", user.email);
+        localStorage.setItem("user_role", user.role);
+        localStorage.setItem("first_name", user.first_name);
+        localStorage.setItem("last_name", user.last_name);
+        login(); // call your login context or auth function
 
-      login(); // Your custom auth context function
+        toast.success("Login successful!");
 
-      toast.success("Login successful!");
-      navigate("/profile-basic-info");
-
+        // Navigate based on profile completion
+        if (user?.is_completed) {
+          navigate("/candidate-profile");
+        } else {
+          navigate("/profile-basic-info");
+        }
+      } else {
+        toast.error(response.data?.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      if (Array.isArray(error.response?.data?.errors)) {
+        error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
+      } else {
+        toast.error(
+          error.response?.data?.message || "Login failed. Please try again."
+        );
+      }
+    } finally {
       setLoading(false);
-    }, 1000); // simulate a network delay (optional)
+    }
   };
 
   const goToRegister = () => {

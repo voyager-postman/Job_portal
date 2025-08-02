@@ -81,37 +81,74 @@
 // }
 
 // export default Login;
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "../utils/axiosInstance"; // path based on your folder structure
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
+
+import { API_BASE_URL } from "../Url/Url";
 
 function EmployerRegister() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const validateForm = () => {
+    if (!email || !password) {
+      toast.error("Please fill in all required fields");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+    if (!agree) {
+      toast.error("You must accept the terms and conditions");
+      return false;
+    }
+    return true;
+  };
+
   const handleRegister = async () => {
-    navigate("/employer-login");
-    // try {
-    //   const response = await axios.post(`${API_BASE_URL}user/register`, {
-    //     email,
-    //     password,
-    //   });
-    //   console.log(response);
-    //   if (response.status === 200 || response.status === 201) {
-    //     toast.success("Registration successful!");
-    //     login(); // set auth context / localStorage
-    //     navigate("/login");
-    //   } else {
-    //     toast.error("Something went wrong, please try again.");
-    //   }
-    // } catch (error) {
-    //   console.error("Register error:", error);
-    //   toast.error(
-    //     error.response?.data?.message || "Registration failed. Try again."
-    //   );
-    // } finally {
-    //   setLoading(false);
-    // }
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_BASE_URL}register/recruiter`, {
+        email,
+        password,
+      });
+      console.log(response);
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Registration successful!");
+        login(); // set auth context / localStorage
+        navigate("/employer-login");
+      } else {
+        toast.error("Something went wrong, please try again.");
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      toast.error(
+        error.response?.data?.message || "Registration failed. Try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <>
+      <ToastContainer />
       <div>
         <div className="page-banner-area bg-f0f4fc">
           <div className="container">
@@ -136,20 +173,22 @@ function EmployerRegister() {
                 <div className="form-group">
                   <input
                     type="email"
-                    id="email2"
                     className="form-control"
                     placeholder="Email Address*"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
                   <input
                     type="password"
-                    id="password2"
                     className="form-control"
                     placeholder="Password*"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
-                <div className="register-terms-Policy-box">
+                {/* <div className="register-terms-Policy-box">
                   <input
                     type="checkbox"
                     id="vehicle1"
@@ -161,6 +200,18 @@ function EmployerRegister() {
                     I accept the <a href="#">Terms &amp; Condition</a> and{" "}
                     <a href="#">Privacy Policy</a>
                   </label>
+                </div> */}
+                <div className="register-terms-Policy-box">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={agree}
+                    onChange={(e) => setAgree(e.target.checked)}
+                  />
+                  <label htmlFor="terms">
+                    I accept the <a href="#">Terms &amp; Condition</a> and{" "}
+                    <a href="#">Privacy Policy</a>
+                  </label>
                 </div>
                 <div className="register-and-social-icon-info">
                   <div className="register-btn">
@@ -169,7 +220,7 @@ function EmployerRegister() {
                       onClick={handleRegister}
                       className="default-btn btn"
                     >
-                      Register
+                      {loading ? "Registering..." : "Register"}
                     </button>
                   </div>
                   <div className="register-social-icon employer-register">

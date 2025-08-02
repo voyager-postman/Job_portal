@@ -55,6 +55,24 @@
   <script src="/jobPortal/assets/js/contact-form-script.js"></script>
   <script src="/jobPortal/assets/js/ajaxchimp.min.js"></script>
   <script src="/jobPortal/assets/js/custom.js"></script>
+  <script type="text/javascript">
+
+    const faqItems = document.querySelectorAll('.candidate-blank-form-detail-edit-info');
+
+    faqItems.forEach(item => {
+      item.classList.add('active');
+    });
+
+    faqItems.forEach(item => {
+      const question = item.querySelector('.profile-form-content');
+      question.addEventListener('click', () => {
+        item.classList.toggle('active');
+      });
+    });
+
+  </script>
+  
+
 </body>
 
 </html>

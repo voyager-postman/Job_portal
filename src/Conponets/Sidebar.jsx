@@ -10,7 +10,7 @@ function Sidebar() {
         </div>
       </div>
       <div className="sidemenu-body">
-        {userRole === "skiller_type" && (
+        {userRole === "JobSeeker" && (
           <ul
             className="sidemenu-nav metisMenu h-100"
             id="sidemenu-nav"
@@ -71,7 +71,7 @@ function Sidebar() {
             {/* Repeat for other links as needed */}
           </ul>
         )}
-        {userRole === "employer_type" && (
+        {userRole === "Recruiter" && (
           <ul
             className="sidemenu-nav metisMenu h-100"
             id="sidemenu-nav"

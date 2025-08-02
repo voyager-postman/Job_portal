@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+
 function Footer() {
   const handleScrollTop = () => {
     window.scrollTo({
@@ -15,9 +17,12 @@ function Footer() {
               <div className="col-lg-4 col-sm-6">
                 <div className="single-footer-widget logo-content">
                   <div className="footer-logo">
-                    <a href="/">
-                      <img src="assets/images/white-logo.png" alt="Image" />
-                    </a>
+                    <Link className="navbar-brand" to="/">
+                      <img
+                        src="/jobPortal/assets/images/white-logo.png"
+                        alt="Image"
+                      />
+                    </Link>
                   </div>
                   <p>
                     Lorem ipsum dolor sit amet, consec tetur adipiscing elit
@@ -56,19 +61,19 @@ function Footer() {
                   <h3>For Employer</h3>
                   <ul>
                     <li>
-                      <a href="/">Browse Candidates</a>
+                      <Link to="/">Browse Candidates </Link>
                     </li>
                     <li>
-                      <a href="/">Employers Dashboard</a>
+                      <Link to="/">Employers Dashboard </Link>
                     </li>
                     <li>
-                      <a href="/">Job Packages</a>
+                      <Link to="/">Job Packages </Link>
                     </li>
                     <li>
-                      <a href="/">Jobs Featured</a>
+                      <Link to="/">Jobs Featured </Link>
                     </li>
                     <li>
-                      <a href="/">Post A Job</a>
+                      <Link to="/">Post A Job </Link>
                     </li>
                   </ul>
                 </div>
@@ -78,19 +83,19 @@ function Footer() {
                   <h3>Company</h3>
                   <ul>
                     <li>
-                      <a href="/">About Us</a>
+                      <Link to="/about-us">About Us</Link>
                     </li>
                     <li>
-                      <a href="/">Contact Us</a>
+                      <Link to="/contact-us">Contact Us</Link>
                     </li>
                     <li>
-                      <a href="/">Terms &amp; Conditions</a>
+                      <Link to="/">Terms &amp; Conditions</Link>
                     </li>
                     <li>
-                      <a href="/">Privacy Policy</a>
+                      <Link to="/">Privacy Policy</Link>
                     </li>
                     <li>
-                      <a href="/">Candidate Listing</a>
+                      <Link to="/">Candidate Listing</Link>
                     </li>
                   </ul>
                 </div>
@@ -126,8 +131,8 @@ function Footer() {
           <div className="container">
             <p>
               © <span>Connect Work.ma</span> is Proudly Owned by{" "}
-              <a href="#!" target="_blank">
-               Webnmobapps Solution Pvt. Ltd
+              <a href="https://www.webnmobappssolutions.com/" target="_blank">
+                Webnmobapps Solution Pvt. Ltd
               </a>
             </p>
           </div>

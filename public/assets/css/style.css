@@ -1520,7 +1520,7 @@ Navbar Area Style
   .profile-nav-item.dropdown
   .dropdown-menu
   .dropdown-header {
-  padding: 0;
+  padding: 0px 17px;
   border-bottom: 1px solid #f2f4f9;
   margin-left: -15px;
   margin-right: -15px;
@@ -11123,16 +11123,7 @@ input:checked + .slider:before {
   border-bottom: 1px solid #eeeeee;
 }
 
-.input-info-edit-area i {
-  color: #fff;
-  background: #0066cc;
-  padding: 8px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  position: absolute;
-  bottom: 27px;
-  left: 230px;
-}
+
 
 .input-info-edit-area i:hover {
   background: #ff6600;
@@ -14247,349 +14238,6 @@ Dashboard Area CSS
 
 /*global css end here*/
 
-.switch {
-  width: 45px;
-  height: 20px;
-  position: relative;
-  display: inline-block;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
-}
-
-.slider:before {
-  content: "";
-  height: 15px;
-  width: 15px;
-  left: 2px;
-  bottom: 3px;
-  position: absolute;
-  background-color: white;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
-}
-
-input:checked + .slider {
-  background-color: #2196f3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196f3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-.candidates-detail-main-area {
-  display: flex;
-  padding: 20px 30px;
-  justify-content: space-between;
-  border-bottom: 1px solid #eeee;
-}
-
-.candidates-img-detail-info {
-  display: flex;
-}
-
-.candidates-img-info {
-  width: 28%;
-}
-
-.my-profile-area .candidates-details-info h3 {
-  font-size: 15px;
-  padding-left: 20px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.visibility-icon-content i {
-  color: #0066cc;
-}
-
-.visibility-icon-content i:hover {
-  color: #ff6600;
-}
-
-.visibility-icon-content {
-  margin-right: 20px;
-}
-
-.img-edit-icon {
-  position: relative;
-}
-
-.img-edit-icon i {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: #0066cc;
-  padding: 7px;
-  border-radius: 50px;
-  color: #fff;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-}
-
-.img-edit-icon i:hover {
-  background: #ff6600;
-}
-
-.upload-download-dlt-cv {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  border: 1px solid #eeee;
-  padding: 20px 20px;
-  border-radius: 10px;
-}
-
-.upload-cv-info-area p i {
-  margin-right: 10px;
-}
-
-.upload-cv-area {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.upload-cv-area input[type="file"]::file-selector-button {
-  padding: 10px 10px;
-  border: none;
-  border-radius: 1rem;
-  background-color: #0066cc;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 1em;
-}
-
-.currently-working-here {
-  margin-bottom: 20px;
-}
-
-.skill-btn-info .default-btn {
-  border-radius: 5px !important;
-  padding: 13px 20px !important;
-  margin-left: 25px;
-}
-
-.enter-skill-info {
-  display: flex;
-}
-
-.enter-skill-info .form-group {
-  width: 85%;
-}
-
-.delete-account p span {
-  font-weight: 600;
-  color: #0066cc;
-  cursor: pointer;
-}
-
-.delete-account p span:hover {
-  color: #ff6600;
-}
-
-.profile-visible-recruiters ul {
-  margin: 0px 0px 0px 0px;
-  padding: 0px 0px 0px 0px;
-}
-
-.profile-visibility-info-area .profile-visible-recruiters ul li {
-  list-style: none;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.profile-visibility-info-area ul li i {
-  margin-right: 5px;
-  color: #0066cc;
-}
-
-.profile-visibility-info-area ul li:hover {
-  color: #ff6600;
-}
-
-.user-all-detail-info-main {
-  padding-top: 25px;
-  margin-bottom: 30px;
-  background-color: #ffffff;
-}
-
-.input-info-edit-area {
-  display: flex;
-  align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.my-profile-area .input-info-edit-area h3 {
-  border: none;
-  font-size: 18px;
-  padding-left: 30px;
-  padding-bottom: 0;
-}
-
-.input-info-edit-area i {
-  color: #fff;
-  background: #0066cc;
-  padding: 8px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.input-info-edit-area i:hover {
-  background: #ff6600;
-}
-
-.user-all-details-info {
-  padding: 30px 30px 0px 30px;
-}
-
-.user-all-details-info .form-group label {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.user-all-details-info .form-group {
-  margin-bottom: 30px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-}
-
-.download-dlt-cv {
-  position: relative;
-}
-
-.download-edit-info {
-  top: 30px;
-  right: 0px;
-  width: 140px;
-  background: #fff;
-  padding: 0px 20px;
-  position: absolute;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-}
-
-.download-edit-info ul {
-  padding: 0px 0px 0px 0px;
-  margin: 0px 0px 0px 0px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-  margin-top: 15px;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-
-.download-edit-info ul li:hover {
-  color: #ff6600;
-}
-
-.download-edit-info ul li i {
-  padding-right: 5px;
-}
-
-.form-group-salary label {
-  font-weight: 500;
-  color: #202124;
-  margin-bottom: 10px;
-}
-
-.work-exprinace-edit {
-  position: relative;
-}
-
-.work-exprinace-edit i {
-  position: absolute;
-  right: 50px;
-  background: red;
-  padding: 10px 10px;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-  top: 10px;
-}
-
-.not-add-detail-info {
-  text-align: center;
-}
-
-.not-add-detail-info h5 {
-  text-align: center;
-}
-
-.not-add-detail-info i {
-  font-size: 90px;
-  color: #0066cc;
-  padding: 50px 0px;
-}
-
-.enter-skill-tag-info ul {
-  padding: 0px;
-}
-
-.enter-skill-tag-info ul li {
-  list-style: none;
-  color: #0066cc;
-  margin-right: 20px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: inline-block;
-  border: 1px solid #0066cc;
-  cursor: pointer;
-}
-
-.enter-skill-tag-info ul li:hover {
-  color: #ff6600;
-  border: 1px solid #ff6600;
-}
-
-.save-cancel-btn-info {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.save-cancel-btn-info .default-btn {
-  margin-right: 20px;
-  padding: 7px 30px;
-  border-radius: 5px !important;
-}
-
 /*Search Job List page css start here*/
 
 .job-search-info-area {
@@ -16455,20 +16103,19 @@ button.btn {
 
 /*home page css start here*/
 
-
 /*owl-carousel slider css start here*/
 .carousel-wrap {
-  margin:10px auto;
+  margin: 10px auto;
   /*padding: 0 5%;*/
-  width:100%;
+  width: 100%;
   position: relative;
 }
 
 /* fix blank or flashing items on carousel */
 .owl-carousel .item {
   position: relative;
-  z-index: 100; 
-  -webkit-backface-visibility: hidden; 
+  z-index: 100;
+  -webkit-backface-visibility: hidden;
 }
 
 /* end fix */
@@ -16479,131 +16126,126 @@ button.btn {
 }
 
 .owl-nav i {
-  color:#088bd1;
+  color: #088bd1;
   font-size: 52px;
 }
 
 .owl-nav .owl-prev {
-top:100px;
-left: -30px;
-position:absolute;
+  top: 100px;
+  left: -30px;
+  position: absolute;
 }
 
 .owl-nav .owl-next {
-top:100px;
-right: -30px;
-position:absolute;
+  top: 100px;
+  right: -30px;
+  position: absolute;
 }
 
 /*owl-carousel slider css end here*/
 
-
 .companies-week-slider-info {
-margin: 0px 0px 0px 0px;
-padding: 80px 0px 0px 0px; 
+  margin: 0px 0px 0px 0px;
+  padding: 80px 0px 0px 0px;
 }
 
-
 .companies-week-box-info {
-padding: 10px;
-margin-top: 30px;
-position: relative;
-background: #f0f5f7;
+  padding: 10px;
+  margin-top: 30px;
+  position: relative;
+  background: #f0f5f7;
 }
 
 .companies-week-logo {
-top: 15px;
-left: 15px;
-width: 40%;
-padding: 5px 5px;
-background: #fff;
-position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 40%;
+  padding: 5px 5px;
+  background: #fff;
+  position: absolute;
 }
 
-
 .companies-week-content h4 {
-font-size: 17px;
-margin-top: 10px;
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
+  font-size: 17px;
+  margin-top: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .companies-week-content ul {
-list-style: none;
-padding: 0px 0px 0px 0px;
-margin: 0px 0px 0px 0px;
+  list-style: none;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
 }
 
 .companies-week-content ul li {
-font-size: 15px;
-overflow: hidden;
-margin-bottom: 10px;
-white-space: nowrap;
-text-overflow: ellipsis;
+  font-size: 15px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .companies-week-content ul li:hover {
-color: #FF6600;
+  color: #ff6600;
 }
 
 .companies-week-content ul li i {
-color: #0066CC;
-padding-right: 5px;
+  color: #0066cc;
+  padding-right: 5px;
 }
 
-
 .companies-week-slider-info .section-title {
-max-width:100%;
-text-align:center;
-margin:0px 0px 0px 0px;
+  max-width: 100%;
+  text-align: center;
+  margin: 0px 0px 0px 0px;
 }
 
 /*home page css end here*/
 /*Please Confirm Your Profile Basic Info css start here*/
 
 .profile-basic-info-heading {
-padding:60px 0px 0px 0px;  
-margin:0px 0px 0px 0px; 
+  padding: 60px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
 }
 
-.profile-basic-info-form{
-padding:0px 0px 60px 0px;  
-margin:0px 0px 0px 0px; 
+.profile-basic-info-form {
+  padding: 0px 0px 60px 0px;
+  margin: 0px 0px 0px 0px;
 }
 
 .personal-info-area {
-margin-bottom:20px;  
+  margin-bottom: 20px;
 }
 
 .profile-basic-info-form .form-group {
- margin-bottom:25px; 
+  margin-bottom: 25px;
 }
 
 .profile-basic-info-form .form-group label {
-font-size:16px;
-font-weight: 500;
-color: #202124;
-margin-bottom: 10px; 
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin-bottom: 10px;
 }
 
 .profile-basic-info-form .form-control {
-border-radius: unset;
-background-color: #f0f5f7;
-border: 1px solid rgba(32, 33, 34, 0.08); 
+  border-radius: unset;
+  background-color: #f0f5f7;
+  border: 1px solid rgba(32, 33, 34, 0.08);
 }
-
 
 /* Custom file upload styling */
 .custom-file-upload {
-cursor: pointer;
-background:#f0f5f7;
-transition: all 0.3s ease;
-padding: 30px;
-border: 2px dashed #0066CC;
-border-radius: 10px;
-text-align: center;
-font-size: 1.2rem;
+  cursor: pointer;
+  background: #f0f5f7;
+  transition: all 0.3s ease;
+  padding: 30px;
+  border: 2px dashed #0066cc;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.2rem;
 }
 
 /*.custom-file-upload:hover {
@@ -16612,178 +16254,170 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }*/
 
 .file-text {
-font-weight: 500;
-color: #495057;
-font-size: 1.1rem;
+  font-weight: 500;
+  color: #495057;
+  font-size: 1.1rem;
 }
 
 .custom-file-upload i {
-transition: transform 0.3s ease;
-font-size: 40px;
-color:#0066CC;
-margin-bottom: 10px;
+  transition: transform 0.3s ease;
+  font-size: 40px;
+  color: #0066cc;
+  margin-bottom: 10px;
 }
 
 .custom-file-upload:hover i {
-transform: scale(1.1);
-color:#FF6600;
+  transform: scale(1.1);
+  color: #ff6600;
 }
 
 .file-selected {
-border-color: #28a745;
-background: #e7f1ff;
+  border-color: #28a745;
+  background: #e7f1ff;
 }
 
 .file-selected i {
-color: #28a745;
+  color: #28a745;
 }
 
 /* Hide the default input */
 #file-upload {
-display: none;
+  display: none;
 }
 
 /* Bigger button styling */
 button.btn {
-padding: 12px 30px;
-font-size: 1.2rem;
-border-radius: 8px;
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  border-radius: 8px;
 }
 
 .personal-info-btn {
-margin-top:50px;
-text-align:center; 
+  margin-top: 50px;
+  text-align: center;
 }
 
 .personal-info-btn .default-btn {
-font-size:18px;
-padding: 10px 60px;
+  font-size: 18px;
+  padding: 10px 60px;
 }
 
-
 .job-category-tags ul {
-padding:0px 0px 0px 0px;  
+  padding: 0px 0px 0px 0px;
 }
 
 .job-category-tags ul li {
-color: #fff;
-cursor:pointer;
-border-radius: 5px;
-list-style: none;
-padding: 7px 10px;
-background: #0066CC;
-display: inline-block;
-margin: 10px 13px 10px 0px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  list-style: none;
+  padding: 7px 10px;
+  background: #0066cc;
+  display: inline-block;
+  margin: 10px 13px 10px 0px;
 }
 
 .job-category-tags ul li.active {
-background:#FF6600;  
+  background: #ff6600;
 }
 
 .job-category-tags ul li:before {
-position: absolute;
-content: "";
-background-color: #FF6600;
-height: 100%;
-width: 0%;
-border-radius: 0 5px 5px 0;
--webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
-bottom: 0;
-right: 0;
-transition: all ease 0.5s;
-z-index: -1; 
+  position: absolute;
+  content: "";
+  background-color: #ff6600;
+  height: 100%;
+  width: 0%;
+  border-radius: 0 5px 5px 0;
+  -webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+  clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+  bottom: 0;
+  right: 0;
+  transition: all ease 0.5s;
+  z-index: -1;
 }
 
 .job-category-tags ul li:hover:before {
-width: 60%;
-height: 100%;
+  width: 60%;
+  height: 100%;
 }
-
 
 .job-category-tags ul li:after {
-position: absolute;
-content: "";
-background-color: #0066CC;
-height: 100%;
-width: 0%;
-border-radius: 5px 0 0 5px;
--webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
-top: 0;
-left: 0;
-transition: all ease 0.5s;
-z-index: -1;
-} 
-
-.job-category-tags ul li:hover:after {
-width: 60%;
-height: 100%;
+  position: absolute;
+  content: "";
+  background-color: #0066cc;
+  height: 100%;
+  width: 0%;
+  border-radius: 5px 0 0 5px;
+  -webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+  clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+  top: 0;
+  left: 0;
+  transition: all ease 0.5s;
+  z-index: -1;
 }
 
+.job-category-tags ul li:hover:after {
+  width: 60%;
+  height: 100%;
+}
 
 .location-select-option ul {
-padding: 0px 0px 0px 0px; 
+  padding: 0px 0px 0px 0px;
 }
 
 .location-select-option ul li {
-color: #fff;
-width: 48%;
-cursor: pointer;
-border-radius: 5px;
-list-style: none;
-padding: 10px 10px;
-background: #0066CC;
-display: inline-block;
-text-align: center;
-margin-top: 10px;
-margin-right: 20px;
+  color: #fff;
+  width: 48%;
+  cursor: pointer;
+  border-radius: 5px;
+  list-style: none;
+  padding: 10px 10px;
+  background: #0066cc;
+  display: inline-block;
+  text-align: center;
+  margin-top: 10px;
+  margin-right: 20px;
 }
 
 .location-select-option ul li.active {
-background: #FF6600;
+  background: #ff6600;
 }
-
-
 
 .personal-info-cv-linkedin-upload-btn {
-display: flex;
-align-items: center;
-justify-content: center;
-margin: 20px 0px 20px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0px 20px 0px;
 }
 
-
 .personal-info-upload-cv-btn {
-margin-right: 20px; 
+  margin-right: 20px;
 }
 
 .personal-info-upload-cv-btn a i {
-font-size:15px;
-margin-right:10px;  
+  font-size: 15px;
+  margin-right: 10px;
 }
 
 .personal-info-upload-content-linkedin a i {
-font-size: 17px;
-margin-right:8px;  
+  font-size: 17px;
+  margin-right: 8px;
 }
 
 .personal-info-area p {
-font-size:16px;  
+  font-size: 16px;
 }
 
 /*Please Confirm Your Profile Basic Info css end here*/
 /*select language css start here*/
 
-
 .header-language-toggleg {
-margin-left: 10px;  
+  margin-left: 10px;
 }
 
 .header-language-toggleg .form-control {
-height:45px;  
+  height: 45px;
 }
 
-
-
 /*select language css end  here*/
+
