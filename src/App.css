@@ -1,0 +1,501 @@
+.category-slider-wrapper {
+  position: relative;
+  padding-bottom: 60px;
+}
+
+.single-category-card {
+  background-color: #f2f6f9;
+  border-radius: 12px;
+  padding: 25px 10px;
+  margin: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.single-category-card .icon {
+  margin-bottom: 15px;
+  font-size: 36px;
+  color: #ff6600;
+}
+
+.single-category-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  text-align: start;
+}
+
+.custom-arrow {
+  position: absolute;
+  bottom: 0;
+  transform: translateY(50%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.prev-arrow {
+  left: 46%;
+}
+
+.next-arrow {
+  right: 46%;
+}
+
+.slick-dots {
+  bottom: -30px;
+}
+
+.slick-dots li button:before {
+  font-size: 10px;
+  color: #007bff;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #007bff;
+}
+/* Wrap each slide with padding for spacing */
+.category-slider .slick-slide > div {
+  padding: 0 5px; /* Half of 10px on left/right = 10px total between */
+  box-sizing: border-box;
+}
+
+/* Optional: Make card fill available space */
+.single-category-card {
+  height: 180px;
+  background-color: #f2f6f9;
+  border-radius: 12px;
+  padding: 25px 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.custom-arrow {
+  position: absolute;
+  bottom: -20px; /* ⬅️ moves it further down from the cards */
+  transform: translateY(0%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+
+/* Keep left/right spacing as is */
+.prev-arrow {
+  left: 46%;
+}
+
+.next-arrow {
+  right: 46%;
+}
+.reviews-slider-wrapper {
+  padding: 60px 20px;
+  position: relative;
+  background-color: #f2f6f9;
+}
+
+/* Space between slides */
+.reviews-slider-wrapper .slick-slide > div {
+  padding: 0 5px; /* 10px space between cards */
+  box-sizing: border-box;
+}
+
+.single-reviews-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  position: relative;
+  min-height: 250px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.ratings {
+  color: #ffc107;
+  margin-bottom: 15px;
+}
+
+.ratings .star {
+  margin-right: 4px;
+}
+
+.single-reviews-card p {
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.client-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.client-info span {
+  font-size: 14px;
+  color: #666;
+}
+
+.quote-icon {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 30px;
+  color: #e6f0fb;
+}
+
+.custom-arrow {
+  position: absolute;
+  bottom: -35px;
+  transform: translateY(0%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+.job-location-slider-wrapper .slick-slide > div {
+  padding: 0 5px; /* 5px on each side = 10px total between slides */
+  box-sizing: border-box;
+}
+
+.job-location-card {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.desktop-nav .navbar .navbar-brand img {
+  height: 50px;
+}
+.single-footer-widget.logo-content .footer-logo a img {
+  height: 74px;
+}
+.oragneColor {
+  color: #ff6600;
+}
+.nav-link.active {
+  color: #1967d2;
+  background-color: #f0f5f7;
+  font-weight: 600;
+}
+.employer-login-register-button:hover a {
+  color: white;
+}
+/*Company Details page css start here*/
+
+.company-detail-info-area {
+  margin: 80px 0px 80px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-img-short-detail {
+  padding: 20px 20px;
+  background: #f0f5f7;
+}
+
+.company-img-info {
+  background: #fff;
+  padding: 15px 15px;
+}
+
+.company-img-info img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-detail-tab-description-info {
+  background-color: #f0f5f7;
+  padding: 20px 20px;
+}
+
+.company-short-detail-info {
+  display: flex;
+  background: #fff;
+  padding: 20px 20px;
+  align-items: center;
+}
+
+.company-short-detail-img {
+  width: 150px;
+  height: 100px;
+  background: #eee;
+  padding: 0px 10px;
+  margin-right: 20px;
+}
+
+.company-short-detail-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-about-short-detail h4 {
+  font-size: 20px;
+}
+
+.subscribe-best-employer-btn {
+  display: flex;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.subscribe-btn.default-btn {
+  font-size: 14px;
+  padding: 5px 10px;
+  margin-right: 30px;
+}
+
+.best-employer-btn {
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 10px;
+  position: relative;
+  background: #0066cc;
+  border-radius: 0px 5px 5px 0px;
+}
+
+.best-employer-btn:before {
+  content: "";
+  top: 0px;
+  left: -10px;
+  width: 50vmin;
+  height: 50vmin;
+  background: #0066cc;
+  position: absolute;
+  -webkit-clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+  clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+}
+
+.company-about-short-detail ul {
+  display: flex;
+  list-style: none;
+  margin: 10px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-about-short-detail ul li {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-about-short-detail ul li i {
+  color: #0066cc;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.company-detail-tab-info {
+  background: #fff;
+  padding: 20px 15px;
+}
+
+.company-detail-tab-info .nav-tabs {
+  border: none;
+  justify-content: space-between;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link {
+  border: 0px;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 5px;
+  background: #0066cc;
+  padding: 10px 40px;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail-tab-description {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 15px 15px 15px;
+}
+
+.company-detail-job-box {
+  margin-bottom: 30px;
+  background: #f0f5f7;
+  border: 2px solid #eee;
+  padding: 10px 10px 20px 10px;
+}
+
+.company-detail-card {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeee;
+}
+
+.company-detail-card h4 {
+  font-size: 20px;
+}
+
+.company-detail-card ul {
+  display: flex;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-card ul li {
+  color: #666666;
+  list-style: none;
+  font-size: 14px;
+  margin: 5px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-detail-card ul li i {
+  font-size: 13px;
+  color: #0066cc;
+  margin-right: 5px;
+}
+
+.company-detail-apply-link-save-btn {
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.company-detail-link-save-icon ul {
+  display: flex;
+  list-style: none;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-link-save-icon ul li {
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #0066cc;
+  border-radius: 5px;
+  margin-left: 20px;
+  border-right: 1px solid #eeee;
+}
+
+.company-detail-link-save-icon ul li i {
+  color: #fff;
+  font-size: 20px;
+}
+
+.company-detail-link-save-icon ul li:hover {
+  background: #ff6600;
+}
+
+.company-detail-show-upload {
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border: 2px solid #eeee;
+  justify-content: space-between;
+}
+
+.company-detail-doc-tyep h4 {
+  font-size: 17px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.company-detail-doc-tyep h4 i {
+  color: #0066cc;
+  margin-right: 10px;
+}
+
+.company-detail-download-edit {
+  position: relative;
+}
+
+.company-detail-download-edit .fa-ellipsis-vertical {
+  font-size: 25px;
+  color: #0066cc;
+}
+
+.company-detail-download-edit ul {
+  top: 25px;
+  right: 0px;
+  z-index: 9;
+  width: 140px;
+  background: #fff;
+  padding: 0px 20px;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.company-detail-download-edit ul li {
+  list-style: none;
+  margin-top: 15px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.company-detail-download-edit ul li i {
+  padding-right: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up .optional-inputfile {
+  opacity: 0;
+  z-index: -1;
+  overflow: hidden;
+  position: absolute;
+}
+
+.company-detail-attechment-info .control-label-file-up {
+  width: 26%;
+  margin: auto;
+  cursor: pointer;
+  font-size: 16px;
+  color: #0066cc;
+  padding: 5px 10px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up:hover {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail.modal-footer {
+  display: block;
+  text-align: center;
+}
+
+/*Company Details page css end here*/
