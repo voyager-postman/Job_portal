@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
+import Switch from "@mui/material/Switch";
 import { ToastContainer, toast } from "react-toastify";
 // import { Modal } from "bootstrap";
 const categories = [
@@ -17,6 +18,8 @@ const categories = [
   "IT Consulting",
   "Information Technology Management",
 ];
+
+const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
   const [showModal, setShowModal] = useState(false);
 
@@ -39,6 +42,11 @@ function MyProfile() {
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [isActive, setIsActive] = useState(false);
+
+  const handleToggle = () => {
+    setIsActive((prev) => !prev);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -253,7 +261,7 @@ function MyProfile() {
   return (
     <>
       <ToastContainer />
-      <div className="page-banner-area bg-f0f4fc">
+      {/* <div className="page-banner-area bg-f0f4fc">
         <div className="container">
           <div className="page-banner-content">
             <h1>Profile Basic Info</h1>
@@ -265,7 +273,32 @@ function MyProfile() {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
+      <section class="inner-banners-info-area">
+        <div class="inner-banners-img-area">
+          <img
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+            alt="breadcrumb Img"
+          />
+        </div>
+        <div class="inner-banners-title-info">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="inner-page-banner-title">
+                  <h2>Profile Basic Info</h2>
+                  <ul>
+                    <li class="menu-divide-arrow">
+                      <Link to="/">Home</Link>
+                    </li>
+                    <li>Profile Basic Info</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="profile-basic-info-area">
         <div className="profile-basic-info-heading">
           <div className="section-title">
@@ -284,7 +317,10 @@ function MyProfile() {
             <form>
               <div className="personal-info-area">
                 <h3 className="heading-bottom-line">Attachments</h3>
-                <p>Auto-Fill Form Using Your Resume or LinkedIn</p>
+                <p>
+                  Fill in your information simply by uploading your CV or
+                  connecting your LinkedIn account
+                </p>
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
                     <div className="personal-info-cv-linkedin-upload-btn">
@@ -387,7 +423,25 @@ function MyProfile() {
                 </div>
               </div>
               <div className="personal-info-area">
-                <h3 className="heading-bottom-line">Basic Information</h3>
+                <div class="personal-info-heading-toggle">
+                  <h3 class="heading-bottom-line">Basic Information</h3>
+                  <div class="manual-input-acitve-deactive toggle-atv-dtv-btn">
+                    <Switch {...label} />
+                    {/* <span
+                      onClick={handleToggle}
+                      className={`toggle-atv-dtv-btn ${
+                        isActive ? "active" : "deactive"
+                      }`}
+                    >
+                      {isActive ? "Active" : "Deactive"}
+                    </span> */}
+                  </div>
+                  {/* <div class="manual-input-acitve-deactive">
+                    <span id="toggleButton" class="toggle-atv-dtv-btn deactive">
+                      Deactive
+                    </span>
+                  </div> */}
+                </div>
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group">
@@ -579,7 +633,7 @@ function MyProfile() {
                   />
                 </div>
               </div>
-              <div className="personal-info-area">
+              {/* <div className="personal-info-area">
                 <h3 className="heading-bottom-line">
                   I Am Eligible To Work In France
                 </h3>
@@ -600,7 +654,7 @@ function MyProfile() {
                     ))}
                   </ul>
                 </div>
-              </div>
+              </div> */}
               <div className="personal-info-btn">
                 <a className="default-btn btn" onClick={candidateLogin}>
                   Submit

@@ -32,6 +32,8 @@ import CandinatesList from "./Pages/CandinatesList";
 import CandinateProfileDetails from "./Pages/CandinateProfileDetails";
 import EmployerCandinateList from "./Pages/EmployerCandinateList";
 import CompanyDetailsInfo from "./Pages/CompanyDetailsInfo";
+import Employers from "./Pages/Employers";
+import JobList from "./Pages/JobList";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -70,6 +72,7 @@ function LayoutWrapper() {
         <Route path="/employer-register" element={<EmployerRegister />} />
         <Route path="/employer-login" element={<EmployerLogin />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/employers" element={<Employers />} />
         <Route
           path="/employer-candidates-list"
           element={<EmployerCandinateList />}
@@ -80,6 +83,7 @@ function LayoutWrapper() {
           path="/employer-basic-info"
           element={<EmployerBasicInformation />}
         />
+        <Route path="/jobs" element={<JobList />} />
         {/* Protected Routes */}
         <Route
           path="/job-details-form"

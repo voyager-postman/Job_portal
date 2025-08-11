@@ -67,7 +67,7 @@ function AboutUs() {
   }, []);
   return (
     <>
-      <div className="page-banner-area bg-f0f4fc">
+      {/* <div className="page-banner-area bg-f0f4fc">
         <div className="container">
           <div className="page-banner-content">
             <h1>About Us</h1>
@@ -82,13 +82,41 @@ function AboutUs() {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
+      <section class="inner-banners-info-area">
+        <div class="inner-banners-img-area">
+          <img
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+            alt="breadcrumb Img"
+          />
+        </div>
+        <div class="inner-banners-title-info">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="inner-page-banner-title">
+                  <h2>About Us</h2>
+                  <ul>
+                    <li class="menu-divide-arrow">
+                      <Link to="/">Home</Link>
+                    </li>
+                    <li>About Us</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <div className="cv-area ptb-100">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
               <div className="cv-img-area-style2">
-                <img src="/jobPortal/assets/images/cv/candidate-with-cv.png" alt="Image" />
+                <img
+                  src="/jobPortal/assets/images/cv/candidate-with-cv.png"
+                  alt="Image"
+                />
                 <div className="candidate-content">
                   <div className="candidate">
                     <a href="candidates.html">Candidate</a>
@@ -200,7 +228,10 @@ function AboutUs() {
                     data-aos-delay={600}
                   >
                     <div className="cv-img-1">
-                      <img src="/jobPortal/assets/images/cv/cv-img-1.png" alt="Image" />
+                      <img
+                        src="/jobPortal/assets/images/cv/cv-img-1.png"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div
@@ -210,7 +241,10 @@ function AboutUs() {
                     data-aos-delay={800}
                   >
                     <div className="cv-img-2">
-                      <img src="/jobPortal/assets/images/cv/cv-img-2.png" alt="Image" />
+                      <img
+                        src="/jobPortal/assets/images/cv/cv-img-2.png"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                 </div>
@@ -369,7 +403,10 @@ function AboutUs() {
             <div className="col-lg-3 col-sm-6">
               <div className="single-team-card">
                 <div className="team-img">
-                  <img src="/jobPortal/assets/images/team/team-1.jpg" alt="Image" />
+                  <img
+                    src="/jobPortal/assets/images/team/team-1.jpg"
+                    alt="Image"
+                  />
                 </div>
                 <div className="team-content">
                   <div className="row align-items-center">
@@ -431,7 +468,10 @@ function AboutUs() {
             <div className="col-lg-3 col-sm-6">
               <div className="single-team-card">
                 <div className="team-img">
-                  <img src="/jobPortal/assets/images/team/team-2.jpg" alt="Image" />
+                  <img
+                    src="/jobPortal/assets/images/team/team-2.jpg"
+                    alt="Image"
+                  />
                 </div>
                 <div className="team-content">
                   <div className="row align-items-center">
@@ -493,7 +533,10 @@ function AboutUs() {
             <div className="col-lg-3 col-sm-6">
               <div className="single-team-card">
                 <div className="team-img">
-                  <img src="/jobPortal/assets/images/team/team-3.jpg" alt="Image" />
+                  <img
+                    src="/jobPortal/assets/images/team/team-3.jpg"
+                    alt="Image"
+                  />
                 </div>
                 <div className="team-content">
                   <div className="row align-items-center">
@@ -555,7 +598,10 @@ function AboutUs() {
             <div className="col-lg-3 col-sm-6">
               <div className="single-team-card">
                 <div className="team-img">
-                  <img src="/jobPortal/assets/images/team/team-4.jpg" alt="Image" />
+                  <img
+                    src="/jobPortal/assets/images/team/team-4.jpg"
+                    alt="Image"
+                  />
                 </div>
                 <div className="team-content">
                   <div className="row align-items-center">

@@ -11123,8 +11123,6 @@ input:checked + .slider:before {
   border-bottom: 1px solid #eeeeee;
 }
 
-
-
 .input-info-edit-area i:hover {
   background: #ff6600;
 }
@@ -16421,3 +16419,186 @@ button.btn {
 
 /*select language css end  here*/
 
+/*breadcrumb css start here*/
+
+.inner-banners-info-area {
+  position: relative;
+}
+
+.inner-banners-info-area:before {
+  position: absolute;
+  content: "";
+  left: 0;
+  right: 0;
+  background-color: #00000087;
+  width: 100%;
+  height: 100%;
+}
+
+.inner-banners-title-info {
+  z-index: 9;
+  width: 100%;
+  bottom: 120px;
+  position: absolute;
+}
+
+.inner-page-banner-title {
+  text-align: center;
+}
+
+.inner-page-banner-title h2 {
+  color: #fff;
+  font-size: 30px;
+}
+
+.inner-page-banner-title .menu-divide-arrow:before {
+  content: "/";
+  right: -15px;
+  color: #fff;
+  position: absolute;
+}
+
+.inner-page-banner-title ul li {
+  color: #fff;
+  font-size: 18px;
+  margin-right: 15px;
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.inner-page-banner-title ul li a {
+  color: #fff;
+  font-weight: 700;
+}
+
+.company-logo-info-area {
+  width: 20%;
+  margin: auto;
+  margin-bottom: 30px;
+}
+/*breadcrumb css end here*/
+
+
+.personal-info-heading-toggle {
+width: 24%; 
+position: relative;
+}
+
+.toggle-atv-dtv-btn {
+color:#fff;
+width: 80px;
+display: block;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+padding: 5px 10px;
+border-radius: 5px;
+text-align: center;
+letter-spacing: 0.5px;
+}
+
+.toggle-atv-dtv-btn.active {
+background:#008000;
+}
+
+.toggle-atv-dtv-btn.deactive {
+background:#FF0000;
+}
+
+
+.manual-input-acitve-deactive {
+right: 10px;
+bottom: 10px;
+position: absolute;
+}
+ 
+/* job list and job details page css start here*/
+
+
+
+.job-card-list-info-area {
+margin: 60px 0px;
+}
+
+.job-card-list-info-area .job-search-info-area {
+
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+
+
+.job-card-list-info-area .job-filter-main-info {
+ box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+}
+
+
+.job-card-list-info-area .available-job-posts-heading {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+}
+
+
+.job-card-list-info-area .available-job-posts-box {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px
+}
+
+
+.job-details-main-info-area {
+ margin:60px 0px 60px 0px; 
+}
+
+
+.job-details-main-info-area .job-details-top-info-area {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+}
+
+.job-details-main-info-area .job-details-tag-info-area {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+}
+
+
+.job-details-main-info-area .job-details-role-company-discription {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+}
+
+.job-details-main-info-area .job-details-job-description {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+}
+
+
+.job-details-main-info-area .job-details-job-qualifications {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+}
+
+
+.job-details-main-info-area .job-details-related-tags {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+}
+
+
+.job-details-main-info-area .summary-offer-info-area {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+}
+
+/*job list and job details page css end here*/
+
+
+/*companies list and companies details page css start here*/
+.companies-list-filter-info-area {
+padding: 0px 0px 0px 0px;
+margin: 60px 0px 70px 0px; 
+}
+
+
+.companies-list-filter-info-area .available-company-heading {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+}
+
+.companies-list-filter-info-area .job-filter-main-info {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+}
+
+.companies-list-filter-info-area .available-company-box-info {
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+}
+
+/*companies list and companies details page css end here*/

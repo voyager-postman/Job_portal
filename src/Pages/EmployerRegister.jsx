@@ -150,24 +150,43 @@ function EmployerRegister() {
     <>
       <ToastContainer />
       <div>
-        <div className="page-banner-area bg-f0f4fc">
-          <div className="container">
-            <div className="page-banner-content">
-              <h1>Employer Register</h1>
-              <ul>
-                <li>
-                  <a href="index-2.html">Home</a>
-                </li>
-                <li>Employer Register</li>
-              </ul>
+        <section className="inner-banners-info-area">
+          <div className="inner-banners-img-area">
+            <img
+              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+              alt="breadcrumb Img"
+            />
+          </div>
+          <div className="inner-banners-title-info">
+            <div className="container">
+              <div className="row">
+                <div className="col-lg-12 col-md-12 col-sm-12">
+                  <div className="inner-page-banner-title">
+                    <h2>Employer Register</h2>
+                    <ul>
+                      <li className="menu-divide-arrow">
+                        <Link to="/">Home</Link>
+                      </li>
+                      <li>Employer Register</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
         {/*End Page Banner Area*/}
         {/*Start Register Area*/}
         <div className="register-area ptb-100">
           <div className="container">
             <div className="register">
+              <div class="company-logo-info-area">
+                <img
+                  src="/jobPortal/assets/images/logo/connect-work-ma-login.png"
+                  class="main-logo"
+                  alt="logo"
+                />
+              </div>
               <h3>Employer Register</h3>
               <form>
                 <div className="form-group">

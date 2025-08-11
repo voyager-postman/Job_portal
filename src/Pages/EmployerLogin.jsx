@@ -32,7 +32,6 @@ function EmployerLogin() {
   };
 
   const handleLogin = async () => {
-  
     if (!validateForm()) return;
 
     setLoading(true);
@@ -51,7 +50,7 @@ function EmployerLogin() {
         localStorage.setItem("user_id", user.id);
         localStorage.setItem("user_email", user.email);
         localStorage.setItem("user_role", user.role);
-         localStorage.setItem("first_name", user.first_name);
+        localStorage.setItem("first_name", user.first_name);
         localStorage.setItem("last_name", user.last_name);
         login();
         toast.success("Login successful!");
@@ -76,26 +75,44 @@ function EmployerLogin() {
     <>
       <ToastContainer />
       <div>
-        <div className="page-banner-area bg-f0f4fc">
-          <div className="container">
-            <div className="page-banner-content">
-              <h1>Employer Login</h1>
-              <ul>
-                <li>
-                  <a href="index-2.html">Home</a>
-                </li>
-                <li>Employer Login</li>
-              </ul>
+        <section className="inner-banners-info-area">
+          <div className="inner-banners-img-area">
+            <img
+              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+              alt="breadcrumb Img"
+            />
+          </div>
+          <div className="inner-banners-title-info">
+            <div className="container">
+              <div className="row">
+                <div className="col-lg-12 col-md-12 col-sm-12">
+                  <div className="inner-page-banner-title">
+                    <h2>Employer Login</h2>
+                    <ul>
+                      <li className="menu-divide-arrow">
+                        <Link to="/">Home</Link>
+                      </li>
+                      <li>Employer Login</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
         {/*End Page Banner Area*/}
         {/*Start Login Area*/}
         <div className="login-area ptb-100">
           <div className="container">
             <div className="login">
+              <div class="company-logo-info-area">
+                <img
+                  src="/jobPortal/assets/images/logo/connect-work-ma-login.png"
+                  class="main-logo"
+                  alt="logo"
+                />
+              </div>
               <h3>Employer Log In</h3>
-
               <div className="form-group">
                 <input
                   type="email"

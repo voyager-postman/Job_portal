@@ -100,12 +100,12 @@ function Header() {
                     <NavLink
                       to="/jobs"
                       className={({ isActive }) =>
-                        "nav-link dropdown-toggle" + (isActive ? " active" : "")
+                        "nav-link" + (isActive ? " active" : "")
                       }
                     >
                       Jobs
                     </NavLink>
-                    <ul className="dropdown-menu">
+                    {/* <ul className="dropdown-menu">
                       <li className="nav-item">
                         <NavLink to="/jobs/listing" className="nav-link">
                           Job Listing
@@ -116,37 +116,36 @@ function Header() {
                           Post A Job
                         </NavLink>
                       </li>
-                    </ul>
+                    </ul> */}
                   </li>
                   <li className="nav-item">
                     <NavLink
                       to="/employers"
                       className={({ isActive }) =>
-                        "nav-link dropdown-toggle" + (isActive ? " active" : "")
+                        "nav-link" + (isActive ? " active" : "")
                       }
                     >
                       Employers
                     </NavLink>
-                    <ul className="dropdown-menu">
+                    {/* <ul className="dropdown-menu">
                       <li className="nav-item">
                         <NavLink to="/employers/listing" className="nav-link">
                           Employers Listing
                         </NavLink>
                       </li>
-                    </ul>
+                    </ul> */}
                   </li>
                   {userRole === "Recruiter" && (
                     <li className="nav-item">
                       <NavLink
-                        to="/blog"
+                        to="/employer-candidates-list"
                         className={({ isActive }) =>
-                          "nav-link dropdown-toggle" +
-                          (isActive ? " active" : "")
+                          "nav-link" + (isActive ? " active" : "")
                         }
                       >
                         Candidates
                       </NavLink>
-                      <ul className="dropdown-menu">
+                      {/* <ul className="dropdown-menu">
                         <li className="nav-item">
                           <NavLink
                             to="/employer-candidates-list"
@@ -155,15 +154,15 @@ function Header() {
                             Candidates Listing
                           </NavLink>
                         </li>
-                        {/* <li className="nav-item">
+                        <li className="nav-item">
                           <NavLink
                             to="/candidates-profile-details"
                             className="nav-link"
                           >
                             Candidates Details
                           </NavLink>
-                        </li> */}
-                      </ul>
+                        </li>
+                      </ul> */}
                     </li>
                   )}
                   <li className="nav-item">
@@ -336,7 +335,7 @@ function Header() {
                           Post New Job
                         </Link>
                         <Link to="/" className="default-btn btn">
-                          Search For Jobs
+                          For Jobseeker
                         </Link>
                       </div>
                     </>
