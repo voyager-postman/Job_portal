@@ -2006,33 +2006,22 @@ function CandidateProfile() {
               )}
               {!isLanguage && (
                 <div className="user-all-detail-info-main">
-                  <div className="user-all-details-info">
-                    <div className="work-exprinace-edit">
-                      <i className="fas fa-pencil-alt" />
-                    </div>
-                    <div className="row">
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <label>Hindi</label>
-                          <p>Native / Bilingual (C2)</p>
+                  {profileData?.languages?.map((lang) => (
+                    <div className="user-all-details-info">
+                      <div className="work-exprinace-edit">
+                        <i className="fas fa-pencil-alt" />
+                      </div>
+                      <div className="row">
+                        <div className="col-lg-12 col-md-12">
+                          <div className="form-group">
+                            <label>{lang.language}</label>
+                            <p>{lang.proficiency}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                   <div className="divder-line-info" />
-                  <div className="user-all-details-info">
-                    <div className="work-exprinace-edit">
-                      <i className="fas fa-pencil-alt" />
-                    </div>
-                    <div className="row">
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <label>English</label>
-                          <p>Basic (A1 / A2)</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
