@@ -56,22 +56,34 @@
   <script src="/jobPortal/assets/js/ajaxchimp.min.js"></script>
   <script src="/jobPortal/assets/js/custom.js"></script>
   <script type="text/javascript">
+    const toggleBtns = document.querySelectorAll(".accordian-open-close-btn");
 
-    const faqItems = document.querySelectorAll('.candidate-blank-form-detail-edit-info');
+    toggleBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        // Find the parent section (the block related to this button)
+        const section = btn.closest(".candidate-blank-form-detail-edit-info");
 
-    faqItems.forEach(item => {
-      item.classList.add('active');
-    });
+        // Select content blocks inside this section only
+        const contentOne = section.querySelector(".not-add-detail");
+        const contentTwo = section.querySelector(".from-all-input");
+        const contentThree = section.querySelector(".user-all-detail-info-main");
 
-    faqItems.forEach(item => {
-      const question = item.querySelector('.profile-form-content');
-      question.addEventListener('click', () => {
-        item.classList.toggle('active');
+        // Toggle visibility based on current state
+        const isVisible = contentOne.style.display === "block";
+
+        const displayValue = isVisible ? "none" : "block";
+
+        contentOne.style.display = displayValue;
+        contentTwo.style.display = displayValue;
+        contentThree.style.display = displayValue;
+
+        // Optional: toggle arrow icons
+        btn.classList.toggle("active");
       });
     });
 
   </script>
-  
+
 
 </body>
 

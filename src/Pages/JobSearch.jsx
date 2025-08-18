@@ -3,9 +3,64 @@ import { useLocation } from "react-router-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { Outlet } from "react-router-dom";
+import axios from "axios";
+import moment from "moment";
+import { useState, useEffect } from "react";
+import { API_BASE_URL } from "../Url/Url";
 function JobSearch() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [jobList, setJobList] = useState([]);
+  const [totalJobData, setTotalJobData] = useState({});
+
+  const [categories, setCategories] = useState([]);
+  const [filters, setFilters] = useState({
+    keywords: "",
+    location: "",
+    category: "",
+  });
+
+  // ✅ Fetch categories
+  const getCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
+      console.log(res);
+      setCategories(res.data.jobCategories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // ✅ Fetch jobs
+  const getAllJobList = async (limit = 10, page = 1) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
+        params: {
+          limit,
+          page,
+          keywords: filters.keywords,
+          location: filters.location,
+          category: filters.category,
+        },
+      });
+
+      setJobList(res.data?.jobs?.jobs || []);
+      setTotalJobData(res.data?.jobs);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  // ✅ Form submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    getAllJobList(10, 1);
+  };
+
+  useEffect(() => {
+    getCategories();
+    getAllJobList(10, 1);
+  }, []);
 
   return (
     <>
@@ -29,7 +84,7 @@ function JobSearch() {
 
           <div className="manage-jobs-box">
             <div className="job-listing-search-form job-search-info-area">
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className="row g-0">
                   <div className="col-lg-3 col-sm-6">
                     <div className="form-group">
@@ -37,6 +92,10 @@ function JobSearch() {
                         className="form-control"
                         type="text"
                         placeholder="Keywords / Job Title"
+                        value={filters.keywords}
+                        onChange={(e) =>
+                          setFilters({ ...filters, keywords: e.target.value })
+                        }
                       />
                       <i className="flaticon-portfolio" />
                     </div>
@@ -47,6 +106,10 @@ function JobSearch() {
                         className="form-control"
                         type="text"
                         placeholder="City Or Postcode"
+                        value={filters.location}
+                        onChange={(e) =>
+                          setFilters({ ...filters, location: e.target.value })
+                        }
                       />
                       <i className="flaticon-location" />
                     </div>
@@ -55,12 +118,17 @@ function JobSearch() {
                     <div className="form-group style">
                       <select
                         className="form-select form-control"
-                        aria-label="Default select example"
+                        value={filters.category}
+                        onChange={(e) =>
+                          setFilters({ ...filters, category: e.target.value })
+                        }
                       >
-                        <option selected>Chpoose A Category</option>
-                        <option value={1}>Development</option>
-                        <option value={2}>Information IT</option>
-                        <option value={3}>Corporate Job</option>
+                        <option value="">Choose A Category</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </option>
+                        ))}
                       </select>
                       <i className="flaticon-list" />
                     </div>
@@ -393,226 +461,76 @@ function JobSearch() {
                   <div className="available-job-posts-info">
                     <div className="available-job-posts-heading">
                       <h4>
-                        <i className="fa-regular fa-file" /> 6905 available job
-                        posts
+                        <i className="fa-regular fa-file" />
+                        {totalJobData?.total} available job posts
                       </h4>
                     </div>
-                    <Link to="/job-details">
-                      <div className="available-job-posts-box">
-                        <div className="available-job-company-name-save-job">
-                          <div className="available-job-company-name">
-                            <h4>
-                              <i className="fa-solid fa-building" /> Alibaba
-                              Cloud
-                            </h4>
+                    {jobList.length > 0 ? (
+                      jobList.map((job) => (
+                        <Link to={`/job-details`}>
+                          <div className="available-job-posts-box">
+                            <div className="available-job-company-name-save-job">
+                              <div className="available-job-company-name">
+                                <h4>
+                                  <i className="fa-solid fa-building" />{" "}
+                                  {job?.brandName}
+                                </h4>
+                              </div>
+                              <div className="available-job-save-job">
+                                <a href="job-details.html">
+                                  <i className="fa-regular fa-heart" />
+                                </a>
+                                <a
+                                  href="https://www.linkedin.com/login"
+                                  target="_blank"
+                                >
+                                  <i className="fa-brands fa-linkedin-in" />
+                                </a>
+                                <a
+                                  href="https://www.facebook.com/"
+                                  target="_blank"
+                                >
+                                  <i className="fa-brands fa-facebook-f" />
+                                </a>
+                                <a
+                                  href="https://web.whatsapp.com/"
+                                  target="_blank"
+                                >
+                                  <i className="fa-brands fa-whatsapp" />
+                                </a>
+                              </div>
+                            </div>
+                            <div className="available-job-type-details">
+                              <h5>{job?.jobTitle}</h5>
+                              <ul>
+                                <li>
+                                  <i className="fa-regular fa-calendar" />&nbsp;
+                                  {moment(job?.createdAt).fromNow()}
+                                </li>
+                                <li>
+                                  <i className="fa-regular fa-file" />{" "}
+                                  {job?.minimumLevel}
+                                </li>
+                                <li>
+                                  <i className="fa-regular fa-user" />{" "}
+                                  {job?.employmentType}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-location-dot" />{" "}
+                                  {job?.city}
+                                </li>
+                                <li>
+                                  <i className="fa-regular fa-file" />{" "}
+                                  {job?.jobCategory}
+                                </li>
+                              </ul>
+                            </div>
                           </div>
-                          <div className="available-job-save-job">
-                            <a href="job-details.html">
-                              <i className="fa-regular fa-heart" />
-                            </a>
-                            <a
-                              href="https://www.linkedin.com/login"
-                              target="_blank"
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                            <a href="https://www.facebook.com/" target="_blank">
-                              <i className="fa-brands fa-facebook-f" />
-                            </a>
-                            <a href="https://web.whatsapp.com/" target="_blank">
-                              <i className="fa-brands fa-whatsapp" />
-                            </a>
-                          </div>
-                        </div>
-                        <div className="available-job-type-details">
-                          <h5>
-                            Alibaba Cloud-Facility Operation Manager-Paris,
-                            France
-                          </h5>
-                          <ul>
-                            <li>
-                              <i className="fa-regular fa-calendar" /> 3 hours
-                              ago
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> 5 Years
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-user" /> Full time
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Paris
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </Link>
-                    <Link to="/job-details">
-                      <div className="available-job-posts-box">
-                        <div className="available-job-company-name-save-job">
-                          <div className="available-job-company-name">
-                            <h4>
-                              <i className="fa-solid fa-building" /> Alibaba
-                              Cloud
-                            </h4>
-                          </div>
-                          <div className="available-job-save-job">
-                            <a href="job-details.html">
-                              <i className="fa-regular fa-heart" />
-                            </a>
-                            <a
-                              href="https://www.linkedin.com/login"
-                              target="_blank"
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                            <a href="https://www.facebook.com/" target="_blank">
-                              <i className="fa-brands fa-facebook-f" />
-                            </a>
-                            <a href="https://web.whatsapp.com/" target="_blank">
-                              <i className="fa-brands fa-whatsapp" />
-                            </a>
-                          </div>
-                        </div>
-                        <div className="available-job-type-details">
-                          <h5>
-                            Alibaba Cloud-Facility Operation Manager-Paris,
-                            France
-                          </h5>
-                          <ul>
-                            <li>
-                              <i className="fa-regular fa-calendar" /> 3 hours
-                              ago
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> 5 Years
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-user" /> Full time
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Paris
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </Link>
-                    <Link to="/job-details">
-                      <div className="available-job-posts-box">
-                        <div className="available-job-company-name-save-job">
-                          <div className="available-job-company-name">
-                            <h4>
-                              <i className="fa-solid fa-building" /> Alibaba
-                              Cloud
-                            </h4>
-                          </div>
-                          <div className="available-job-save-job">
-                            <a href="job-details.html">
-                              <i className="fa-regular fa-heart" />
-                            </a>
-                            <a
-                              href="https://www.linkedin.com/login"
-                              target="_blank"
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                            <a href="https://www.facebook.com/" target="_blank">
-                              <i className="fa-brands fa-facebook-f" />
-                            </a>
-                            <a href="https://web.whatsapp.com/" target="_blank">
-                              <i className="fa-brands fa-whatsapp" />
-                            </a>
-                          </div>
-                        </div>
-                        <div className="available-job-type-details">
-                          <h5>
-                            Alibaba Cloud-Facility Operation Manager-Paris,
-                            France
-                          </h5>
-                          <ul>
-                            <li>
-                              <i className="fa-regular fa-calendar" /> 3 hours
-                              ago
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> 5 Years
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-user" /> Full time
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Paris
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </Link>
-                    <Link to="/job-details">
-                      <div className="available-job-posts-box">
-                        <div className="available-job-company-name-save-job">
-                          <div className="available-job-company-name">
-                            <h4>
-                              <i className="fa-solid fa-building" /> Alibaba
-                              Cloud
-                            </h4>
-                          </div>
-                          <div className="available-job-save-job">
-                            <a href="job-details.html">
-                              <i className="fa-regular fa-heart" />
-                            </a>
-                            <a
-                              href="https://www.linkedin.com/login"
-                              target="_blank"
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                            <a href="https://www.facebook.com/" target="_blank">
-                              <i className="fa-brands fa-facebook-f" />
-                            </a>
-                            <a href="https://web.whatsapp.com/" target="_blank">
-                              <i className="fa-brands fa-whatsapp" />
-                            </a>
-                          </div>
-                        </div>
-                        <div className="available-job-type-details">
-                          <h5>
-                            Alibaba Cloud-Facility Operation Manager-Paris,
-                            France
-                          </h5>
-                          <ul>
-                            <li>
-                              <i className="fa-regular fa-calendar" /> 3 hours
-                              ago
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> 5 Years
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-user" /> Full time
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Paris
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </Link>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-center mt-3">No jobs found</p>
+                    )}
                   </div>
                 </div>
               </div>

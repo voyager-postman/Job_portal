@@ -197,7 +197,7 @@ const EmployerBasicInformation = () => {
       if (response.status === 200 && response.data.success) {
         toast.success("Recruiter profile created successfully!");
         // Navigate or reset form
-        navigate("/dashboard");
+        navigate("/employer-dashboard");
       } else {
         toast.error(response.data?.message || "Failed to create profile");
       }
