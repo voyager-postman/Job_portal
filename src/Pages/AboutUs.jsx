@@ -67,6 +67,22 @@ function AboutUs() {
   }, []);
   return (
     <>
+      {/* <div className="page-banner-area bg-f0f4fc">
+        <div className="container">
+          <div className="page-banner-content">
+            <h1>About Us</h1>
+            <ul>
+              <li>
+                <Link to="/" className="nav-link">
+                  {" "}
+                  Home
+                </Link>
+              </li>
+              <li>About Us</li>
+            </ul>
+          </div>
+        </div>
+      </div> */}
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
           <img

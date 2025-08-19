@@ -4,7 +4,9 @@ import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext"; // adjust path as needed
+import { useAuth } from "../context/AuthContext"; 
+import { useGoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 function Header() {
   const { isLoggedIn } = useAuth();
   const userRole = localStorage.getItem("user_role");
@@ -30,9 +32,48 @@ function Header() {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-  {
-    /* <h1>ujjjjjjjjjjjjjjjjj</h1> */
-  }
+  // const googleLogin = useGoogleLogin({
+  //   onSuccess: (tokenResponse) => {
+  //     console.log(tokenResponse);
+  //     const userInfo = jwtDecode(tokenResponse.credential);
+  //     console.log("Google User:", userInfo);
+  //     localStorage.setItem("user", JSON.stringify(userInfo));
+  //   },
+  //   onError: () => {
+  //     console.log("Google login failed");
+  //   },
+  // });
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      console.log("Access Token:", tokenResponse.access_token);
+
+      // Fetch user info from Google
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: {
+          Authorization: `Bearer ${tokenResponse.access_token}`,
+        },
+      });
+      const userInfo = await res.json();
+      console.log("Google User:", userInfo);
+
+      localStorage.setItem("user", JSON.stringify(userInfo));
+    },
+    onError: () => console.log("Login Failed"),
+  });
+
+  const handleGithubLogin = () => {
+    const clientId = "Ov23liXRhmjwwotvLSVw";
+    const redirectUri = "http://localhost:4000/api/auth/github/callback";
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}`;
+  };
+
+  const handleLinkedinLogin = () => {
+    const clientId = "86nez3pnzuzjq3";
+    const redirectUri = "http://13.48.130.179:4000/api/auth/linkedin/callback";
+    const state = "foobar"; // random string for security
+    const scope = "r_liteprofile r_emailaddress";
+    window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
+  };
   return (
     <>
       <div className="navbar-area bg-f0f4fc">
@@ -105,18 +146,6 @@ function Header() {
                     >
                       Jobs
                     </NavLink>
-                    {/* <ul className="dropdown-menu">
-                      <li className="nav-item">
-                        <NavLink to="/jobs/listing" className="nav-link">
-                          Job Listing
-                        </NavLink>
-                      </li>
-                      <li className="nav-item">
-                        <NavLink to="/jobs/post" className="nav-link">
-                          Post A Job
-                        </NavLink>
-                      </li>
-                    </ul> */}
                   </li>
                   <li className="nav-item">
                     <NavLink
@@ -127,13 +156,6 @@ function Header() {
                     >
                       Employers
                     </NavLink>
-                    {/* <ul className="dropdown-menu">
-                      <li className="nav-item">
-                        <NavLink to="/employers/listing" className="nav-link">
-                          Employers Listing
-                        </NavLink>
-                      </li>
-                    </ul> */}
                   </li>
                   {userRole === "Recruiter" && (
                     <li className="nav-item">
@@ -145,24 +167,6 @@ function Header() {
                       >
                         Candidates
                       </NavLink>
-                      {/* <ul className="dropdown-menu">
-                        <li className="nav-item">
-                          <NavLink
-                            to="/employer-candidates-list"
-                            className="nav-link"
-                          >
-                            Candidates Listing
-                          </NavLink>
-                        </li>
-                        <li className="nav-item">
-                          <NavLink
-                            to="/candidates-profile-details"
-                            className="nav-link"
-                          >
-                            Candidates Details
-                          </NavLink>
-                        </li>
-                      </ul> */}
                     </li>
                   )}
                   <li className="nav-item">
@@ -179,7 +183,6 @@ function Header() {
 
                 <div className="others-options">
                   {isLoggedIn ? (
-                    // ✅ SHOW WHEN LOGGED IN
                     <div className="option-item">
                       <div className="dropdown profile-nav-item">
                         <a
@@ -305,19 +308,7 @@ function Header() {
                       </div>
                     </div>
                   ) : isEmployerPage ? (
-                    // 🏢 Employer-specific login/register buttons
                     <>
-                      {/* <div className="default-btn btn style-2">
-                        <Link
-                          to="/employer-login"
-                          className="default-btn btn style-2"
-                        >
-                          <span>
-                            <i className="fa-regular fa-user" /> Login /
-                          </span>
-                          <span> Register </span>
-                        </Link>
-                      </div> */}
                       <div className="option-item">
                         <div className="default-btn btn style-2  employer-login-register-button">
                           <Link to="/employer-login">
@@ -340,7 +331,6 @@ function Header() {
                       </div>
                     </>
                   ) : (
-                    // 👤 Default job seeker login/register
                     <>
                       <>
                         <div className="option-item">
@@ -457,34 +447,41 @@ function Header() {
                   <div className="register-option-info-are">
                     <button
                       className="default-btn btn"
-                      onClick={() =>
-                        (window.location.href = `${API_BASE_URL}auth/linkedin/`)
-                      }
+                      onClick={handleLinkedinLogin}
                     >
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/linkedin-icon.png" />
+                        <img
+                          src="/jobPortal/assets/images/icon/linkedin-icon.png"
+                          alt="LinkedIn"
+                        />
                       </div>
-                      {/* <div class="social-icon-name">
-           LinkedIn
-          </div> */}
                     </button>
-                    <button className="default-btn btn">
+
+                    <button
+                      className="default-btn btn"
+                      onClick={() => googleLogin()}
+                    >
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/Google-icon.png" />
+                        <img
+                          src="/jobPortal/assets/images/icon/Google-icon.png"
+                          alt="Google"
+                        />
                       </div>
-                      {/* <div class="social-icon-name">
-           Google
-          </div> */}
                     </button>
-                    <button className="default-btn btn">
+
+                    <button
+                      className="default-btn btn"
+                      onClick={handleGithubLogin}
+                    >
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/github-icon.png" />
+                        <img
+                          src="/jobPortal/assets/images/icon/github-icon.png"
+                          alt="GitHub"
+                        />
                       </div>
-                      {/* <div class="social-icon-name">
-           GitHub
-          </div> */}
                     </button>
                   </div>
+
                   <div className="already-have-account-content">
                     <p>Don't have an account yet?</p>
                     <span
@@ -527,11 +524,6 @@ function Header() {
                 </div>
                 <div className="modal-body">
                   <div className="sign-with-email-info">
-                    {/* <span
-                      className="default-btn btn"
-                    >
-                      <Link to="/register">Sign up with email</Link>
-                    </span> */}
                     <button
                       type="button"
                       onClick={handleRegister}
@@ -550,25 +542,16 @@ function Header() {
                       <div className="social-icon">
                         <img src="/jobPortal/assets/images/icon/linkedin-icon.png" />
                       </div>
-                      {/* <div class="social-icon-name">
-           LinkedIn
-          </div> */}
                     </button>
                     <button className="default-btn btn">
                       <div className="social-icon">
                         <img src="/jobPortal/assets/images/icon/Google-icon.png" />
                       </div>
-                      {/* <div class="social-icon-name">
-           Google
-          </div> */}
                     </button>
                     <button className="default-btn btn">
                       <div className="social-icon">
                         <img src="/jobPortal/assets/images/icon/github-icon.png" />
                       </div>
-                      {/* <div class="social-icon-name">
-           GitHub
-          </div> */}
                     </button>
                   </div>
                   <div className="already-have-account-content">
@@ -587,7 +570,6 @@ function Header() {
             </div>
           </div>
         </div>
-        {/* Register Modal */}
       </div>
     </>
   );

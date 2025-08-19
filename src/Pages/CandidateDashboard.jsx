@@ -21,40 +21,87 @@ function CandidateDashboard() {
           <section className="candidate-dashboard-info-area">
             <div className="candidate-dashboard-box-info">
               <div className="candidate-dashboard-box">
-                <Link to="/manage-job-application">
-                  <div className="dashboard-box-icon-content">
-                    <div className="box-icon">
-                      <i className="fa-solid fa-file" />
-                    </div>
-                    <div className="box-content">
-                      <h4>Application</h4>
-                      <h5>100</h5>
-                    </div>
+                <div className="row">
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <Link to="/manage-job-application">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i className="fa-solid fa-file" />
+                        </div>
+                        <div className="box-content">
+                          <h4>Application</h4>
+                          <h5>100</h5>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-                <a href="#">
-                  <div className="dashboard-box-icon-content">
-                    <div className="box-icon">
-                      <i className="fa-solid fa-heart" />
-                    </div>
-                    <div className="box-content">
-                      <h4>Saved Jobs</h4>
-                      <h5>10</h5>
-                    </div>
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <a href="#">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i className="fa-solid fa-heart" />
+                        </div>
+                        <div className="box-content">
+                          <h4>Saved Jobs</h4>
+                          <h5>10</h5>
+                        </div>
+                      </div>
+                    </a>
                   </div>
-                </a>
-                <a href="#">
-                  <div className="dashboard-box-icon-content">
-                    <div className="box-icon">
-                      <i className="fa-solid fa-bell" />
-                    </div>
-                    <div className="box-content">
-                      <h4>Job Alerts</h4>
-                      <h5>5</h5>
-                    </div>
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <a href="#">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i className="fa-solid fa-bell" />
+                        </div>
+                        <div className="box-content">
+                          <h4>Job Alerts</h4>
+                          <h5>5</h5>
+                        </div>
+                      </div>
+                    </a>
                   </div>
-                </a>
-                <a href="#">
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <a href="#">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i class="fa-solid fa-comment-dots"></i>
+                        </div>
+                        <div className="box-content">
+                          <h4>Recruiter Messages </h4>
+                          <h5>5</h5>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <a href="#">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i class="fa-solid fa-clipboard-question"></i>
+                        </div>
+                        <div className="box-content">
+                          <h4>Upcoming interviews </h4>
+                          <h5>5</h5>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                  <div className="col-lg-4 col-sm-6 mb-4">
+                    <a href="#">
+                      <div className="dashboard-box-icon-content">
+                        <div className="box-icon">
+                          <i className="fa-solid fa-user"></i>
+                        </div>
+                        <div className="box-content">
+                          <h4>User Log</h4>
+                          <h5>5</h5>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+                {/* <a href="#">
                   <div className="dashboard-box-icon-content">
                     <div className="box-icon">
                       <i className="fa-solid fa-building" />
@@ -64,7 +111,7 @@ function CandidateDashboard() {
                       <h5>6</h5>
                     </div>
                   </div>
-                </a>
+                </a> */}
               </div>
             </div>
           </section>

@@ -486,7 +486,6 @@ function CandidateProfile() {
                     <input type="checkbox" defaultChecked />
                     <span className="slider round" />
                   </label>
-
                   <div className="candidate-personal-info-cv-linkedin-upload-btn">
                     <div className="candidate-personal-info-upload-cv-btn">
                       <a

@@ -398,7 +398,7 @@ const JobList = () => {
                         </h4>
                       </div>
 
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -455,9 +455,9 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </a>
+                      </Link>
 
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -514,9 +514,9 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </a>
+                      </Link>
 
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -573,9 +573,9 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </a>
+                      </Link>
 
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -632,9 +632,9 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </a>
+                      </Link>
 
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -691,7 +691,7 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>

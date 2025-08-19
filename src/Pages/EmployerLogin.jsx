@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"; // path based on your folder structure
+import axios from "../utils/axiosInstance"; 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -54,7 +54,11 @@ function EmployerLogin() {
         localStorage.setItem("last_name", user.last_name);
         login();
         toast.success("Login successful!");
-        navigate("/employer-basic-info");
+        if (user?.is_completed) {
+          navigate("/employer-dashboard");
+        } else {
+          navigate("/employer-basic-info");
+        }
       } else {
         toast.error(response.data?.message || "Invalid credentials");
       }

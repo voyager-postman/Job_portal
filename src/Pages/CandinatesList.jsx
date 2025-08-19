@@ -10,7 +10,7 @@ function CandinatesList() {
             <h1>Candidates Listing</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/employer-dashboard">Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
@@ -234,7 +234,7 @@ function CandinatesList() {
                     >
                       <div className="candidate-list-info single-freelancer-card">
                         <div className="row align-items-center">
-                             <Link to="/candidates-profile-details"></Link>
+                          <Link to="/candidates-profile-details"></Link>
                           <div className="col-lg-4">
                             <div className="freelancer-img">
                               <a href="candidates-profile-details.html">

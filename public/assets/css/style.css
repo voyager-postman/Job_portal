@@ -16479,126 +16479,413 @@ button.btn {
 }
 /*breadcrumb css end here*/
 
-
 .personal-info-heading-toggle {
-width: 24%; 
-position: relative;
+  width: 24%;
+  position: relative;
 }
 
 .toggle-atv-dtv-btn {
-color:#fff;
-width: 80px;
-display: block;
-cursor: pointer;
-font-size: 14px;
-font-weight: 600;
-padding: 5px 10px;
-border-radius: 5px;
-text-align: center;
-letter-spacing: 0.5px;
+  color: #fff;
+  width: 80px;
+  display: block;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 5px;
+  text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .toggle-atv-dtv-btn.active {
-background:#008000;
+  background: #008000;
 }
 
 .toggle-atv-dtv-btn.deactive {
-background:#FF0000;
+  background: #ff0000;
 }
-
 
 .manual-input-acitve-deactive {
-right: 10px;
-bottom: 10px;
-position: absolute;
+  right: 10px;
+  bottom: 10px;
+  position: absolute;
 }
- 
+
 /* job list and job details page css start here*/
 
-
-
 .job-card-list-info-area {
-margin: 60px 0px;
+  margin: 60px 0px;
 }
 
 .job-card-list-info-area .job-search-info-area {
-
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-card-list-info-area .job-filter-main-info {
- box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-card-list-info-area .available-job-posts-heading {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-card-list-info-area .available-job-posts-box {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-details-main-info-area {
- margin:60px 0px 60px 0px; 
+  margin: 60px 0px 60px 0px;
 }
 
-
 .job-details-main-info-area .job-details-top-info-area {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 .job-details-main-info-area .job-details-tag-info-area {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px; 
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
-
 .job-details-main-info-area .job-details-role-company-discription {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 .job-details-main-info-area .job-details-job-description {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-details-main-info-area .job-details-job-qualifications {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
-
 
 .job-details-main-info-area .job-details-related-tags {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
-
 .job-details-main-info-area .summary-offer-info-area {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;   
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 /*job list and job details page css end here*/
 
-
 /*companies list and companies details page css start here*/
 .companies-list-filter-info-area {
-padding: 0px 0px 0px 0px;
-margin: 60px 0px 70px 0px; 
+  padding: 0px 0px 0px 0px;
+  margin: 60px 0px 70px 0px;
 }
 
-
 .companies-list-filter-info-area .available-company-heading {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 .companies-list-filter-info-area .job-filter-main-info {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 .companies-list-filter-info-area .available-company-box-info {
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;  
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 /*companies list and companies details page css end here*/
+/*Custom Resume Cover Letter page css start here*/
+
+.custom-resume-cover-letter-job-seeker-info {
+  width: 85%;
+  margin: auto;
+  margin-top: 70px;
+  background: #f0f4fc;
+  margin-bottom: 70px;
+  padding: 20px 20px 20px 20px;
+}
+
+.custom-resume-cover-letter-detail-info {
+  margin-top: 30px;
+  background: #fff;
+  padding: 15px 20px 0px 20px;
+}
+
+.custom-resume-cover-job-seeker-info {
+  display: flex;
+  margin-top: 15px;
+  position: relative;
+  align-items: center;
+  margin-bottom: 10px;
+  justify-content: space-between;
+}
+
+.custom-resume-cover-job-seeker {
+  width: 80%;
+}
+
+.custom-resume-cover-job-seeker h4 {
+  font-size: 17px;
+  margin: 0px 0px 0px 0px;
+}
+
+.custom-resume-cover-user-edit i {
+  top: 5px;
+  right: 0px;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 10px;
+  border-radius: 5px;
+  background: #ff6600;
+  position: absolute;
+}
+
+.resume-cover-letter-divder-line-info {
+  border-top: 1px solid #eeee;
+}
+
+.custom-resume-cover-letter-heading h4 {
+  font-size: 20px;
+  padding-bottom: 5px;
+}
+
+.custom-resume-cover-letter-candidate-detail {
+  display: flex;
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 20px 20px 20px;
+  justify-content: space-between;
+}
+
+.custom-resume-cover-letter-candidates-img-detail-info {
+  display: flex;
+}
+
+.custom-resume-cover-letter-candidates-img-info {
+  width: 28%;
+}
+
+.custom-resume-cover-letter-img-edit-icon {
+  position: relative;
+}
+
+.custom-resume-cover-letter-img-edit-icon i {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #0066cc;
+  padding: 7px;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.custom-resume-cover-letter-img-edit-icon i:hover {
+  background: #ff6600;
+}
+
+.custom-resume-cover-letter-candidates-details-info h3 {
+  font-size: 15px;
+  padding-left: 20px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.custom-resume-cover-letter-website-promotion ul {
+  margin: 0px;
+  padding: 0px;
+}
+
+.custom-resume-cover-letter-website-promotion ul li {
+  margin-top: 10px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.custom-resume-cover-letter-website-promotion ul li i {
+  margin-right: 5px;
+  color: #0066cc;
+}
+
+.custom-resume-cover-letter-website-promotion ul li:hover {
+  color: #ff6600;
+}
+
+.custom-resume-cover-letter-website-promotion ul li:hover i {
+  color: #ff6600;
+}
+
+.custom-resume-cover-letter-input-field-info-area {
+  background: #fff;
+  margin-top: 30px;
+  /*display: none;*/
+  padding: 0px 0px 30px 0px;
+}
+
+.custom-resume-cover-letter-input-field-heading {
+  border-bottom: 1px solid #eee;
+}
+
+.custom-resume-cover-letter-input-field-heading h4 {
+  font-size: 20px;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 10px 0px;
+}
+
+.custom-resume-cover-letter-input-field-info-area .form-group {
+  margin-top: 20px;
+}
+
+.custom-resume-cover-letter-input-field-info-area .form-group label {
+  color: #202124;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.custom-resume-cover-letter-input-field-info-area .form-control {
+  height: 35px;
+  font-size: 15px;
+  border-radius: 0px;
+  background-color: #f0f5f7;
+}
+
+.custom-resume-cover-letter-save-cancel-btn {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.custom-resume-cover-letter-save-cancel-btn .default-btn {
+  margin-left: 20px;
+  padding: 7px 30px;
+}
+
+.custom-resume-cover-letter-skill-btn {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.custom-resume-cover-letter-skill-btn .default-btn {
+  margin-left: 20px;
+  border-radius: 5px !important;
+  padding: 7px 20px !important;
+}
+
+.custom-resume-cover-letter-upload-cv {
+  margin-bottom: 30px;
+}
+
+.custom-resume-cover-letter-upload-cv .upload-download-dlt-cv {
+  margin-top: 20px;
+}
+
+.custom-resume-cover-letter-add-skill .form-control {
+  height: 35px;
+  border-radius: 0px;
+  background-color: #f0f5f7;
+}
+
+.custom-resume-cover-letter-add-skill {
+  margin-top: 20px;
+}
+
+.custom-resume-cover-letter-add-skill .skill-btn-info .default-btn {
+  padding: 6px 20px !important;
+}
+
+.custom-resume-cover-letter-add-skill .enter-skill-tag-info {
+  margin-top: 20px;
+}
+
+/*Custom Resume Cover Letter page css end here*/
+/*Job detail page job aplly function css star here*/
+
+.job-apply-custom-resume-info-area {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ff6600;
+}
+
+.job-apply-custom-resume-info {
+  text-align: center;
+  padding: 30px 30px;
+  border-radius: 5px;
+  border: 1px solid #ff6600;
+}
+
+.job-apply-custom-resume-info span {
+  font-size: 18px;
+}
+
+.job-apply-custom-resume-info span i {
+  color: #0066cc;
+  margin-right: 10px;
+}
+
+.job-apply-custom-resume-cover-letter-btn {
+  margin-top: 20px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.job-apply-custom-resume-cover-letter-btn .default-btn {
+  width: 100%;
+  padding: 8px 20px;
+}
+
+.defult-resume-custom-resume-divder-line h4 {
+  font-size: 18px;
+  position: relative;
+  text-align: center;
+  margin: 30px 0px 30px 0px;
+}
+
+.defult-resume-custom-resume-divder-line h4:before {
+  content: "";
+  top: 13px;
+  right: 0;
+  width: 45%;
+  position: absolute;
+  border: 1px solid #c4cfdd;
+}
+
+.defult-resume-custom-resume-divder-line h4:after {
+  content: "";
+  top: 13px;
+  width: 45%;
+  left: 0px;
+  height: 1px;
+  position: absolute;
+  border: 1px solid #c4cfdd;
+}
+
+.job-apply-with-defult-resume {
+  text-align: center;
+  padding: 30px 30px;
+  border-radius: 5px;
+  border: 1px solid #c4cfdd;
+}
+
+.job-apply-with-defult-resume span {
+  font-size: 18px;
+}
+
+.job-apply-with-defult-resume span i {
+  color: #ff6600;
+  margin-right: 10px;
+}
+
+.job-apply-defult-resume-btn {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.job-apply-defult-resume-btn .default-btn {
+  width: 100%;
+  padding: 8px 20px;
+}
+
+.defult-resume-custom-resume-divder {
+  margin: 20px 0px;
+  border-top: 1px solid #c4cfdd;
+}
+
+/*Job detail page job aplly function css end here*/
+/* webkit */
