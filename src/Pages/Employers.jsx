@@ -150,9 +150,12 @@ const Employers = () => {
                             </ul>
                           </div>
                           <div className="available-company-btn">
-                            <a href={company.link} className="default-btn btn">
+                            <Link
+                              to={`/companies-details`}
+                              className="default-btn btn"
+                            >
                               View the Company
-                            </a>
+                            </Link>
                           </div>
                         </div>
                       </div>

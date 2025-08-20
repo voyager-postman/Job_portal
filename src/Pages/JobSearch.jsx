@@ -175,7 +175,7 @@ function JobSearch() {
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fa-solid fa-gear" /> Job category
+                            <i className="fa-solid fa-gear" /> Tech Stack
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -187,7 +187,7 @@ function JobSearch() {
                           className="form-select form-control"
                           aria-label="Default select example"
                         >
-                          <option selected>Select Job Category</option>
+                          <option selected>Select Tech Stack</option>
                           <option value={1}>Java</option>
                           <option value={2}>Python</option>
                           <option value={3}>React</option>

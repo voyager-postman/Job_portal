@@ -5,6 +5,8 @@ import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import Switch from "@mui/material/Switch";
 import { ToastContainer, toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext"; // adjust path
+
 // import { Modal } from "bootstrap";
 const categories = [
   "Information systems / Networks",
@@ -21,6 +23,7 @@ const categories = [
 
 const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
+  const { login } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -172,7 +175,7 @@ function MyProfile() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
+      const response = await axios.post(
         `${API_BASE_URL}createCandidateProfile`,
         data,
         {
@@ -181,7 +184,19 @@ function MyProfile() {
           },
         }
       );
+      if (response.data.success) {
+        const {userDetails } = response.data;
+        localStorage.setItem("user", JSON.stringify(userDetails));
+        localStorage.setItem("user_id", userDetails._id);
+        localStorage.setItem("user_email", userDetails.email);
+        localStorage.setItem("user_role", userDetails.role);
+        localStorage.setItem("first_name", userDetails.first_name);
+        localStorage.setItem("last_name", userDetails.last_name);
 
+        toast.success("Registration successful!");
+        login(); // set auth context / localStorage
+        navigate("/profile-basic-info");
+      }
       toast.success("Profile created successfully!", {
         autoClose: 5000,
         theme: "colored",

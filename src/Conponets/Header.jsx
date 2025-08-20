@@ -207,6 +207,7 @@ function Header() {
                         </a>
                         <div className="dropdown-menu">
                           <div className="dropdown-header d-flex flex-column align-items-center">
+                           
                             <div className="figure mb-3">
                               <img
                                 src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
@@ -261,29 +262,33 @@ function Header() {
                               )}
                             </div>
                           </div>
-                          <div className="dropdown-body">
-                            <ul className="profile-nav p-0 pt-3">
-                              <li className="nav-item active">
-                                <Link
-                                  to={
-                                    userRole === "JobSeeker"
-                                      ? "/candidate-dashboard"
-                                      : "/your-job-posts"
-                                  }
-                                  className="nav-link"
-                                >
-                                  <span className="icon">
-                                    <img
-                                      src="/jobPortal/assets/images/svg-icon/icon-1.svg"
-                                      alt="Dashboard"
-                                    />
-                                  </span>
-                                  <span className="menu-title">Dashboard</span>
-                                </Link>
-                              </li>
-                            </ul>
-                          </div>
 
+                          {localStorage.getItem("user_email") && (
+                            <div className="dropdown-body">
+                              <ul className="profile-nav p-0 pt-3">
+                                <li className="nav-item active">
+                                  <Link
+                                    to={
+                                      userRole === "JobSeeker"
+                                        ? "/candidate-dashboard"
+                                        : "/employer-dashboard"
+                                    }
+                                    className="nav-link"
+                                  >
+                                    <span className="icon">
+                                      <img
+                                        src="/jobPortal/assets/images/svg-icon/icon-1.svg"
+                                        alt="Dashboard"
+                                      />
+                                    </span>
+                                    <span className="menu-title">
+                                      Dashboard
+                                    </span>
+                                  </Link>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
                           <div className="dropdown-footer">
                             <ul className="profile-nav">
                               <li className="nav-item">

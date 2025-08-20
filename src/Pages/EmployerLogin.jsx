@@ -54,11 +54,8 @@ function EmployerLogin() {
         localStorage.setItem("last_name", user.last_name);
         login();
         toast.success("Login successful!");
-        if (user?.is_completed) {
-          navigate("/employer-dashboard");
-        } else {
-          navigate("/employer-basic-info");
-        }
+        // if (user?.is_completed) {
+        navigate("/employer-dashboard");
       } else {
         toast.error(response.data?.message || "Invalid credentials");
       }

@@ -49,7 +49,7 @@ function CandidateDashboard() {
                       <i className="fa-solid fa-bell" />
                     </div>
                     <div className="box-content">
-                      <h4>Job Alerts</h4>
+                      <h4>Messages</h4>
                       <h5>5</h5>
                     </div>
                   </div>
@@ -60,13 +60,33 @@ function CandidateDashboard() {
                       <i className="fa-solid fa-building" />
                     </div>
                     <div className="box-content">
-                      <h4>Companies</h4>
+                      <h4>Upcoming interviews</h4>
                       <h5>6</h5>
                     </div>
                   </div>
                 </a>
               </div>
             </div>
+              <div className="candidate-dashboard-box-info">
+              <div className="candidate-dashboard-box">
+                <Link to="/manage-job-application">
+                  <div className="dashboard-box-icon-content">
+                    <div className="box-icon">
+                      <i className="fa-solid fa-file" />
+                    </div>
+                    <div className="box-content">
+                      <h4>Application</h4>
+                      <h5>100</h5>
+                    </div>
+                  </div>
+                </Link>
+               
+              
+            
+              </div>
+              
+            </div>
+            
           </section>
           {/* candidate mannage Job application end here*/}
           {/* candidate Complete profile section start here */}
@@ -119,7 +139,7 @@ function CandidateDashboard() {
             </div>
             <div className="dashboard-job-post-profile-area">
               <div className="dashboard-recent-job-post-info">
-                <a href="job-details.html">
+                <Link to={`/companies-details`}>
                   <div className="available-job-posts-box">
                     <div className="available-job-company-name-save-job">
                       <div className="available-job-company-name">
@@ -155,7 +175,7 @@ function CandidateDashboard() {
                       </ul>
                     </div>
                   </div>
-                </a>
+                </Link>
                 <a href="job-details.html">
                   <div className="available-job-posts-box">
                     <div className="available-job-company-name-save-job">

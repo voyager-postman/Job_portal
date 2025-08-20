@@ -125,7 +125,7 @@ const EmployerBasicInformation = () => {
     };
     fetchIndustries();
   }, []);
-   const options = countries.map((country) => ({
+  const options = countries.map((country) => ({
     value: country.phonecode,
     label: (
       <div style={{ display: "flex", alignItems: "center" }}>
@@ -194,7 +194,15 @@ const EmployerBasicInformation = () => {
         }
       );
 
-      if (response.status === 200 && response.data.success) {
+      if (response.data.success) {
+        const { userDetails } = response.data;
+        localStorage.setItem("user", JSON.stringify(userDetails));
+        localStorage.setItem("user_id", userDetails._id);
+        localStorage.setItem("user_email", userDetails.email);
+        localStorage.setItem("user_role", userDetails.role);
+        localStorage.setItem("first_name", userDetails.first_name);
+        localStorage.setItem("last_name", userDetails.last_name);
+
         toast.success("Recruiter profile created successfully!");
         // Navigate or reset form
         navigate("/employer-dashboard");

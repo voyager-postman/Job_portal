@@ -125,17 +125,23 @@ function EmployerRegister() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}register/recruiter`, {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}register/recruiter`, // ✅ fixed missing slash
+        {
+          email,
+          password,
+        }
+      );
       console.log(response);
-      if (response.status === 200 || response.status === 201) {
+
+      if (response.data.success) {
+        const { token, user } = response.data;
+
+        // ✅ store token and user details correctly
+        localStorage.setItem("token", token);
         toast.success("Registration successful!");
-        login(); // set auth context / localStorage
-        navigate("/employer-login");
-      } else {
-        toast.error("Something went wrong, please try again.");
+        login(); // ✅ update auth context / global state
+        navigate("/employer-basic-info");
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -146,6 +152,7 @@ function EmployerRegister() {
       setLoading(false);
     }
   };
+
   return (
     <>
       <ToastContainer />

@@ -176,7 +176,7 @@ a {
 }
 
 .form-control {
-  height: 50px;
+  height: 35px;
   border: 1px solid #e2e2e2;
   padding-left: 15px;
   font-weight: 500;
@@ -11245,6 +11245,9 @@ input:checked + .slider:before {
 }
 
 /*Amrjeet Dashboard Css End here*/
+
+
+
 /*Sidemenu CSS*/
 .sidemenu-area {
   position: fixed;
@@ -15577,183 +15580,560 @@ button.btn {
 }
 
 /*candidate list css end here*/
+/*candidate profile basic info page css start here*/
 
-/*candidates profile details css start here*/
-
-.candidate-profile-details-info h3 {
-  font-size: 17px;
-}
-
-.candidate-banner-info .candidates-details-left-content {
-  padding-left: 180px;
-}
-
-.candidate-banner-info .candidates-details-left-content .candidates-img img {
-  border-radius: 0px;
-}
-
-.candidate-profile-details-info h3 strong {
-  width: 16%;
+.switch {
+  width: 45px;
+  height: 20px;
+  position: relative;
   display: inline-block;
 }
 
-.candidate-profile-dcv-btn {
-  text-align: right;
-  margin-bottom: 20px;
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.candidate-banner-info .candidates-share-content h4 {
-  font-size: 21px;
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ff6600;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
-.candidate-banner-info .candidates-share-content ul li a {
-  color: #fff;
-  line-height: 40px;
-  background: #1f86ef;
+.slider:before {
+  content: "";
+  height: 15px;
+  width: 15px;
+  left: 2px;
+  bottom: 3px;
+  position: absolute;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
-.candidate-banner-info .candidates-share-content ul li a:hover {
-  background: #ff6600;
+input:checked + .slider {
+  background-color: #0066cc;
 }
 
-.candidate-banner-info .candidates-share-content ul li a i {
-  font-size: 22px;
+input:focus + .slider {
+  box-shadow: 0 0 1px #0066cc;
 }
 
-.candidate-profile-summary h3 {
-  font-size: 20px;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.candidates-detail-main-area {
+  display: flex;
+  padding: 20px 30px;
+  justify-content: space-between;
   border-bottom: 1px solid #eeee;
 }
 
-.candidate-profile-summary h5 {
-  font-size: 16px;
-  margin: 0px 0px 0px 0px;
-}
-
-.candidate-profile-divider-line {
-  border-top: 1px solid #eeee;
-  margin: 20px 0px 30px 0px;
-}
-
-.candidate-profile-skill-info ul {
-  padding: 0px;
-}
-
-.candidate-profile-skill-info ul li {
-  color: #fff;
-  cursor: pointer;
-  list-style: none;
-  margin-right: 20px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background: #0066cc;
-  display: inline-block;
-}
-
-.candidate-profile-review-heading h3 {
-  font-size: 20px;
-  margin-bottom: 30px;
-  background: #f0f5f7;
-  padding: 15px 0px 15px 20px;
-}
-
-.comment-detail-main-area {
+.candidates-img-detail-info {
   display: flex;
-  background: #f0f5f7;
-  margin: 0px 0px 30px 0px;
-  padding: 20px 20px 20px 20px;
 }
 
-.user-img-main-area img {
-  width: 150px;
-  height: 150px;
-  border-radius: 5px;
-  margin: 0px 20px 0px 0px;
-  object-fit: cover;
+.candidates-img-info {
+  width: 28%;
 }
 
-.user-content-main-area h5 {
-  margin: 0px;
-  font-weight: 700;
-  line-height: 25px;
-}
-
-.user-content-main-area h6 {
-  color: #ff6600;
-  font-size: 14px;
-  font-weight: 700;
-  margin: 5px 0px;
-}
-
-.user-content-main-area p {
-  margin: 0px 0px 0px 0px;
-  padding: 0px 0px 0px 0px;
+.my-profile-area .candidates-details-info h3 {
   font-size: 15px;
+  padding-left: 20px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eeeeee;
 }
 
-.user-img-main-area img {
-  width: 400px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 5px;
+.visibility-icon-content i {
+  color: #0066cc;
 }
 
-.user-img-main-area {
+.visibility-icon-content i:hover {
+  color: #ff6600;
+}
+
+.visibility-icon-content {
   margin-right: 20px;
 }
 
-.candidate-profile-submit-btn {
-  margin-top: 10px;
+.img-edit-icon {
+  position: relative;
+}
+
+.img-edit-icon i {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #0066cc;
+  padding: 7px;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.img-edit-icon i:hover {
+  background: #ff6600;
+}
+
+.upload-download-dlt-cv {
+  width: 95%;
+  display: flex;
+  margin: auto;
+  padding: 20px 20px;
+  border-radius: 10px;
+  border: 1px solid #eeee;
+  justify-content: space-between;
+}
+
+.upload-cv-info-area p i {
+  margin-right: 10px;
+}
+
+.upload-cv-area {
+  margin-top: 30px;
+  margin-bottom: 30px;
   text-align: center;
 }
 
-.candidate-profile-submit-btn .default-btn {
-  font-size: 17px;
-  padding: 8px 10px;
-  border-radius: 5px;
-}
-
-.candidate-profile-summary.single-sidebar-widget.job-overview h3 {
-  border-bottom: 1px solid #0066cc2e;
-}
-
-.candidate-profile-summary.single-sidebar-widget.job-overview ul li {
-  position: inherit;
-  text-align: inherit;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #0066cc2e;
-}
-
-.candidate-profile-summary.single-sidebar-widget.job-overview ul li span {
-  width: 42%;
-  position: inherit;
-  display: inline-block;
-}
-
-.candidate-profile-summary.single-sidebar-widget.job-overview ul li:last-child {
+.upload-cv-area input[type="file"]::file-selector-button {
+  padding: 10px 10px;
   border: none;
+  border-radius: 1rem;
+  background-color: #0066cc;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 1em;
 }
 
-.candidate-profile-summary.single-sidebar-widget.download .default-btn {
-  margin-bottom: 0px;
-}
-
-.contact-candidate-form .form-group {
+.currently-working-here {
   margin-bottom: 20px;
 }
 
-.candidate-profile-summary.contact-candidate-info {
-  background: #f0f5f7;
-  padding: 20px 20px 30px 20px;
+.skill-btn-info .default-btn {
+  border-radius: 5px !important;
+  padding: 13px 20px !important;
+  margin-left: 25px;
 }
 
-.candidate-profile-summary.contact-candidate-info h3 {
-  border-bottom: 1px solid #0066cc2e;
+.enter-skill-info {
+  display: flex;
 }
 
-/*candidates profile details css end here*/
+.enter-skill-info .form-group {
+  width: 85%;
+}
+
+.delete-account p span {
+  font-weight: 600;
+  color: #0066cc;
+  cursor: pointer;
+}
+
+.delete-account p span:hover {
+  color: #ff6600;
+}
+
+.profile-visible-recruiters ul {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.profile-visibility-info-area .profile-visible-recruiters ul li {
+  list-style: none;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.profile-visibility-info-area ul li i {
+  margin-right: 5px;
+  color: #0066cc;
+}
+
+.profile-visibility-info-area ul li:hover {
+  color: #ff6600;
+}
+
+.user-all-detail-info-main {
+  padding-top: 25px;
+  margin-bottom: 30px;
+  background-color: #ffffff;
+}
+
+.input-info-edit-area {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+}
+
+.input-info-edit-area h3 {
+  border: none;
+  font-size: 18px;
+  padding-left: 10px;
+  padding-bottom: 0;
+  margin: 0px;
+}
+
+.input-info-edit-area i {
+  color: #fff;
+  background: #0066cc;
+  padding: 5px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.input-info-edit-area i:hover {
+  background: #ff6600;
+}
+
+.user-all-details-info {
+  padding: 0px 30px 0px 30px;
+}
+
+.user-all-details-info .form-group label {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.user-all-details-info .form-group {
+  margin-bottom: 30px;
+}
+
+.download-edit-info ul li {
+  list-style: none;
+}
+
+.download-dlt-cv {
+  position: relative;
+}
+
+.download-edit-info {
+  top: 30px;
+  right: 0px;
+  width: 140px;
+  background: #fff;
+  padding: 0px 20px;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.download-edit-info ul {
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.download-edit-info ul li {
+  list-style: none;
+  margin-top: 15px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.download-edit-info ul li:hover {
+  color: #ff6600;
+}
+
+.download-edit-info ul li i {
+  padding-right: 5px;
+}
+
+.form-group-salary label {
+  font-weight: 500;
+  color: #202124;
+  margin-bottom: 10px;
+}
+
+.work-exprinace-edit {
+  position: relative;
+}
+
+.work-exprinace-edit i {
+  top: 10px;
+  right: 50px;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 10px;
+  border-radius: 5px;
+  position: absolute;
+  background: #ff6600;
+}
+
+.not-add-detail-info {
+  text-align: center;
+}
+
+.not-add-detail-info h5 {
+  font-size: 18px;
+  text-align: center;
+}
+
+.not-add-detail-info i {
+  font-size: 50px;
+  color: #0066cc;
+  padding: 20px 0px;
+}
+
+.enter-skill-tag-info ul {
+  padding: 0px;
+}
+
+.enter-skill-tag-info ul li {
+  list-style: none;
+  color: #0066cc;
+  margin-right: 20px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: inline-block;
+  border: 1px solid #0066cc;
+  cursor: pointer;
+}
+
+.enter-skill-tag-info ul li:hover {
+  color: #ff6600;
+  border: 1px solid #ff6600;
+}
+
+.save-cancel-btn-info {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.save-cancel-btn-info .default-btn {
+  margin-right: 20px;
+  padding: 7px 30px;
+  border-radius: 5px !important;
+}
+
+.candidate-personal-info-cv-linkedin-upload-btn {
+  display: flex;
+  margin-top: 25px;
+  justify-content: space-between;
+}
+
+.candidate-personal-info-upload-cv-btn .default-btn {
+  padding: 5px 5px;
+}
+
+.candidate-personal-info-upload-cv-btn a i {
+  font-size: 14px;
+  margin-right: 5px;
+}
+
+.candidate-personal-info-upload-content-linkedin .default-btn {
+  padding: 5px 5px;
+}
+
+.candidate-personal-info-upload-content-linkedin a i {
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.profile-visibility-info-area {
+  width: 20%;
+}
+
+.my-profile-area .candidate-blank-form-detail-edit-info .profile-form-content {
+  padding-top: 0px;
+  margin-bottom: 0px;
+  position: relative;
+}
+
+.download-dlt-cv i {
+  color: #ff6600;
+}
+
+/*accordian css start here*/
+
+.candidate-profile-detail-info .accordion-item {
+  border: none;
+  margin-bottom: 30px;
+  border-radius: 0px;
+}
+
+.candidate-profile-detail-info .accordion-body {
+  padding: 0px;
+}
+
+.candidate-blank-form-detail-edit-info {
+  margin-top: 20px;
+}
+
+/*.not-add-detail{
+display:none;  
+}
+ 
+ 
+.from-all-input{
+display:none; 
+}
+ 
+.user-all-detail-info-main {
+display:none;  
+}
+*/
+
+/*.input-info-edit-area {
+cursor: pointer;
+position: relative;
+padding-right: 25px;
+}
+ 
+.accordian-open-close-btn {
+top: 20px;
+right: 20px;
+color: #fff;
+cursor: pointer;
+font-size: 20px;
+position: absolute;
+ 
+}*/
+
+/*.accordian-open-close-btn .fa-angle-up {
+display:none; 
+}
+ 
+ 
+.accordian-open-close-btn .fa-angle-down {
+display:block;
+padding: 3px 5px; 
+border-radius: 5px;
+background:#FF6600;  
+}
+ 
+ 
+.accordian-open-close-btn.active .fa-angle-down  {
+display:none;
+}
+ 
+.accordian-open-close-btn.active .fa-angle-up {
+display:block; 
+padding: 3px 5px;
+border-radius: 5px;
+background:#0066CC;  
+}
+*/
+
+.candidate-profile-detail-info .accordion-header {
+  display: flex;
+  align-items: center;
+  padding: 0px 0px 0px 0px;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.accordion-button::after {
+  display: none;
+}
+
+.accordion-icon-toggle.collapsed .fa-angle-up {
+  display: none;
+}
+
+.accordion-icon-toggle .fa-angle-up {
+  color: #fff;
+  display: block;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #0066cc;
+}
+
+.accordion-icon-toggle .fa-angle-down {
+  display: none;
+}
+
+.accordion-icon-toggle.collapsed .fa-angle-down {
+  color: #fff;
+  display: block;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+/*accordian css end here*/
+
+.candidate-personal-dlt-details-heading {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.candidate-personal-dlt-details p {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.candidate-personal-dlt-details ul {
+  list-style: none;
+  margin: 5px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.candidate-personal-dlt-details ul li {
+  margin-bottom: 10px;
+}
+
+.candidate-personal-dlt-details input {
+  margin-right: 5px;
+}
+
+.candidate-personal-dlt-details .form-group label {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.delete-account-popup-btn.modal-footer {
+  display: block;
+  text-align: center;
+}
+
+.delete-account-popup-btn.modal-footer .default-btn {
+  padding: 5px 17px;
+  font-size: 16px;
+  border-radius: 5px !important;
+}
+
+.skills-technologies-info {
+  width: 95%;
+  margin: auto;
+}
+
+.skills-technologies-info .enter-skill-tag-info {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.my-profile-area .profile-form-content.delete-account-info h3 {
+  padding: 15px 30px;
+}
+
+/*candidate profile basic info page css start here*/
 
 /*employer Candidates List filter css start here*/
 
@@ -16889,3 +17269,17 @@ button.btn {
 
 /*Job detail page job aplly function css end here*/
 /* webkit */
+
+.application-filter {
+  width: 100%;
+  display: flex;
+  padding: 15px 30px;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  margin-top: 20px;
+}
+
+.application-filter .form-select {
+  width: 20%;
+}

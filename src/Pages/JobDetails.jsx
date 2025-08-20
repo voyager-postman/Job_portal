@@ -1,6 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 function JobDetails() {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    // Close the modal manually
+    const modal = document.querySelector(".modal.show");
+    if (modal) {
+      const modalInstance = window.bootstrap.Modal.getInstance(modal);
+      modalInstance.hide();
+    }
+
+    // Navigate after closing
+    navigate("/custom-resume-cover-letter");
+  };
+
   return (
     <>
       <section className="inner-banners-info-area">
@@ -42,7 +57,7 @@ function JobDetails() {
                     <p>
                       <strong>Company Name: </strong>
                       <a
-                        href="https://itdevelopmentservices.com/jobPortal/"
+                        href="https://www.integratechnologies.com/"
                         target="_blank"
                       >
                         Integra Technologies
@@ -126,27 +141,6 @@ function JobDetails() {
                         </div>
                         <div className="modal-body">
                           <div className="job-apply-defult-resume-custom-resume">
-                            <div className="job-apply-custom-resume-info-area">
-                              <div className="job-apply-custom-resume-info">
-                                <span>
-                                  <i className="fa-solid fa-file" />
-                                  Custom_Resume.docx
-                                </span>
-                              </div>
-                              <div className="job-apply-custom-resume-cover-letter-btn">
-                                <Link
-                                  to="/custom-resume-cover-letter"
-                                  data-bs-dismiss="modal"
-                                  aria-label="Close"
-                                  className="default-btn btn"
-                                >
-                                  Custom resume with cover letter
-                                </Link>
-                              </div>
-                            </div>
-                            <div className="defult-resume-custom-resume-divder-line">
-                              <h4>or</h4>
-                            </div>
                             <div className="job-apply-with-defult-resume-info">
                               <div className="job-apply-with-defult-resume">
                                 <span>
@@ -165,6 +159,28 @@ function JobDetails() {
                                   Apply job
                                 </Link>
                               </div>
+                            </div>
+                            <div className="defult-resume-custom-resume-divder-line">
+                              <h4>or</h4>
+                            </div>
+
+                            <div className="job-apply-custom-resume-info-area">
+                              <div className="job-apply-custom-resume-info">
+                                <span>
+                                  <i className="fa-solid fa-file" />
+                                  Custom_Resume.docx
+                                </span>
+                              </div>
+                            
+                                <div className="job-apply-custom-resume-cover-letter-btn">
+                                  <button
+                                    onClick={handleClick}
+                                    className="default-btn btn"
+                                  >
+                                    Custom resume with cover letter
+                                  </button>
+                                </div>
+                              
                             </div>
                           </div>
                         </div>

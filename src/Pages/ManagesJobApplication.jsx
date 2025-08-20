@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function ManagesJobApplication() {
   return (
     <>
@@ -58,8 +59,8 @@ function ManagesJobApplication() {
               <div id="menu1" className="tab-pane active">
                 <div className="candiate-mannage-job-no-application">
                   <h5>You have not yet submitted an application.</h5>
-                  <h4>Find the jobs that suit you best and apply now</h4>
-                  <i className="fa-solid fa-file" />
+                  {/* <h4>Find the jobs that suit you best and apply now</h4> */}
+                  {/* <i className="fa-solid fa-file" /> */}
                   <div className="candiate-mannage-job-start-btn">
                     <a href="SearchJobList.html" className="default-btn btn">
                       Start Now
@@ -74,6 +75,23 @@ function ManagesJobApplication() {
                       passed since the time you applied.
                     </p>
                   </div>
+
+                   <div className="application-filter">
+                    <h4>Check you applied job status</h4>
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option selected>Filter</option>
+                          <option value={1}>Java</option>
+                          <option value={2}>Python</option>
+                          <option value={3}>React</option>
+                          <option value={2}>Python</option>
+                          <option value={3}>React</option>
+                        </select>
+                      </div>
+                
+                   
                   <div className="available-job-posts-box">
                     <div className="available-job-company-name-save-job">
                       <div className="available-job-company-name">
@@ -88,7 +106,7 @@ function ManagesJobApplication() {
                         <div className="job-applied-details">
                           <h5>
                             <i className="fa-solid fa-square-check" />
-                            Applied, 18 Jul 2025
+                            Applied
                           </h5>
                         </div>
                         <div className="job-withdraw-details">
@@ -98,7 +116,7 @@ function ManagesJobApplication() {
                             data-bs-target="#exampleModal"
                           >
                             <i className="fa-solid fa-square-xmark" />
-                            Withdraw my application
+                          
                           </a>
                         </div>
                         {/* Modal */}
@@ -240,7 +258,7 @@ function ManagesJobApplication() {
                         <div className="job-applied-details">
                           <h5>
                             <i className="fa-solid fa-square-check" />
-                            Applied, 18 Jul 2025
+                            Applied
                           </h5>
                         </div>
                         <div className="job-withdraw-details">
@@ -250,7 +268,7 @@ function ManagesJobApplication() {
                             data-bs-target="#exampleModal"
                           >
                             <i className="fa-solid fa-square-xmark" />
-                            Withdraw my application
+                          
                           </a>
                         </div>
                         {/* Modal */}
@@ -392,7 +410,7 @@ function ManagesJobApplication() {
                         <div className="job-applied-details">
                           <h5>
                             <i className="fa-solid fa-square-check" />
-                            Applied, 18 Jul 2025
+                           Viewed
                           </h5>
                         </div>
                         <div className="job-withdraw-details">
@@ -402,7 +420,7 @@ function ManagesJobApplication() {
                             data-bs-target="#exampleModal"
                           >
                             <i className="fa-solid fa-square-xmark" />
-                            Withdraw my application
+                          
                           </a>
                         </div>
                         {/* Modal */}
@@ -544,7 +562,7 @@ function ManagesJobApplication() {
                         <div className="job-applied-details">
                           <h5>
                             <i className="fa-solid fa-square-check" />
-                            Applied, 18 Jul 2025
+                            Applied
                           </h5>
                         </div>
                         <div className="job-withdraw-details">
@@ -554,7 +572,7 @@ function ManagesJobApplication() {
                             data-bs-target="#exampleModal"
                           >
                             <i className="fa-solid fa-square-xmark" />
-                            Withdraw my application
+                          
                           </a>
                         </div>
                         {/* Modal */}
@@ -683,6 +701,7 @@ function ManagesJobApplication() {
                     </a>
                   </div>
                 </div>
+                 
               </div>
               <div id="menu2" className="tab-pane fade">
                 <div className="my-applications-heading-info">
@@ -1854,12 +1873,12 @@ function ManagesJobApplication() {
                           </ul>
                         </div>
                         <div className="available-company-btn">
-                          <a
-                            href="companies-details.html"
+                          <Link
+                            to={`/companies-details`}
                             className="default-btn btn"
                           >
                             View the Company
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>

@@ -45,10 +45,16 @@ function Register() {
         password,
       });
       console.log(response);
-      if (response.status === 200 || response.status === 201) {
+
+      if (response.status === 200 && response.data.success) {
+        const { token, user } = response.data;
+
+        // Save login data
+        localStorage.setItem("token", token);
+      
         toast.success("Registration successful!");
         login(); // set auth context / localStorage
-        navigate("/login");
+        navigate("/profile-basic-info");
       } else {
         toast.error("Something went wrong, please try again.");
       }

@@ -50,7 +50,7 @@ function SearchJobList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Chpoose A Category</option>
+                        <option selected>Choose A Category</option>
                         <option value={1}>Development</option>
                         <option value={2}>Information IT</option>
                         <option value={3}>Corporate Job</option>

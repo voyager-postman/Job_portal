@@ -84,7 +84,7 @@ function Login() {
   };
 
   const goToRegister = () => {
-    navigate("/register");
+    navigate("/candidate-dashboard");
   };
 
   return (
