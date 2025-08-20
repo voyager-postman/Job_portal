@@ -1,13 +1,77 @@
-import React from "react";
+import axios from "axios";
+import React, { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../Url/Url";
+
 function JobDetailsForm() {
+  useEffect(() => {
+    // Next button
+    const nextButtons = document.querySelectorAll(".next-tab-btn");
+    nextButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const currentPane = e.target.closest(".tab-pane");
+        if (!currentPane) return;
+
+        const nextPane = currentPane.nextElementSibling;
+        if (!nextPane) return;
+
+        const nextTabLink = document.querySelector(
+          `.nav-link[href="#${nextPane.id}"]`
+        );
+        if (nextTabLink) {
+          const tab = new window.bootstrap.Tab(nextTabLink);
+          tab.show();
+        }
+      });
+    });
+
+    // Back button
+    const backButtons = document.querySelectorAll(".back-tab-btn");
+    backButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const currentPane = e.target.closest(".tab-pane");
+        if (!currentPane) return;
+
+        const prevPane = currentPane.previousElementSibling;
+        if (!prevPane) return;
+
+        const prevTabLink = document.querySelector(
+          `.nav-link[href="#${prevPane.id}"]`
+        );
+        if (prevTabLink) {
+          const tab = new window.bootstrap.Tab(prevTabLink);
+          tab.show();
+        }
+      });
+    });
+  }, []);
+
+  const [categoryList, setCategoryList] = useState([]);
+
+  const fetchCategoryList = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}getJobCategory`);
+      console.log(response.data.jobCategories);
+      setCategoryList(response.data.jobCategories);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategoryList();
+  }, []);
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Your Job Posts</h1>
+            <h1>Job Details Form</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <a href="dashboard.html">Home </a>
@@ -56,7 +120,7 @@ function JobDetailsForm() {
               <i className="fas fa-pencil-alt" />
             </div>
             <div className="tab-content">
-              <div id="menu1" className="tab-pane active">
+              <div id="menu1" className="tab-pane fade show active">
                 <div className="job-details-form-area">
                   <div className="job-details-form-heading">
                     <h3>Job Details</h3>
@@ -75,7 +139,7 @@ function JobDetailsForm() {
                               <option value={1}>
                                 No experience / No degree
                               </option>
-                              <option value={2}>DEntry / Junior</option>
+                              <option value={2}>Entry / Junior</option>
                               <option value={3}>Mid-level</option>
                             </select>
                           </div>
@@ -91,7 +155,7 @@ function JobDetailsForm() {
                               <option value={1}>
                                 No experience / No degree
                               </option>
-                              <option value={2}>DEntry / Junior</option>
+                              <option value={2}>Entry / Junior</option>
                               <option value={3}>Mid-level</option>
                             </select>
                           </div>
@@ -117,14 +181,12 @@ function JobDetailsForm() {
                               className="form-select form-control"
                               aria-label="Default select example"
                             >
-                              <option selected>
-                                Call Center / Customer Support
-                              </option>
-                              <option value={1}>Data / Big data</option>
-                              <option value={2}>
-                                Design / Graphic Αrts / Creative
-                              </option>
-                              <option value={3}>DevOps / Cloud</option>
+                              <option selected>Choose A Category</option>
+                              {categoryList.map((list) => (
+                                <option value={list.name} key={list._id}>
+                                  {list.name}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </div>
@@ -247,7 +309,7 @@ function JobDetailsForm() {
                   </div>
                 </div>
                 <div className="post-job-next-btn-info">
-                  <a href="job-listing.html" className="default-btn btn">
+                  <a href="#" className="btn default-btn next-tab-btn">
                     Next
                   </a>
                 </div>
@@ -366,12 +428,12 @@ function JobDetailsForm() {
                 </div>
                 <div className="job-create-form-back-next-info">
                   <div className="job-create-form-back-next-btn">
-                    <a href="job-listing.html" className="default-btn btn">
+                    <a href="#" className="default-btn btn back-tab-btn">
                       Back
                     </a>
                   </div>
                   <div className="job-create-form-back-next-btn">
-                    <a href="job-listing.html" className="default-btn btn">
+                    <a href="#" className="btn default-btn next-tab-btn">
                       Next
                     </a>
                   </div>
@@ -448,12 +510,12 @@ function JobDetailsForm() {
                 </div>
                 <div className="job-create-form-back-next-info">
                   <div className="job-create-form-back-next-btn">
-                    <a href="job-listing.html" className="default-btn btn">
+                    <a href="#" className="default-btn btn back-tab-btn">
                       Back
                     </a>
                   </div>
                   <div className="job-create-form-back-next-btn">
-                    <a href="job-listing.html" className="default-btn btn">
+                    <a href="#" className="btn default-btn next-tab-btn">
                       Next
                     </a>
                   </div>
@@ -574,15 +636,15 @@ function JobDetailsForm() {
                     </div>
                     <div className="job-payment-divider" />
                     <div className="pay-publish-later-btn">
-                      <a href="#" className="default-btn btn">
+                      <Link to="/your-job-posts" className="default-btn btn">
                         Pay and publish
-                      </a>
+                      </Link>
                     </div>
                     <div className="job-payment-divider" />
                     <div className="pay-publish-later-btn">
-                      <a href="#" className="default-btn btn">
+                      <Link to="/your-job-posts" className="default-btn btn">
                         Pay Now, Publish later
-                      </a>
+                      </Link>
                     </div>
                     <div className="job-payment-divider" />
                     <div className="job-payment-content-info">

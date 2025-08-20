@@ -1,6 +1,60 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
 
 function YourJobPosts() {
+  const [isPost, setIsPost] = useState("");
+  const [cateroryList, setCategoryList] = useState([]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (e.target.classList.contains("menu-icon")) {
+        const parent = e.target.closest(".job-short-detail-box");
+        if (!parent) return;
+        const thisMenu = parent.querySelector(".job-short-detail-crud-menu");
+        document
+          .querySelectorAll(".job-short-detail-crud-menu")
+          .forEach((menu) => {
+            if (menu !== thisMenu) {
+              menu.classList.remove("show");
+            }
+          });
+        if (thisMenu) {
+          thisMenu.classList.toggle("show");
+        }
+      } else {
+        document
+          .querySelectorAll(".job-short-detail-crud-menu")
+          .forEach((menu) => menu.classList.remove("show"));
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  const fetchCategoryList = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}getJobCategory`);
+      console.log(response.data.jobCategories);
+      setCategoryList(response.data.jobCategories);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategoryList();
+  }, []);
+
+  const handlePostClick = () => {
+    setIsPost(true);
+  };
+
+  const handlePostCancel = () => {
+    setIsPost(false);
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -10,7 +64,7 @@ function YourJobPosts() {
             <h1>Your Job Posts</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/employer-dashboard">Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
@@ -53,9 +107,14 @@ function YourJobPosts() {
                         aria-label="Default select example"
                       >
                         <option selected>Choose A Category</option>
-                        <option value={1}>Development</option>
+                        {cateroryList.map((list) => (
+                          <option value={list.name} key={list._id}>
+                            {list.name}
+                          </option>
+                        ))}
+                        {/* <option value={1}>Development</option>
                         <option value={2}>Information IT</option>
-                        <option value={3}>Corporate Job</option>
+                        <option value={3}>Corporate Job</option> */}
                       </select>
                       <i className="flaticon-list" />
                     </div>
@@ -153,149 +212,118 @@ function YourJobPosts() {
                 <div className="your-job-post-detail-info">
                   <div className="tab-content">
                     <div id="menu1" className="tab-pane active">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Created Any Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          Create Job
-                        </a>
-                      </div>
-                      <div className="your-job-posts-form-heading">
-                        <h4>
-                          <i className="fa-regular fa-file" /> Create New job
-                          post
-                        </h4>
-                      </div>
-                      <div className="post-job-form-info">
-                        <form>
-                          <div className="form-group">
-                            <label>Job Title</label>
-                            <input
-                              className="form-control"
-                              type="text"
-                              placeholder="Job Title"
-                            />
-                          </div>
-                          <div className="form-group">
-                            <label>Job Category</label>
-                            <select
-                              className="form-select form-control"
-                              aria-label="Default select example"
-                            >
-                              <option selected>Select Category</option>
-                              <option value={1}>Website Designer</option>
-                              <option value={2}>Designer</option>
-                              <option value={3}>Agriculture</option>
-                            </select>
-                          </div>
+                      {!isPost && (
+                        <div className="job-post-info-heading">
+                          <h2>There Are No Created Any Job Posts.</h2>
                           <div className="post-job-next-btn">
-                            <Link
-                              to="/job-details-form"
+                            <a
+                              href="#"
                               className="default-btn btn"
+                              onClick={handlePostClick}
                             >
-                              Next
-                            </Link>
+                              Create Job
+                            </a>
                           </div>
-                        </form>
-                      </div>
+                        </div>
+                      )}
+
+                      {isPost && (
+                        <>
+                          <div className="your-job-posts-form-heading mt-5">
+                            <h4>
+                              <i className="fa-regular fa-file" /> Create New
+                              job post
+                            </h4>
+                          </div>
+                          <div className="post-job-form-info">
+                            <form>
+                              <div className="form-group">
+                                <label>Job Title</label>
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  placeholder="Job Title"
+                                />
+                              </div>
+                              <div className="form-group">
+                                <label>Job Category</label>
+                                <select
+                                  className="form-select form-control"
+                                  aria-label="Default select example"
+                                >
+                                  <option selected>Select Category</option>
+                                  {cateroryList.map((list) => (
+                                    <option value={list.name} key={list._id}>
+                                      {list.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="post-job-next-btn">
+                                <Link
+                                  to="/job-details-form"
+                                  className="default-btn btn"
+                                >
+                                  Next
+                                </Link>
+                              </div>
+                            </form>
+                          </div>
+                        </>
+                      )}
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Website Desginer</h4>
-                          </div>
-                          <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
-                            </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
-                          </div>
-                        </div>
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice" /> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -304,75 +332,65 @@ function YourJobPosts() {
                     <div id="menu2" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No Published Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
                       </div>
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -382,48 +400,54 @@ function YourJobPosts() {
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -432,75 +456,65 @@ function YourJobPosts() {
                     <div id="menu3" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No Draft Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
                       </div>
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -510,48 +524,54 @@ function YourJobPosts() {
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -560,27 +580,11 @@ function YourJobPosts() {
                     <div id="menu4" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No Expired Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
                       </div>
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
@@ -646,75 +650,66 @@ function YourJobPosts() {
                     <div id="menu5" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No Unpublished Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
                       </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
-                      </div>
+
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -724,48 +719,54 @@ function YourJobPosts() {
                           <div className="job-short-detail-heading">
                             <h4>Testing</h4>
                           </div>
+
                           <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Draft
+                            <a href="#" className="job-short-crud-btn">
+                              <i className="fa-solid fa-pencil"></i> Draft
                             </a>
-                            <a href className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil" /> Edit
-                            </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            ></i>
                           </div>
+
                           <div className="job-short-detail-crud-menu">
                             <ul>
                               <li>
-                                <i className="fa-solid fa-pencil" /> Edit
+                                <i className="fa-solid fa-pencil"></i> Edit
                               </li>
                               <li>
-                                <i className="fa-regular fa-eye" /> Preview
+                                <i className="fa-regular fa-eye"></i> Preview
                               </li>
                               <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
+                                <i className="fa-solid fa-file"></i> Copy as
+                                draft
                               </li>
                               <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
+                                <i className="fa-solid fa-box-archive"></i>{" "}
                                 Archive
                               </li>
                             </ul>
                           </div>
                         </div>
+
                         <div className="job-short-detail-tags">
                           <ul>
                             <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
+                              <i className="fa-solid fa-location-dot"></i>{" "}
+                              Germany
                             </li>
                             <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
+                              <i className="fa-solid fa-calendar-days"></i> 11
+                              Jul 2025
                             </li>
                             <li>
-                              <i className="fa-solid fa-file-invoice" /> No
+                              <i className="fa-solid fa-file-invoice"></i> No
                               experience / No degree
                             </li>
                             <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
+                              <i className="fa-solid fa-user-plus"></i> Full
+                              Time
                             </li>
                           </ul>
                         </div>
@@ -774,27 +775,11 @@ function YourJobPosts() {
                     <div id="menu6" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No Archived Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
                       </div>
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
@@ -805,7 +790,10 @@ function YourJobPosts() {
                             <a href className="job-short-crud-btn">
                               <i className="fas fa-archive" /> Archived
                             </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            />
                           </div>
                           <div className="job-short-detail-crud-menu">
                             <ul>
@@ -881,7 +869,10 @@ function YourJobPosts() {
                             <a href className="job-short-crud-btn">
                               <i className="fas fa-archive" /> Archived
                             </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            />
                           </div>
                           <div className="job-short-detail-crud-menu">
                             <ul>
@@ -924,27 +915,11 @@ function YourJobPosts() {
                     <div id="menu7" className="tab-pane fade">
                       <div className="job-post-info-heading">
                         <h2>There Are No All Job Posts.</h2>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
+                        <div className="post-job-next-btn">
+                          <a href="#" className="default-btn btn">
+                            All Jobs
+                          </a>
                         </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="created-job-box-detail-info">
-                        <div className="created-job-content-info">
-                          <h4>There are no job details</h4>
-                        </div>
-                        <div className="created-job-crud-info">
-                          <i className="fa-solid fa-ellipsis-vertical" />
-                        </div>
-                      </div>
-                      <div className="post-job-next-btn">
-                        <a href="#" className="default-btn btn">
-                          All Jobs
-                        </a>
                       </div>
                       <div className="job-short-detail-box">
                         <div className="job-short-heading-crud">
@@ -955,7 +930,10 @@ function YourJobPosts() {
                             <a href className="job-short-crud-btn">
                               <i className="fas fa-archive" /> Archived
                             </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            />
                           </div>
                           <div className="job-short-detail-crud-menu">
                             <ul>
@@ -1031,7 +1009,10 @@ function YourJobPosts() {
                             <a href className="job-short-crud-btn">
                               <i className="fas fa-archive" /> Archived
                             </a>
-                            <i className="fa-solid fa-ellipsis-vertical" />
+                            <i
+                              className="fa-solid fa-ellipsis-vertical menu-icon"
+                              style={{ cursor: "pointer" }}
+                            />
                           </div>
                           <div className="job-short-detail-crud-menu">
                             <ul>

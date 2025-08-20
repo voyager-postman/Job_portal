@@ -500,7 +500,6 @@
 
 /*Company Details page css end here*/
 /*employer dashboard css start here*/
-/* <h1>oeoeo</h1> */
 .employer-dashboard-box {
   display: flex;
   align-items: center;
@@ -578,6 +577,19 @@
 .recent-notifications-box {
   margin-top: 30px;
   margin-bottom: 0px;
+}
+
+.job-short-detail-crud-menu {
+  display: none;
+  position: absolute; /* if you want it floating */
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  z-index: 100;
+}
+
+.job-short-detail-crud-menu.show {
+  display: block;
 }
 
 /*employer dashboard css end here*/
