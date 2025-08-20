@@ -101,17 +101,6 @@ function CandidateDashboard() {
                     </a>
                   </div>
                 </div>
-                {/* <a href="#">
-                  <div className="dashboard-box-icon-content">
-                    <div className="box-icon">
-                      <i className="fa-solid fa-building" />
-                    </div>
-                    <div className="box-content">
-                      <h4>Companies</h4>
-                      <h5>6</h5>
-                    </div>
-                  </div>
-                </a> */}
               </div>
             </div>
           </section>

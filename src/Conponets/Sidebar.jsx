@@ -68,6 +68,24 @@ function Sidebar() {
               </NavLink>
             </li>
 
+            <li className="nav-item">
+              <NavLink
+                to="/job-alert"
+                end
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-1.svg"
+                    alt="Job Alert"
+                  />
+                </span>
+                <span className="menu-title">Set Job Alert</span>
+              </NavLink>
+            </li>
+
             {/* Repeat for other links as needed */}
           </ul>
         )}

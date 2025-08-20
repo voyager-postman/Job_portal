@@ -36,6 +36,7 @@ import Employers from "./Pages/Employers";
 import JobList from "./Pages/JobList";
 import EmployerDashboard from "./Pages/EmployerDashboard";
 import CustomResumeCoverLatter from "./Pages/CustomResumeCoverLatter";
+import JobAlert from "./Pages/JobAlert";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -54,6 +55,7 @@ function LayoutWrapper() {
     "/candidate-dashboard",
     // "/candidates-profile-details",
     "/manage-job-application",
+    "/job-alert",
   ];
 
   const showSidebar = sidebarRoutes.some((route) =>
@@ -112,6 +114,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <CandidateProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/job-alert"
+          element={
+            <PrivateRoute>
+              <JobAlert />
             </PrivateRoute>
           }
         />
