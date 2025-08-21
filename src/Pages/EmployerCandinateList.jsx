@@ -3,19 +3,31 @@ import { Link } from "react-router-dom";
 function EmployerCandinateList() {
   return (
     <>
-      <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Candidates Listing</h1>
-            <ul>
-              <li>
-                <a href="index-2.html">Home</a>
-              </li>
-              <li>Candidates Listing</li>
-            </ul>
+      <section class="inner-banners-info-area">
+        <div class="inner-banners-img-area">
+          <img
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+            alt="breadcrumb Img"
+          />
+        </div>
+        <div class="inner-banners-title-info">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="inner-page-banner-title">
+                  <h2>Candidates Listing</h2>
+                  <ul>
+                    <li class="menu-divide-arrow">
+                      <Link to="/">Home</Link>
+                    </li>
+                    <li>Candidates Listing</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
       <section className="employer-candidate-filter-info-area">
         <div className="container">
           <div className="row">

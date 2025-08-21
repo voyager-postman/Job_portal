@@ -36,6 +36,8 @@ import Employers from "./Pages/Employers";
 import JobList from "./Pages/JobList";
 import EmployerDashboard from "./Pages/EmployerDashboard";
 import CustomResumeCoverLatter from "./Pages/CustomResumeCoverLatter";
+import JobAlert from "./Pages/JobAlert";
+import Faq from "./Pages/Faq";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -54,6 +56,7 @@ function LayoutWrapper() {
     "/candidate-dashboard",
     // "/candidates-profile-details",
     "/manage-job-application",
+    "/job-alert",
   ];
 
   const showSidebar = sidebarRoutes.some((route) =>
@@ -75,6 +78,7 @@ function LayoutWrapper() {
         <Route path="/employer-login" element={<EmployerLogin />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/employers" element={<Employers />} />
+        <Route path="/faq" element={<Faq />} />
         <Route
           path="/employer-candidates-list"
           element={<EmployerCandinateList />}
@@ -90,6 +94,7 @@ function LayoutWrapper() {
           path="/custom-resume-cover-letter"
           element={<CustomResumeCoverLatter />}
         />
+        <Route path="/company-details" element={<CompanyDetailsInfo />} />
         {/* Protected Routes */}
         <Route
           path="/job-details-form"
@@ -112,6 +117,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <CandidateProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/job-alert"
+          element={
+            <PrivateRoute>
+              <JobAlert />
             </PrivateRoute>
           }
         />

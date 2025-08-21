@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 function CandidateProfile() {
   const [profileData, setProfileData] = useState("");
@@ -66,7 +67,7 @@ function CandidateProfile() {
             <h1>My Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/candidate-dashboard">Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
