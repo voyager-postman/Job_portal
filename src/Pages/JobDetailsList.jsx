@@ -72,7 +72,7 @@ function JobDetailsList() {
             <h1>Search Job Keywords</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/candidate-dashboard">Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
@@ -538,7 +538,7 @@ function JobDetailsList() {
                             </div>
                           </div>
 
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <div className="available-job-posts-box">
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
@@ -598,9 +598,9 @@ function JobDetailsList() {
                                 </ul>
                               </div>
                             </div>
-                          </a>
+                          </Link>
 
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <div className="available-job-posts-box">
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
@@ -660,9 +660,9 @@ function JobDetailsList() {
                                 </ul>
                               </div>
                             </div>
-                          </a>
+                          </Link>
 
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <div className="available-job-posts-box">
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
@@ -722,9 +722,9 @@ function JobDetailsList() {
                                 </ul>
                               </div>
                             </div>
-                          </a>
+                          </Link>
 
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <div className="available-job-posts-box">
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
@@ -784,9 +784,9 @@ function JobDetailsList() {
                                 </ul>
                               </div>
                             </div>
-                          </a>
+                          </Link>
 
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <div className="available-job-posts-box">
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
@@ -846,7 +846,7 @@ function JobDetailsList() {
                                 </ul>
                               </div>
                             </div>
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>
