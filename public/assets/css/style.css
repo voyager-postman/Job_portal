@@ -6954,6 +6954,12 @@ Footer Style
   position: relative;
   margin-bottom: 45px;
 }
+
+.single-footer-widget h4 {
+  font-size: 22px;
+  color: #ffffff;
+  position: relative;
+}
 .single-footer-widget h3::before {
   position: absolute;
   content: "";
@@ -14387,7 +14393,7 @@ Dashboard Area CSS
 /*header css start here*/
 
 .desktop-nav .navbar .navbar-brand {
-  width: 10%;
+  width: 18%;
 }
 
 .post-job-employers-btn .default-btn {

@@ -5,13 +5,14 @@ function Footer() {
   const handleScrollTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: "smooth", // smooth scroll
+      behavior: "smooth",
     });
   };
+
   return (
     <>
       <div>
-        <div className="footer-area bg-color pt-100 pb-70">
+        <div className="footer-area bg-color pt-50 pb-50">
           <div className="container">
             <div className="row">
               <div className="col-lg-4 col-sm-6">
@@ -32,6 +33,7 @@ function Footer() {
                   <div className="social-content">
                     <ul>
                       <li>
+                        {" "}
                         <span>Follow Us:</span>
                       </li>
                       <li>
@@ -56,70 +58,90 @@ function Footer() {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-3 col-sm-6">
+              <div className="col-lg-2 col-sm-6">
                 <div className="single-footer-widget quick-link">
-                  <h3>For Employer</h3>
+                  <h3>Job Seekers</h3>
                   <ul>
                     <li>
-                      <Link to="/">Browse Candidates </Link>
+                      <Link to="/jobs">Browse Jobs </Link>
                     </li>
                     <li>
-                      <Link to="/">Employers Dashboard </Link>
+                      <Link to="/employers">Browse Companies </Link>
                     </li>
                     <li>
-                      <Link to="/">Job Packages </Link>
+                      <Link to="/">Upload Your Resume </Link>
                     </li>
                     <li>
-                      <Link to="/">Jobs Featured </Link>
-                    </li>
-                    <li>
-                      <Link to="/">Post A Job </Link>
+                      <Link to="/faq">FAQ Jobseeker </Link>
                     </li>
                   </ul>
                 </div>
               </div>
               <div className="col-lg-2 col-sm-6">
                 <div className="single-footer-widget quick-link">
-                  <h3>Company</h3>
+                  <h3>Employer</h3>
                   <ul>
                     <li>
-                      <Link to="/about-us">About Us</Link>
+                      <Link
+                        to={
+                          localStorage.getItem("token")
+                            ? "/your-job-posts"
+                            : "/employer-login"
+                        }
+                      >
+                        Job Posts
+                      </Link>
                     </li>
                     <li>
-                      <Link to="/contact-us">Contact Us</Link>
+                      <Link
+                        to={
+                          localStorage.getItem("token")
+                            ? "/shortlist-candidates"
+                            : "/employer-login"
+                        }
+                      >
+                        CV Database
+                      </Link>
                     </li>
                     <li>
-                      <Link to="/">Terms &amp; Conditions</Link>
+                      <Link
+                        to={
+                          localStorage.getItem("token")
+                            ? "/candidates-search"
+                            : "/employer-login"
+                        }
+                      >
+                        Candidate Listing
+                      </Link>
                     </li>
                     <li>
-                      <Link to="/">Privacy Policy</Link>
-                    </li>
-                    <li>
-                      <Link to="/">Candidate Listing</Link>
+                      <Link to="/faq">FAQ Employer</Link>
                     </li>
                   </ul>
                 </div>
               </div>
-              <div className="col-lg-3 col-sm-6">
+              <div className="col-lg-4 col-sm-6">
                 <div className="single-footer-widget info">
-                  <h3>Official Info</h3>
+                  <h3>Contact Info</h3>
                   <ul>
                     <li>
                       <i className="fa-solid fa-location-dot" />
-                      <h4>Location:</h4>
-                      <span>2976 sunrise road las vegas</span>
+                      <h4>Location: 2976 sunrise road las vegas</h4>
                     </li>
                     <li>
                       <i className="fa-solid fa-envelope" />
-                      <h4>Email:</h4>
-                      <a href="#!">
-                        <span>[email&nbsp;protected]</span>
-                      </a>
+                      <h4>
+                        Email:{" "}
+                        <a href="mailto:info@companyname.com">
+                          info@companyname.com
+                        </a>
+                      </h4>
                     </li>
                     <li>
                       <i className="fa-solid fa-phone" />
-                      <h4>Phone:</h4>
-                      <a href="tel:098765432150">098765432150</a>
+                      <h4>
+                        Phone: <a href="tel:098765432150">098765432150</a>
+                      </h4>
                     </li>
                   </ul>
                 </div>

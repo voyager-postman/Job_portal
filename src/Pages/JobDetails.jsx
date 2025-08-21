@@ -18,7 +18,7 @@ function JobDetails() {
                   <h2>Job Details</h2>
                   <ul>
                     <li className="menu-divide-arrow">
-                      <a href="index.html">Home</a>
+                      <Link to="/">Home</Link>
                     </li>
                     <li>Job Details</li>
                   </ul>
@@ -41,12 +41,9 @@ function JobDetails() {
                     </h2>
                     <p>
                       <strong>Company Name: </strong>
-                      <a
-                        href="https://itdevelopmentservices.com/jobPortal/"
-                        target="_blank"
-                      >
+                      <Link to="/company-details">
                         Integra Technologies
-                      </a>
+                      </Link>
                     </p>
                     <p>
                       <strong>Posted by: </strong>Vcloud Technologies Investment
@@ -126,33 +123,34 @@ function JobDetails() {
                         </div>
                         <div className="modal-body">
                           <div className="job-apply-defult-resume-custom-resume">
-                            <div className="job-apply-custom-resume-info-area">
-                              <div className="job-apply-custom-resume-info">
-                                <span>
-                                  <i className="fa-solid fa-file" />
-                                  Custom_Resume.docx
-                                </span>
-                              </div>
-                              <div className="job-apply-custom-resume-cover-letter-btn">
-                                <Link
-                                  to="/custom-resume-cover-letter"
-                                  data-bs-dismiss="modal"
-                                  aria-label="Close"
-                                  className="default-btn btn"
-                                >
-                                  Custom resume with cover letter
-                                </Link>
-                              </div>
+                            <div className="job-apply-with-defult-resume">
+                              <span>
+                                <i className="fa-solid fa-circle-check" />
+                                DavidSmithResume.docx
+                              </span>
                             </div>
+
                             <div className="defult-resume-custom-resume-divder-line">
                               <h4>or</h4>
                             </div>
                             <div className="job-apply-with-defult-resume-info">
-                              <div className="job-apply-with-defult-resume">
-                                <span>
-                                  <i className="fa-solid fa-circle-check" />
-                                  DavidSmithResume.docx
-                                </span>
+                              <div className="job-apply-custom-resume-info-area">
+                                <div className="job-apply-custom-resume-info">
+                                  <span>
+                                    <i className="fa-solid fa-file" />
+                                    Custom_Resume.docx
+                                  </span>
+                                </div>
+                                <div className="job-apply-custom-resume-cover-letter-btn">
+                                  <Link
+                                    to="/custom-resume-cover-letter"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                    className="default-btn btn"
+                                  >
+                                    Custom resume with cover letter
+                                  </Link>
+                                </div>
                               </div>
                               <div className="defult-resume-custom-resume-divder" />
                               <div className="job-apply-defult-resume-btn">
@@ -387,8 +385,13 @@ function JobDetails() {
                       <i className="fa-regular fa-user" /> Full time
                     </li>
                   </ul>
-                  <div className="summary-offer-apply-report-btn">
-                    <a href="#" className="default-btn btn">
+                  <div className="summary-offer-apply-report-btn edit-popup-modal">
+                    <a
+                      href="#"
+                      className="default-btn btn"
+                      data-bs-toggle="modal"
+                      data-bs-target="#exampleModal"
+                    >
                       Apply Now
                     </a>
                     <a href="#" className="report-btn-info">

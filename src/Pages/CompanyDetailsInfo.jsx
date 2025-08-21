@@ -3,22 +3,32 @@ import { Link } from "react-router-dom";
 function CompanyDetailsInfo() {
   return (
     <>
-      <div className="page-banner-area bg-f0f4fc">
-            <div className="container">
-              <div className="page-banner-content">
-                <h1>Company Details</h1>
-                <ul>
-                  <li>
-                    <Link to="/" className="nav-link">
-                      {" "}
-                      Home
-                    </Link>
-                  </li>
-                  <li>Company Details</li>
-                </ul>
+      <section className="inner-banners-info-area">
+        <div className="inner-banners-img-area">
+          <img
+            src="assets/images/banner/inner-banner-img.jpg"
+            alt="breadcrumb Img"
+          />
+        </div>
+        <div className="inner-banners-title-info">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12">
+                <div className="inner-page-banner-title">
+                  <h2>Company Details</h2>
+                  <ul>
+                    <li className="menu-divide-arrow">
+                      <Link to="/">Home</Link>
+                    </li>
+                    <li>Company Details</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
       <div className="container">
         <div className="row">
           <section className="company-detail-info-area">
