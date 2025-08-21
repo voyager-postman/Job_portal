@@ -68,7 +68,7 @@ function Sidebar() {
               </NavLink>
             </li>
 
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <NavLink
                 to="/job-alert"
                 end
@@ -84,7 +84,7 @@ function Sidebar() {
                 </span>
                 <span className="menu-title">Set Job Alert</span>
               </NavLink>
-            </li>
+            </li> */}
 
             {/* Repeat for other links as needed */}
           </ul>

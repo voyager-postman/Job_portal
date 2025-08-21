@@ -14,7 +14,6 @@ function CandidateProfile() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-
         const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -30,6 +29,7 @@ function CandidateProfile() {
 
     fetchProfile();
   }, []);
+
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem("token");

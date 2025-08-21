@@ -38,6 +38,7 @@ import EmployerDashboard from "./Pages/EmployerDashboard";
 import CustomResumeCoverLatter from "./Pages/CustomResumeCoverLatter";
 import JobAlert from "./Pages/JobAlert";
 import Faq from "./Pages/Faq";
+import JobDetailsList from "./Pages/JobDetailsList";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -53,6 +54,7 @@ function LayoutWrapper() {
     "/shortlist-candidates",
     "/candidates-search",
     "/job-details-form",
+    "/job-details",
     "/candidate-dashboard",
     // "/candidates-profile-details",
     "/manage-job-application",
@@ -145,6 +147,14 @@ function LayoutWrapper() {
           }
         />
         <Route
+          path="/job-details-list"
+          element={
+            <PrivateRoute>
+              <JobDetailsList />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/candidate-dashboard"
           element={
             <PrivateRoute>
@@ -208,7 +218,6 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-
         <Route
           path="/job-search"
           element={
@@ -217,7 +226,6 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         ></Route>
-
         <Route
           path="/companies-list"
           element={
@@ -226,7 +234,6 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showFooter && <Footer />}
