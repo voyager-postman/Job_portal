@@ -62,7 +62,7 @@ function CandidateDashboard() {
                     </a>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/chat-messaging-system">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i class="fa-solid fa-comment-dots"></i>
@@ -72,7 +72,7 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
                     <a href="#">
@@ -88,7 +88,8 @@ function CandidateDashboard() {
                     </a>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/activity-timeline">
+                      {" "}
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-user"></i>
@@ -98,13 +99,11 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-             
-            
           </section>
           {/* candidate mannage Job application end here*/}
           {/* candidate Complete profile section start here */}

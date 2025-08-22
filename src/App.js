@@ -39,6 +39,8 @@ import CustomResumeCoverLatter from "./Pages/CustomResumeCoverLatter";
 import JobAlert from "./Pages/JobAlert";
 import Faq from "./Pages/Faq";
 import JobDetailsList from "./Pages/JobDetailsList";
+import ActivityTimeline from "./Pages/ActivityTimeline";
+import ChatMassageSystem from "./Pages/ChatMassageSystem";
 
 function LayoutWrapper() {
   const location = useLocation();
@@ -56,6 +58,8 @@ function LayoutWrapper() {
     "/job-details-form",
     "/job-details",
     "/candidate-dashboard",
+    "/chat-messaging-system",
+    "/activity-timeline",
     // "/candidates-profile-details",
     "/manage-job-application",
     "/job-alert",
@@ -127,6 +131,22 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <JobAlert />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/activity-timeline"
+          element={
+            <PrivateRoute>
+              <ActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/chat-messaging-system"
+          element={
+            <PrivateRoute>
+              <ChatMassageSystem />
             </PrivateRoute>
           }
         />

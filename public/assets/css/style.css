@@ -18421,3 +18421,296 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(30px);
 }
+/*chat messaging system css start here*/
+ 
+ 
+.chat-messaging-system-info {
+padding-bottom: 50px;
+background-color:#ffffff; 
+}
+ 
+.chat-messaging-system-heading {
+display: flex;
+justify-content: space-between;
+border-bottom: 1px solid #eeeeee;
+}
+ 
+.user-message-list-search {
+width: 31%;
+padding: 20px 20px;
+}
+ 
+.user-message-search-box-icon-info {
+display: flex;
+padding: 8px 8px; 
+align-items: center;
+border: 1px solid #cdcd;
+}
+ 
+.user-message-search-box-icon-info input {
+width:95%;
+border:none;  
+}
+ 
+.user-message-search-box-icon-info input:focus-visible {
+outline: none;
+}
+ 
+ 
+.user-name-message-dlt-info {
+width:70%; 
+display:flex;
+padding: 15px 20px;
+align-items:center;
+border-left: 1px solid #eeeeee;
+justify-content:space-between;
+}
+ 
+.user-img-name-status-info {
+width:18%;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+ 
+ 
+.user-message-img {
+width:50px;
+height:50px;
+overflow: hidden;
+border-radius: 50px;  
+}
+ 
+ 
+.user-name-status span {
+color: #fff;
+font-size: 12px;
+padding: 1px 4px;
+background: #39da8a;
+}
+ 
+.user-name-status h6 {
+margin:0px 0px 0px 0px;  
+}
+ 
+.user-message-dlt span i {
+color: #ff6600;
+margin-right: 5px;  
+}
+ 
+.user-message-search-box {
+width:90%;  
+}
+ 
+ 
+.user-message-list-massage-detail {
+display: flex;
+padding: 0px 0px 0px 20px;
+}
+ 
+.user-message-list .nav-tabs {
+display: block;
+height: 463px;
+overflow: auto;
+border-right: 1px solid #eeeeee;
+}
+ 
+ 
+.user-message-list .nav-tabs .nav-link {
+border: none;
+padding:20px 10px;
+border-radius: 0px;
+border: 1px solid #eeeeee;
+}
+ 
+.user-message-list .nav-link.active {
+border-radius: 0px;
+background: #FF6600;
+}
+ 
+ 
+.user-message-list {
+width:40%;  
+}
+ 
+.user-img-name-chat-count-time-massage {
+display: flex;
+justify-content: space-between;
+}
+ 
+.user-img-chat-count {
+position: relative;
+margin-right: 10px;
+}
+ 
+.user-img-chat-count img {
+width: 50px;
+height: 50px;
+border-radius: 50px;
+}
+ 
+ 
+.chat-count {
+color: #fff;
+right: 5px;
+width: 17px;
+height: 17px;
+bottom: 6px;
+font-size: 12px;
+font-weight: 500;
+text-align: center;
+background: #0066CC;
+position: absolute;
+border-radius: 50px;
+}
+ 
+ 
+.user-name-time-info {
+display: flex;
+justify-content: space-between;
+}
+ 
+.user-short-massage p {
+width:95%;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+ 
+.job-seeker-employer-message-detail {
+width: 90%;
+margin: 0px 0px 0px 0px;
+}
+ 
+ 
+.user-message-chat-details {
+display: flex;
+margin-top: 30px;
+}
+ 
+ 
+.job-seeker-message-img img {
+width: 50px;
+height: 50px;
+overflow: hidden;
+border-radius: 50px; 
+}
+ 
+ 
+.job-seeker-message-img {
+margin-right:10px;
+}
+ 
+.job-seeker-message-time {
+display:flex;  
+}
+ 
+ 
+.job-seeker-message-time h6 {
+color:#fff;
+margin-right:10px;
+}
+ 
+ 
+.job-seeker-message-detail-text {
+width: 50%;
+padding: 10px 20px;
+border-radius: 5px;
+background: #FF6600;
+}
+ 
+ 
+.job-seeker-message-detail-text p {
+color:#fff;  
+}
+ 
+ 
+.user-message-chat-details.employer-info-main-area {
+display: flex;
+justify-content: end;
+}
+ 
+.employer-info-main-area .job-seeker-message-img {
+margin-left:10px;  
+}
+ 
+.user-message-list .nav-tabs .active .user-name-time-info h6 {
+color:#fff;
+}
+ 
+.user-message-list .nav-tabs .active .user-name-time-info p {
+color:#fff;
+}
+ 
+ 
+.user-message-list .nav-tabs .active .user-short-massage p {
+color:#fff;
+}
+ 
+.user-name-time-info h6 {
+margin:0px;  
+}
+ 
+.user-name-time-info p {
+margin:0px; 
+}
+ 
+.user-short-massage p {
+margin:0px;  
+}
+ 
+ 
+.job-seeker-employer-message-detail .tab-pane {
+height: 400px;
+overflow: auto;
+padding: 0px 0px 0px 20px;
+}
+ 
+ 
+.chat-messaging-typeing-function-btn {
+display: flex;
+align-items: center;
+margin: 20px 0px 0px 20px;
+border: 1px solid #cdcdcd;
+}
+ 
+.chat-messaging-typeing-box {
+width:80%;
+border-right: 1px solid #cdcdcd;
+}
+ 
+.chat-messaging-typeing-function {
+width: 15%;
+display: flex;
+margin-left: 15px;
+align-items: center;
+justify-content: space-between;
+}
+ 
+.chat-messaging-typeing-function i {
+cursor:pointer; 
+}
+ 
+.chat-messaging-typeing-box .form-control {
+border:none;  
+}
+ 
+.job-seeker-employer-message-detail .tab-content {
+border-bottom: 1px solid #eeeeee;  
+}
+ 
+/*chat messaging system css end here*/
+/*Activity timeline page css start here*/
+ 
+.activity-timeline-info-list {
+background: #fff;
+padding:20px 30px 10px 30px;
+}
+ 
+.activity-timeline-info-list h5 {
+margin-bottom: 20px; 
+}
+ 
+ 
+/*Activity timeline page css end here*/
+ 
