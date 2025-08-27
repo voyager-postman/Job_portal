@@ -1,11 +1,30 @@
 import axios from "axios";
 import React, { useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
+import { API_IMAGE_URL } from "../Url/Url";
+
 import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 
 function CandidateProfile() {
-   const token = localStorage.getItem("token");
+  const [activeLevel, setActiveLevel] = useState(null);
+
+  const PROFICIENCY_LEVELS = [
+    { label: "Basic", code: "A1/A2" },
+    { label: "Limited working", code: "B1" },
+    { label: "Professional working", code: "B2" },
+    { label: "Full professional", code: "C1" },
+    { label: "Native / Bilingual", code: "C2" },
+  ];
+  const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
+  const [languageForm, setLanguageForm] = useState({
+    language_id: "", // only when editing
+    language: "", // language name from dropdown
+    proficiency: "",
+  });
+  const token = localStorage.getItem("token");
+  const [cvFiles, setCvFiles] = useState([]); // List of uploaded CVs
+  const [menuOpenId, setMenuOpenId] = useState(null); // Track which CV menu is open
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState([]);
@@ -17,6 +36,16 @@ function CandidateProfile() {
     title: "",
     issueDate: "",
   });
+  const [educationForm, setEducationForm] = useState({
+    education_id: "",
+    degree: "",
+    University: "",
+    startDate: "",
+    endDate: "",
+    currentlyStudyingHere: false,
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [educationList, setEducationList] = useState([]);
   const [careerGoalsData, setCareerGoalsData] = useState({
     desiredJobTitle: "",
     employmentType: "",
@@ -79,27 +108,215 @@ function CandidateProfile() {
     github: "",
     linkedin: "",
   });
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
 
-        const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        console.log("Profile data:", res.data);
-        setProfileData(res.data.profile); // ✅ set API response into state
-        setCheckStatus(res.data.sectionStatus);
-      } catch (error) {
-        console.error("Error fetching candidate profile:", error);
+      const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Profile data:", res.data);
+      setProfileData(res.data.profile); // ✅ set API response into state
+      setCheckStatus(res.data.sectionStatus);
+      if (res.data.profile?.skills) {
+        setSkills(res.data.profile.skills);
       }
-    };
+      setEducationList(res.data.profile?.education || []);
+      setCvFiles(res.data.profile?.resumeUrls || []);
+      setProfileVisible(res.data.profile.profileVisible);
 
+      const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("GetLanguage API response:", resLang.data);
+      setMasterLanguages(resLang.data.languages || []); // ✅ ensure array
+    } catch (error) {
+      console.error("Error fetching candidate profile:", error);
+    }
+  };
+
+  // ✅ call once when component mounts
+  useEffect(() => {
     fetchProfile();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchProfile = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token");
+
+  //       const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       console.log("Profile data:", res.data);
+  //       setProfileData(res.data.profile); // ✅ set API response into state
+  //       setCheckStatus(res.data.sectionStatus);
+  //       if (res.data.profile?.skills) {
+  //         setSkills(res.data.profile.skills);
+  //       }
+  //       setEducationList(res.data.profile?.education || []);
+  //       setCvFiles(res.data.profile?.resumeUrls || []);
+  //       setProfileVisible(res.data.profile.profileVisible);
+
+  //       const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+
+  //       console.log("GetLanguage API response:", resLang.data);
+  //       setMasterLanguages(resLang.data.languages || []); // ✅ ensure array
+  //     } catch (error) {
+  //       console.error("Error fetching candidate profile:", error);
+  //     }
+  //   };
+
+  //   fetchProfile();
+  // }, []);
+  // Search cities for Work Location
+  const handleWorkLocationSearch = async (e) => {
+    const value = e.target.value;
+
+    setWorkExperienceData((prev) => ({
+      ...prev,
+      workLocation: value,
+    }));
+
+    if (!value.trim()) {
+      setCitySuggestions([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}searchCities`, {
+        params: { key: value },
+      });
+
+      if (res.data?.success && Array.isArray(res.data.cities)) {
+        setCitySuggestions(res.data.cities);
+      } else {
+        setCitySuggestions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cities:", err);
+      setCitySuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // When user selects city from dropdown
+  const handleSelectWorkLocation = (city) => {
+    setWorkExperienceData((prev) => ({
+      ...prev,
+      workLocation: `${city.name}, ${city.state_name}, ${city.country_name}`,
+    }));
+    setCitySuggestions([]); // hide dropdown
+  };
+
+  const userLanguages = profileData.languages || [];
+  const handleSaveLanguage = async () => {
+    if (!languageForm.language) {
+      toast.error("Please select a language");
+      return;
+    }
+    if (!languageForm.proficiency) {
+      toast.error("Please select proficiency");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const payload = {
+        language_id: languageForm.language_id || undefined,
+        language: languageForm.language,
+        proficiency: languageForm.proficiency,
+      };
+
+      const res = await axios.post(`${API_BASE_URL}updateLanguages`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 200) {
+        // ✅ use backend returned language object with correct _id
+        const newLang = {
+          _id: res.data.language?._id || res.data.language_id, // make sure to take backend id
+          language: languageForm.language,
+          proficiency: languageForm.proficiency,
+        };
+
+        const updated = languageForm.language_id
+          ? profileData.languages.map((l) =>
+              l._id === languageForm.language_id ? newLang : l
+            )
+          : [...(profileData.languages || []), newLang];
+
+        setProfileData((prev) => ({ ...prev, languages: updated }));
+        await fetchProfile();
+
+        toast.success(
+          languageForm.language_id ? "Language updated!" : "Language added!"
+        );
+        setLanguageForm({ language_id: "", language: "", proficiency: "" });
+        setEditMode(false);
+      }
+    } catch (err) {
+      console.error("Error saving language:", err);
+      toast.error("Failed to save language");
+    }
+  };
+
+  const handleDeleteLanguage = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}DeleteLanguage`,
+        { language_id: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.status === 200) {
+        setProfileData((prev) => ({
+          ...prev,
+          languages: prev.languages.filter((l) => l._id !== id),
+        }));
+        toast.success("Language deleted!");
+      }
+    } catch (err) {
+      console.error("Error deleting language:", err);
+      toast.error("Failed to delete language");
+    }
+  };
+
+  const openAddForm = () => {
+    setLanguageForm({ language_id: "", language: "", proficiency: "" });
+    setEditMode(true);
+    const collapse = document.getElementById("collapseLanguages");
+    if (collapse && !collapse.classList.contains("show")) {
+      new window.bootstrap.Collapse(collapse, { toggle: true });
+    }
+  };
+
+  const openEditForm = (lang) => {
+    setLanguageForm({
+      language_id: lang._id,
+      language: lang.language,
+      proficiency: lang.proficiency,
+    });
+    setEditMode(true);
+    const collapse = document.getElementById("collapseLanguages");
+    if (collapse && !collapse.classList.contains("show")) {
+      new window.bootstrap.Collapse(collapse, { toggle: true });
+    }
+  };
   const fetchCategoryList = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}getJobCategory`);
@@ -142,6 +359,93 @@ function CandidateProfile() {
       toast.error("Failed to delete account.");
     }
   };
+  const handleUploadCv = async (e) => {
+    const files = e.target.files;
+    if (!files.length) return;
+
+    // ✅ Validation: max 3 CVs allowed
+    if (cvFiles.length >= 3) {
+      toast.error("You can upload only up to 3 CVs. Please delete one first.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    for (let file of files) {
+      if (cvFiles.length >= 3) break; // ✅ stop if already 3
+
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      try {
+        const response = await axios.put(
+          `${API_BASE_URL}updateResumeUrl`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.status === 200) {
+          setCvFiles((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              url: response.data.resumeUrl,
+              _id: String(response.data.resumeId || Date.now()), // ✅ always string
+            },
+          ]);
+          await fetchProfile();
+
+          toast.success("CV uploaded successfully!", {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Upload CV error:", error);
+        toast.error("Failed to upload CV", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    }
+  };
+
+  // ✅ Delete CV
+  const handleDeleteCv = async (cvId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}DeleteResume`,
+        { resumeId: String(cvId) }, // ✅ ensure string
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 200) {
+        setCvFiles((prev) => prev.filter((cv) => cv._id !== cvId));
+        toast.success("CV deleted successfully!", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Failed to delete CV", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Delete CV error:", error);
+      toast.error("Failed to delete CV", { autoClose: 2000, theme: "colored" });
+    }
+
+    setMenuOpenId(null);
+  };
+
   const handleSelectCity = (city) => {
     setPersonalDetails((prev) => ({
       ...prev,
@@ -350,6 +654,92 @@ function CandidateProfile() {
       });
     }
   };
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEducationForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+  const handleSaveEducation = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}updateEducation`,
+        educationForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        const updatedEducationList = educationForm.education_id
+          ? educationList.map((edu) =>
+              edu._id === educationForm.education_id
+                ? { ...edu, ...educationForm }
+                : edu
+            )
+          : [
+              ...educationList,
+              { ...educationForm, _id: response.data.education_id },
+            ];
+
+        setEducationList(updatedEducationList);
+        setIsEditing(false);
+
+        setEducationForm({
+          education_id: "",
+          degree: "",
+          University: "",
+          startDate: "",
+          endDate: "",
+          currentlyStudyingHere: false,
+        });
+
+        toast.success(
+          educationForm.education_id
+            ? "Education updated successfully!"
+            : "Education added successfully!",
+          { autoClose: 2000, theme: "colored" }
+        );
+      }
+    } catch (error) {
+      console.error("Error saving education:", error);
+      toast.error("Failed to save education", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+  };
+
+  // ✅ Delete education
+  const handleDeleteEducation = async (education_id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}DeleteEducation`,
+        { education_id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        setEducationList((prev) =>
+          prev.filter((edu) => edu._id !== education_id)
+        );
+        toast.success("Education deleted successfully!", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting education:", error);
+      toast.error("Failed to delete education", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+  };
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -575,6 +965,47 @@ function CandidateProfile() {
       toast.error("Failed to save work experience", { theme: "colored" });
     }
   };
+  // DELETE WORK EXPERIENCE
+  const handleDeleteWorkExperience = async (experience_id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}DeleteExperience`,
+        { experience_id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        if (response.data.workHistory) {
+          // ✅ API returns updated list
+          setProfileData((prev) => ({
+            ...prev,
+            workHistory: response.data.workHistory,
+          }));
+        } else {
+          // ✅ API returns only success, remove manually
+          setProfileData((prev) => ({
+            ...prev,
+            workHistory: prev.workHistory.filter(
+              (exp) => exp._id !== experience_id
+            ),
+          }));
+        }
+
+        toast.success("Work experience deleted successfully!", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting work experience:", error);
+      toast.error("Failed to delete work experience", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+  };
 
   const handleSavePortfolioLinks = async () => {
     try {
@@ -692,7 +1123,7 @@ function CandidateProfile() {
 
         // reset form
         setFormData({ certificate_id: "", title: "", issueDate: "" });
-
+        await fetchProfile();
         toast.success(
           formData.certificate_id
             ? "Certificate updated successfully!"
@@ -708,6 +1139,39 @@ function CandidateProfile() {
       });
     }
   };
+  const handleDeleteCertificate = async (certificate_id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}DeleteCertificate`,
+        { certificate_id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        // ✅ Remove deleted certificate from state
+        setProfileData((prev) => ({
+          ...prev,
+          certificates: prev.certificates.filter(
+            (c) => c._id !== certificate_id
+          ),
+        }));
+
+        toast.success("Certificate deleted successfully!", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting certificate:", error);
+      toast.error("Failed to delete Certificate", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+  };
+
   const handleAddSkill = async () => {
     if (!newSkill.trim()) return;
 
@@ -807,7 +1271,8 @@ function CandidateProfile() {
                 </div>
                 <div className="profile-visibility-info-area">
                   <span className="visibility-icon-content">
-                    <i className="fa-regular fa-eye" /> Profile Visibility
+                    <i className="fa-regular fa-eye" />{" "}
+                    {profileVisible ? "Visible" : "Hidden"}
                   </span>
                   <label className="switch">
                     <input
@@ -817,7 +1282,17 @@ function CandidateProfile() {
                     />
                     <span className="slider round" />
                   </label>
-
+                  <h6
+                    style={{
+                      "font-weight": "500",
+                      "font-size": "13px",
+                      "margin-top": "10px",
+                    }}
+                  >
+                    {profileVisible
+                      ? "Your profile is visible to employers and recruiters!"
+                      : "Make your profile information visible to employers and recruiters and get more job offers!"}
+                  </h6>
                   <div className="candidate-personal-info-cv-linkedin-upload-btn">
                     <div className="candidate-personal-info-upload-cv-btn">
                       <a
@@ -1403,15 +1878,12 @@ function CandidateProfile() {
                   </div>
                 </div>
               </div>
-
               <div className="accordion" id="myCvs">
                 <div className="accordion-item">
                   <div className="accordion-header" id="headingFour">
                     <div className="accordion-button collapsed" type="button">
                       <div className="input-info-edit-area">
                         <h3>My CVs</h3>
-                        <i className="fa-solid fa-plus" />
-                        <i className="fas fa-pencil-alt" />
                       </div>
                       <span
                         className="ms-auto accordion-icon-toggle collapsed"
@@ -1425,9 +1897,10 @@ function CandidateProfile() {
                       </span>
                     </div>
                   </div>
+
                   <div
                     id="collapseFour"
-                    className="accordion-collapse collapse"
+                    className="accordion-collapse show"
                     aria-labelledby="headingFour"
                     data-bs-parent="#myCvs"
                   >
@@ -1437,36 +1910,111 @@ function CandidateProfile() {
                           <form>
                             <div className="row">
                               <div className="col-lg-12 col-md-12">
-                                <div className="upload-download-dlt-cv">
-                                  <div className="upload-cv-info-area">
-                                    <p>
-                                      <i className="fas fa-file-alt" />{" "}
-                                      Workscope For Job Portal Platform like
-                                      docx
-                                    </p>
-                                  </div>
-                                  <div className="download-dlt-cv">
-                                    <i className="fas fa-ellipsis-v" />
-                                    <div className="download-edit-info">
-                                      <ul>
-                                        <li>
-                                          <i className="fa-solid fa-arrow-down" />{" "}
-                                          Download
-                                        </li>
-                                        <li>
-                                          <i className="fa-solid fa-trash" />{" "}
-                                          Delete
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="upload-cv-area">
+                                {/* ✅ CV LIST */}
+                                {cvFiles.length > 0 ? (
+                                  cvFiles.map((cv, index) => {
+                                    // Case 1: API response object → has `_id` + `url`
+                                    // Case 2: Newly uploaded file → has `name` but no `url`
+                                    const fileUrl =
+                                      typeof cv === "string"
+                                        ? `${API_IMAGE_URL}${cv}`
+                                        : cv?.url
+                                        ? `${API_IMAGE_URL}${cv.url}`
+                                        : null;
+
+                                    const fileName =
+                                      typeof cv === "string"
+                                        ? decodeURIComponent(
+                                            cv.split("/").pop()
+                                          )
+                                        : cv?.url
+                                        ? decodeURIComponent(
+                                            cv.url.split("/").pop()
+                                          )
+                                        : cv?.name || "Unknown file";
+
+                                    return (
+                                      <div
+                                        key={cv._id || index}
+                                        className="upload-download-dlt-cv d-flex justify-content-between align-items-center mb-2"
+                                      >
+                                        {/* File name */}
+                                        <div className="upload-cv-info-area">
+                                          <p>
+                                            <i className="fas fa-file-alt" />{" "}
+                                            {fileName}
+                                          </p>
+                                        </div>
+
+                                        {/* 3-dot menu */}
+                                        <div className="download-dlt-cv position-relative">
+                                          <i
+                                            className="fas fa-ellipsis-v"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() =>
+                                              setMenuOpenId(
+                                                menuOpenId === (cv._id || index)
+                                                  ? null
+                                                  : cv._id || index
+                                              )
+                                            }
+                                          />
+                                          {menuOpenId === (cv._id || index) && (
+                                            <div className="download-edit-info">
+                                              <ul>
+                                                {fileUrl && (
+                                                  <li
+                                                    onClick={() =>
+                                                      window.open(
+                                                        fileUrl,
+                                                        "_blank"
+                                                      )
+                                                    }
+                                                  >
+                                                    <i className="fa-solid fa-arrow-down" />{" "}
+                                                    Download
+                                                  </li>
+                                                )}
+                                                <li
+                                                  onClick={() =>
+                                                    handleDeleteCv(
+                                                      cv._id || index
+                                                    )
+                                                  }
+                                                >
+                                                  <i className="fa-solid fa-trash" />{" "}
+                                                  Delete
+                                                </li>
+                                              </ul>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <p className="text-muted">
+                                    No CVs uploaded yet.
+                                  </p>
+                                )}
+
+                                {/* ✅ Upload Input */}
+                                {/* ✅ Upload Input */}
+                                <div className="upload-cv-area mt-3">
                                   <input
                                     type="file"
-                                    name="avatar"
+                                    name="resume"
                                     accept=".pdf, .doc, .docx"
+                                    multiple
+                                    onChange={handleUploadCv}
+                                    disabled={cvFiles.length >= 3} // 🚫 disable when limit reached
                                   />
+                                  {cvFiles.length >= 3 && (
+                                    <p className="text-danger mt-2">
+                                      You can upload up to 3 CVs. To upload a
+                                      new CV, delete an existing one.
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1578,7 +2126,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseCareerGoals"
-                    className="accordion-collapse collapse"
+                    className="accordion-collapse show"
                     aria-labelledby="headingCareerGoals"
                     data-bs-parent="#careerGoals"
                   >
@@ -1713,38 +2261,35 @@ function CandidateProfile() {
                                           </span>
                                         ))}
                                       </div>
+                                    </div>
+                                  </div>
+                                  <div className="col-lg-3 col-md-6">
+                                    <div className="form-group">
+                                      <select
+                                        className="form-select form-control"
+                                        name="salaryCurrency"
+                                        value={careerGoalsData.salaryCurrency}
+                                        onChange={handleCareerGoalsChange}
+                                      >
+                                        <option value="EUR">EUR</option>
+                                        <option value="USD">USD</option>
+                                        <option value="JPY">JPY</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="AUD">AUD</option>
+                                      </select>
+                                    </div>
+                                  </div>
 
-                                      <div className="col-lg-3 col-md-6">
-                                        <div className="form-group">
-                                          <select
-                                            className="form-select form-control"
-                                            name="salaryCurrency"
-                                            value={
-                                              careerGoalsData.salaryCurrency
-                                            }
-                                            onChange={handleCareerGoalsChange}
-                                          >
-                                            <option value="EUR">EUR</option>
-                                            <option value="USD">USD</option>
-                                            <option value="JPY">JPY</option>
-                                            <option value="GBP">GBP</option>
-                                            <option value="AUD">AUD</option>
-                                          </select>
-                                        </div>
-                                      </div>
-
-                                      <div className="col-lg-9 col-md-9">
-                                        <div className="form-group">
-                                          <input
-                                            type="number"
-                                            className="form-control mb-2"
-                                            placeholder="Enter your gross minimum desired salary"
-                                            name="salaryAmount"
-                                            value={careerGoalsData.salaryAmount}
-                                            onChange={handleCareerGoalsChange}
-                                          />
-                                        </div>
-                                      </div>
+                                  <div className="col-lg-9 col-md-9">
+                                    <div className="form-group">
+                                      <input
+                                        type="number"
+                                        className="form-control mb-2"
+                                        placeholder="Enter your gross minimum desired salary"
+                                        name="salaryAmount"
+                                        value={careerGoalsData.salaryAmount}
+                                        onChange={handleCareerGoalsChange}
+                                      />
                                     </div>
                                   </div>
 
@@ -1984,7 +2529,7 @@ function CandidateProfile() {
                   </div>
                   <div
                     id="collapseSix"
-                    className="accordion-collapse collapse"
+                    className="accordion-collapse show"
                     aria-labelledby="headingSix"
                     data-bs-parent="#yourRole"
                   >
@@ -2177,7 +2722,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseSeven"
-                    className="accordion-collapse collapse"
+                    className="accordion-collapse show"
                     aria-labelledby="headingSeven"
                     data-bs-parent="#workExperience"
                   >
@@ -2321,7 +2866,7 @@ function CandidateProfile() {
                                   </div>
 
                                   {/* Work Location */}
-                                  <div className="col-lg-12 col-md-12">
+                                  {/* <div className="col-lg-12 col-md-12">
                                     <div className="form-group">
                                       <label>Work Location</label>
                                       <input
@@ -2331,6 +2876,53 @@ function CandidateProfile() {
                                         value={workExperienceData.workLocation}
                                         onChange={handleChangeOfWork}
                                       />
+                                    </div>
+                                  </div> */}
+                                  {/* Work Location with Auto Search */}
+                                  <div className="col-lg-12 col-md-12">
+                                    <div className="form-group position-relative">
+                                      <label>Work Location</label>
+                                      <input
+                                        className="form-control"
+                                        type="text"
+                                        placeholder="Search city"
+                                        name="workLocation"
+                                        value={workExperienceData.workLocation}
+                                        onChange={handleWorkLocationSearch} // 👈 new handler
+                                        autoComplete="off"
+                                      />
+
+                                      {/* Suggestions Dropdown */}
+                                      {loading && (
+                                        <div className="suggestion-box">
+                                          Searching...
+                                        </div>
+                                      )}
+                                      {!loading &&
+                                        citySuggestions.length > 0 && (
+                                          <ul
+                                            className="list-group position-absolute w-100"
+                                            style={{
+                                              zIndex: 1000,
+                                              maxHeight: "200px",
+                                              overflowY: "auto",
+                                            }}
+                                          >
+                                            {citySuggestions.map((city) => (
+                                              <li
+                                                key={city._id}
+                                                className="list-group-item list-group-item-action"
+                                                onClick={() =>
+                                                  handleSelectWorkLocation(city)
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                              >
+                                                {city.name}, {city.state_name},{" "}
+                                                {city.country_name}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
                                     </div>
                                   </div>
 
@@ -2461,6 +3053,15 @@ function CandidateProfile() {
                                           }
                                         }}
                                       />
+                                      <i
+                                        className="fas fa-trash ms-2"
+                                        style={{
+                                          cursor: "pointer",
+                                        }}
+                                        onClick={() =>
+                                          handleDeleteWorkExperience(exp._id)
+                                        }
+                                      />
                                     </div>
 
                                     {/* Work experience display */}
@@ -2521,210 +3122,259 @@ function CandidateProfile() {
               </div>
               <div className="accordion" id="educationDetail">
                 <div className="accordion-item">
-                  <div className="accordion-header" id="headingEight">
+                  <div className="accordion-header" id="headingEducation">
                     <div className="accordion-button collapsed" type="button">
                       <div className="input-info-edit-area">
                         <h3>Education</h3>
-                        <i className="fa-solid fa-plus" />
-                        <i className="fas fa-pencil-alt" />
+                        {/* Add new education */}
+                        <i
+                          className="fa-solid fa-plus"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            setEducationForm({
+                              education_id: "",
+                              degree: "",
+                              University: "",
+                              startDate: "",
+                              endDate: "",
+                              currentlyStudyingHere: false,
+                            });
+                            setIsEditing(true);
+
+                            const collapseElement =
+                              document.getElementById("collapseEducation");
+                            if (
+                              collapseElement &&
+                              !collapseElement.classList.contains("show")
+                            ) {
+                              new window.bootstrap.Collapse(collapseElement, {
+                                toggle: true,
+                              });
+                            }
+                          }}
+                        />
                       </div>
+
                       <span
                         className="ms-auto accordion-icon-toggle collapsed"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseEight"
+                        data-bs-target="#collapseEducation"
                         aria-expanded="true"
-                        aria-controls="collapseEight"
+                        aria-controls="collapseEducation"
                       >
                         <i className="fa-solid fa-angle-up" />
                         <i className="fa-solid fa-angle-down" />
                       </span>
                     </div>
                   </div>
+
                   <div
-                    id="collapseEight"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingEight"
+                    id="collapseEducation"
+                    className="accordion-collapse show"
+                    aria-labelledby="headingEducation"
                     data-bs-parent="#educationDetail"
                   >
                     <div className="accordion-body">
                       <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form not-add-detail">
-                          <form>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
-                                <div className="not-add-detail-info">
-                                  <h5>You haven’t yet added any education.</h5>
-                                  <i className="fa-solid fa-user-graduate" />
+                        {isEditing ? (
+                          // ✅ Education form
+                          <div className="profile-form-content from-all-input">
+                            <div className="profile-form">
+                              <form>
+                                <div className="row">
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>Degree</label>
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter Degree"
+                                        name="degree"
+                                        value={educationForm.degree}
+                                        onChange={handleInputChange}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>University</label>
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter University"
+                                        name="University"
+                                        value={educationForm.University}
+                                        onChange={handleInputChange}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>Start Date</label>
+                                      <input
+                                        type="date"
+                                        className="form-control"
+                                        name="startDate"
+                                        value={educationForm.startDate}
+                                        onChange={handleInputChange}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>End Date</label>
+                                      <input
+                                        type="date"
+                                        className="form-control"
+                                        name="endDate"
+                                        value={educationForm.endDate}
+                                        onChange={handleInputChange}
+                                        disabled={
+                                          educationForm.currentlyStudyingHere
+                                        }
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
+
+                                <div className="currently-working-here">
+                                  <input
+                                    type="checkbox"
+                                    id="studying"
+                                    name="currentlyStudyingHere"
+                                    checked={
+                                      educationForm.currentlyStudyingHere
+                                    }
+                                    onChange={handleInputChange}
+                                  />
+                                  <label htmlFor="studying">
+                                    I am currently studying here
+                                  </label>
+                                </div>
+
+                                <div className="save-cancel-btn-info">
+                                  <button
+                                    type="button"
+                                    className="default-btn btn"
+                                    onClick={handleSaveEducation}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="default-btn btn"
+                                    onClick={() => {
+                                      setIsEditing(false);
+                                      setEducationForm({
+                                        education_id: "",
+                                        degree: "",
+                                        University: "",
+                                        startDate: "",
+                                        endDate: "",
+                                        currentlyStudyingHere: false,
+                                      });
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </form>
                             </div>
-                          </form>
-                        </div>
-                        <div className="profile-form-content from-all-input">
-                          <div className="profile-form">
-                            <form>
-                              <div className="row">
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>School</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="School"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>School Name</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="School Name"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Start Date</label>
-                                    <input
-                                      className="form-control"
-                                      type="date"
-                                      placeholder
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>End Date</label>
-                                    <input
-                                      className="form-control"
-                                      type="date"
-                                      placeholder
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Degree</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Degree"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>University</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="University"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Start Date</label>
-                                    <input
-                                      className="form-control"
-                                      type="date"
-                                      placeholder
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>End Date</label>
-                                    <input
-                                      className="form-control"
-                                      type="date"
-                                      placeholder
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="currently-working-here">
-                                <input
-                                  type="checkbox"
-                                  id="studying"
-                                  name="CurrentlyWorking"
-                                  defaultValue="studying"
-                                />
-                                <label htmlFor="vehicle1">
+                          </div>
+                        ) : (
+                          // ✅ Education list
+                          <div className="user-all-detail-info-main">
+                            {educationList.length > 0 ? (
+                              educationList.map((edu) => (
+                                <div
+                                  key={edu._id}
+                                  className="user-all-details-info"
+                                >
                                   {" "}
-                                  I am currently studying here.
-                                </label>
-                              </div>
-                              <div className="save-cancel-btn-info">
-                                <a href="#" className="default-btn btn">
-                                  Save
-                                </a>
-                                <a href="#" className="default-btn btn">
-                                  Cancel
-                                </a>
-                              </div>
-                            </form>
+                                  <div className="work-exprinace-edit">
+                                    <i
+                                      className="fas fa-pencil-alt"
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() => {
+                                        setEducationForm({
+                                          education_id: edu._id,
+                                          degree: edu.degree,
+                                          University: edu.University,
+                                          startDate: edu.startDate?.slice(
+                                            0,
+                                            10
+                                          ),
+                                          endDate: edu.endDate?.slice(0, 10),
+                                          currentlyStudyingHere:
+                                            edu.currentlyStudyingHere,
+                                        });
+                                        setIsEditing(true);
+                                        const collapseElement =
+                                          document.getElementById(
+                                            "collapseEducation"
+                                          );
+                                        if (
+                                          collapseElement &&
+                                          !collapseElement.classList.contains(
+                                            "show"
+                                          )
+                                        ) {
+                                          new window.bootstrap.Collapse(
+                                            collapseElement,
+                                            { toggle: true }
+                                          );
+                                        }
+                                      }}
+                                    />
+                                    <i
+                                      className="fas fa-trash ms-2"
+                                      style={{
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() =>
+                                        handleDeleteEducation(edu._id)
+                                      }
+                                    />
+                                  </div>
+                                  <div className="row">
+                                    <div className="col-lg-6 col-md-6">
+                                      <div className="form-group">
+                                        <label>Degree</label>
+                                        <p>{edu.degree}</p>
+                                      </div>
+                                    </div>
+                                    <div className="col-lg-6 col-md-6">
+                                      <div className="form-group">
+                                        <label>University</label>
+                                        <p>{edu.University}</p>
+                                      </div>
+                                    </div>
+                                    <div className="col-lg-6 col-md-6">
+                                      <div className="form-group">
+                                        <label>Start Date</label>
+                                        <p>{edu.startDate?.slice(0, 10)}</p>
+                                      </div>
+                                    </div>
+                                    <div className="col-lg-6 col-md-6">
+                                      <div className="form-group">
+                                        <label>End Date</label>
+                                        <p>
+                                          {edu.currentlyStudyingHere
+                                            ? "Present"
+                                            : edu.endDate?.slice(0, 10)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="divder-line-info" />
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p>No education details added yet.</p>
+                            )}
                           </div>
-                        </div>
-                        <div className="user-all-detail-info-main">
-                          <div className="user-all-details-info">
-                            <div className="row">
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>Schools</label>
-                                  <p>
-                                    12<sup>th</sup>
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>School Name</label>
-                                  <p>University of Oxford</p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>Start Date</label>
-                                  <p>02 / 2025</p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>End Date</label>
-                                  <p>02 / 2045</p>
-                                </div>
-                              </div>
-                              <div className="divder-line-info" />
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>Degree</label>
-                                  <p>B.tech</p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>University</label>
-                                  <p>University of Oxford</p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>Start Date</label>
-                                  <p>02 / 2025</p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="form-group">
-                                  <label>End Date</label>
-                                  <p>02 / 2045</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2816,165 +3466,137 @@ function CandidateProfile() {
               </div>
               <div className="accordion" id="languagesDetail">
                 <div className="accordion-item">
-                  <div className="accordion-header" id="headingTen">
+                  <div className="accordion-header" id="headingLanguages">
                     <div className="accordion-button collapsed" type="button">
                       <div className="input-info-edit-area">
                         <h3>Languages</h3>
-                        <i className="fa-solid fa-plus" />
-                        <i className="fas fa-pencil-alt" />
+                        <i
+                          className="fa-solid fa-plus"
+                          style={{ cursor: "pointer" }}
+                          onClick={openAddForm}
+                        />
                       </div>
                       <span
                         className="ms-auto accordion-icon-toggle collapsed"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseTen"
+                        data-bs-target="#collapseLanguages"
                         aria-expanded="true"
-                        aria-controls="collapseTen"
+                        aria-controls="collapseLanguages"
                       >
                         <i className="fa-solid fa-angle-up" />
                         <i className="fa-solid fa-angle-down" />
                       </span>
                     </div>
                   </div>
+
                   <div
-                    id="collapseTen"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingTen"
+                    id="collapseLanguages"
+                    className="accordion-collapse show"
+                    aria-labelledby="headingLanguages"
                     data-bs-parent="#languagesDetail"
                   >
                     <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form not-add-detail">
-                          <form>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
-                                <div className="not-add-detail-info">
-                                  <h5>You haven’t yet added any languages.</h5>
-                                  <i className="fa-solid fa-language" />
-                                </div>
-                              </div>
-                            </div>
-                          </form>
-                        </div>
+                      {editMode ? (
                         <div className="profile-form-content from-all-input">
                           <div className="profile-form">
                             <form>
-                              <div className="row">
-                                <div className="col-lg-12 col-md-12">
-                                  <div className="form-group">
-                                    <label>Language</label>
-                                    <select
-                                      className="form-select form-control"
-                                      aria-label="Default2 select example"
-                                    >
-                                      <option selected>Brazil</option>
-                                      <option value={1}>USA</option>
-                                      <option value={2}>Italy</option>
-                                      <option value={3}>UK</option>
-                                    </select>
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Basic</label>
-                                    <input
-                                      className="form-control"
-                                      type="text"
-                                      placeholder="Basic (A1 / A2)"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Limited Working</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Limited Working (B1)"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Professinal</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Professinal (B2)"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Full Projessional</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Full Projessional (C1)"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Full Professional</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Full Professional (C1)"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Native/Bilingual</label>
-                                    <input
-                                      className="form-control"
-                                      type="url"
-                                      placeholder="Native/Bilingual"
-                                    />
-                                  </div>
-                                </div>
+                              <div className="form-group">
+                                <label>Language</label>
+                                <select
+                                  className="form-select form-control"
+                                  name="language"
+                                  value={languageForm.language}
+                                  onChange={(e) =>
+                                    setLanguageForm((p) => ({
+                                      ...p,
+                                      language: e.target.value,
+                                    }))
+                                  }
+                                >
+                                  <option value="">Select Language</option>
+                                  {Array.isArray(masterLanguages) &&
+                                    masterLanguages.map((lang) => (
+                                      <option key={lang._id} value={lang.name}>
+                                        {lang.name}
+                                      </option>
+                                    ))}
+                                </select>
                               </div>
-                              <div className="save-cancel-btn-info">
-                                <a href="#" className="default-btn btn">
+
+                              <div className="language-acitve-inactive-info d-flex flex-wrap mt-3">
+                                {PROFICIENCY_LEVELS.map((lvl) => (
+                                  <div
+                                    key={lvl.code}
+                                    className={`language-select-info ${
+                                      languageForm.proficiency === lvl.code
+                                        ? "active"
+                                        : ""
+                                    }`}
+                                    onClick={() =>
+                                      setLanguageForm((p) => ({
+                                        ...p,
+                                        proficiency: lvl.code,
+                                      }))
+                                    }
+                                  >
+                                    <h6>{lvl.label}</h6>
+                                    <p>{lvl.code}</p>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="save-cancel-btn-info mt-3">
+                                <button
+                                  type="button"
+                                  className="default-btn btn me-2"
+                                  onClick={handleSaveLanguage}
+                                >
                                   Save
-                                </a>
-                                <a href="#" className="default-btn btn">
+                                </button>
+                                <button
+                                  type="button"
+                                  className="default-btn btn"
+                                  onClick={() => setEditMode(false)}
+                                >
                                   Cancel
-                                </a>
+                                </button>
                               </div>
                             </form>
                           </div>
                         </div>
+                      ) : (
                         <div className="user-all-detail-info-main">
-                          <div className="user-all-details-info">
-                            <div className="work-exprinace-edit">
-                              <i className="fas fa-pencil-alt" />
-                            </div>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
-                                <div className="form-group">
-                                  <label>Hindi</label>
-                                  <p>Native / Bilingual (C2)</p>
+                          {userLanguages.length > 0 ? (
+                            userLanguages.map((lang) => (
+                              <div
+                                key={lang._id}
+                                className="user-all-details-info"
+                              >
+                                <div className="work-exprinace-edit">
+                                  <i
+                                    className="fas fa-pencil-alt"
+                                    onClick={() => openEditForm(lang)}
+                                  />
+                                  <i
+                                    className="fas fa-trash ms-2"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() =>
+                                      handleDeleteLanguage(lang._id)
+                                    }
+                                  />
                                 </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="divder-line-info" />
-                          <div className="user-all-details-info">
-                            <div className="work-exprinace-edit">
-                              <i className="fas fa-pencil-alt" />
-                            </div>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>English</label>
-                                  <p>Basic (A1 / A2)</p>
+                                  <label>{lang.language}</label>
+                                  <p>{lang.proficiency}</p>
                                 </div>
+                                <div className="divder-line-info" />
                               </div>
-                            </div>
-                          </div>
+                            ))
+                          ) : (
+                            <p>No languages added yet.</p>
+                          )}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3093,37 +3715,49 @@ function CandidateProfile() {
                                   className="user-all-details-info"
                                 >
                                   {/* ✏️ Edit button only inside certificate card */}
-                                  <div
-                                    className="work-exprinace-edit"
-                                    onClick={() => {
-                                      setFormData({
-                                        certificate_id: cert._id,
-                                        title: cert.title,
-                                        issueDate: cert.issueDate.slice(0, 10),
-                                      });
-                                      setEditMode(true);
+                                  <div className="work-exprinace-edit">
+                                    <i
+                                      className="fas fa-pencil-alt"
+                                      onClick={() => {
+                                        setFormData({
+                                          certificate_id: cert._id,
+                                          title: cert.title,
+                                          issueDate: cert.issueDate.slice(
+                                            0,
+                                            10
+                                          ),
+                                        });
+                                        setEditMode(true);
 
-                                      const collapseElement =
-                                        document.getElementById(
-                                          "collapseCertificates"
-                                        );
-                                      if (
-                                        collapseElement &&
-                                        !collapseElement.classList.contains(
-                                          "show"
-                                        )
-                                      ) {
-                                        new window.bootstrap.Collapse(
-                                          collapseElement,
-                                          {
-                                            toggle: true,
-                                          }
-                                        );
+                                        const collapseElement =
+                                          document.getElementById(
+                                            "collapseCertificates"
+                                          );
+                                        if (
+                                          collapseElement &&
+                                          !collapseElement.classList.contains(
+                                            "show"
+                                          )
+                                        ) {
+                                          new window.bootstrap.Collapse(
+                                            collapseElement,
+                                            {
+                                              toggle: true,
+                                            }
+                                          );
+                                        }
+                                      }}
+                                      style={{ cursor: "pointer" }}
+                                    />
+                                    <i
+                                      className="fas fa-trash ms-2"
+                                      style={{
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() =>
+                                        handleDeleteCertificate(cert._id)
                                       }
-                                    }}
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <i className="fas fa-pencil-alt" />
+                                    />
                                   </div>
 
                                   <div className="row">

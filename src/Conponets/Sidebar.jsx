@@ -89,7 +89,7 @@ function Sidebar() {
             {/* Repeat for other links as needed */}
           </ul>
         )}
-        {userRole === "Recruiter" && (
+        {(userRole === "Recruiter" ||userRole === "Company") && (
           <ul
             className="sidemenu-nav metisMenu h-100"
             id="sidemenu-nav"

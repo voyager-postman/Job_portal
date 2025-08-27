@@ -176,7 +176,7 @@ a {
 }
 
 .form-control {
-  height: 35px;
+  height: 40px;
   border: 1px solid #e2e2e2;
   padding-left: 15px;
   font-weight: 500;
@@ -10979,277 +10979,6 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-.candidates-detail-main-area {
-  display: flex;
-  padding: 20px 30px;
-  justify-content: space-between;
-  border-bottom: 1px solid #eeee;
-}
-
-.candidates-img-detail-info {
-  display: flex;
-}
-
-.candidates-img-info {
-  width: 28%;
-}
-
-.my-profile-area .candidates-details-info h3 {
-  font-size: 15px;
-  padding-left: 20px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.visibility-icon-content i {
-  color: #0066cc;
-}
-
-.visibility-icon-content i:hover {
-  color: #ff6600;
-}
-
-.visibility-icon-content {
-  margin-right: 20px;
-}
-
-.img-edit-icon {
-  position: relative;
-}
-
-.img-edit-icon i {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: #0066cc;
-  padding: 7px;
-  border-radius: 50px;
-  color: #fff;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-}
-
-.img-edit-icon i:hover {
-  background: #ff6600;
-}
-
-.upload-download-dlt-cv {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  border: 1px solid #eeee;
-  padding: 20px 20px;
-  border-radius: 10px;
-}
-
-.upload-cv-info-area p i {
-  margin-right: 10px;
-}
-
-.upload-cv-area {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.upload-cv-area input[type="file"]::file-selector-button {
-  padding: 10px 10px;
-  border: none;
-  border-radius: 1rem;
-  background-color: #0066cc;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 1em;
-}
-
-.currently-working-here {
-  margin-bottom: 20px;
-}
-
-.skill-btn-info .default-btn {
-  border-radius: 5px !important;
-  padding: 13px 20px !important;
-  margin-left: 25px;
-}
-
-.enter-skill-info {
-  display: flex;
-}
-
-.enter-skill-info .form-group {
-  width: 85%;
-}
-
-.delete-account p span {
-  font-weight: 600;
-  color: #0066cc;
-  cursor: pointer;
-}
-
-.delete-account p span:hover {
-  color: #ff6600;
-}
-
-.profile-visible-recruiters ul {
-  margin: 0px 0px 0px 0px;
-  padding: 0px 0px 0px 0px;
-}
-
-.profile-visibility-info-area .profile-visible-recruiters ul li {
-  list-style: none;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.profile-visibility-info-area ul li i {
-  margin-right: 5px;
-  color: #0066cc;
-}
-
-.profile-visibility-info-area ul li:hover {
-  color: #ff6600;
-}
-
-.user-all-detail-info-main {
-  padding-top: 25px;
-  margin-bottom: 30px;
-  background-color: #ffffff;
-}
-
-.input-info-edit-area {
-  position: relative;
-}
-
-.input-info-edit-area h3 {
-  font-size: 18px;
-  padding-left: 30px;
-  padding-bottom: 30px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.input-info-edit-area i:hover {
-  background: #ff6600;
-}
-
-.user-all-details-info {
-  padding: 30px 30px 0px 30px;
-}
-
-.user-all-details-info .form-group label {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.user-all-details-info .form-group {
-  margin-bottom: 30px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-}
-
-.download-dlt-cv {
-  position: relative;
-}
-
-.download-edit-info {
-  top: 30px;
-  right: 0px;
-  width: 140px;
-  background: #fff;
-  padding: 0px 20px;
-  position: absolute;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-}
-
-.download-edit-info ul {
-  padding: 0px 0px 0px 0px;
-  margin: 0px 0px 0px 0px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-  margin-top: 15px;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-
-.download-edit-info ul li:hover {
-  color: #ff6600;
-}
-
-.download-edit-info ul li i {
-  padding-right: 5px;
-}
-
-.form-group-salary label {
-  font-weight: 500;
-  color: #202124;
-  margin-bottom: 10px;
-}
-
-.work-exprinace-edit {
-  position: relative;
-}
-
-.work-exprinace-edit i {
-  position: absolute;
-  right: 50px;
-  background: red;
-  padding: 10px 10px;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-  top: 10px;
-}
-
-.not-add-detail-info {
-  text-align: center;
-}
-
-.not-add-detail-info h5 {
-  text-align: center;
-}
-
-.not-add-detail-info i {
-  font-size: 90px;
-  color: #0066cc;
-  padding: 50px 0px;
-}
-
-.enter-skill-tag-info ul {
-  padding: 0px;
-}
-
-.enter-skill-tag-info ul li {
-  list-style: none;
-  color: #0066cc;
-  margin-right: 20px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: inline-block;
-  border: 1px solid #0066cc;
-  cursor: pointer;
-}
-
-.enter-skill-tag-info ul li:hover {
-  color: #ff6600;
-  border: 1px solid #ff6600;
-}
-
-.save-cancel-btn-info {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.save-cancel-btn-info .default-btn {
-  margin-right: 20px;
-  padding: 7px 30px;
-  border-radius: 5px !important;
-}
-
 /*Amrjeet Dashboard Css End here*/
 
 /*Sidemenu CSS*/
@@ -15477,6 +15206,7 @@ button.btn {
 }
 
 /*manage job application css end here*/
+
 /*candidate list css start here*/
 
 .candidate-list-filter .single-sidebar-widget {
@@ -15600,6 +15330,7 @@ button.btn {
 }
 
 /*candidate list css end here*/
+
 /*candidate profile basic info page css start here*/
 
 .switch {
@@ -15755,8 +15486,9 @@ input:checked + .slider:before {
 
 .skill-btn-info .default-btn {
   border-radius: 5px !important;
-  padding: 13px 20px !important;
+  padding: 5px 20px !important;
   margin-left: 25px;
+  font-size: 16px;
 }
 
 .enter-skill-info {
@@ -15896,7 +15628,20 @@ input:checked + .slider:before {
   right: 50px;
   color: #fff;
   cursor: pointer;
-  padding: 10px 10px;
+  font-size: 12px;
+  padding: 7px 7px;
+  border-radius: 5px;
+  position: absolute;
+  background: #ff6600;
+}
+
+.work-exprinace-edit .fa-trash {
+  top: 10px;
+  right: 0px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 7px 7px;
   border-radius: 5px;
   position: absolute;
   background: #ff6600;
@@ -16151,6 +15896,34 @@ background:#0066CC;
 
 .my-profile-area .profile-form-content.delete-account-info h3 {
   padding: 15px 30px;
+}
+
+.language-acitve-inactive-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.language-select-info {
+  width: 49%;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-bottom: 30px;
+  border: 1px solid #eeeeee;
+}
+
+.language-select-info.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.language-select-info.active h6 {
+  color: #fff;
+}
+
+.language-select-info.active p {
+  color: #fff;
 }
 
 /*candidate profile basic info page css start here*/
@@ -18347,14 +18120,14 @@ button.btn {
 /*job list and job details page css end here*/
 
 .job-alert-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    padding: 25px 25px;
-    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
-    margin-bottom: 20px;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 25px 25px;
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
+  margin-bottom: 20px;
+}
 
 .job-alert-info {
   display: flex;
@@ -18397,7 +18170,7 @@ button.btn {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: #ff6600;  
+  background-color: #ff6600;
   border-radius: 20px;
   transition: 0.4s;
 }
@@ -18415,302 +18188,281 @@ button.btn {
 }
 
 input:checked + .slider {
-  background-color: #0066cc; 
+  background-color: #0066cc;
 }
 
 input:checked + .slider:before {
   transform: translateX(30px);
 }
 /*chat messaging system css start here*/
- 
- 
+
 .chat-messaging-system-info {
-padding-bottom: 50px;
-background-color:#ffffff; 
+  padding-bottom: 50px;
+  background-color: #ffffff;
 }
- 
+
 .chat-messaging-system-heading {
-display: flex;
-justify-content: space-between;
-border-bottom: 1px solid #eeeeee;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
 }
- 
+
 .user-message-list-search {
-width: 31%;
-padding: 20px 20px;
+  width: 31%;
+  padding: 20px 20px;
 }
- 
+
 .user-message-search-box-icon-info {
-display: flex;
-padding: 8px 8px; 
-align-items: center;
-border: 1px solid #cdcd;
+  display: flex;
+  padding: 8px 8px;
+  align-items: center;
+  border: 1px solid #cdcd;
 }
- 
+
 .user-message-search-box-icon-info input {
-width:95%;
-border:none;  
+  width: 95%;
+  border: none;
 }
- 
+
 .user-message-search-box-icon-info input:focus-visible {
-outline: none;
+  outline: none;
 }
- 
- 
+
 .user-name-message-dlt-info {
-width:70%; 
-display:flex;
-padding: 15px 20px;
-align-items:center;
-border-left: 1px solid #eeeeee;
-justify-content:space-between;
+  width: 70%;
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border-left: 1px solid #eeeeee;
+  justify-content: space-between;
 }
- 
+
 .user-img-name-status-info {
-width:18%;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  width: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
- 
- 
+
 .user-message-img {
-width:50px;
-height:50px;
-overflow: hidden;
-border-radius: 50px;  
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50px;
 }
- 
- 
+
 .user-name-status span {
-color: #fff;
-font-size: 12px;
-padding: 1px 4px;
-background: #39da8a;
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 4px;
+  background: #39da8a;
 }
- 
+
 .user-name-status h6 {
-margin:0px 0px 0px 0px;  
+  margin: 0px 0px 0px 0px;
 }
- 
+
 .user-message-dlt span i {
-color: #ff6600;
-margin-right: 5px;  
+  color: #ff6600;
+  margin-right: 5px;
 }
- 
+
 .user-message-search-box {
-width:90%;  
+  width: 90%;
 }
- 
- 
+
 .user-message-list-massage-detail {
-display: flex;
-padding: 0px 0px 0px 20px;
+  display: flex;
+  padding: 0px 0px 0px 20px;
 }
- 
+
 .user-message-list .nav-tabs {
-display: block;
-height: 463px;
-overflow: auto;
-border-right: 1px solid #eeeeee;
+  display: block;
+  height: 463px;
+  overflow: auto;
+  border-right: 1px solid #eeeeee;
 }
- 
- 
+
 .user-message-list .nav-tabs .nav-link {
-border: none;
-padding:20px 10px;
-border-radius: 0px;
-border: 1px solid #eeeeee;
+  border: none;
+  padding: 20px 10px;
+  border-radius: 0px;
+  border: 1px solid #eeeeee;
 }
- 
+
 .user-message-list .nav-link.active {
-border-radius: 0px;
-background: #FF6600;
+  border-radius: 0px;
+  background: #ff6600;
 }
- 
- 
+
 .user-message-list {
-width:40%;  
+  width: 40%;
 }
- 
+
 .user-img-name-chat-count-time-massage {
-display: flex;
-justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
- 
+
 .user-img-chat-count {
-position: relative;
-margin-right: 10px;
+  position: relative;
+  margin-right: 10px;
 }
- 
+
 .user-img-chat-count img {
-width: 50px;
-height: 50px;
-border-radius: 50px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
 }
- 
- 
+
 .chat-count {
-color: #fff;
-right: 5px;
-width: 17px;
-height: 17px;
-bottom: 6px;
-font-size: 12px;
-font-weight: 500;
-text-align: center;
-background: #0066CC;
-position: absolute;
-border-radius: 50px;
+  color: #fff;
+  right: 5px;
+  width: 17px;
+  height: 17px;
+  bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  background: #0066cc;
+  position: absolute;
+  border-radius: 50px;
 }
- 
- 
+
 .user-name-time-info {
-display: flex;
-justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
- 
+
 .user-short-massage p {
-width:95%;
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
+  width: 95%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
- 
+
 .job-seeker-employer-message-detail {
-width: 90%;
-margin: 0px 0px 0px 0px;
+  width: 90%;
+  margin: 0px 0px 0px 0px;
 }
- 
- 
+
 .user-message-chat-details {
-display: flex;
-margin-top: 30px;
+  display: flex;
+  margin-top: 30px;
 }
- 
- 
+
 .job-seeker-message-img img {
-width: 50px;
-height: 50px;
-overflow: hidden;
-border-radius: 50px; 
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50px;
 }
- 
- 
+
 .job-seeker-message-img {
-margin-right:10px;
+  margin-right: 10px;
 }
- 
+
 .job-seeker-message-time {
-display:flex;  
+  display: flex;
 }
- 
- 
+
 .job-seeker-message-time h6 {
-color:#fff;
-margin-right:10px;
+  color: #fff;
+  margin-right: 10px;
 }
- 
- 
+
 .job-seeker-message-detail-text {
-width: 50%;
-padding: 10px 20px;
-border-radius: 5px;
-background: #FF6600;
+  width: 50%;
+  padding: 10px 20px;
+  border-radius: 5px;
+  background: #ff6600;
 }
- 
- 
+
 .job-seeker-message-detail-text p {
-color:#fff;  
+  color: #fff;
 }
- 
- 
+
 .user-message-chat-details.employer-info-main-area {
-display: flex;
-justify-content: end;
+  display: flex;
+  justify-content: end;
 }
- 
+
 .employer-info-main-area .job-seeker-message-img {
-margin-left:10px;  
+  margin-left: 10px;
 }
- 
+
 .user-message-list .nav-tabs .active .user-name-time-info h6 {
-color:#fff;
+  color: #fff;
 }
- 
+
 .user-message-list .nav-tabs .active .user-name-time-info p {
-color:#fff;
+  color: #fff;
 }
- 
- 
+
 .user-message-list .nav-tabs .active .user-short-massage p {
-color:#fff;
+  color: #fff;
 }
- 
+
 .user-name-time-info h6 {
-margin:0px;  
+  margin: 0px;
 }
- 
+
 .user-name-time-info p {
-margin:0px; 
+  margin: 0px;
 }
- 
+
 .user-short-massage p {
-margin:0px;  
+  margin: 0px;
 }
- 
- 
+
 .job-seeker-employer-message-detail .tab-pane {
-height: 400px;
-overflow: auto;
-padding: 0px 0px 0px 20px;
+  height: 400px;
+  overflow: auto;
+  padding: 0px 0px 0px 20px;
 }
- 
- 
+
 .chat-messaging-typeing-function-btn {
-display: flex;
-align-items: center;
-margin: 20px 0px 0px 20px;
-border: 1px solid #cdcdcd;
+  display: flex;
+  align-items: center;
+  margin: 20px 0px 0px 20px;
+  border: 1px solid #cdcdcd;
 }
- 
+
 .chat-messaging-typeing-box {
-width:80%;
-border-right: 1px solid #cdcdcd;
+  width: 80%;
+  border-right: 1px solid #cdcdcd;
 }
- 
+
 .chat-messaging-typeing-function {
-width: 15%;
-display: flex;
-margin-left: 15px;
-align-items: center;
-justify-content: space-between;
+  width: 15%;
+  display: flex;
+  margin-left: 15px;
+  align-items: center;
+  justify-content: space-between;
 }
- 
+
 .chat-messaging-typeing-function i {
-cursor:pointer; 
+  cursor: pointer;
 }
- 
+
 .chat-messaging-typeing-box .form-control {
-border:none;  
+  border: none;
 }
- 
+
 .job-seeker-employer-message-detail .tab-content {
-border-bottom: 1px solid #eeeeee;  
+  border-bottom: 1px solid #eeeeee;
 }
- 
+
 /*chat messaging system css end here*/
 /*Activity timeline page css start here*/
- 
+
 .activity-timeline-info-list {
-background: #fff;
-padding:20px 30px 10px 30px;
+  background: #fff;
+  padding: 20px 30px 10px 30px;
 }
- 
+
 .activity-timeline-info-list h5 {
-margin-bottom: 20px; 
+  margin-bottom: 20px;
 }
- 
- 
+
 /*Activity timeline page css end here*/
- 
