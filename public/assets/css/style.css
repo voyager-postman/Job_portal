@@ -228,7 +228,7 @@ textarea {
   font-size: 16px;
   font-weight: 500;
   padding: 12px 30px;
-  border-radius: 5px;
+  border-radius: 5px ;
   position: relative;
   text-align: center;
   transition: all ease 0.5s;
@@ -9773,9 +9773,9 @@ Dashboard Area CSS
   border-radius: unset;
   border: 1px solid rgba(32, 33, 34, 0.08);
 }
-.my-profile-area .profile-form-content .profile-form .default-btn {
+/* .my-profile-area .profile-form-content .profile-form .default-btn {
   border-radius: unset;
-}
+} */
 .my-profile-area .profile-form-content .profile-form .default-btn::before {
   border-radius: unset;
 }
@@ -11039,6 +11039,7 @@ input:checked + .slider:before {
   position: relative;
   z-index: 1;
   transition: all ease 0.5s;
+  font-size: 13px;
 }
 .sidemenu-area .sidemenu-body .sidemenu-nav .nav-item .nav-link .icon {
   color: #202124;
@@ -12826,9 +12827,9 @@ Dashboard Area CSS
   border-radius: unset;
   border: 1px solid rgba(32, 33, 34, 0.08);
 }
-.my-profile-area .profile-form-content .profile-form .default-btn {
+/* .my-profile-area .profile-form-content .profile-form .default-btn {
   border-radius: unset;
-}
+} */
 .my-profile-area .profile-form-content .profile-form .default-btn::before {
   border-radius: unset;
 }
@@ -16759,6 +16760,94 @@ button.btn {
 }
 
 /*companies list and companies details page css end here*/
+
+/*Company List page css start here*/
+
+.available-company-heading {
+background: #fff;
+padding: 20px 20px;
+}
+
+
+
+.available-company-heading h4 {
+font-size: 18px;
+margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+}
+
+
+.available-company-heading h4 i {
+color: #0066CC;
+margin-right: 5px;
+}
+
+
+.available-company-box-info {
+padding: 10px;
+margin-top: 30px;
+background: #fff;
+position: relative;
+}
+
+.available-company-logo {
+top: 15px;
+left: 15px;
+width: 40%;
+padding: 5px 5px;
+background: #fff;
+position: absolute;
+}
+
+.available-company-content h4 {
+font-size: 17px;
+margin-top: 10px;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+
+
+.available-company-content ul {
+list-style: none;
+padding:0px 0px 0px 0px;
+margin:0px 0px 0px 0px;
+}
+
+.available-company-content ul li {
+font-size: 15px;
+overflow: hidden;
+margin-bottom: 10px; 
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+
+.available-company-content ul li:hover {
+color:#FF6600;  
+}
+
+.available-company-content ul li i {
+color:#0066CC;  
+padding-right: 5px;
+}
+
+.available-company-content ul li:hover i{
+color:#FF6600; 
+}
+
+
+.available-company-btn {
+text-align: center;
+padding: 10px 0px 10px 0px;
+}
+
+
+.available-company-btn .default-btn {
+font-size: 14px; 
+padding: 5px 10px;
+}
+
+/*Company List page css end here*/
 /*Custom Resume Cover Letter page css start here*/
 
 .custom-resume-cover-letter-job-seeker-info {
@@ -18466,3 +18555,948 @@ input:checked + .slider:before {
 }
 
 /*Activity timeline page css end here*/
+/*Skill Assessments & Tests page & Certificate css start here*/
+
+.skill-assessments-tests-card {
+  border-radius: 5px;
+  margin-bottom: 25px;
+  padding: 15px 20px 20px 20px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.skill-test-logo-name-info {
+  display: flex;
+  margin-bottom: 25px;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.skill-test-logo {
+  width: 40px;
+  color: #fff;
+  height: 40px;
+  text-align: center;
+  margin-right: 10px;
+  border-radius: 50px;
+  background: #0066cc;
+}
+
+.skill-test-logo i {
+  color: #fff;
+  font-size: 25px;
+  line-height: 40px;
+}
+
+.skill-test-name h5 {
+  margin: 0px;
+  color: #0066cc;
+  font-size: 18px;
+}
+
+.skill-test-status-score {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skill-test-status h5 {
+  color: #ff6600;
+  font-size: 17px;
+  padding: 2px 10px;
+  background: #f0f5f7;
+}
+
+.skill-test-score h5 {
+  margin: 0px;
+  font-size: 18px;
+}
+
+.skill-assessments-test-btn {
+  margin-top: 20px;
+  padding-top: 20px;
+  text-align: center;
+  border-top: 1px solid #eeeeee;
+}
+
+.skill-assessments-test-btn .default-btn {
+  padding: 5px 10px;
+}
+
+.skill-test-not-started {
+  width: 41%;
+  height: 80px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+}
+
+.skill-test-not-started h5 {
+  color: #ff6600;
+  font-size: 17px;
+  padding: 2px 10px;
+  background: #f0f5f7;
+}
+
+.skill-result-heading-number {
+  display: flex;
+  align-items: center;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.skill-result-heading h5 {
+  font-size: 18px;
+}
+
+.skill-result-number h5 {
+  color: #fff;
+  font-size: 16px;
+  padding: 0px 8px;
+  line-height: 25px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.skill-test-text-number {
+  display: flex;
+  margin-top: 25px;
+  padding-top: 25px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #eeeeee;
+}
+
+.skill-test-text-info h5 {
+  margin: 0px;
+  font-size: 16px;
+}
+
+.skill-test-total-number h5 {
+  color: #fff;
+  margin: 0px;
+  font-size: 16px;
+  padding: 0px 8px;
+  line-height: 25px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.column-chart-diagram {
+  padding: 20px 10px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.chart-wrapper h6 {
+  margin-bottom: 60px;
+}
+
+.skill-test-text-number.total-assessments-score {
+  margin-top: 0px;
+  padding-top: 10px;
+}
+
+.test-logo-name-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-logo {
+  width: 30px;
+  color: #fff;
+  height: 30px;
+  font-size: 17px;
+  background: #0066cc;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50px;
+}
+
+.test-name h5 {
+  margin: 0px;
+  color: #0066cc;
+}
+
+.skill-assessments-question-info .modal-title {
+  width: 12%;
+}
+
+.skill-assessment-questions-ans {
+  display: none;
+}
+
+.skill-assessment-questions-ans.active {
+  display: block;
+}
+
+.skill-assessment-questions-nextBtn {
+  text-align: center;
+  padding: 25px 0px;
+  border-top: 1px solid #cdcd;
+}
+
+.skill-assessments-question-info .modal-dialog {
+  width: 50% !important;
+}
+
+.skill-assessment-questions-ans label {
+  display: block;
+  color: #202124;
+  margin-bottom: 5px;
+}
+
+.skill-assessment-questions-ans input {
+  margin-right: 7px;
+}
+
+.skill-assessment-questions-ans h5 {
+  font-size: 17px;
+}
+
+.certificates-scores-detail-info {
+  text-align: center;
+  padding: 20px 20px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.certificates-company-logo {
+  width: 25%;
+  margin: auto;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.my-profile-area .profile-form-content .certificates-scores-detail h3 {
+  border: none;
+  padding-left: 0px;
+  padding: 5px 0px;
+  font-size: 25px;
+}
+
+.website-name-signature-info {
+  display: flex;
+  align-items: end;
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.authorized-signature-img {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #cdcdcd;
+}
+
+.authorized-signature-img img {
+  width: 60%;
+}
+
+.website-name-info h6 {
+  margin-bottom: 2px;
+}
+
+.authorized-signature-info h6 {
+  margin-bottom: 2px;
+}
+
+.website-name-info a {
+  color: #ff6600;
+}
+
+.skill-assessment-questions-ans.progress-questions {
+display:none;  
+}
+
+.skill-assessment-questions-ans.progress-questions.active {
+display: block;  
+}
+
+
+.certificates-download-icon {
+top: 5px;
+right: 5px;
+color: #fff;
+cursor: pointer; 
+font-size: 20px;
+background:#0066CC;
+padding: 0px 5px;
+border-radius: 5px; 
+position: absolute;
+}
+
+.certificates-download-icon:hover {
+ background:#FF6600; 
+}
+
+.certificates-download-icon a {
+color: #fff;
+}
+
+/*Skill Assessments & Tests page & Certificate css end here*/
+
+/*Employer profile page css start here*/
+
+.company-profile-management-tab .nav-tabs {
+  border: none;
+  margin-top: 30px;
+  padding: 0px 30px;
+  justify-content: space-between;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link {
+  border: none;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link {
+  border: 0px;
+  color: #fff;
+  font-size: 16px;
+  padding: 10px 40px;
+  border-radius: 5px;
+  background: #0066cc;
+}
+
+/* Hide the default input */
+.upload-company-info-area #imageInput {
+  display: none;
+}
+
+/* Custom upload button */
+.upload-company-info-area .custom-upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+/* File name display */
+
+.upload-company-file-name {
+  width: 80%;
+  margin: auto;
+}
+
+.upload-company-info-area .file-name {
+  display: block;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  border: 1px solid #e2e2e2;
+  padding: 10px 20px 10px 15px;
+}
+
+.upload-company-img-preview {
+  width: 50px;
+  height: 45px;
+  padding: 5px;
+  overflow: hidden;
+  background: #f0f5f7;
+  border-radius: 5px;
+  background: #cdcdcd38;
+}
+
+/* Image preview */
+.upload-company-info-area #preview {
+  width: 50px;
+  height: 35px;
+  margin-top: 0px;
+  object-fit: contain;
+}
+
+.upload-company-info-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-upload.default-btn {
+  border-radius: 5px !important;
+}
+
+.office-photos-upload-info #officePhotos {
+  display: none;
+}
+
+.office-photos-upload-info .Custom-Upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+.office-photos-upload-info .file-name {
+  width: 85%;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  display: inline-block;
+  border: 1px solid #e2e2e2;
+  padding: 8px 20px 10px 15px;
+}
+
+.office-photos-upload-info .preview-container {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.office-photos-upload-info .preview-container img {
+  width: 60px;
+  height: 60px;
+  padding: 5px;
+  border-radius: 5px;
+  object-fit: contain;
+  background: #f0f5f7;
+}
+
+.office-photos-upload-info .image-wrapper {
+  position: relative;
+}
+
+.office-photos-upload-info .cancel-btn {
+  top: 2px;
+  right: 2px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 14px;
+  position: absolute;
+  background: #0066cc;
+  border-radius: 4px;
+  padding: 0px 3px 2px 3px;
+}
+
+.office-photos-info-area .preview-container {
+  display: flex;
+  align-items: center;
+}
+
+.office-photos-info-area .image-wrapper {
+  margin-top: 30px;
+  position: relative;
+  margin-right: 10px;
+}
+
+.office-photos-info-area .image-wrapper img {
+  width: 100px;
+  padding: 5px;
+  height: 100px;
+  background: #f0f5f7;
+  object-fit: contain;
+}
+
+.office-photos-info-area .cancel-btn {
+  top: 2px;
+  right: 2px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 14px;
+  position: absolute;
+  background: #0066cc;
+  border-radius: 4px;
+  padding: 0px 3px 2px 3px;
+}
+
+.office-photos-upload-info .default-btn {
+  color: #fff;
+}
+
+.office-photos-info-area {
+  margin-top: 50px;
+}
+
+.photo-video-divider-line {
+  padding-left: 40px;
+  border-left: 1px solid #e2e2e2;
+}
+
+.office-video-upload-info #officeVideos {
+  display: none;
+}
+
+.office-video-upload-info .video-file-name {
+  width: 85%;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  display: inline-block;
+  border: 1px solid #e2e2e2;
+  padding: 8px 20px 10px 15px;
+}
+
+.office-video-upload-info .custom-video-Upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+.office-video-upload-info .custom-upload-btn:hover {
+  background-color: #0056b3;
+}
+
+.office-video-upload-info .preview-container {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 200px;
+}
+
+.video-wrapper video {
+  width: 100%;
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.cancel-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 0;
+  text-align: center;
+  user-select: none;
+}
+
+.video-file-name p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.company-profile-management-input-form .profile-form h4 {
+  font-size: 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.my-profile-area .company-profile-management-input-form .profile-form {
+  margin-top: 20px;
+}
+
+.office-photos-upload-info {
+  margin-top: 50px;
+}
+
+.office-video-upload-info {
+  margin-top: 50px;
+}
+
+/*Employer profile page css end  here*/
+
+
+/*Company Details page css start here*/
+
+.company-detail-info-area {
+  margin: 80px 0px 80px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-img-short-detail {
+  padding: 20px 20px;
+  background: #f0f5f7;
+}
+
+.company-img-info {
+  background: #fff;
+  padding: 15px 15px;
+}
+
+.company-img-info img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-detail-tab-description-info {
+  background-color: #f0f5f7;
+  padding: 20px 20px;
+}
+
+.company-short-detail-info {
+  display: flex;
+  background: #fff;
+  padding: 20px 20px;
+  align-items: center;
+}
+
+.company-short-detail-img {
+  width: 150px;
+  height: 100px;
+  background: #eee;
+  padding: 0px 10px;
+  margin-right: 20px;
+}
+
+.company-short-detail-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-about-short-detail h4 {
+  font-size: 20px;
+}
+
+.subscribe-best-employer-btn {
+  display: flex;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.subscribe-btn.default-btn {
+  font-size: 14px;
+  padding: 5px 10px;
+  margin-right: 30px;
+}
+
+.best-employer-btn {
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 10px;
+  position: relative;
+  background: #0066cc;
+  border-radius: 0px 5px 5px 0px;
+}
+
+.best-employer-btn:before {
+  content: "";
+  top: 0px;
+  left: -10px;
+  width: 50vmin;
+  height: 50vmin;
+  background: #0066cc;
+  position: absolute;
+  -webkit-clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+  clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+}
+
+.company-about-short-detail ul {
+  display: flex;
+  list-style: none;
+  margin: 10px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-about-short-detail ul li {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-about-short-detail ul li i {
+  color: #0066cc;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.company-detail-tab-info {
+  background: #fff;
+  padding: 20px 15px;
+}
+
+.company-detail-tab-info .nav-tabs {
+  border: none;
+  justify-content: space-between;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link {
+  border: 0px;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 5px;
+  background: #0066cc;
+  padding: 10px 25px;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail-tab-description {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 15px 15px 15px;
+}
+
+.company-detail-job-box {
+  margin-bottom: 30px;
+  background: #f0f5f7;
+  border: 2px solid #eee;
+  padding: 10px 10px 20px 10px;
+}
+
+.company-detail-card {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeee;
+}
+
+.company-detail-card h4 {
+  font-size: 20px;
+}
+
+.company-detail-card ul {
+  display: flex;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-card ul li {
+  color: #666666;
+  list-style: none;
+  font-size: 14px;
+  margin: 5px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-detail-card ul li i {
+  font-size: 13px;
+  color: #0066cc;
+  margin-right: 5px;
+}
+
+.company-detail-apply-link-save-btn {
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.company-detail-link-save-icon ul {
+  display: flex;
+  list-style: none;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-link-save-icon ul li {
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #0066cc;
+  border-radius: 5px;
+  margin-left: 20px;
+  border-right: 1px solid #eeee;
+}
+
+.company-detail-link-save-icon ul li i {
+  color: #fff;
+  font-size: 20px;
+}
+
+.company-detail-link-save-icon ul li:hover {
+  background: #ff6600;
+}
+
+.company-detail-show-upload {
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border: 2px solid #eeee;
+  justify-content: space-between;
+}
+
+.company-detail-doc-tyep h4 {
+  font-size: 17px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.company-detail-doc-tyep h4 i {
+  color: #0066cc;
+  margin-right: 10px;
+}
+
+.company-detail-download-edit {
+  position: relative;
+}
+
+.company-detail-download-edit .fa-ellipsis-vertical {
+  font-size: 25px;
+  color: #0066cc;
+}
+
+.company-detail-download-edit ul {
+  top: 25px;
+  right: 0px;
+  z-index: 9;
+  width: 140px;
+  background: #fff;
+  padding: 0px 20px;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.company-detail-download-edit ul li {
+  list-style: none;
+  margin-top: 15px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.company-detail-download-edit ul li i {
+  padding-right: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up .optional-inputfile {
+  opacity: 0;
+  z-index: -1;
+  overflow: hidden;
+  position: absolute;
+}
+
+.company-detail-attechment-info .control-label-file-up {
+  width: 26%;
+  margin: auto;
+  cursor: pointer;
+  font-size: 16px;
+  color: #0066cc;
+  padding: 5px 10px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up:hover {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail.modal-footer {
+  display: block;
+  text-align: center;
+}
+
+.company-profile-detail-info {
+  display: flex;
+  justify-content: space-between;
+}
+
+.company-profile-detail-box {
+  width: 23%;
+  padding: 10px 15px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background: #eeeeee82;
+}
+
+.company-profile-detail-box h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-profile-detail-box h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+.company-profile-description {
+  margin-top: 10px;
+}
+
+.company-office-photos-box {
+  margin-bottom: 20px;
+}
+
+.company-office-photos-box img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.company-office-video-box {
+  margin-bottom: 15px;
+}
+
+.company-detail-official-website {
+  padding: 15px 20px;
+  background: #eeeeee82;
+}
+
+.company-detail-official-website h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-detail-official-website h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+.company-detail-official-website a {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.company-detail-social-link {
+  display: flex;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+.company-detail-social-box {
+  width: 23%;
+  padding: 10px 15px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background: #eeeeee82;
+}
+
+.company-detail-social-box h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-detail-social-box h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+/*Company Details page css end here*/

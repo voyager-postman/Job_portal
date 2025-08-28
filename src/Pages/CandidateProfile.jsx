@@ -1993,7 +1993,10 @@ function CandidateProfile() {
                                     );
                                   })
                                 ) : (
-                                  <p className="text-muted">
+                                  <p
+                                    className="text-muted"
+                                    style={{ padding: "2px" }}
+                                  >
                                     No CVs uploaded yet.
                                   </p>
                                 )}
@@ -2722,7 +2725,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseSeven"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingSeven"
                     data-bs-parent="#workExperience"
                   >
@@ -2996,121 +2999,139 @@ function CandidateProfile() {
                               /* ✅ LIST VIEW SECTION (Multiple Items) */
 
                               <div className="user-all-detail-info-main">
-                                {profileData?.workHistory?.map((exp, index) => (
-                                  <div
-                                    key={index}
-                                    className="user-all-details-info"
-                                  >
-                                    {/* ✏️ Edit button */}
-                                    <div className="work-exprinace-edit">
-                                      <i
-                                        className="fas fa-pencil-alt"
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => {
-                                          setWorkExperienceData({
-                                            workHistory_id: exp._id || "",
-                                            companyName: exp.companyName || "",
-                                            jobTitle: exp.jobTitle || "",
-                                            startDate:
-                                              exp.startDate?.split("T")[0] ||
-                                              "",
-                                            endDate:
-                                              exp.endDate?.split("T")[0] || "",
-                                            yearOfExperience:
-                                              exp.yearOfExperience || "",
-                                            currentlyWorkingHere:
-                                              exp.currentlyWorkingHere || false,
-                                            Description: exp.Description || "",
-                                            EmploymentType:
-                                              exp.EmploymentType || "",
-                                            workLocation:
-                                              exp.workLocation || "",
-                                            salaryAmount:
-                                              exp.currentSalary?.amount || "",
-                                            salaryCurrency:
-                                              exp.currentSalary?.currency ||
-                                              "USD",
-                                            salaryType:
-                                              exp.currentSalary
-                                                ?.payrollFrequency || "Monthly",
-                                          });
-                                          setEditMode(true);
+                                {profileData?.workHistory &&
+                                profileData.workHistory.length > 0 ? (
+                                  profileData?.workHistory?.map(
+                                    (exp, index) => (
+                                      <div
+                                        key={index}
+                                        className="user-all-details-info"
+                                      >
+                                        {/* ✏️ Edit button */}
+                                        <div className="work-exprinace-edit">
+                                          <i
+                                            className="fas fa-pencil-alt"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => {
+                                              setWorkExperienceData({
+                                                workHistory_id: exp._id || "",
+                                                companyName:
+                                                  exp.companyName || "",
+                                                jobTitle: exp.jobTitle || "",
+                                                startDate:
+                                                  exp.startDate?.split(
+                                                    "T"
+                                                  )[0] || "",
+                                                endDate:
+                                                  exp.endDate?.split("T")[0] ||
+                                                  "",
+                                                yearOfExperience:
+                                                  exp.yearOfExperience || "",
+                                                currentlyWorkingHere:
+                                                  exp.currentlyWorkingHere ||
+                                                  false,
+                                                Description:
+                                                  exp.Description || "",
+                                                EmploymentType:
+                                                  exp.EmploymentType || "",
+                                                workLocation:
+                                                  exp.workLocation || "",
+                                                salaryAmount:
+                                                  exp.currentSalary?.amount ||
+                                                  "",
+                                                salaryCurrency:
+                                                  exp.currentSalary?.currency ||
+                                                  "USD",
+                                                salaryType:
+                                                  exp.currentSalary
+                                                    ?.payrollFrequency ||
+                                                  "Monthly",
+                                              });
+                                              setEditMode(true);
 
-                                          const collapseElement =
-                                            document.getElementById(
-                                              "collapseSeven"
-                                            );
-                                          if (
-                                            collapseElement &&
-                                            !collapseElement.classList.contains(
-                                              "show"
-                                            )
-                                          ) {
-                                            new window.bootstrap.Collapse(
-                                              collapseElement,
-                                              { toggle: true }
-                                            );
-                                          }
-                                        }}
-                                      />
-                                      <i
-                                        className="fas fa-trash ms-2"
-                                        style={{
-                                          cursor: "pointer",
-                                        }}
-                                        onClick={() =>
-                                          handleDeleteWorkExperience(exp._id)
-                                        }
-                                      />
-                                    </div>
-
-                                    {/* Work experience display */}
-                                    <div className="row">
-                                      <div className="col-lg-12 col-md-12">
-                                        <div className="form-group">
-                                          <label>{exp.jobTitle}</label>
-                                          <p>
-                                            {exp.startDate?.split("T")[0]} -{" "}
-                                            {exp.currentlyWorkingHere
-                                              ? "Present"
-                                              : exp.endDate?.split("T")[0]}
-                                          </p>
-                                          <p>
-                                            <i className="fa-regular fa-building" />{" "}
-                                            {exp.companyName}
-                                          </p>
-                                          <p>{exp.EmploymentType}</p>
-                                        </div>
-                                        <div className="divder-line-info" />
-                                      </div>
-
-                                      <div className="col-lg-12 col-md-12">
-                                        <div className="form-group">
-                                          <label>Achievements</label>
-                                          <p>{exp.Description}</p>
-                                        </div>
-                                        <div className="divder-line-info" />
-                                      </div>
-
-                                      <div className="col-lg-12 col-md-12">
-                                        <div className="form-group">
-                                          <label>Salary</label>
-                                          <p>
-                                            {exp.currentSalary?.currency}{" "}
-                                            {exp.currentSalary?.amount}
-                                          </p>
-                                          <label>Payroll frequency</label>
-                                          <p>
-                                            {
-                                              exp.currentSalary
-                                                ?.payrollFrequency
+                                              const collapseElement =
+                                                document.getElementById(
+                                                  "collapseSeven"
+                                                );
+                                              if (
+                                                collapseElement &&
+                                                !collapseElement.classList.contains(
+                                                  "show"
+                                                )
+                                              ) {
+                                                new window.bootstrap.Collapse(
+                                                  collapseElement,
+                                                  { toggle: true }
+                                                );
+                                              }
+                                            }}
+                                          />
+                                          <i
+                                            className="fas fa-trash ms-2"
+                                            style={{
+                                              cursor: "pointer",
+                                            }}
+                                            onClick={() =>
+                                              handleDeleteWorkExperience(
+                                                exp._id
+                                              )
                                             }
-                                          </p>
+                                          />
+                                        </div>
+
+                                        {/* Work experience display */}
+                                        <div className="row">
+                                          <div className="col-lg-12 col-md-12">
+                                            <div className="form-group">
+                                              <label>{exp.jobTitle}</label>
+                                              <p>
+                                                {exp.startDate?.split("T")[0]} -{" "}
+                                                {exp.currentlyWorkingHere
+                                                  ? "Present"
+                                                  : exp.endDate?.split("T")[0]}
+                                              </p>
+                                              <p>
+                                                <i className="fa-regular fa-building" />{" "}
+                                                {exp.companyName}
+                                              </p>
+                                              <p>{exp.EmploymentType}</p>
+                                            </div>
+                                            <div className="divder-line-info" />
+                                          </div>
+
+                                          <div className="col-lg-12 col-md-12">
+                                            <div className="form-group">
+                                              <label>Achievements</label>
+                                              <p>{exp.Description}</p>
+                                            </div>
+                                            <div className="divder-line-info" />
+                                          </div>
+
+                                          <div className="col-lg-12 col-md-12">
+                                            <div className="form-group">
+                                              <label>Salary</label>
+                                              <p>
+                                                {exp.currentSalary?.currency}{" "}
+                                                {exp.currentSalary?.amount}
+                                              </p>
+                                              <label>Payroll frequency</label>
+                                              <p>
+                                                {
+                                                  exp.currentSalary
+                                                    ?.payrollFrequency
+                                                }
+                                              </p>
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </div>
-                                ))}
+                                    )
+                                  )
+                                ) : (
+                                  <p className="text-muted">
+                                    No work experience added yet.
+                                  </p>
+                                )}
                               </div>
                             )}
                           </div>
@@ -3170,7 +3191,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseEducation"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingEducation"
                     data-bs-parent="#educationDetail"
                   >
@@ -3491,7 +3512,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseLanguages"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingLanguages"
                     data-bs-parent="#languagesDetail"
                   >
@@ -3650,7 +3671,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseCertificates"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingCertificates"
                     data-bs-parent="#candidateCertificates"
                   >

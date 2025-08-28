@@ -41,12 +41,19 @@ import Faq from "./Pages/Faq";
 import JobDetailsList from "./Pages/JobDetailsList";
 import ActivityTimeline from "./Pages/ActivityTimeline";
 import ChatMassageSystem from "./Pages/ChatMassageSystem";
+import EmployerProfile from "./Pages/EmployerProfile";
+import SkillAssementTestPage from "./Pages/SkillAssementTestPage";
+import CertificateScorePage from "./Pages/CertificateScorePage";
+import RecruiterLists from "./Conponets/RecruiterLists";
+import CreateRecruiters from "./Conponets/CreateRecruiters";
 
 function LayoutWrapper() {
   const location = useLocation();
 
   const sidebarRoutes = [
     "/candidate-profile",
+    "/certificates-scores",
+    "/skill-assessments-tests",
     "/job-search",
     "/companies-list",
     "/companies-list",
@@ -55,6 +62,9 @@ function LayoutWrapper() {
     "/manage-applicants",
     "/shortlist-candidates",
     "/candidates-search",
+    "/create-recruiters",
+    "/recruiters-list",
+    "/employer-profile",
     "/job-details-form",
     "/job-details",
     "/candidate-dashboard",
@@ -123,6 +133,22 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <CandidateProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/skill-assessments-tests"
+          element={
+            <PrivateRoute>
+              <SkillAssementTestPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/certificates-scores"
+          element={
+            <PrivateRoute>
+              <CertificateScorePage />
             </PrivateRoute>
           }
         />
@@ -227,6 +253,30 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <CandinatesList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/create-recruiters"
+          element={
+            <PrivateRoute>
+              <CreateRecruiters />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/recruiters-list"
+          element={
+            <PrivateRoute>
+              <RecruiterLists />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/employer-profile"
+          element={
+            <PrivateRoute>
+              <EmployerProfile />
             </PrivateRoute>
           }
         />

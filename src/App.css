@@ -322,30 +322,6 @@
   padding-right: 5px;
 }
 
-.company-detail-tab-info {
-  background: #fff;
-  padding: 20px 15px;
-}
-
-.company-detail-tab-info .nav-tabs {
-  border: none;
-  justify-content: space-between;
-}
-
-.company-detail-tab-info .nav-tabs .nav-link {
-  border: 0px;
-  color: #fff;
-  font-size: 16px;
-  border-radius: 5px;
-  background: #0066cc;
-  padding: 10px 40px;
-}
-
-.company-detail-tab-info .nav-tabs .nav-link.active {
-  color: #fff;
-  background: #ff6600;
-}
-
 .company-detail-tab-description {
   background: #fff;
   margin-top: 30px;
