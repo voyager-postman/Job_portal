@@ -222,19 +222,20 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-profile-details.html">
+                    <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-1.jpg"
                             alt="Image"
                           />
-                        </a>
+                   </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-profile-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                                         </Link>
+
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -269,19 +270,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-16.jpg"
                             alt="Image"
                           />
-                        </a>
+                      </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                       </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -318,19 +319,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-profile-details.html">
+                      <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-2.jpg"
                             alt="Image"
                           />
-                        </a>
+                     </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-profile-details.html">
+                        <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                       </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -367,19 +368,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-3.jpg"
                             alt="Image"
                           />
-                        </a>
+                       </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                       </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -416,19 +417,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-3.jpg"
                             alt="Image"
                           />
-                        </a>
+                      </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                        </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -465,19 +466,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-3.jpg"
                             alt="Image"
                           />
-                        </a>
+                        </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                        </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>
@@ -514,19 +515,19 @@ function EmployerCandinateList() {
                   <div className="row align-items-center">
                     <div className="col-lg-4">
                       <div className="freelancer-img">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <img
                             src="assets/images/freelancers/freelancers-img-3.jpg"
                             alt="Image"
                           />
-                        </a>
+                         </Link>
                       </div>
                     </div>
                     <div className="col-lg-8">
                       <div className="freelancer-content">
-                        <a href="candidates-details.html">
+                       <Link to="/candidates-profile-details">
                           <h3>Jequline Fenda</h3>
-                        </a>
+                       </Link>
                         <span>IT Developer</span>
                         <div className="info">
                           <ul>

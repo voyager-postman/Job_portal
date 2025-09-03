@@ -176,7 +176,7 @@ a {
 }
 
 .form-control {
-  height: 35px;
+  height: 40px;
   border: 1px solid #e2e2e2;
   padding-left: 15px;
   font-weight: 500;
@@ -9773,9 +9773,9 @@ Dashboard Area CSS
   border-radius: unset;
   border: 1px solid rgba(32, 33, 34, 0.08);
 }
-.my-profile-area .profile-form-content .profile-form .default-btn {
+/* .my-profile-area .profile-form-content .profile-form .default-btn {
   border-radius: unset;
-}
+} */
 .my-profile-area .profile-form-content .profile-form .default-btn::before {
   border-radius: unset;
 }
@@ -9822,8 +9822,9 @@ Dashboard Area CSS
 }
 
 .copy-right-area {
-  padding-top: 20px;
-  padding-bottom: 30px;
+  margin-top: 30px;
+  padding: 20px 20px;
+  background: #fff;
 }
 .copy-right-area .copyright-left-content p .template-name {
   color: #1967d2;
@@ -10979,277 +10980,6 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-.candidates-detail-main-area {
-  display: flex;
-  padding: 20px 30px;
-  justify-content: space-between;
-  border-bottom: 1px solid #eeee;
-}
-
-.candidates-img-detail-info {
-  display: flex;
-}
-
-.candidates-img-info {
-  width: 28%;
-}
-
-.my-profile-area .candidates-details-info h3 {
-  font-size: 15px;
-  padding-left: 20px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.visibility-icon-content i {
-  color: #0066cc;
-}
-
-.visibility-icon-content i:hover {
-  color: #ff6600;
-}
-
-.visibility-icon-content {
-  margin-right: 20px;
-}
-
-.img-edit-icon {
-  position: relative;
-}
-
-.img-edit-icon i {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: #0066cc;
-  padding: 7px;
-  border-radius: 50px;
-  color: #fff;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-}
-
-.img-edit-icon i:hover {
-  background: #ff6600;
-}
-
-.upload-download-dlt-cv {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  border: 1px solid #eeee;
-  padding: 20px 20px;
-  border-radius: 10px;
-}
-
-.upload-cv-info-area p i {
-  margin-right: 10px;
-}
-
-.upload-cv-area {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.upload-cv-area input[type="file"]::file-selector-button {
-  padding: 10px 10px;
-  border: none;
-  border-radius: 1rem;
-  background-color: #0066cc;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  margin-right: 1em;
-}
-
-.currently-working-here {
-  margin-bottom: 20px;
-}
-
-.skill-btn-info .default-btn {
-  border-radius: 5px !important;
-  padding: 13px 20px !important;
-  margin-left: 25px;
-}
-
-.enter-skill-info {
-  display: flex;
-}
-
-.enter-skill-info .form-group {
-  width: 85%;
-}
-
-.delete-account p span {
-  font-weight: 600;
-  color: #0066cc;
-  cursor: pointer;
-}
-
-.delete-account p span:hover {
-  color: #ff6600;
-}
-
-.profile-visible-recruiters ul {
-  margin: 0px 0px 0px 0px;
-  padding: 0px 0px 0px 0px;
-}
-
-.profile-visibility-info-area .profile-visible-recruiters ul li {
-  list-style: none;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.profile-visibility-info-area ul li i {
-  margin-right: 5px;
-  color: #0066cc;
-}
-
-.profile-visibility-info-area ul li:hover {
-  color: #ff6600;
-}
-
-.user-all-detail-info-main {
-  padding-top: 25px;
-  margin-bottom: 30px;
-  background-color: #ffffff;
-}
-
-.input-info-edit-area {
-  position: relative;
-}
-
-.input-info-edit-area h3 {
-  font-size: 18px;
-  padding-left: 30px;
-  padding-bottom: 30px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.input-info-edit-area i:hover {
-  background: #ff6600;
-}
-
-.user-all-details-info {
-  padding: 30px 30px 0px 30px;
-}
-
-.user-all-details-info .form-group label {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.user-all-details-info .form-group {
-  margin-bottom: 30px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-}
-
-.download-dlt-cv {
-  position: relative;
-}
-
-.download-edit-info {
-  top: 30px;
-  right: 0px;
-  width: 140px;
-  background: #fff;
-  padding: 0px 20px;
-  position: absolute;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-}
-
-.download-edit-info ul {
-  padding: 0px 0px 0px 0px;
-  margin: 0px 0px 0px 0px;
-}
-
-.download-edit-info ul li {
-  list-style: none;
-  margin-top: 15px;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-
-.download-edit-info ul li:hover {
-  color: #ff6600;
-}
-
-.download-edit-info ul li i {
-  padding-right: 5px;
-}
-
-.form-group-salary label {
-  font-weight: 500;
-  color: #202124;
-  margin-bottom: 10px;
-}
-
-.work-exprinace-edit {
-  position: relative;
-}
-
-.work-exprinace-edit i {
-  position: absolute;
-  right: 50px;
-  background: red;
-  padding: 10px 10px;
-  border-radius: 5px;
-  color: #fff;
-  cursor: pointer;
-  top: 10px;
-}
-
-.not-add-detail-info {
-  text-align: center;
-}
-
-.not-add-detail-info h5 {
-  text-align: center;
-}
-
-.not-add-detail-info i {
-  font-size: 90px;
-  color: #0066cc;
-  padding: 50px 0px;
-}
-
-.enter-skill-tag-info ul {
-  padding: 0px;
-}
-
-.enter-skill-tag-info ul li {
-  list-style: none;
-  color: #0066cc;
-  margin-right: 20px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: inline-block;
-  border: 1px solid #0066cc;
-  cursor: pointer;
-}
-
-.enter-skill-tag-info ul li:hover {
-  color: #ff6600;
-  border: 1px solid #ff6600;
-}
-
-.save-cancel-btn-info {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.save-cancel-btn-info .default-btn {
-  margin-right: 20px;
-  padding: 7px 30px;
-  border-radius: 5px !important;
-}
-
 /*Amrjeet Dashboard Css End here*/
 
 /*Sidemenu CSS*/
@@ -11310,6 +11040,7 @@ input:checked + .slider:before {
   position: relative;
   z-index: 1;
   transition: all ease 0.5s;
+  font-size: 13px;
 }
 .sidemenu-area .sidemenu-body .sidemenu-nav .nav-item .nav-link .icon {
   color: #202124;
@@ -13097,9 +12828,9 @@ Dashboard Area CSS
   border-radius: unset;
   border: 1px solid rgba(32, 33, 34, 0.08);
 }
-.my-profile-area .profile-form-content .profile-form .default-btn {
+/* .my-profile-area .profile-form-content .profile-form .default-btn {
   border-radius: unset;
-}
+} */
 .my-profile-area .profile-form-content .profile-form .default-btn::before {
   border-radius: unset;
 }
@@ -13146,8 +12877,8 @@ Dashboard Area CSS
 }
 
 .copy-right-area {
-  padding-top: 20px;
-  padding-bottom: 30px;
+  margin-top: 30px;
+  padding: 20px 20px;
 }
 .copy-right-area .copyright-left-content p .template-name {
   color: #1967d2;
@@ -15477,6 +15208,7 @@ button.btn {
 }
 
 /*manage job application css end here*/
+
 /*candidate list css start here*/
 
 .candidate-list-filter .single-sidebar-widget {
@@ -15600,6 +15332,7 @@ button.btn {
 }
 
 /*candidate list css end here*/
+
 /*candidate profile basic info page css start here*/
 
 .switch {
@@ -15674,7 +15407,14 @@ input:checked + .slider:before {
 }
 
 .candidates-img-info {
-  width: 28%;
+  width: 150px;
+  overflow: hidden;
+}
+
+.candidates-img-info img {
+  height: 200px;
+  object-fit: cover;
+  width: 100%;
 }
 
 .my-profile-area .candidates-details-info h3 {
@@ -15755,8 +15495,9 @@ input:checked + .slider:before {
 
 .skill-btn-info .default-btn {
   border-radius: 5px !important;
-  padding: 13px 20px !important;
+  padding: 5px 20px !important;
   margin-left: 25px;
+  font-size: 16px;
 }
 
 .enter-skill-info {
@@ -15896,7 +15637,20 @@ input:checked + .slider:before {
   right: 50px;
   color: #fff;
   cursor: pointer;
-  padding: 10px 10px;
+  font-size: 12px;
+  padding: 7px 7px;
+  border-radius: 5px;
+  position: absolute;
+  background: #ff6600;
+}
+
+.work-exprinace-edit .fa-trash {
+  top: 10px;
+  right: 0px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 7px 7px;
   border-radius: 5px;
   position: absolute;
   background: #ff6600;
@@ -16151,6 +15905,34 @@ background:#0066CC;
 
 .my-profile-area .profile-form-content.delete-account-info h3 {
   padding: 15px 30px;
+}
+
+.language-acitve-inactive-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.language-select-info {
+  width: 49%;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin-bottom: 30px;
+  border: 1px solid #eeeeee;
+}
+
+.language-select-info.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.language-select-info.active h6 {
+  color: #fff;
+}
+
+.language-select-info.active p {
+  color: #fff;
 }
 
 /*candidate profile basic info page css start here*/
@@ -16986,6 +16768,87 @@ button.btn {
 }
 
 /*companies list and companies details page css end here*/
+
+/*Company List page css start here*/
+
+.available-company-heading {
+  background: #fff;
+  padding: 20px 20px;
+}
+
+.available-company-heading h4 {
+  font-size: 18px;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.available-company-heading h4 i {
+  color: #0066cc;
+  margin-right: 5px;
+}
+
+.available-company-box-info {
+  padding: 10px;
+  margin-top: 30px;
+  background: #fff;
+  position: relative;
+}
+
+.available-company-logo {
+  top: 15px;
+  left: 15px;
+  width: 40%;
+  padding: 5px 5px;
+  background: #fff;
+  position: absolute;
+}
+
+.available-company-content h4 {
+  font-size: 17px;
+  margin-top: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.available-company-content ul {
+  list-style: none;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.available-company-content ul li {
+  font-size: 15px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.available-company-content ul li:hover {
+  color: #ff6600;
+}
+
+.available-company-content ul li i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+.available-company-content ul li:hover i {
+  color: #ff6600;
+}
+
+.available-company-btn {
+  text-align: center;
+  padding: 10px 0px 10px 0px;
+}
+
+.available-company-btn .default-btn {
+  font-size: 14px;
+  padding: 5px 10px;
+}
+
+/*Company List page css end here*/
 /*Custom Resume Cover Letter page css start here*/
 
 .custom-resume-cover-letter-job-seeker-info {
@@ -18056,10 +17919,10 @@ button.btn {
 
 .job-create-form-back-next-info {
   display: flex;
-  margin-top: 30px;
+  background: #fff;
   align-items: center;
-  margin-bottom: 30px;
   justify-content: center;
+  padding: 20px 0px 30px 0px;
 }
 
 .job-create-form-back-next-btn {
@@ -18080,6 +17943,256 @@ button.btn {
 }
 
 /*Your job posts option tab form css end here*/
+
+/*Your job posts pulish tab form css start here*/
+
+.publish-job-payment-details {
+  display: flex;
+  margin-top: 30px;
+}
+
+.publish-job-date-heading h4 {
+  font-size: 18px;
+  background: #fff;
+  padding: 20px 30px;
+}
+
+.input-info-edit-area.cart-job-detail-edit h3 {
+  font-size: 18px;
+  margin: 0px 0px 0px 0px;
+}
+
+/*.job-detail-cart-info {
+width:65%;
+}*/
+
+.job-post-address-info {
+  margin-top: 20px;
+}
+
+.job-post-address-info h4 {
+  font-size: 16px;
+  margin: 0px 0px 5px 0px;
+}
+
+.job-detail-in-cart-info {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 30px;
+}
+
+.job-post-other-info {
+  display: flex;
+  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-cart-short-description-info h4 {
+  font-size: 18px;
+  margin: 20px 0px 2px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.job-cart-long-description-info h4 {
+  font-size: 18px;
+  margin: 20px 0px 2px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.minimum-level-remote h4 {
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.employment-type-job-category h4 {
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.job-payment-detail-box-info {
+  width: 35%;
+  background: #fff;
+  padding: 20px 30px;
+  margin-left: 30px;
+}
+
+.job-payment-detail-info h4 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eeee;
+}
+
+.job-payment-text-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-payment-text h5 {
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.job-payment-price h5 {
+  font-size: 16px;
+}
+
+.job-payment-content-info p {
+  font-size: 13px;
+}
+
+.job-payment-divider {
+  padding-top: 15px;
+  border-top: 1px solid #eeee;
+}
+
+.job-payment-text h2 {
+  font-size: 16px;
+  color: #0066cc;
+  margin-bottom: 20px;
+}
+
+.job-payment-price h2 {
+  color: #ff6600;
+  font-size: 16px;
+}
+
+.pay-publish-later-btn {
+  margin-bottom: 20px;
+}
+
+.pay-publish-later-btn .default-btn {
+  width: 100%;
+}
+
+/*Your job posts pulish tab form css end here*/
+
+/*Your job posts pulish tab form css start here*/
+
+.publish-job-payment-details {
+  display: flex;
+  margin-top: 30px;
+}
+
+.publish-job-date-heading h4 {
+  font-size: 18px;
+  background: #fff;
+  padding: 20px 30px;
+}
+
+.input-info-edit-area.cart-job-detail-edit h3 {
+  font-size: 18px;
+  margin: 0px 0px 0px 0px;
+}
+
+/*.job-detail-cart-info {
+width:65%;
+}*/
+
+.job-post-address-info {
+  margin-top: 20px;
+}
+
+.job-post-address-info h4 {
+  font-size: 16px;
+  margin: 0px 0px 5px 0px;
+}
+
+.job-detail-in-cart-info {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 30px;
+}
+
+.job-post-other-info {
+  display: flex;
+  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-cart-short-description-info h4 {
+  font-size: 18px;
+  margin: 20px 0px 2px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.job-cart-long-description-info h4 {
+  font-size: 18px;
+  margin: 20px 0px 2px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.minimum-level-remote h4 {
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.employment-type-job-category h4 {
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.job-payment-detail-box-info {
+  width: 35%;
+  background: #fff;
+  padding: 20px 30px;
+  margin-left: 30px;
+}
+
+.job-payment-detail-info h4 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eeee;
+}
+
+.job-payment-text-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-payment-text h5 {
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.job-payment-price h5 {
+  font-size: 16px;
+}
+
+.job-payment-content-info p {
+  font-size: 13px;
+}
+
+.job-payment-divider {
+  padding-top: 15px;
+  border-top: 1px solid #eeee;
+}
+
+.job-payment-text h2 {
+  font-size: 16px;
+  color: #0066cc;
+  margin-bottom: 20px;
+}
+
+.job-payment-price h2 {
+  color: #ff6600;
+  font-size: 16px;
+}
+
+.pay-publish-later-btn {
+  margin-bottom: 20px;
+}
+
+.pay-publish-later-btn .default-btn {
+  width: 100%;
+}
+
+/*Your job posts pulish tab form css end here*/
 
 /*Your job posts pulish tab form css start here*/
 
@@ -18347,14 +18460,14 @@ button.btn {
 /*job list and job details page css end here*/
 
 .job-alert-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    padding: 25px 25px;
-    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
-    margin-bottom: 20px;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 25px 25px;
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
+  margin-bottom: 20px;
+}
 
 .job-alert-info {
   display: flex;
@@ -18397,7 +18510,7 @@ button.btn {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: #ff6600;  
+  background-color: #ff6600;
   border-radius: 20px;
   transition: 0.4s;
 }
@@ -18415,9 +18528,1998 @@ button.btn {
 }
 
 input:checked + .slider {
-  background-color: #0066cc; 
+  background-color: #0066cc;
 }
 
 input:checked + .slider:before {
   transform: translateX(30px);
 }
+/*chat messaging system css start here*/
+
+.chat-messaging-system-info {
+  padding-bottom: 50px;
+  padding-right: 15px;
+  background-color: #ffffff;
+}
+
+.chat-messaging-system-heading {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.user-message-list-search {
+  width: 31%;
+  padding: 20px 20px;
+}
+
+.user-message-search-box-icon-info {
+  display: flex;
+  padding: 8px 8px;
+  align-items: center;
+  border: 1px solid #cdcd;
+}
+
+.user-message-search-box-icon-info input {
+  width: 95%;
+  border: none;
+}
+
+.user-message-search-box-icon-info input:focus-visible {
+  outline: none;
+}
+
+.user-name-message-dlt-info {
+  width: 70%;
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border-left: 1px solid #eeeeee;
+  justify-content: space-between;
+}
+
+.user-img-name-status-info {
+  width: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-message-img {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50px;
+}
+
+.user-name-status span {
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 4px;
+  background: #39da8a;
+}
+
+.user-name-status h6 {
+  margin: 0px 0px 0px 0px;
+}
+
+.user-message-dlt span i {
+  color: #ff6600;
+  margin-right: 5px;
+}
+
+.user-message-search-box {
+  width: 90%;
+}
+
+.user-message-list-massage-detail {
+  display: flex;
+  padding: 0px 0px 0px 20px;
+}
+
+.user-message-list .nav-tabs {
+  display: block;
+  height: 463px;
+  overflow: auto;
+  border-right: 1px solid #eeeeee;
+}
+
+.user-message-list .nav-tabs .nav-link {
+  border: none;
+  padding: 10px 10px;
+  border-radius: 0px;
+  border: 1px solid #eeeeee;
+}
+
+.user-message-list .nav-link.active {
+  border-radius: 0px;
+  background: #ff6600;
+}
+
+.user-message-list {
+  width: 40%;
+}
+
+.user-img-name-chat-count-time-massage {
+  display: flex;
+  justify-content: space-between;
+}
+
+.user-img-chat-count {
+  position: relative;
+  margin-right: 5px;
+}
+
+.user-img-chat-count img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+}
+
+.chat-count {
+  color: #fff;
+  right: 5px;
+  width: 17px;
+  height: 17px;
+  bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  background: #0066cc;
+  position: absolute;
+  border-radius: 50px;
+}
+
+.user-name-time-info {
+  display: flex;
+  justify-content: space-between;
+}
+
+.user-short-massage p {
+  width: 95%;
+  margin: 0px;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.job-seeker-employer-message-detail {
+  width: 90%;
+  margin: 0px 0px 0px 0px;
+}
+
+.user-message-chat-details {
+  display: flex;
+  margin-top: 30px;
+}
+
+.job-seeker-message-img img {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50px;
+}
+
+.job-seeker-message-img {
+  margin-right: 10px;
+}
+
+.job-seeker-message-time {
+  display: flex;
+}
+
+.job-seeker-message-time h6 {
+  color: #fff;
+  margin-right: 10px;
+}
+
+.job-seeker-message-detail-text {
+  width: 50%;
+  padding: 10px 20px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.job-seeker-message-detail-text p {
+  color: #fff;
+}
+
+.user-message-chat-details.employer-info-main-area {
+  display: flex;
+  justify-content: end;
+}
+
+.employer-info-main-area .job-seeker-message-img {
+  margin-left: 10px;
+}
+
+.user-message-list .nav-tabs .active .user-name-time-info h6 {
+  color: #fff;
+}
+
+.user-message-list .nav-tabs .active .user-name-time-info p {
+  color: #fff;
+}
+
+.user-message-list .nav-tabs .active .user-short-massage p {
+  color: #fff;
+}
+
+.user-name-time-info h6 {
+  margin: 0px;
+}
+
+.user-name-time-info p {
+  margin: 0px;
+  font-size: 13px;
+}
+
+.job-seeker-employer-message-detail .tab-pane {
+  height: 400px;
+  overflow: auto;
+  padding: 0px 0px 0px 20px;
+}
+
+.chat-messaging-typeing-function-btn {
+  display: flex;
+  align-items: center;
+  margin: 20px 0px 0px 20px;
+  border: 1px solid #cdcdcd;
+}
+
+.chat-messaging-typeing-box {
+  width: 80%;
+  border-right: 1px solid #cdcdcd;
+}
+
+.chat-messaging-typeing-function {
+  width: 15%;
+  display: flex;
+  margin-left: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-messaging-typeing-function i {
+  cursor: pointer;
+}
+
+.chat-messaging-typeing-box .form-control {
+  border: none;
+}
+
+.job-seeker-employer-message-detail .tab-content {
+  border-bottom: 1px solid #eeeeee;
+}
+
+.employer-info-main-area .job-seeker-message-detail-text {
+  background: #0066cc;
+}
+
+/*chat messaging system css end here*/
+/*Activity timeline page css start here*/
+
+.activity-timeline-info-list {
+  background: #fff;
+  padding: 20px 30px 10px 30px;
+}
+
+.activity-timeline-info-list h5 {
+  margin-bottom: 20px;
+}
+
+/*Activity timeline page css end here*/
+/*Skill Assessments & Tests page & Certificate css start here*/
+
+.skill-assessments-tests-card {
+  border-radius: 5px;
+  margin-bottom: 25px;
+  padding: 15px 20px 20px 20px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.skill-test-logo-name-info {
+  display: flex;
+  margin-bottom: 25px;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.skill-test-logo {
+  width: 40px;
+  color: #fff;
+  height: 40px;
+  text-align: center;
+  margin-right: 10px;
+  border-radius: 50px;
+  background: #0066cc;
+}
+
+.skill-test-logo i {
+  color: #fff;
+  font-size: 25px;
+  line-height: 40px;
+}
+
+.skill-test-name h5 {
+  margin: 0px;
+  color: #0066cc;
+  font-size: 18px;
+}
+
+.skill-test-status-score {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skill-test-status h5 {
+  color: #ff6600;
+  font-size: 17px;
+  padding: 2px 10px;
+  background: #f0f5f7;
+}
+
+.skill-test-score h5 {
+  margin: 0px;
+  font-size: 18px;
+}
+
+.skill-assessments-test-btn {
+  margin-top: 20px;
+  padding-top: 20px;
+  text-align: center;
+  border-top: 1px solid #eeeeee;
+}
+
+.skill-assessments-test-btn .default-btn {
+  padding: 5px 10px;
+}
+
+.skill-test-not-started {
+  width: 41%;
+  height: 80px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+}
+
+.skill-test-not-started h5 {
+  color: #ff6600;
+  font-size: 17px;
+  padding: 2px 10px;
+  background: #f0f5f7;
+}
+
+.skill-result-heading-number {
+  display: flex;
+  align-items: center;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.skill-result-heading h5 {
+  font-size: 18px;
+}
+
+.skill-result-number h5 {
+  color: #fff;
+  font-size: 16px;
+  padding: 0px 8px;
+  line-height: 25px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.skill-test-text-number {
+  display: flex;
+  margin-top: 25px;
+  padding-top: 25px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #eeeeee;
+}
+
+.skill-test-text-info h5 {
+  margin: 0px;
+  font-size: 16px;
+}
+
+.skill-test-total-number h5 {
+  color: #fff;
+  margin: 0px;
+  font-size: 16px;
+  padding: 0px 8px;
+  line-height: 25px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.column-chart-diagram {
+  padding: 20px 10px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.chart-wrapper h6 {
+  margin-bottom: 60px;
+}
+
+.skill-test-text-number.total-assessments-score {
+  margin-top: 0px;
+  padding-top: 10px;
+}
+
+.test-logo-name-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-logo {
+  width: 30px;
+  color: #fff;
+  height: 30px;
+  font-size: 17px;
+  background: #0066cc;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50px;
+}
+
+.test-name h5 {
+  margin: 0px;
+  color: #0066cc;
+}
+
+.skill-assessments-question-info .modal-title {
+  width: 12%;
+}
+
+.skill-assessment-questions-ans {
+  display: none;
+}
+
+.skill-assessment-questions-ans.active {
+  display: block;
+}
+
+.skill-assessment-questions-nextBtn {
+  text-align: center;
+  padding: 25px 0px;
+  border-top: 1px solid #cdcd;
+}
+
+.skill-assessments-question-info .modal-dialog {
+  width: 50% !important;
+}
+
+.skill-assessment-questions-ans label {
+  display: block;
+  color: #202124;
+  margin-bottom: 5px;
+}
+
+.skill-assessment-questions-ans input {
+  margin-right: 7px;
+}
+
+.skill-assessment-questions-ans h5 {
+  font-size: 17px;
+}
+
+.certificates-scores-detail-info {
+  text-align: center;
+  padding: 20px 20px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.certificates-company-logo {
+  width: 25%;
+  margin: auto;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.my-profile-area .profile-form-content .certificates-scores-detail h3 {
+  border: none;
+  padding-left: 0px;
+  padding: 5px 0px;
+  font-size: 25px;
+}
+
+.website-name-signature-info {
+  display: flex;
+  align-items: end;
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.authorized-signature-img {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #cdcdcd;
+}
+
+.authorized-signature-img img {
+  width: 60%;
+}
+
+.website-name-info h6 {
+  margin-bottom: 2px;
+}
+
+.authorized-signature-info h6 {
+  margin-bottom: 2px;
+}
+
+.website-name-info a {
+  color: #ff6600;
+}
+
+.skill-assessment-questions-ans.progress-questions {
+  display: none;
+}
+
+.skill-assessment-questions-ans.progress-questions.active {
+  display: block;
+}
+
+.certificates-download-icon {
+  top: 5px;
+  right: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  background: #0066cc;
+  padding: 0px 5px;
+  border-radius: 5px;
+  position: absolute;
+}
+
+.certificates-download-icon:hover {
+  background: #ff6600;
+}
+
+.certificates-download-icon a {
+  color: #fff;
+}
+.certificates-scores-detail-info {
+  text-align: center;
+  position: relative;
+  padding: 20px 20px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+    rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+/*Skill Assessments & Tests page & Certificate css end here*/
+
+/*Employer profile page css start here*/
+
+.company-profile-management-tab .nav-tabs {
+  border: none;
+  margin-top: 30px;
+  padding: 0px 30px;
+  justify-content: space-between;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link {
+  border: none;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-profile-management-tab .nav-tabs .nav-link {
+  border: 0px;
+  color: #fff;
+  font-size: 16px;
+  padding: 10px 40px;
+  border-radius: 5px;
+  background: #0066cc;
+}
+
+/* Hide the default input */
+.upload-company-info-area #imageInput {
+  display: none;
+}
+
+/* Custom upload button */
+.upload-company-info-area .custom-upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+/* File name display */
+
+.upload-company-file-name {
+  width: 80%;
+  margin: auto;
+}
+
+.upload-company-info-area .file-name {
+  display: block;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  border: 1px solid #e2e2e2;
+  padding: 10px 20px 10px 15px;
+}
+
+.upload-company-img-preview {
+  width: 50px;
+  height: 45px;
+  padding: 5px;
+  overflow: hidden;
+  background: #f0f5f7;
+  border-radius: 5px;
+  background: #cdcdcd38;
+}
+
+/* Image preview */
+.upload-company-info-area #preview {
+  width: 50px;
+  height: 35px;
+  margin-top: 0px;
+  object-fit: contain;
+}
+
+.upload-company-info-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-upload.default-btn {
+  border-radius: 5px !important;
+}
+
+.office-photos-upload-info #officePhotos {
+  display: none;
+}
+
+.office-photos-upload-info .Custom-Upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+.office-photos-upload-info .file-name {
+  width: 85%;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  display: inline-block;
+  border: 1px solid #e2e2e2;
+  padding: 8px 20px 10px 15px;
+}
+
+.office-photos-upload-info .preview-container {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.office-photos-upload-info .preview-container img {
+  width: 60px;
+  height: 60px;
+  padding: 5px;
+  border-radius: 5px;
+  object-fit: contain;
+  background: #f0f5f7;
+}
+
+.office-photos-upload-info .image-wrapper {
+  position: relative;
+}
+
+.office-photos-upload-info .cancel-btn {
+  top: 2px;
+  right: 2px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 14px;
+  position: absolute;
+  background: #0066cc;
+  border-radius: 4px;
+  padding: 0px 3px 2px 3px;
+}
+
+.office-photos-info-area .preview-container {
+  display: flex;
+  align-items: center;
+}
+
+.office-photos-info-area .image-wrapper {
+  margin-top: 30px;
+  position: relative;
+  margin-right: 10px;
+}
+
+.office-photos-info-area .image-wrapper img {
+  width: 100px;
+  padding: 5px;
+  height: 100px;
+  background: #f0f5f7;
+  object-fit: contain;
+}
+
+.office-photos-info-area .cancel-btn {
+  top: 2px;
+  right: 2px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 14px;
+  position: absolute;
+  background: #0066cc;
+  border-radius: 4px;
+  padding: 0px 3px 2px 3px;
+}
+
+.office-photos-upload-info .default-btn {
+  color: #fff;
+}
+
+.office-photos-info-area {
+  margin-top: 50px;
+}
+
+.photo-video-divider-line {
+  padding-left: 40px;
+  border-left: 1px solid #e2e2e2;
+}
+
+.office-video-upload-info #officeVideos {
+  display: none;
+}
+
+.office-video-upload-info .video-file-name {
+  width: 85%;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 500;
+  background: #f0f5f7;
+  display: inline-block;
+  border: 1px solid #e2e2e2;
+  padding: 8px 20px 10px 15px;
+}
+
+.office-video-upload-info .custom-video-Upload {
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  padding: 10px 20px;
+  color: #fff !important;
+  display: inline-block;
+  margin: 0px !important;
+}
+
+.office-video-upload-info .custom-upload-btn:hover {
+  background-color: #0056b3;
+}
+
+.office-video-upload-info .preview-container {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 200px;
+}
+
+.video-wrapper video {
+  width: 100%;
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.cancel-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 0;
+  text-align: center;
+  user-select: none;
+}
+
+.video-file-name p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.company-profile-management-input-form .profile-form h4 {
+  font-size: 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.my-profile-area .company-profile-management-input-form .profile-form {
+  margin-top: 20px;
+}
+
+.office-photos-upload-info {
+  margin-top: 50px;
+}
+
+.office-video-upload-info {
+  margin-top: 50px;
+}
+
+/*Employer profile page css end  here*/
+
+/*Company Details page css start here*/
+
+.company-detail-info-area {
+  margin: 80px 0px 80px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-img-short-detail {
+  padding: 20px 20px;
+  background: #f0f5f7;
+}
+
+.company-img-info {
+  background: #fff;
+  padding: 15px 15px;
+}
+
+.company-img-info img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-detail-tab-description-info {
+  background-color: #f0f5f7;
+  padding: 20px 20px;
+}
+
+.company-short-detail-info {
+  display: flex;
+  background: #fff;
+  padding: 20px 20px;
+  align-items: center;
+}
+
+.company-short-detail-img {
+  width: 150px;
+  height: 100px;
+  background: #eee;
+  padding: 0px 10px;
+  margin-right: 20px;
+}
+
+.company-short-detail-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-about-short-detail h4 {
+  font-size: 20px;
+}
+
+.subscribe-best-employer-btn {
+  display: flex;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.subscribe-btn.default-btn {
+  font-size: 14px;
+  padding: 5px 10px;
+  margin-right: 30px;
+}
+
+.best-employer-btn {
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 10px;
+  position: relative;
+  background: #0066cc;
+  border-radius: 0px 5px 5px 0px;
+}
+
+.best-employer-btn:before {
+  content: "";
+  top: 0px;
+  left: -10px;
+  width: 50vmin;
+  height: 50vmin;
+  background: #0066cc;
+  position: absolute;
+  -webkit-clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+  clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+}
+
+.company-about-short-detail ul {
+  display: flex;
+  list-style: none;
+  margin: 10px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-about-short-detail ul li {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-about-short-detail ul li i {
+  color: #0066cc;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.company-detail-tab-info {
+  background: #fff;
+  padding: 20px 15px;
+}
+
+.company-detail-tab-info .nav-tabs {
+  border: none;
+  justify-content: space-between;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link {
+  border: 0px;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 5px;
+  background: #0066cc;
+  padding: 10px 25px;
+}
+
+.company-detail-tab-info .nav-tabs .nav-link.active {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail-tab-description {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 15px 15px 15px;
+}
+
+.company-detail-job-box {
+  margin-bottom: 30px;
+  background: #f0f5f7;
+  border: 2px solid #eee;
+  padding: 10px 10px 20px 10px;
+}
+
+.company-detail-card {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeee;
+}
+
+.company-detail-card h4 {
+  font-size: 20px;
+}
+
+.company-detail-card ul {
+  display: flex;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-card ul li {
+  color: #666666;
+  list-style: none;
+  font-size: 14px;
+  margin: 5px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-detail-card ul li i {
+  font-size: 13px;
+  color: #0066cc;
+  margin-right: 5px;
+}
+
+.company-detail-apply-link-save-btn {
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.company-detail-link-save-icon ul {
+  display: flex;
+  list-style: none;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-link-save-icon ul li {
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #0066cc;
+  border-radius: 5px;
+  margin-left: 20px;
+  border-right: 1px solid #eeee;
+}
+
+.company-detail-link-save-icon ul li i {
+  color: #fff;
+  font-size: 20px;
+}
+
+.company-detail-link-save-icon ul li:hover {
+  background: #ff6600;
+}
+
+.company-detail-show-upload {
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border: 2px solid #eeee;
+  justify-content: space-between;
+}
+
+.company-detail-doc-tyep h4 {
+  font-size: 17px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.company-detail-doc-tyep h4 i {
+  color: #0066cc;
+  margin-right: 10px;
+}
+
+.company-detail-download-edit {
+  position: relative;
+}
+
+.company-detail-download-edit .fa-ellipsis-vertical {
+  font-size: 25px;
+  color: #0066cc;
+}
+
+.company-detail-download-edit ul {
+  top: 25px;
+  right: 0px;
+  z-index: 9;
+  width: 140px;
+  background: #fff;
+  padding: 0px 20px;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.company-detail-download-edit ul li {
+  list-style: none;
+  margin-top: 15px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.company-detail-download-edit ul li i {
+  padding-right: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up .optional-inputfile {
+  opacity: 0;
+  z-index: -1;
+  overflow: hidden;
+  position: absolute;
+}
+
+.company-detail-attechment-info .control-label-file-up {
+  width: 26%;
+  margin: auto;
+  cursor: pointer;
+  font-size: 16px;
+  color: #0066cc;
+  padding: 5px 10px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up:hover {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail.modal-footer {
+  display: block;
+  text-align: center;
+}
+
+.company-profile-detail-info {
+  display: flex;
+  justify-content: space-between;
+}
+
+.company-profile-detail-box {
+  width: 23%;
+  padding: 10px 15px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background: #eeeeee82;
+}
+
+.company-profile-detail-box h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-profile-detail-box h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+.company-profile-description {
+  margin-top: 10px;
+}
+
+.company-office-photos-box {
+  margin-bottom: 20px;
+}
+
+.company-office-photos-box img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.company-office-video-box {
+  margin-bottom: 15px;
+}
+
+.company-detail-official-website {
+  padding: 15px 20px;
+  background: #eeeeee82;
+}
+
+.company-detail-official-website h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-detail-official-website h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+.company-detail-official-website a {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.company-detail-social-link {
+  display: flex;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+.company-detail-social-box {
+  width: 23%;
+  padding: 10px 15px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  background: #eeeeee82;
+}
+
+.company-detail-social-box h4 {
+  padding: 0px;
+  font-size: 17px;
+}
+
+.company-detail-social-box h4 i {
+  color: #0066cc;
+  padding-right: 5px;
+}
+
+/*Company Details page css end here*/
+/*table css start page css end here*/
+
+.top-space-search-reslute table th {
+  padding: 10px 10px;
+  /* 0 5 */
+}
+
+.top-space-search-reslute table td {
+  padding: 2px 10px;
+}
+
+.top-space-search-reslute {
+  margin-top: 30px;
+}
+.top-space-search-reslute .tab-content {
+  padding: unset !important;
+}
+.parentProduceSearch input {
+  padding: 5px 10px;
+  outline: none;
+  border: 2px solid #203764;
+  border-radius: 5px;
+}
+.parentProduceSearch {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+/* .parentProduceSearch {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+} */
+.parentProduceSearch > :nth-child(2) {
+  width: 100%;
+}
+
+.parentProduceSearch input {
+  width: 100%;
+}
+.parentProduceSearch select {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 2px solid #203764;
+  margin: 3px;
+}
+/* .entries {
+  margin-left: auto;
+} */
+.information_dataTables.px-4 {
+  padding-bottom: 15px;
+  padding-left: unset !important;
+  padding-right: unset !important;
+}
+.information_dataTables div#example_length {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.information_dataTables table tbody tr td {
+  font-size: 14px;
+  color: #000;
+  font-weight: 600;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: #203764;
+  color: #fff !important;
+  border: 1px solid #203764;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  min-width: 1.5em;
+  padding: 4px 10px;
+}
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd {
+  background-color: #f0f2f5;
+}
+
+table.dataTable.hover tbody tr:hover,
+table.dataTable.display tbody tr:hover {
+  background-color: #f0f2f5;
+}
+.borderTerpProduce th {
+  color: #000;
+  font-weight: 600;
+  border: 1px solid #d2d6da;
+}
+.rowCursorPointer span.mdi.mdi-check.mr-2.text-xl {
+  display: none;
+}
+.paginationActive {
+  width: 30px !important;
+  height: 30px;
+  border-radius: 50%;
+  background: #f88239;
+  line-height: 30px;
+  text-align: center;
+}
+.paginationActive a {
+  color: #fff !important;
+  background-color: transparent;
+}
+
+/* .previousBttn:hover {
+  border: 2px solid gray;
+  padding: 5px;
+} */
+.paginationBttns {
+  width: 95%;
+  /* height: 40px; */
+  list-style: none;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+
+.paginationBttns a {
+  padding: 0px;
+  margin: 10px;
+  border-radius: 20px;
+  /* border: 1px solid #2b2eff; */
+  color: #203764;
+  cursor: pointer;
+}
+
+.parentProduceSearch .table-search-box-info {
+  width: 20%;
+}
+
+tr {
+  vertical-align: middle;
+}
+
+.form-switch .form-check-input {
+  width: 50px;
+  height: 20px;
+  outline: none;
+  border: 2px solid #cdcd;
+}
+
+.form-check-input:focus {
+  box-shadow: none;
+}
+
+.add-recruiters-btn-postion {
+  position: relative;
+}
+
+.add-recruiters-btn {
+  top: 20px;
+  right: 30px;
+  position: absolute;
+}
+
+.add-recruiters-btn .default-btn {
+  padding: 5px 10px;
+}
+.action-icon-info i {
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 4px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+/*table end page   css end here*/
+/*employer dashboard css start here*/
+
+.employer-dashboard-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  justify-content: space-between;
+}
+
+.employer-dashboard-box a {
+  width: 22%;
+}
+
+.employer-dashboard-box .box-size {
+  width: 28%;
+  margin-top: 0px;
+}
+
+.employer-dashboard-box-icon-content {
+  display: flex;
+  background: #fff;
+  padding: 20px 15px;
+  border-radius: 5px;
+  align-items: center;
+}
+
+.employer-box-icon {
+  color: #fff;
+  width: 50px;
+  height: 50px;
+  font-size: 25px;
+  background: #0066cc;
+  text-align: center;
+  border-radius: 50px;
+  line-height: 50px;
+  margin-right: 10px;
+}
+
+.employer-box-content h4 {
+  margin: 0px;
+  color: #0066cc;
+  font-size: 17px;
+}
+
+.employer-box-content h5 {
+  margin: 2px 0px;
+  font-size: 20px;
+}
+
+.employer-box-content p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ff6600;
+}
+
+.performance-line-chart-funnel {
+  display: flex;
+  justify-content: space-between;
+}
+
+.performance-line-chart-funnel .chart-box {
+  width: 49%;
+  padding: 20px;
+  background: #fff;
+}
+
+.performance-line-chart-funnel .legend {
+  margin-top: 15px;
+}
+
+.performance-line-chart-funnel .legend span {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 15px;
+  font-size: 14px;
+}
+
+.performance-line-chart-funnel .legend span .color-box {
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.performance-line-chart-funnel .color-views {
+  background-color: #2e67f0;
+}
+
+.performance-line-chart-funnel .color-applications {
+  background-color: #88a8f9;
+}
+
+/* Funnel styles */
+.performance-line-chart-funnel .funnel-container {
+  text-align: center;
+}
+
+.performance-line-chart-funnel .funnel-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.performance-line-chart-funnel .funnel-subtitle {
+  margin-bottom: 25px;
+  font-size: 14px;
+  color: #555;
+}
+
+.performance-line-chart-funnel .funnel {
+  margin: 30px auto;
+  width: 70%;
+}
+
+.performance-line-chart-funnel .funnel-segment {
+  margin: 25px auto;
+  border-radius: 5px;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  line-height: 50px;
+  font-size: 16px;
+  cursor: default;
+  user-select: none;
+  transition: background-color 0.3s;
+}
+
+.performance-line-chart-funnel .funnel-segment:hover {
+  filter: brightness(1.15);
+}
+
+.employer-dashboard-common-heading {
+  margin-bottom: 15px;
+}
+
+.employer-dashboard-common-heading h2 {
+  font-size: 20px;
+  background: #fff;
+  padding: 20px 20px;
+  margin-bottom: 10px;
+}
+
+.response-rates-info-area .employer-dashboard-common-heading {
+  margin-top: 30px;
+}
+
+.response-rates-info-area .dashboard {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left,
+.right {
+  width: 49%;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.response-rates-info-area select {
+  padding: 5px;
+  margin-right: 10px;
+}
+
+.response-rates-info-area .filters {
+  display: flex;
+  margin-bottom: 20px;
+  justify-content: space-between;
+}
+
+.response-rates-info-area .stat {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.response-rates-info-area .form-control {
+  width: 30%;
+  height: 40px;
+  font-size: 15px;
+}
+
+/*employer dashboard css end here*/
+/*messaging-system css start here*/
+
+.messaging-system-info-area {
+  display: flex;
+  padding: 0px;
+  border: 1px solid #eeeeee;
+}
+
+.messaging-system-tab-area .nav-tabs {
+  display: block;
+  border: none;
+}
+
+.messaging-system-tab-area {
+  width: 30%;
+}
+
+.messaging-system-chat-box {
+  width: 60%;
+  border-right: 1px solid #eeeeee;
+  border-left: 1px solid #eeeeee;
+}
+
+.messaging-system-interview-scheduling {
+  width: 30%;
+  position: relative;
+}
+
+.send-invitation-btn {
+  bottom: 20px;
+  left: 60px;
+  position: absolute;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link {
+  border: none;
+  padding: 0px 10px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.messaging-system-heading-info {
+  padding: 0px 20px 10px 10px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.messaging-system-heading-info h5 {
+  font-size: 18px;
+  margin-top: 12px;
+  margin-bottom: 10px;
+}
+
+.messaging-system-img-user-info {
+  display: flex;
+  align-items: center;
+  padding-left: 0px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.messaging-system-user-img {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  margin-right: 10px;
+  border-radius: 50px;
+}
+
+.messaging-system-user-info h5 {
+  margin: 0px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.messaging-system-user-info p {
+  color: #fff;
+  font-size: 14px;
+}
+
+.messaging-system-user-name h5 {
+  margin: 0px;
+  font-size: 15px;
+}
+
+.messaging-system-user-name p {
+  font-size: 14px;
+}
+
+.messaging-system-search-icon {
+  display: flex;
+  padding: 5px 8px;
+  align-items: center;
+  border-radius: 5px;
+  border: 1px solid #cdcd;
+  justify-content: space-between;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link.active {
+  border-radius: 0px;
+  background: #ff6600;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link.active h5 {
+  color: #fff;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link.active p {
+  color: #fff;
+}
+
+.messaging-system-search .form-control {
+  outline: none;
+  border: none;
+  height: 20px;
+  padding: 0px 0px;
+  font-size: 14px;
+}
+
+.messaging-system-select .form-control {
+  height: 40px;
+  outline: none;
+  font-size: 14px;
+  padding: 0px 8px;
+}
+
+.messaging-system-typeing-send-btn {
+  width: 95%;
+  margin: auto;
+  display: flex;
+  margin-top: 30px;
+  border-radius: 5px;
+  align-items: center;
+  padding-right: 20px;
+  margin-bottom: 20px;
+  border: 2px solid #eeeeee;
+  justify-content: space-between;
+}
+
+.messaging-system-typeing-send-btn .form-control {
+  width: 95%;
+  border: none;
+  font-size: 14px;
+  border-radius: 0;
+  padding: 10px 10px;
+  border-right: 2px solid #eeeeee;
+}
+
+.messaging-system-user-messaging {
+  display: flex;
+  margin-top: 40px;
+  padding: 0px 15px;
+}
+
+.messaging-system-userImg {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  margin-right: 10px;
+  border-radius: 50px;
+}
+
+.messaging-system-user-message {
+  max-width: 65%;
+  padding: 10px 10px;
+  border-radius: 5px;
+  background: #ff6600;
+}
+
+.messaging-system-message-time {
+  display: flex;
+}
+
+.messaging-system-message-time h6 {
+  color: #fff;
+  margin-bottom: 0;
+  margin-right: 10px;
+}
+
+.messaging-system-message-time p {
+  color: #fff;
+}
+
+.messaging-system-user-message p {
+  color: #fff;
+}
+
+.messaging-system-recruiter-messaging {
+  display: flex;
+  margin-top: 40px;
+  padding: 0px 5px;
+  justify-content: end;
+}
+
+.messaging-system-recruiter-message-time {
+  display: flex;
+  justify-content: end;
+}
+
+.messaging-system-recruiter-message-time h6 {
+  color: #fff;
+  margin-bottom: 0;
+  margin-right: 10px;
+}
+
+.messaging-system-user-message.bg-color {
+  background: #0066cc;
+  margin-right: 10px;
+}
+
+.messaging-system-user-message.bg-color p {
+  text-align: end;
+}
+
+.messaging-system-info-area .tab-content {
+  height: 400px;
+  display: block;
+  overflow: auto;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link h5 {
+  color: #000;
+}
+
+.messaging-system-tab-area .nav-tabs .nav-link p {
+  color: #000;
+}
+
+.interview-scheduling-info span {
+  display: block;
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.messaging-system-typeing-send-btn i {
+  cursor: pointer;
+}
+
+/*messaging-system css end here*/
+
+/*candidates profile details css start here*/
+
+.candidate-profile-details-info h3 {
+  font-size: 17px;
+}
+
+.candidate-banner-info .candidates-details-left-content {
+  padding-left: 180px;
+}
+
+.candidate-banner-info .candidates-details-left-content .candidates-img img {
+  border-radius: 0px;
+}
+
+.candidate-profile-details-info h3 strong {
+  width: 16%;
+  display: inline-block;
+}
+
+.candidate-profile-dcv-btn {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.candidate-banner-info .candidates-share-content h4 {
+  font-size: 21px;
+}
+
+.candidate-banner-info .candidates-share-content ul li a {
+  color: #fff;
+  line-height: 40px;
+  background: #1f86ef;
+}
+
+.candidate-banner-info .candidates-share-content ul li a:hover {
+  background: #ff6600;
+}
+
+.candidate-banner-info .candidates-share-content ul li a i {
+  font-size: 22px;
+}
+
+.candidate-profile-summary h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeee;
+}
+
+.candidate-profile-summary h5 {
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.candidate-profile-divider-line {
+  border-top: 1px solid #eeee;
+  margin: 20px 0px 30px 0px;
+}
+
+.candidate-profile-skill-info ul {
+  padding: 0px;
+}
+
+.candidate-profile-skill-info ul li {
+  color: #fff;
+  cursor: pointer;
+  list-style: none;
+  margin-right: 20px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: #0066cc;
+  display: inline-block;
+}
+
+.candidate-profile-review-heading h3 {
+  font-size: 20px;
+  margin-bottom: 30px;
+  background: #f0f5f7;
+  padding: 15px 0px 15px 20px;
+}
+
+.comment-detail-main-area {
+  display: flex;
+  background: #f0f5f7;
+  margin: 0px 0px 30px 0px;
+  padding: 20px 20px 20px 20px;
+}
+
+.user-img-main-area img {
+  width: 150px;
+  height: 150px;
+  border-radius: 5px;
+  margin: 0px 20px 0px 0px;
+  object-fit: cover;
+}
+
+.user-content-main-area h5 {
+  margin: 0px;
+  font-weight: 700;
+  line-height: 25px;
+}
+
+.user-content-main-area h6 {
+  color: #ff6600;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 5px 0px;
+}
+
+.user-content-main-area p {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  font-size: 15px;
+}
+
+.user-img-main-area img {
+  width: 400px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.user-img-main-area {
+  margin-right: 20px;
+}
+
+.candidate-profile-submit-btn {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.candidate-profile-submit-btn .default-btn {
+  font-size: 17px;
+  padding: 8px 10px;
+  border-radius: 5px;
+}
+
+.candidate-profile-summary.single-sidebar-widget.job-overview h3 {
+  border-bottom: 1px solid #0066cc2e;
+}
+
+.candidate-profile-summary.single-sidebar-widget.job-overview ul li {
+  position: inherit;
+  text-align: inherit;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #0066cc2e;
+}
+
+.candidate-profile-summary.single-sidebar-widget.job-overview ul li span {
+  width: 42%;
+  position: inherit;
+  display: inline-block;
+}
+
+.candidate-profile-summary.single-sidebar-widget.job-overview ul li:last-child {
+  border: none;
+}
+
+.candidate-profile-summary.single-sidebar-widget.download .default-btn {
+  margin-bottom: 0px;
+}
+
+.contact-candidate-form .form-group {
+  margin-bottom: 20px;
+}
+
+.candidate-profile-summary.contact-candidate-info {
+  background: #f0f5f7;
+  padding: 20px 20px 30px 20px;
+}
+
+.candidate-profile-summary.contact-candidate-info h3 {
+  border-bottom: 1px solid #0066cc2e;
+}
+
+/*candidates profile details css end here*/

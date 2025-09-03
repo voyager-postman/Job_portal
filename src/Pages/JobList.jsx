@@ -1,7 +1,64 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+import moment from "moment";
+import { useState, useEffect } from "react";
+import { API_BASE_URL } from "../Url/Url";
 
 const JobList = () => {
+  const navigate = useNavigate();
+  const [jobList, setJobList] = useState([]);
+  const [totalJobData, setTotalJobData] = useState({});
+
+  const [categories, setCategories] = useState([]);
+  const [filters, setFilters] = useState({
+    keywords: "",
+    location: "",
+    category: "",
+  });
+
+  // ✅ Fetch categories
+  const getCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
+      console.log(res);
+      setCategories(res.data.jobCategories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // ✅ Fetch jobs
+  const getAllJobList = async (limit = 10, page = 1) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
+        params: {
+          limit,
+          page,
+          keywords: filters.keywords,
+          location: filters.location,
+          category: filters.category,
+        },
+      });
+
+      setJobList(res.data?.jobs?.jobs || []);
+      setTotalJobData(res.data?.jobs);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  // ✅ Form submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    getAllJobList(10, 1);
+  };
+
+  useEffect(() => {
+    getCategories();
+    getAllJobList(10, 1);
+  }, []);
+
   return (
     <div>
       <section className="inner-banners-info-area">
@@ -34,47 +91,69 @@ const JobList = () => {
         <div class="container">
           <div class="row">
             <div class="col-lg-12 col-sm-12">
-              <div class="manage-jobs-box">
-                <div class="job-listing-search-form job-search-info-area">
-                  <form>
-                    <div class="row g-0">
-                      <div class="col-lg-3 col-sm-6">
-                        <div class="form-group">
+              <div className="manage-jobs-box">
+                <div className="job-listing-search-form job-search-info-area">
+                  <form onSubmit={handleSubmit}>
+                    <div className="row g-0">
+                      <div className="col-lg-3 col-sm-6">
+                        <div className="form-group">
                           <input
-                            class="form-control"
+                            className="form-control"
                             type="text"
                             placeholder="Keywords / Job Title"
+                            value={filters.keywords}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                keywords: e.target.value,
+                              })
+                            }
                           />
-                          <i class="flaticon-portfolio"></i>
+                          <i className="flaticon-portfolio" />
                         </div>
                       </div>
-                      <div class="col-lg-3 col-sm-6">
-                        <div class="form-group">
+                      <div className="col-lg-3 col-sm-6">
+                        <div className="form-group">
                           <input
-                            class="form-control"
+                            className="form-control"
                             type="text"
                             placeholder="City Or Postcode"
+                            value={filters.location}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                location: e.target.value,
+                              })
+                            }
                           />
-                          <i class="flaticon-location"></i>
+                          <i className="flaticon-location" />
                         </div>
                       </div>
-                      <div class="col-lg-4 col-sm-6">
-                        <div class="form-group style">
+                      <div className="col-lg-4 col-sm-6">
+                        <div className="form-group style">
                           <select
-                            class="form-select form-control"
-                            aria-label="Default select example"
+                            className="form-select form-control"
+                            value={filters.category}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                category: e.target.value,
+                              })
+                            }
                           >
-                            <option selected="">Choose A Category</option>
-                            <option value="1">Development</option>
-                            <option value="2">Information IT</option>
-                            <option value="3">Corporate Job</option>
+                            <option value="">Choose A Category</option>
+                            {categories.map((cat) => (
+                              <option key={cat._id} value={cat._id}>
+                                {cat.name}
+                              </option>
+                            ))}
                           </select>
-                          <i class="flaticon-list"></i>
+                          <i className="flaticon-list" />
                         </div>
                       </div>
-                      <div class="col-lg-2 col-sm-6">
-                        <div class="search-btn">
-                          <button type="submit" class="default-btn btn">
+                      <div className="col-lg-2 col-sm-6">
+                        <div className="search-btn">
+                          <button type="submit" className="default-btn btn">
                             Find Jobs
                           </button>
                         </div>
@@ -84,146 +163,155 @@ const JobList = () => {
                 </div>
               </div>
             </div>
+
             <div class="col-lg-12 col-sm-12">
-              <div class="job-card-list-filter-info">
+              <div class="job-filter-job-list-info">
                 <div class="row">
                   <div class="col-lg-3 col-sm-3">
                     <div class="job-filter-main-info">
-                      <div class="job-filter-heading-area">
+                      <div
+                        className="job-filter-heading-area job-filter-cancel-heading"
+                        onClick={() => navigate("/jobs")}
+                        style={{ cursor: "pointer" }}
+                      >
                         <h4>
-                          <a href="SearchJobList.html" class="active">
-                            <i class="fa-regular fa-file"></i> Job offers
-                          </a>
+                          <i className="fa-regular fa-file"></i> Job offers
                         </h4>
                       </div>
-                      <div class="job-filter-heading-area">
+                      <NavLink
+                        to="/employers"
+                        className={({ isActive }) =>
+                          `job-filter-heading-area ${isActive ? "active" : ""}`
+                        }
+                      >
                         <h4>
-                          <a href="companies-list.html">
-                            <i class="fa-regular fa-building"></i> Companies
-                          </a>
+                          <i className="fa-regular fa-building"></i> Companies
                         </h4>
-                      </div>
-                      <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      </NavLink>
+
+                      <div className="divder-line-info" />
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fa-solid fa-gear"></i> Job category
+                              <i className="fa-solid fa-gear" /> Tech Stack
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <select
-                            class="form-select form-control"
+                            className="form-select form-control"
                             aria-label="Default select example"
                           >
-                            <option selected="">Select Job Category</option>
-                            <option value="1">Java</option>
-                            <option value="2">Python</option>
-                            <option value="3">React</option>
-                            <option value="2">Python</option>
-                            <option value="3">React</option>
+                            <option selected>Select Tech Stack</option>
+                            <option value={1}>Java</option>
+                            <option value={2}>Python</option>
+                            <option value={3}>React</option>
+                            <option value={2}>Python</option>
+                            <option value={3}>React</option>
                           </select>
                         </div>
                       </div>
                       <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fa-solid fa-gear"></i> Job Type
+                              <i className="fa-solid fa-gear" /> Job Type
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <ul>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> Full Time</label>
+                              <label htmlFor="vehicle1"> Full Time</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> Part Time</label>
+                              <label htmlFor="vehicle1"> Part Time</label>
+                            </li>
+
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> Freelance</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> Freelance</label>
+                              <label htmlFor="vehicle1"> Internship</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> Internship</label>
+                              <label htmlFor="vehicle1"> Remote</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> Remote</label>
-                            </li>
-                            <li>
-                              <input
-                                type="checkbox"
-                                id="OtherPreferences"
-                                name="OtherPreferences"
-                                value="Other Preferences"
-                              />
-                              <label for="vehicle1"> Hybrid Jobs</label>
+                              <label htmlFor="vehicle1"> Hybrid Jobs</label>
                             </li>
                           </ul>
                         </div>
                       </div>
                       <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fa-solid fa-location-dot"></i> Location
+                              <i className="fa-solid fa-location-dot" />{" "}
+                              Location
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <select
-                            class="form-select form-control"
+                            className="form-select form-control"
                             aria-label="Default select example"
                           >
-                            <option selected="">Select Job Location</option>
-                            <option value="1">India</option>
-                            <option value="2">USA</option>
-                            <option value="3">Paris</option>
-                            <option value="4">Germany</option>
-                            <option value="2">Spain</option>
-                            <option value="3">Mau</option>
+                            <option selected>Select Location</option>
+                            <option value={1}>India</option>
+                            <option value={2}>USA</option>
+                            <option value={3}>Paris</option>
+                            <option value={4}>Germany</option>
+                            <option value={2}>Spain</option>
+                            <option value={3}>Mau</option>
                           </select>
                         </div>
                       </div>
@@ -281,109 +369,110 @@ const JobList = () => {
                         </div>
                       </div>
                       <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fas fa-money-bill-alt"></i> Salary Range
+                              <i className="fas fa-money-bill-alt" /> Salary
+                              Range
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <ul>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> 0 to $100</label>
+                              <label htmlFor="vehicle1"> 0 to $100</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> $ 101 to $ 150</label>
+                              <label htmlFor="vehicle1"> $ 101 to $ 150</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> $ 151 to $ 200</label>
+                              <label htmlFor="vehicle1"> $ 151 to $ 200</label>
                             </li>
                             <li>
                               <input
                                 type="checkbox"
                                 id="OtherPreferences"
                                 name="OtherPreferences"
-                                value="Other Preferences"
+                                defaultValue="Other Preferences"
                               />
-                              <label for="vehicle1"> $ 201 to $ 250</label>
+                              <label htmlFor="vehicle1"> $ 201 to $ 250</label>
                             </li>
                           </ul>
                         </div>
                       </div>
                       <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fas fa-building"></i> Industry Sector
+                              <i className="fas fa-building" /> Industry Sector
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <select
-                            class="form-select form-control"
+                            className="form-select form-control"
                             aria-label="Default select example"
                           >
-                            <option selected="">Select Industry</option>
-                            <option value="1">Agriculture</option>
-                            <option value="2">Air Transport</option>
-                            <option value="3">Automotive</option>
-                            <option value="4">Biotechnology</option>
-                            <option value="2">Chemicals</option>
-                            <option value="3">Construction</option>
+                            <option selected>Select Industry</option>
+                            <option value={1}>Agriculture</option>
+                            <option value={2}>Air Transport</option>
+                            <option value={3}>Automotive</option>
+                            <option value={4}>Biotechnology</option>
+                            <option value={2}>Chemicals</option>
+                            <option value={3}>Construction</option>
                           </select>
                         </div>
                       </div>
                       <div class="divder-line-info"></div>
-                      <div class="job-filter-search-area">
-                        <div class="job-filter-heading-cancel">
-                          <div class="job-filter-heading">
+                      <div className="job-filter-search-area">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
                             <h4>
-                              <i class="fas fa-building"></i> Company
+                              <i className="fas fa-building" /> Company
                             </h4>
                           </div>
-                          <div class="job-filter-cancel-heading">
+                          <div className="job-filter-cancel-heading">
                             <h4>Clear</h4>
                           </div>
                         </div>
-                        <div class="job-filter-select-info">
+                        <div className="job-filter-select-info">
                           <select
-                            class="form-select form-control"
+                            className="form-select form-control"
                             aria-label="Default select example"
                           >
-                            <option selected="">Select Company</option>
-                            <option value="1">Agriculture</option>
-                            <option value="2">Air Transport</option>
-                            <option value="3">Automotive</option>
-                            <option value="4">Biotechnology</option>
-                            <option value="2">Chemicals</option>
-                            <option value="3">Construction</option>
+                            <option selected>Select Company</option>
+                            <option value={1}>Agriculture</option>
+                            <option value={2}>Air Transport</option>
+                            <option value={3}>Automotive</option>
+                            <option value={4}>Biotechnology</option>
+                            <option value={2}>Chemicals</option>
+                            <option value={3}>Construction</option>
                           </select>
                         </div>
                       </div>
@@ -393,12 +482,79 @@ const JobList = () => {
                     <div class="available-job-posts-info">
                       <div class="available-job-posts-heading">
                         <h4>
-                          <i class="fa-regular fa-file"></i> 6905 available job
-                          posts
+                          <i className="fa-regular fa-file" />
+                          {totalJobData?.total} available job posts
                         </h4>
                       </div>
 
-                      <Link to="/job-details">
+                      {jobList.length > 0 ? (
+                        jobList.map((job) => (
+                          <Link to={`/job-details`}>
+                            <div className="available-job-posts-box">
+                              <div className="available-job-company-name-save-job">
+                                <div className="available-job-company-name">
+                                  <h4>
+                                    <i className="fa-solid fa-building" />{" "}
+                                    {job?.brandName}
+                                  </h4>
+                                </div>
+                                <div className="available-job-save-job">
+                                  <a href="job-details.html">
+                                    <i className="fa-regular fa-heart" />
+                                  </a>
+                                  <a
+                                    href="https://www.linkedin.com/login"
+                                    target="_blank"
+                                  >
+                                    <i className="fa-brands fa-linkedin-in" />
+                                  </a>
+                                  <a
+                                    href="https://www.facebook.com/"
+                                    target="_blank"
+                                  >
+                                    <i className="fa-brands fa-facebook-f" />
+                                  </a>
+                                  <a
+                                    href="https://web.whatsapp.com/"
+                                    target="_blank"
+                                  >
+                                    <i className="fa-brands fa-whatsapp" />
+                                  </a>
+                                </div>
+                              </div>
+                              <div className="available-job-type-details">
+                                <h5>{job?.jobTitle}</h5>
+                                <ul>
+                                  <li>
+                                    <i className="fa-regular fa-calendar" />
+                                    &nbsp;
+                                    {moment(job?.createdAt).fromNow()}
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-file" />{" "}
+                                    {job?.minimumLevel}
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-user" />{" "}
+                                    {job?.employmentType}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-location-dot" />{" "}
+                                    {job?.city}
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-file" />{" "}
+                                    {job?.jobCategory}
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="text-center mt-3">No jobs found</p>
+                      )}
+                      {/* <Link to="/job-details">
                         <div class="available-job-posts-box">
                           <div class="available-job-company-name-save-job">
                             <div class="available-job-company-name">
@@ -455,243 +611,7 @@ const JobList = () => {
                             </ul>
                           </div>
                         </div>
-                      </Link>
-
-                      <Link to="/job-details">
-                        <div class="available-job-posts-box">
-                          <div class="available-job-company-name-save-job">
-                            <div class="available-job-company-name">
-                              <h4>
-                                <i class="fa-solid fa-building"></i> Alibaba
-                                Cloud
-                              </h4>
-                            </div>
-                            <div class="available-job-save-job">
-                              <i class="fa-regular fa-heart"></i>
-                              <a
-                                href="https://www.linkedin.com/login"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-linkedin-in"></i>
-                              </a>
-                              <a
-                                href="https://www.facebook.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-facebook-f"></i>
-                              </a>
-                              <a
-                                href="https://web.whatsapp.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-whatsapp"></i>
-                              </a>
-                            </div>
-                          </div>
-                          <div class="available-job-type-details">
-                            <h5>
-                              Alibaba Cloud-Facility Operation Manager-Paris,
-                              France
-                            </h5>
-                            <ul>
-                              <li>
-                                <i class="fa-regular fa-calendar"></i> 3 hours
-                                ago
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> 5 Years
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-user"></i> Full time
-                              </li>
-                              <li>
-                                <i class="fa-solid fa-location-dot"></i> Paris
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> Information
-                                Systems / Networks
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </Link>
-
-                      <Link to="/job-details">
-                        <div class="available-job-posts-box">
-                          <div class="available-job-company-name-save-job">
-                            <div class="available-job-company-name">
-                              <h4>
-                                <i class="fa-solid fa-building"></i> Alibaba
-                                Cloud
-                              </h4>
-                            </div>
-                            <div class="available-job-save-job">
-                              <i class="fa-regular fa-heart"></i>
-                              <a
-                                href="https://www.linkedin.com/login"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-linkedin-in"></i>
-                              </a>
-                              <a
-                                href="https://www.facebook.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-facebook-f"></i>
-                              </a>
-                              <a
-                                href="https://web.whatsapp.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-whatsapp"></i>
-                              </a>
-                            </div>
-                          </div>
-                          <div class="available-job-type-details">
-                            <h5>
-                              Alibaba Cloud-Facility Operation Manager-Paris,
-                              France
-                            </h5>
-                            <ul>
-                              <li>
-                                <i class="fa-regular fa-calendar"></i> 3 hours
-                                ago
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> 5 Years
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-user"></i> Full time
-                              </li>
-                              <li>
-                                <i class="fa-solid fa-location-dot"></i> Paris
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> Information
-                                Systems / Networks
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </Link>
-
-                      <Link to="/job-details">
-                        <div class="available-job-posts-box">
-                          <div class="available-job-company-name-save-job">
-                            <div class="available-job-company-name">
-                              <h4>
-                                <i class="fa-solid fa-building"></i> Alibaba
-                                Cloud
-                              </h4>
-                            </div>
-                            <div class="available-job-save-job">
-                              <i class="fa-regular fa-heart"></i>
-                              <a
-                                href="https://www.linkedin.com/login"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-linkedin-in"></i>
-                              </a>
-                              <a
-                                href="https://www.facebook.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-facebook-f"></i>
-                              </a>
-                              <a
-                                href="https://web.whatsapp.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-whatsapp"></i>
-                              </a>
-                            </div>
-                          </div>
-                          <div class="available-job-type-details">
-                            <h5>
-                              Alibaba Cloud-Facility Operation Manager-Paris,
-                              France
-                            </h5>
-                            <ul>
-                              <li>
-                                <i class="fa-regular fa-calendar"></i> 3 hours
-                                ago
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> 5 Years
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-user"></i> Full time
-                              </li>
-                              <li>
-                                <i class="fa-solid fa-location-dot"></i> Paris
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> Information
-                                Systems / Networks
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </Link>
-
-                      <Link to="/job-details">
-                        <div class="available-job-posts-box">
-                          <div class="available-job-company-name-save-job">
-                            <div class="available-job-company-name">
-                              <h4>
-                                <i class="fa-solid fa-building"></i> Alibaba
-                                Cloud
-                              </h4>
-                            </div>
-                            <div class="available-job-save-job">
-                              <i class="fa-regular fa-heart"></i>
-                              <a
-                                href="https://www.linkedin.com/login"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-linkedin-in"></i>
-                              </a>
-                              <a
-                                href="https://www.facebook.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-facebook-f"></i>
-                              </a>
-                              <a
-                                href="https://web.whatsapp.com/"
-                                target="_blank"
-                              >
-                                <i class="fa-brands fa-whatsapp"></i>
-                              </a>
-                            </div>
-                          </div>
-                          <div class="available-job-type-details">
-                            <h5>
-                              Alibaba Cloud-Facility Operation Manager-Paris,
-                              France
-                            </h5>
-                            <ul>
-                              <li>
-                                <i class="fa-regular fa-calendar"></i> 3 hours
-                                ago
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> 5 Years
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-user"></i> Full time
-                              </li>
-                              <li>
-                                <i class="fa-solid fa-location-dot"></i> Paris
-                              </li>
-                              <li>
-                                <i class="fa-regular fa-file"></i> Information
-                                Systems / Networks
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </Link>
+                      </Link> */}
                     </div>
                   </div>
                 </div>

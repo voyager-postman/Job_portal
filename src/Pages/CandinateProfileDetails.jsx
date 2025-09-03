@@ -375,3 +375,4 @@ function CandinateProfileDetails() {
 }
 
 export default CandinateProfileDetails;
+

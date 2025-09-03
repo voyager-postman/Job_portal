@@ -170,27 +170,6 @@ function JobDetails() {
                                   </Link>
                                 </div>
                               </div>
-                              <div className="defult-resume-custom-resume-divder-line">
-                                <h4>or</h4>
-                              </div>
-
-                              <div className="job-apply-custom-resume-info-area">
-                                <div className="job-apply-custom-resume-info">
-                                  <span>
-                                    <i className="fa-solid fa-file" />
-                                    Custom_Resume.docx
-                                  </span>
-                                </div>
-
-                                <div className="job-apply-custom-resume-cover-letter-btn">
-                                  <button
-                                    onClick={handleClick}
-                                    className="default-btn btn"
-                                  >
-                                    Custom resume with cover letter
-                                  </button>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>

@@ -60,7 +60,7 @@ function Footer() {
               </div>
               <div className="col-lg-2 col-sm-6">
                 <div className="single-footer-widget quick-link">
-                  <h3>Job Seekers</h3>
+                  <h3>Job Seeker</h3>
                   <ul>
                     <li>
                       <Link to="/jobs">Browse Jobs </Link>

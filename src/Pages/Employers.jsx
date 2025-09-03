@@ -69,13 +69,13 @@ const Employers = () => {
               <div className="job-filter-main-info">
                 <div className="job-filter-heading-area">
                   <h4>
-                    <a href="SearchJobList.html" className="active">
+                    <Link to="/jobs">
                       <i className="fa-regular fa-file"></i> Job offers
-                    </a>
+                    </Link>
                   </h4>
                 </div>
                 <div className="divder-line-info"></div>
-                <div className="job-filter-heading-area">
+                <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
                     <i className="fa-regular fa-building"></i> Companies
                   </h4>
@@ -154,7 +154,7 @@ const Employers = () => {
                               to={`/companies-details`}
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>

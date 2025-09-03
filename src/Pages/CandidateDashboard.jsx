@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 function CandidateDashboard() {
   return (
     <>
@@ -23,7 +24,7 @@ function CandidateDashboard() {
               <div className="candidate-dashboard-box">
                 <div className="row">
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application">
+                    <Link to="/manage-job-application?tab=applications">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-file" />
@@ -36,7 +37,7 @@ function CandidateDashboard() {
                     </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/manage-job-application?tab=saved-jobs">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-heart" />
@@ -46,10 +47,10 @@ function CandidateDashboard() {
                           <h5>10</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/manage-job-application?tab=job-alerts">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-bell" />
@@ -59,10 +60,10 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/chat-messaging-system">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i class="fa-solid fa-comment-dots"></i>
@@ -72,7 +73,7 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
                     <a href="#">
@@ -88,7 +89,8 @@ function CandidateDashboard() {
                     </a>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/activity-timeline">
+                      {" "}
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-user"></i>
@@ -98,13 +100,11 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-             
-            
           </section>
           {/* candidate mannage Job application end here*/}
           {/* candidate Complete profile section start here */}
@@ -142,9 +142,9 @@ function CandidateDashboard() {
               </div>
               <div className="candidate-complete-percent-btn">
                 <h4>Profile strength: 0%</h4>
-                <a href="candidate-profile.html" className="default-btn btn">
+                <Link to="/candidate-profile" className="default-btn btn">
                   Complete Profile
-                </a>
+                </Link>
               </div>
             </div>
           </section>

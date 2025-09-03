@@ -8,7 +8,7 @@ import Select from "react-select";
 const EmployerBasicInformation = () => {
   const [formData, setFormData] = useState({
     brand_name: "",
-    vat: "",
+    // vat: "",
     industry: "",
     number_of_employees: "",
     phone_number: "",
@@ -141,7 +141,7 @@ const EmployerBasicInformation = () => {
   const validateRecruiterForm = () => {
     const requiredFields = [
       "brand_name",
-      "vat",
+      // "vat",
       "industry",
       "number_of_employees",
       "phone_number",
@@ -185,7 +185,7 @@ const EmployerBasicInformation = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${API_BASE_URL}recruiter/profile`,
+        `${API_BASE_URL}company/profile`,
         formData,
         {
           headers: {
@@ -308,18 +308,18 @@ const EmployerBasicInformation = () => {
               <div className="row">
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
-                    <label>Brand name</label>
+                    <label>Company Name</label>
                     <input
                       className="form-control"
                       type="text"
-                      placeholder="Brand name"
+                      placeholder="Company Name"
                       name="brand_name"
                       value={formData.brand_name}
                       onChange={handleChange}
                     />
                   </div>
                 </div>
-                <div className="col-lg-12 col-md-12">
+                {/* <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>VAT</label>
                     <input
@@ -331,7 +331,7 @@ const EmployerBasicInformation = () => {
                       onChange={handleChange}
                     />
                   </div>
-                </div>
+                </div> */}
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Industry</label>

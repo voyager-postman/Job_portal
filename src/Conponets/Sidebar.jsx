@@ -50,7 +50,22 @@ function Sidebar() {
                 <span className="menu-title">Job Search</span>
               </NavLink>
             </li>
-
+            <li className="nav-item">
+              <NavLink
+                to="/skill-assessments-tests"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-8.svg"
+                    alt="My Profile"
+                  />
+                </span>
+                <span className="menu-title">Skill Assessments & Tests</span>
+              </NavLink>
+            </li>
             <li className="nav-item">
               <NavLink
                 to="/candidate-profile"
@@ -89,7 +104,7 @@ function Sidebar() {
             {/* Repeat for other links as needed */}
           </ul>
         )}
-        {userRole === "Recruiter" && (
+        {(userRole === "Recruiter" || userRole === "Company") && (
           <ul
             className="sidemenu-nav metisMenu h-100"
             id="sidemenu-nav"
@@ -142,7 +157,7 @@ function Sidebar() {
                     alt="Job Search"
                   />
                 </span>
-                <span className="menu-title">Manage Applicants</span>
+                <span className="menu-title">Manages Jobs</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -161,6 +176,7 @@ function Sidebar() {
                 <span className="menu-title">Bookmark Resumes</span>
               </NavLink>
             </li>
+
             <li className="nav-item">
               <NavLink
                 to="/candidates-search"
@@ -177,7 +193,54 @@ function Sidebar() {
                 <span className="menu-title">Candidate Search</span>
               </NavLink>
             </li>
-
+            <li className="nav-item">
+              <NavLink
+                to="/employer-profile"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Employer Profile</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/recruiters-list"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Manages Recruiters</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/messaging-system"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Messages</span>
+              </NavLink>
+            </li>
             {/* Repeat for other links as needed */}
           </ul>
         )}

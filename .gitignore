@@ -11,6 +11,13 @@
 # production
 /build
 
+# Ignore all video files
+/video/
+*.mp4
+
+# Archives
+*.zip
+
 # misc
 .DS_Store
 .env.local

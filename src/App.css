@@ -322,30 +322,6 @@
   padding-right: 5px;
 }
 
-.company-detail-tab-info {
-  background: #fff;
-  padding: 20px 15px;
-}
-
-.company-detail-tab-info .nav-tabs {
-  border: none;
-  justify-content: space-between;
-}
-
-.company-detail-tab-info .nav-tabs .nav-link {
-  border: 0px;
-  color: #fff;
-  font-size: 16px;
-  border-radius: 5px;
-  background: #0066cc;
-  padding: 10px 40px;
-}
-
-.company-detail-tab-info .nav-tabs .nav-link.active {
-  color: #fff;
-  background: #ff6600;
-}
-
 .company-detail-tab-description {
   background: #fff;
   margin-top: 30px;
@@ -499,114 +475,21 @@
 }
 
 /*Company Details page css end here*/
-/*employer dashboard css start here*/
-.employer-dashboard-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
-.employer-dashboard-box a {
-  width: 23%;
-}
-
-.employer-dashboard-box-icon-content {
-  display: flex;
-  background: #fff;
-  padding: 20px 20px;
-  border-radius: 5px;
-}
-
-.employer-box-icon {
-  color: #fff;
-  width: 50px;
-  height: 50px;
-  font-size: 25px;
-  background: #0066cc;
-  text-align: center;
-  border-radius: 50px;
-  line-height: 50px;
-  margin-right: 10px;
-}
-
-.employer-box-content h4 {
-  margin: 0px;
-  color: #0066cc;
-  font-size: 18px;
-}
-
-.employer-box-content h5 {
-  font-size: 17px;
-}
-
-.your-profile-view-chart {
-  background: #fff;
-  margin-top: 30px;
-  padding: 20px 20px 0px 0px;
-}
-
-.your-profile-heading-select {
-  display: flex;
-  align-items: center;
-  padding: 0px 0px 25px 30px;
-  justify-content: space-between;
-}
-
-.your-profile-heading-select span h4 {
-  margin: 0px;
-  font-size: 20px;
-}
-
-.your-profile-view-chart .form-control {
-  height: 40px;
-  font-size: 13px;
-}
-
-.your-profile-view-chart .highcharts-title {
-  display: none;
-}
-
-.your-profile-view-chart .highcharts-legend.highcharts-no-tooltip {
-  margin-top: 20px;
-}
-
-.your-profile-view-chart .highcharts-credits {
-  display: none;
-}
-
-.recent-notifications-box {
-  margin-top: 30px;
-  margin-bottom: 0px;
-}
-
-.job-short-detail-crud-menu {
-  display: none;
-  position: absolute;
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 8px;
-  z-index: 100;
-}
-
-.job-short-detail-crud-menu.show {
-  display: block;
-}
-/*employer dashboard css end here*/
 
 /*Job Alerts page css start here*/
 .set-job-alert-btn {
 margin: 20px 0px;
 text-align:center;
 }
- 
+
 .set-job-alert-btn .default-btn {
 font-size:17px;
 font-weight: 400;
 padding: 10px 30px;
 border-radius: 5px !important;
 }
- 
- 
+
 .tag-box {
 gap: 5px;
 padding: 8px;
@@ -645,5 +528,11 @@ font-weight: bold;
 margin-right: 10px;
 padding-bottom: 10px; 
 }
- 
+
+.application_modal .modal-footer{
+  justify-content: center !important;
+}
+.application_modal .modal-footer button.default-btn.btn{
+  padding: 8px 25px !important;
+}
 /*Job Alerts page css end here*/

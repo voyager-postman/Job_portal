@@ -71,7 +71,13 @@ function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      if (Array.isArray(error.response?.data?.errors)) {
+
+      if (error.response?.status === 429) {
+        // Handle Too Many Requests
+        toast.error(
+          "Too many login attempts. Please wait a moment and try again."
+        );
+      } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
         toast.error(
