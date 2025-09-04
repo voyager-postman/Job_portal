@@ -46,7 +46,10 @@ import SkillAssementTestPage from "./Pages/SkillAssementTestPage";
 import CertificateScorePage from "./Pages/CertificateScorePage";
 import RecruiterLists from "./Conponets/RecruiterLists";
 import CreateRecruiters from "./Conponets/CreateRecruiters";
-
+import MassagingSystem from "./Pages/MassagingSystem";
+import ApplicationManagement from "./Pages/ApplicationManagement";
+import AppliedJobList from "./Pages/AppliedJobList";
+// "build 04-09-2025"
 function LayoutWrapper() {
   const location = useLocation();
 
@@ -64,14 +67,17 @@ function LayoutWrapper() {
     "/candidates-search",
     "/create-recruiters",
     "/recruiters-list",
+    "/messaging-system",
     "/employer-profile",
     "/job-details-form",
     "/job-details",
     "/candidate-dashboard",
     "/chat-messaging-system",
+    "/applied-jobs-list",
     "/activity-timeline",
     // "/candidates-profile-details",
     "/manage-job-application",
+    "/application-management",
     "/job-alert",
   ];
 
@@ -168,6 +174,22 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
+         <Route
+          path="/application-management"
+          element={
+            <PrivateRoute>
+              <ApplicationManagement />
+            </PrivateRoute>
+          }
+        />
+         <Route
+          path="/applied-jobs-list"
+          element={
+            <PrivateRoute>
+              <AppliedJobList />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/chat-messaging-system"
           element={
@@ -176,6 +198,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/companies-details"
           element={
@@ -269,6 +292,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <RecruiterLists />
+            </PrivateRoute>
+          }
+        />
+         <Route
+          path="/messaging-system"
+          element={
+            <PrivateRoute>
+              <MassagingSystem />
             </PrivateRoute>
           }
         />

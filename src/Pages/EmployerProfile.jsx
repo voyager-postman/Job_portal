@@ -7,6 +7,77 @@ import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 
 function EmployerProfile() {
+  const [fileName, setFileName] = useState("No file selected");
+  const [preview, setPreview] = useState("assets/images/company/dummy-img.png");
+  const [videos, setVideos] = useState([]);
+
+  // Handle video selection
+  const handleVideoChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    const newVideos = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      id: Math.random().toString(36).substr(2, 9), // unique id
+    }));
+
+    setVideos((prev) => [...prev, ...newVideos]);
+  };
+
+  // Remove video
+  const handleRemoveVideo = (id) => {
+    setVideos((prev) => prev.filter((vid) => vid.id !== id));
+  };
+
+  // Submit videos
+  const handleSubmitVideo = (e) => {
+    e.preventDefault();
+    console.log("Submitting videos:", videos);
+
+    const formData = new FormData();
+    videos.forEach((vid) => formData.append("officeVideos", vid.file));
+
+    // axios.post('/api/upload-videos', formData)
+  };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+  const [images, setImages] = useState([]);
+
+  // Handle file selection
+  const handleFileChangeMultiple = (e) => {
+    const files = Array.from(e.target.files);
+
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      id: Math.random().toString(36).substr(2, 9), // unique id
+    }));
+
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  // Remove image
+  const handleRemove = (id) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  // Submit (demo: just logs)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Submitting images:", images);
+
+    // Example: send with FormData
+    const formData = new FormData();
+    images.forEach((img) => formData.append("officePhotos", img.file));
+
+    // axios.post('/api/upload', formData)
+  };
+
   return (
     <>
       <ToastContainer />
@@ -120,28 +191,26 @@ function EmployerProfile() {
                                 <div className="upload-company-info-area">
                                   <div className="upload-company-img-preview">
                                     <img
-                                      src="assets/images/company/dummy-img.png"
+                                      src={preview}
                                       className="main-logo"
-                                      id="preview"
                                       alt="Image Preview"
                                     />
                                   </div>
                                   <div className="upload-company-input">
-                                    {/* Hidden input */}
                                     <input
                                       type="file"
                                       id="imageInput"
                                       accept="image/*"
+                                      onChange={handleFileChange}
+                                      style={{ display: "none" }} // keep hidden if using custom button
                                     />
                                   </div>
                                   <div className="upload-company-file-name">
-                                    {/* Display file name */}
-                                    <span className="file-name" id="fileName">
-                                      No file selected
+                                    <span className="file-name">
+                                      {fileName}
                                     </span>
                                   </div>
                                   <div className="upload-company-file-btn">
-                                    {/* Label acting as custom button */}
                                     <label
                                       htmlFor="imageInput"
                                       className="custom-upload default-btn btn"
@@ -335,44 +404,101 @@ function EmployerProfile() {
                         <form>
                           <div className="row">
                             <div className="col-lg-12 col-md-12">
-                              {/* <h4>Office photos</h4> */}
                               <div className="form-group">
                                 <div className="office-photos-upload-info">
-                                  {/* Hidden file input */}
+                                  {/* File input */}
                                   <input
                                     type="file"
                                     id="officePhotos"
                                     accept="image/*"
+                                    multiple
+                                    onChange={handleFileChangeMultiple}
+                                    style={{ display: "none" }}
                                   />
-                                  {/* File info */}
-                                  <span className="file-name" id="fileInfo">
-                                    No image selected
-                                  </span>
-                                  {/* Custom label as button */}
+
+                                  {/* Button */}
                                   <label
                                     htmlFor="officePhotos"
                                     className="Custom-Upload default-btn btn"
                                   >
-                                    Choose Image
+                                    Choose Images
                                   </label>
-                                  {/* Image preview area */}
-                                  <div
-                                    className="preview-container"
-                                    id="previewContainer"
-                                  />
+
+                                  {/* Preview before submit */}
+                                  <div className="preview-container mt-3 d-flex flex-wrap">
+                                    {images.map((img) => (
+                                      <div
+                                        key={img.id}
+                                        style={{
+                                          position: "relative",
+                                          marginRight: "10px",
+                                          marginBottom: "10px",
+                                        }}
+                                      >
+                                        <img
+                                          src={img.preview}
+                                          alt="preview"
+                                          width={100}
+                                          height={100}
+                                          style={{
+                                            objectFit: "cover",
+                                            borderRadius: "5px",
+                                          }}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemove(img.id)}
+                                          style={{
+                                            top: "2px",
+                                            right: "2px",
+                                            color: "#fff",
+                                            cursor: "pointer",
+                                            fontSize: "20px",
+                                            lineHeight: "14px",
+                                            position: "absolute",
+                                            background: "#0066cc",
+                                            borderRadius: "4px",
+                                            padding: "0px 3px 2px 3px",
+                                          }}
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
+
+                              {/* Submit button */}
                               <div className="employer-personal-info-btn">
-                                <a href="#" className="default-btn btn">
+                                <button
+                                  onClick={handleSubmit}
+                                  className="default-btn btn"
+                                >
                                   Submit
-                                </a>
+                                </button>
                               </div>
-                              <div className="office-photos-info-area">
+
+                              {/* Office photos after submit (you can reuse same images state) */}
+                              <div className="office-photos-info-area mt-4">
                                 <h4>Office photos</h4>
-                                <div
-                                  className="preview-container"
-                                  id="previewContainerSize"
-                                />
+                                <div className="preview-container d-flex flex-wrap">
+                                  {images.map((img) => (
+                                    <img
+                                      key={img.id}
+                                      src={img.preview}
+                                      alt="office"
+                                      width={120}
+                                      height={120}
+                                      style={{
+                                        objectFit: "cover",
+                                        borderRadius: "5px",
+                                        marginRight: "10px",
+                                        marginBottom: "10px",
+                                      }}
+                                    />
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -384,48 +510,104 @@ function EmployerProfile() {
                         <form>
                           <div className="row">
                             <div className="col-lg-12 col-md-12">
-                              {/* <h4>Office Videos</h4>   */}
                               <div className="form-group">
                                 <div className="office-video-upload-info">
-                                  {/* Hidden file input */}
+                                  {/* File input */}
                                   <input
                                     type="file"
                                     id="officeVideos"
                                     accept="video/*"
                                     multiple
+                                    onChange={handleVideoChange}
+                                    style={{ display: "none" }}
                                   />
-                                  {/* File info */}
-                                  <span
-                                    id="videoInfo"
-                                    className="video-file-name"
-                                  >
-                                    No video selected
-                                  </span>
-                                  {/* Custom label as button */}
+
+                                  {/* Button */}
                                   <label
                                     htmlFor="officeVideos"
                                     className="custom-video-Upload default-btn btn"
                                   >
-                                    Choose Video
+                                    Choose Videos
                                   </label>
-                                  {/* Video preview containers */}
-                                  <div
-                                    className="preview-container"
-                                    id="videoPreviewContainer"
-                                  />
+
+                                  {/* Preview before submit */}
+                                  <div className="preview-container mt-3 d-flex flex-wrap">
+                                    {videos.map((vid) => (
+                                      <div
+                                        key={vid.id}
+                                        style={{
+                                          position: "relative",
+                                          marginRight: "10px",
+                                          marginBottom: "10px",
+                                        }}
+                                      >
+                                        <video
+                                          src={vid.preview}
+                                          width={150}
+                                          height={100}
+                                          controls
+                                          style={{
+                                            borderRadius: "5px",
+                                            objectFit: "cover",
+                                            background: "#000",
+                                          }}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleRemoveVideo(vid.id)
+                                          }
+                                          style={{
+                                            top: "2px",
+                                            right: "2px",
+                                            color: "#fff",
+                                            cursor: "pointer",
+                                            fontSize: "20px",
+                                            lineHeight: "14px",
+                                            position: "absolute",
+                                            background: "#0066cc",
+                                            borderRadius: "4px",
+                                            padding: "0px 3px 2px 3px",
+                                          }}
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
+
+                              {/* Submit button */}
                               <div className="employer-personal-info-btn">
-                                <a href="#" className="default-btn btn">
+                                <button
+                                  onClick={handleSubmitVideo}
+                                  className="default-btn btn"
+                                >
                                   Submit
-                                </a>
+                                </button>
                               </div>
-                              <div className="office-photos-info-area">
+
+                              {/* Office videos section */}
+                              <div className="office-photos-info-area mt-4">
                                 <h4>Office videos</h4>
-                                <div
-                                  className="preview-container"
-                                  id="videoPreviewContainerSize"
-                                />
+                                <div className="preview-container d-flex flex-wrap">
+                                  {videos.map((vid) => (
+                                    <video
+                                      key={vid.id}
+                                      src={vid.preview}
+                                      width={180}
+                                      height={120}
+                                      controls
+                                      style={{
+                                        borderRadius: "5px",
+                                        marginRight: "10px",
+                                        marginBottom: "10px",
+                                        background: "#000",
+                                      }}
+                                    />
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>

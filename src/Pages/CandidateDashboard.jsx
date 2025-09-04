@@ -36,7 +36,7 @@ function CandidateDashboard() {
                     </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/manage-job-application">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-heart" />
@@ -46,10 +46,10 @@ function CandidateDashboard() {
                           <h5>10</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
+                    <Link to="/manage-job-application">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-bell" />
@@ -59,7 +59,7 @@ function CandidateDashboard() {
                           <h5>5</h5>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
                     <Link to="/chat-messaging-system">
@@ -141,9 +141,9 @@ function CandidateDashboard() {
               </div>
               <div className="candidate-complete-percent-btn">
                 <h4>Profile strength: 0%</h4>
-                <a href="candidate-profile.html" className="default-btn btn">
+                <Link to="/candidate-profile" className="default-btn btn">
                   Complete Profile
-                </a>
+                </Link>
               </div>
             </div>
           </section>

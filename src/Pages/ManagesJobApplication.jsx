@@ -62,9 +62,9 @@ function ManagesJobApplication() {
                   {/* <h4>Find the jobs that suit you best and apply now</h4> */}
                   {/* <i className="fa-solid fa-file" /> */}
                   <div className="candiate-mannage-job-start-btn">
-                    <a href="SearchJobList.html" className="default-btn btn">
+                    <Link to="/job-search" className="default-btn btn">
                       Start Now
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 <div className="mannage-job-application-applied">
@@ -1023,7 +1023,7 @@ function ManagesJobApplication() {
                     </div>
                   </div>
 
-                   <div className="job-alert-card">
+                  <div className="job-alert-card">
                     <div className="job-alert-info">
                       <h4 className="job-type">Full-time</h4>
                       <span className="job-frequency">Every Week</span>
@@ -1178,7 +1178,7 @@ function ManagesJobApplication() {
                             to={`/companies-details`}
                             className="default-btn btn"
                           >
-                            View the Company
+                            View  Company
                           </Link>
                         </div>
                       </div>
@@ -1213,7 +1213,7 @@ function ManagesJobApplication() {
                             href="companies-details.html"
                             className="default-btn btn"
                           >
-                            View the Company
+                            View  Company
                           </a>
                         </div>
                       </div>
@@ -1248,7 +1248,7 @@ function ManagesJobApplication() {
                             href="companies-details.html"
                             className="default-btn btn"
                           >
-                            View the Company
+                            View  Company
                           </a>
                         </div>
                       </div>

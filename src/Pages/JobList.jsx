@@ -91,16 +91,16 @@ const JobList = () => {
                     <div class="job-filter-main-info">
                       <div class="job-filter-heading-area">
                         <h4>
-                          <a href="SearchJobList.html" class="active">
-                            <i class="fa-regular fa-file"></i> Job offers
-                          </a>
+                          <Link to="/jobs" className="active">
+                            <i className="fa-regular fa-file"></i> Job offers
+                          </Link>
                         </h4>
                       </div>
                       <div class="job-filter-heading-area">
                         <h4>
-                          <a href="companies-list.html">
-                            <i class="fa-regular fa-building"></i> Companies
-                          </a>
+                          <Link to="/employers">
+                            <i className="fa-regular fa-building"></i> Companies
+                          </Link>
                         </h4>
                       </div>
                       <div class="divder-line-info"></div>

@@ -129,6 +129,18 @@ function CertificateScorePage() {
                           <h6>For Connect Work.ma</h6>
                         </div>
                       </div>
+                      <div className="certificates-download-icon">
+                        <a
+                          href="https://itdevelopmentservices.com/design_website/jobPortal/assets/images/certificate/certificate.pdf"
+                          target="_blank"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          aria-label="Download Certificate"
+                          data-bs-original-title="Download Certificate"
+                        >
+                          <i className="fa-solid fa-cloud-arrow-down" />
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

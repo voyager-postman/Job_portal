@@ -7,7 +7,7 @@ function EmployerFilterCandinateList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Candidates Listing</h1>
+            <h1>Jobs Listing</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/employer-dashboard">Home </Link>
@@ -16,7 +16,7 @@ function EmployerFilterCandinateList() {
                 <i className="fa-solid fa-angle-right" /> Dashboard
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Candidates Listing
+                <i className="fa-solid fa-angle-right" /> Jobs Listing
               </li>
             </ol>
           </div>

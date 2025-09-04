@@ -1,13 +1,229 @@
-import axios from "axios";
-import React, { useEffect } from "react";
-import { API_BASE_URL } from "../Url/Url";
-import { ToastContainer, toast } from "react-toastify";
-import { useState } from "react";
-
+import React, { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { TableView } from "../Conponets/DataTable";
 function ActivityTimeline() {
+  const columns = [
+    {
+      accessorKey: "id",
+      header: "S.No",
+      cell: ({ row }) => row.index + 1, // auto index
+    },
+    {
+      accessorKey: "loginDate",
+      header: "Login Date",
+      
+    },
+    {
+      accessorKey: "loginTime",
+      header: "Login Time",
+    },
+    {
+      accessorKey: "pageName",
+      header: "Page Name",
+    },
+    {
+      accessorKey: "eventName",
+      header: "Event Name",
+    },
+    {
+      accessorKey: "logoutDate",
+      header: "Logout Date",
+    },
+    {
+      accessorKey: "logoutTime",
+      header: "Logout Time",
+     
+    },
+  
+  ];
+
+  // ✅ Static Data
+const data = [
+  {
+    id: 1,
+    loginDate: "21-8-2025",
+    loginTime: "08:00 AM",
+    pageName: "Dashboard",
+    eventName: "Login",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:00 AM",
+  },
+  {
+    id: 2,
+    loginDate: "21-8-2025",
+    loginTime: "08:10 AM",
+    pageName: "Reports",
+    eventName: "Viewed Report",
+    logoutDate: "21-8-2025",
+    logoutTime: "08:50 AM",
+  },
+  {
+    id: 3,
+    loginDate: "21-8-2025",
+    loginTime: "08:20 AM",
+    pageName: "Settings",
+    eventName: "Updated Profile",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:10 AM",
+  },
+  {
+    id: 4,
+    loginDate: "21-8-2025",
+    loginTime: "08:30 AM",
+    pageName: "Home",
+    eventName: "Login",
+    logoutDate: "21-8-2025",
+    logoutTime: "08:45 AM",
+  },
+  {
+    id: 5,
+    loginDate: "21-8-2025",
+    loginTime: "08:40 AM",
+    pageName: "Analytics",
+    eventName: "Viewed Graph",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:30 AM",
+  },
+  {
+    id: 6,
+    loginDate: "21-8-2025",
+    loginTime: "08:50 AM",
+    pageName: "Profile",
+    eventName: "Changed Password",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:45 AM",
+  },
+  {
+    id: 7,
+    loginDate: "21-8-2025",
+    loginTime: "09:00 AM",
+    pageName: "Login",
+    eventName: "Login",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:50 AM",
+  },
+  {
+    id: 8,
+    loginDate: "21-8-2025",
+    loginTime: "09:10 AM",
+    pageName: "Dashboard",
+    eventName: "Viewed Notifications",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:00 AM",
+  },
+  {
+    id: 9,
+    loginDate: "21-8-2025",
+    loginTime: "09:20 AM",
+    pageName: "Reports",
+    eventName: "Downloaded PDF",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:55 AM",
+  },
+  {
+    id: 10,
+    loginDate: "21-8-2025",
+    loginTime: "09:30 AM",
+    pageName: "Logout",
+    eventName: "Logout",
+    logoutDate: "21-8-2025",
+    logoutTime: "09:30 AM",
+  },
+  {
+    id: 11,
+    loginDate: "21-8-2025",
+    loginTime: "09:40 AM",
+    pageName: "Settings",
+    eventName: "Changed Email",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:10 AM",
+  },
+  {
+    id: 12,
+    loginDate: "21-8-2025",
+    loginTime: "09:50 AM",
+    pageName: "Home",
+    eventName: "Login",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:30 AM",
+  },
+  {
+    id: 13,
+    loginDate: "21-8-2025",
+    loginTime: "10:00 AM",
+    pageName: "Analytics",
+    eventName: "Viewed Chart",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:40 AM",
+  },
+  {
+    id: 14,
+    loginDate: "21-8-2025",
+    loginTime: "10:10 AM",
+    pageName: "Profile",
+    eventName: "Uploaded Photo",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:50 AM",
+  },
+  {
+    id: 15,
+    loginDate: "21-8-2025",
+    loginTime: "10:20 AM",
+    pageName: "Reports",
+    eventName: "Viewed Report",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:55 AM",
+  },
+  {
+    id: 16,
+    loginDate: "21-8-2025",
+    loginTime: "10:30 AM",
+    pageName: "Dashboard",
+    eventName: "Clicked Widget",
+    logoutDate: "21-8-2025",
+    logoutTime: "11:00 AM",
+  },
+  {
+    id: 17,
+    loginDate: "21-8-2025",
+    loginTime: "10:40 AM",
+    pageName: "Logout",
+    eventName: "Logout",
+    logoutDate: "21-8-2025",
+    logoutTime: "10:40 AM",
+  },
+  {
+    id: 18,
+    loginDate: "21-8-2025",
+    loginTime: "10:50 AM",
+    pageName: "Home",
+    eventName: "Login",
+    logoutDate: "21-8-2025",
+    logoutTime: "11:20 AM",
+  },
+  {
+    id: 19,
+    loginDate: "21-8-2025",
+    loginTime: "11:00 AM",
+    pageName: "Profile",
+    eventName: "Updated Address",
+    logoutDate: "21-8-2025",
+    logoutTime: "11:30 AM",
+  },
+  {
+    id: 20,
+    loginDate: "21-8-2025",
+    loginTime: "11:10 AM",
+    pageName: "Analytics",
+    eventName: "Viewed Report",
+    logoutDate: "21-8-2025",
+    logoutTime: "11:40 AM",
+  },
+];
+
+
   return (
     <>
-      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -15,220 +231,32 @@ function ActivityTimeline() {
             <h1>Activity timeline</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home</a>
+                <a href="dashboard.html">Home </a>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Activity timeline
+                <i className="fa-solid fa-angle-right" />  Activity timeline
               </li>
             </ol>
           </div>
           {/* End Breadcrumb Area */}
-          {/* Activity timeline section start here */}
-          <section className="activity-timeline-info-area">
-            <div className="activity-timeline-info-list">
-              <h5>Andy Smith log view</h5>
-              <table className="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>S.No</th>
-                    <th>Login Date</th>
-                    <th>Login Time</th>
-                    <th>Page Name</th>
-                    <th>Event Name</th>
-                    <th>Logout Date</th>
-                    <th>Logout Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>21-8-2025</td>
-                    <td>08:00 AM</td>
-                    <td>Dashboard</td>
-                    <td>Login</td>
-                    <td>21-8-2025</td>
-                    <td>09:00 AM</td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>21-8-2025</td>
-                    <td>08:10 AM</td>
-                    <td>Reports</td>
-                    <td>Viewed Report</td>
-                    <td>21-8-2025</td>
-                    <td>08:50 AM</td>
-                  </tr>
-                  <tr>
-                    <td>3</td>
-                    <td>21-8-2025</td>
-                    <td>08:20 AM</td>
-                    <td>Settings</td>
-                    <td>Updated Profile</td>
-                    <td>21-8-2025</td>
-                    <td>09:10 AM</td>
-                  </tr>
-                  <tr>
-                    <td>4</td>
-                    <td>21-8-2025</td>
-                    <td>08:30 AM</td>
-                    <td>Home</td>
-                    <td>Login</td>
-                    <td>21-8-2025</td>
-                    <td>08:45 AM</td>
-                  </tr>
-                  <tr>
-                    <td>5</td>
-                    <td>21-8-2025</td>
-                    <td>08:40 AM</td>
-                    <td>Analytics</td>
-                    <td>Viewed Graph</td>
-                    <td>21-8-2025</td>
-                    <td>09:30 AM</td>
-                  </tr>
-                  <tr>
-                    <td>6</td>
-                    <td>21-8-2025</td>
-                    <td>08:50 AM</td>
-                    <td>Profile</td>
-                    <td>Changed Password</td>
-                    <td>21-8-2025</td>
-                    <td>09:45 AM</td>
-                  </tr>
-                  <tr>
-                    <td>7</td>
-                    <td>21-8-2025</td>
-                    <td>09:00 AM</td>
-                    <td>Login</td>
-                    <td>Login</td>
-                    <td>21-8-2025</td>
-                    <td>09:50 AM</td>
-                  </tr>
-                  <tr>
-                    <td>8</td>
-                    <td>21-8-2025</td>
-                    <td>09:10 AM</td>
-                    <td>Dashboard</td>
-                    <td>Viewed Notifications</td>
-                    <td>21-8-2025</td>
-                    <td>10:00 AM</td>
-                  </tr>
-                  <tr>
-                    <td>9</td>
-                    <td>21-8-2025</td>
-                    <td>09:20 AM</td>
-                    <td>Reports</td>
-                    <td>Downloaded PDF</td>
-                    <td>21-8-2025</td>
-                    <td>09:55 AM</td>
-                  </tr>
-                  <tr>
-                    <td>10</td>
-                    <td>21-8-2025</td>
-                    <td>09:30 AM</td>
-                    <td>Logout</td>
-                    <td>Logout</td>
-                    <td>21-8-2025</td>
-                    <td>09:30 AM</td>
-                  </tr>
-                  <tr>
-                    <td>11</td>
-                    <td>21-8-2025</td>
-                    <td>09:40 AM</td>
-                    <td>Settings</td>
-                    <td>Changed Email</td>
-                    <td>21-8-2025</td>
-                    <td>10:10 AM</td>
-                  </tr>
-                  <tr>
-                    <td>12</td>
-                    <td>21-8-2025</td>
-                    <td>09:50 AM</td>
-                    <td>Home</td>
-                    <td>Login</td>
-                    <td>21-8-2025</td>
-                    <td>10:30 AM</td>
-                  </tr>
-                  <tr>
-                    <td>13</td>
-                    <td>21-8-2025</td>
-                    <td>10:00 AM</td>
-                    <td>Analytics</td>
-                    <td>Viewed Chart</td>
-                    <td>21-8-2025</td>
-                    <td>10:40 AM</td>
-                  </tr>
-                  <tr>
-                    <td>14</td>
-                    <td>21-8-2025</td>
-                    <td>10:10 AM</td>
-                    <td>Profile</td>
-                    <td>Uploaded Photo</td>
-                    <td>21-8-2025</td>
-                    <td>10:50 AM</td>
-                  </tr>
-                  <tr>
-                    <td>15</td>
-                    <td>21-8-2025</td>
-                    <td>10:20 AM</td>
-                    <td>Reports</td>
-                    <td>Viewed Report</td>
-                    <td>21-8-2025</td>
-                    <td>10:55 AM</td>
-                  </tr>
-                  <tr>
-                    <td>16</td>
-                    <td>21-8-2025</td>
-                    <td>10:30 AM</td>
-                    <td>Dashboard</td>
-                    <td>Clicked Widget</td>
-                    <td>21-8-2025</td>
-                    <td>11:00 AM</td>
-                  </tr>
-                  <tr>
-                    <td>17</td>
-                    <td>21-8-2025</td>
-                    <td>10:40 AM</td>
-                    <td>Logout</td>
-                    <td>Logout</td>
-                    <td>21-8-2025</td>
-                    <td>10:40 AM</td>
-                  </tr>
-                  <tr>
-                    <td>18</td>
-                    <td>21-8-2025</td>
-                    <td>10:50 AM</td>
-                    <td>Home</td>
-                    <td>Login</td>
-                    <td>21-8-2025</td>
-                    <td>11:20 AM</td>
-                  </tr>
-                  <tr>
-                    <td>19</td>
-                    <td>21-8-2025</td>
-                    <td>11:00 AM</td>
-                    <td>Profile</td>
-                    <td>Updated Address</td>
-                    <td>21-8-2025</td>
-                    <td>11:30 AM</td>
-                  </tr>
-                  <tr>
-                    <td>20</td>
-                    <td>21-8-2025</td>
-                    <td>11:10 AM</td>
-                    <td>Analytics</td>
-                    <td>Viewed Report</td>
-                    <td>21-8-2025</td>
-                    <td>11:40 AM</td>
-                  </tr>
-                </tbody>
-              </table>
+          {/*Start My Profile Area*/}
+          <div className="my-profile-area">
+            <div className="profile-form-content add-recruiters-btn-postion">
+              <h3>Andy Smith log view</h3>
+             
+              <div className="profile-form">
+                <div className="row">
+                  <div className="col-lg-12 col-md-12">
+                    <TableView columns={columns} data={data} />
+                  </div>
+                </div>
+              </div>
             </div>
-          </section>
-          {/* Activity timeline section end here */}
-          {/* footer section start here */}
+          </div>
+          {/*End My Profile Area*/}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">

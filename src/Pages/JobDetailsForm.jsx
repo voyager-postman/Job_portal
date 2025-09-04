@@ -71,7 +71,7 @@ function JobDetailsForm() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Job Details Form</h1>
+            <h1>Search Job List</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <a href="dashboard.html">Home </a>
@@ -120,7 +120,7 @@ function JobDetailsForm() {
               <i className="fas fa-pencil-alt" />
             </div>
             <div className="tab-content">
-              <div id="menu1" className="tab-pane fade show active">
+              <div id="menu1" className="tab-pane active">
                 <div className="job-details-form-area">
                   <div className="job-details-form-heading">
                     <h3>Job Details</h3>
@@ -139,7 +139,7 @@ function JobDetailsForm() {
                               <option value={1}>
                                 No experience / No degree
                               </option>
-                              <option value={2}>Entry / Junior</option>
+                              <option value={2}>DEntry / Junior</option>
                               <option value={3}>Mid-level</option>
                             </select>
                           </div>
@@ -155,22 +155,22 @@ function JobDetailsForm() {
                               <option value={1}>
                                 No experience / No degree
                               </option>
-                              <option value={2}>Entry / Junior</option>
+                              <option value={2}>DEntry / Junior</option>
                               <option value={3}>Mid-level</option>
                             </select>
                           </div>
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Remote</label>
+                            <label>Location</label>
                             <select
                               className="form-select form-control"
                               aria-label="Default select example"
                             >
-                              <option selected>No remote options</option>
-                              <option value={1}>Fully remote</option>
-                              <option value={2}>Partially remote</option>
-                              <option value={3}>Temporarily remote</option>
+                              <option selected>Select Location</option>
+                              <option value={1}>USA</option>
+                              <option value={2}>Paris</option>
+                              <option value={3}>France</option>
                             </select>
                           </div>
                         </div>
@@ -181,12 +181,14 @@ function JobDetailsForm() {
                               className="form-select form-control"
                               aria-label="Default select example"
                             >
-                              <option selected>Choose A Category</option>
-                              {categoryList.map((list) => (
-                                <option value={list.name} key={list._id}>
-                                  {list.name}
-                                </option>
-                              ))}
+                              <option selected>
+                                Call Center / Customer Support
+                              </option>
+                              <option value={1}>Data / Big data</option>
+                              <option value={2}>
+                                Design / Graphic Αrts / Creative
+                              </option>
+                              <option value={3}>DevOps / Cloud</option>
                             </select>
                           </div>
                         </div>
@@ -237,7 +239,7 @@ function JobDetailsForm() {
                               <textarea
                                 className="form-control"
                                 placeholder="Short description"
-                                rows={7}
+                                rows={4}
                                 defaultValue={""}
                               />
                             </div>
@@ -303,13 +305,13 @@ function JobDetailsForm() {
                     <textarea
                       className="form-control"
                       placeholder="Enter a description for this job post"
-                      rows={10}
+                      rows={5}
                       defaultValue={""}
                     />
                   </div>
                 </div>
                 <div className="post-job-next-btn-info">
-                  <a href="#" className="btn default-btn next-tab-btn">
+                  <a href="job-listing.html" className="default-btn btn">
                     Next
                   </a>
                 </div>
@@ -428,12 +430,12 @@ function JobDetailsForm() {
                 </div>
                 <div className="job-create-form-back-next-info">
                   <div className="job-create-form-back-next-btn">
-                    <a href="#" className="default-btn btn back-tab-btn">
+                    <a href="job-listing.html" className="default-btn btn">
                       Back
                     </a>
                   </div>
                   <div className="job-create-form-back-next-btn">
-                    <a href="#" className="btn default-btn next-tab-btn">
+                    <a href="job-listing.html" className="default-btn btn">
                       Next
                     </a>
                   </div>
@@ -510,12 +512,12 @@ function JobDetailsForm() {
                 </div>
                 <div className="job-create-form-back-next-info">
                   <div className="job-create-form-back-next-btn">
-                    <a href="#" className="default-btn btn back-tab-btn">
+                    <a href="job-listing.html" className="default-btn btn">
                       Back
                     </a>
                   </div>
                   <div className="job-create-form-back-next-btn">
-                    <a href="#" className="btn default-btn next-tab-btn">
+                    <a href="job-listing.html" className="default-btn btn">
                       Next
                     </a>
                   </div>
@@ -548,8 +550,8 @@ function JobDetailsForm() {
                           <h4>Minimum level</h4>
                           <p>C-level / Executive</p>
                           <div className="divder-space-line" />
-                          <h4>Remote</h4>
-                          <p>No remote options</p>
+                          <h4>Location</h4>
+                          <p>Paris</p>
                         </div>
                         <div className="employment-type-job-category">
                           <h4>Employment type</h4>
@@ -578,83 +580,87 @@ function JobDetailsForm() {
                         </p>
                       </div>
                     </div>
-                  </div>
-                  <div className="job-payment-detail-box-info">
-                    <div className="job-payment-detail-info">
-                      <h4>Payment details</h4>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Standard post</h5>
+                    <div className="job-create-form-back-next-info">
+                      <div className="job-create-form-back-next-btn">
+                        <a href="job-listing.html" className="default-btn btn">
+                          Save Draft
+                        </a>
                       </div>
-                      <div className="job-payment-price">
-                        <h5>€750</h5>
+                      <div className="job-create-form-back-next-btn">
+                        <a href="job-listing.html" className="default-btn btn">
+                          Publish Job
+                        </a>
                       </div>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Cover photo</h5>
-                      </div>
-                      <div className="job-payment-price">
-                        <h5>€250</h5>
-                      </div>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Remove similar job posts</h5>
-                      </div>
-                      <div className="job-payment-price">
-                        <h5>€360</h5>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h2>Summary (ex. VAT)</h2>
-                      </div>
-                      <div className="job-payment-price">
-                        <h2>€1360</h2>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h2>VAT 20%</h2>
-                      </div>
-                      <div className="job-payment-price">
-                        <h2>€272</h2>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h2>Total</h2>
-                      </div>
-                      <div className="job-payment-price">
-                        <h2>€1632</h2>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="pay-publish-later-btn">
-                      <Link to="/your-job-posts" className="default-btn btn">
-                        Pay and publish
-                      </Link>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="pay-publish-later-btn">
-                      <Link to="/your-job-posts" className="default-btn btn">
-                        Pay Now, Publish later
-                      </Link>
-                    </div>
-                    <div className="job-payment-divider" />
-                    <div className="job-payment-content-info">
-                      <p>
-                        By clicking the "Pay and publish" or "Pay now, publish
-                        later", I agree to the Terms and Conditions &amp;
-                        Privacy Policy
-                      </p>
                     </div>
                   </div>
+                  {/* <div class="job-payment-detail-box-info">
+                       <div class="job-payment-detail-info">   
+                        <h4>Payment details</h4>
+                       </div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h5>Standard post</h5>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h5>€750</h5>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h5>Cover photo</h5>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h5>€250</h5>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h5>Remove similar job posts</h5>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h5>€360</h5>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h2>Summary (ex. VAT)</h2>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h2>€1360</h2>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h2>VAT 20%</h2>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h2>€272</h2>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="job-payment-text-price">
+                        <div class="job-payment-text">
+                         <h2>Total</h2>  
+                        </div>
+                        <div class="job-payment-price">
+                         <h2>€1632</h2>  
+                        </div> 
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="pay-publish-later-btn">
+                        <a href="#" class="default-btn btn">Pay and publish</a>  
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="pay-publish-later-btn">
+                        <a href="#" class="default-btn btn">Pay Now, Publish later</a>  
+                       </div>
+                       <div class="job-payment-divider"></div>
+                       <div class="job-payment-content-info">
+                        <p>By clicking the "Pay and publish" or "Pay now, publish later", I agree to the Terms and Conditions & Privacy Policy</p>
+                      </div>
+                      </div> */}
                 </div>
               </div>
             </div>

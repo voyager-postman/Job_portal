@@ -126,7 +126,7 @@ function EmployerRegister() {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${API_BASE_URL}register/recruiter`, // ✅ fixed missing slash
+        `${API_BASE_URL}register/company`, // ✅ fixed missing slash
         {
           email,
           password,

@@ -109,7 +109,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>
@@ -144,7 +144,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>
@@ -179,7 +179,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>
@@ -218,7 +218,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>
@@ -253,7 +253,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>
@@ -288,7 +288,7 @@ function Companies() {
                               to="/companies-details"
                               className="default-btn btn"
                             >
-                              View the Company
+                              View Company
                             </Link>
                           </div>
                         </div>

@@ -1,94 +1,123 @@
-// src/components/DataTable.jsx
-import React, { useState } from "react";
+import { useState } from "react";
+import ReactPaginate from "react-paginate";
 import {
   useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
 
-export default function DataTable({ columns, data }) {
-  const [filter, setFilter] = useState("");
+export const TableView = ({
+  columns = [],
+  data = [],
+  customElement = <></>,
+}) => {
+  const [pageNumber, setPageNumber] = useState(0);
+  const [usersPerPage, setUserPerPage] = useState(10);
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  const pagesVisited = pageNumber * usersPerPage;
+  const pageCount = Math.ceil(data.length / usersPerPage);
 
   const table = useReactTable({
     data,
     columns,
-    state: { globalFilter: filter },
-    onGlobalFilterChange: setFilter,
+    state: {
+      globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
+  const changePage = ({ selected }) => {
+    setPageNumber(selected);
+  };
+
   return (
-    <div className="p-4">
-      {/* 🔍 Search */}
-      <input
-        value={filter ?? ""}
-        onChange={(e) => setFilter(e.target.value)}
-        placeholder="Search..."
-        className="border p-2 mb-3 w-full"
-      />
+    <div className="top-space-search-reslute">
+      <div className="tab-content px-2 md:!px-4">
+        <div className="parentProduceSearch">
+          <div className="entries">
+            <small>show</small>{" "}
+            <select
+              value={usersPerPage}
+              onChange={(e) => setUserPerPage(Number(e.target.value))}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>{" "}
+            <small>entries</small>
+          </div>
+          <div className="table-search-box-info">
+            <input
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              type="search"
+              placeholder="search"
+            />
+          </div>
+        </div>
 
-      {/* 📊 Table */}
-      <table className="w-full border border-collapse">
-        <thead>
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((header) => (
-                <th key={header.id} className="border p-2 text-left">
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="border p-2">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
+        {customElement}
+
+        <div className="tab-pane active" id="header" role="tabpanel">
+          <div
+            id="datatable_wrapper"
+            className="information_dataTables dataTables_wrapper dt-bootstrap4 table-responsive"
+          >
+            <table 
+              id="example"
+              className="display table table-bordered borderTerpProduce"
+              style={{ width: "100%" }}
+            >
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </th>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={columns.length} className="text-center p-3">
-                No Data Found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+              </thead>
+              <tbody>
+                {table
+                  .getRowModel()
+                  .rows.slice(pagesVisited, pagesVisited + usersPerPage)
+                  .map((row) => (
+                    <tr key={row.id} className="rowCursorPointer">
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
 
-      {/* 📑 Pagination */}
-      <div className="mt-3 flex gap-2 items-center">
-        <button
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="border px-3 py-1"
-        >
-          Previous
-        </button>
-        <span>
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </span>
-        <button
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="border px-3 py-1"
-        >
-          Next
-        </button>
+            <div className="flex justify-end">
+              <ReactPaginate
+                previousLabel={"previous"}
+                nextLabel={"next"}
+                pageCount={pageCount}
+                onPageChange={changePage}
+                containerClassName={"paginationBttns"}
+                previousLinkClassName={"previousBttn"}
+                nextLinkClassName={"nextBttn"}
+                disabledClassName={"paginationDisabled"}
+                activeClassName={"paginationActive"}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};

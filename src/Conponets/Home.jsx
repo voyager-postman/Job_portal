@@ -480,7 +480,7 @@ function Home() {
                   </div>
                   <div className="available-company-btn">
                     <Link to="/companies-details" className="default-btn btn">
-                      View the Company
+                      View Company
                     </Link>
                   </div>
                 </div>

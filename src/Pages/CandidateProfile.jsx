@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 
@@ -7,6 +7,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 
 function CandidateProfile() {
+  const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
+
   const [activeLevel, setActiveLevel] = useState(null);
 
   const PROFICIENCY_LEVELS = [
@@ -22,6 +24,53 @@ function CandidateProfile() {
     language: "", // language name from dropdown
     proficiency: "",
   });
+  const [image, setImage] = useState(DEFAULT_IMAGE);
+
+  const [storedImage, setStoredImage] = useState(null); // server stored image
+
+  const fileInputRef = useRef(null);
+
+  // Handle file selection
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Preview before upload
+    const imageUrl = URL.createObjectURL(file);
+    setImage(imageUrl);
+
+    const formData = new FormData();
+    formData.append("profile", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}updateProfileImage`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // ✅ Always check if API returned stored image
+      const profileImg = res.data?.profileImage;
+      if (res.data?.success && profileImg && profileImg.trim() !== "") {
+        setImage(API_IMAGE_URL + profileImg); // stored image
+        toast.success(res.data.message || "Profile updated successfully!");
+      } else {
+        setImage(DEFAULT_IMAGE); // fallback
+        toast.error(res.data.message || "Something went wrong!");
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setImage(DEFAULT_IMAGE);
+      toast.error("Upload failed. Please try again.");
+    }
+  };
+
   const token = localStorage.getItem("token");
   const [cvFiles, setCvFiles] = useState([]); // List of uploaded CVs
   const [menuOpenId, setMenuOpenId] = useState(null); // Track which CV menu is open
@@ -127,7 +176,12 @@ function CandidateProfile() {
       }
       setEducationList(res.data.profile?.education || []);
       setCvFiles(res.data.profile?.resumeUrls || []);
-      setProfileVisible(res.data.profile.profileVisible);
+      const profileImg = res.data?.profile?.profileImage;
+      if (profileImg && profileImg.trim() !== "") {
+        setImage(API_IMAGE_URL + profileImg); // stored image
+      } else {
+        setImage(DEFAULT_IMAGE); // fallback
+      }
 
       const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -487,6 +541,67 @@ function CandidateProfile() {
   // Save Career Goals
   const handleSaveGoals = async () => {
     try {
+      if (!careerGoalsData.desiredJobTitle?.trim()) {
+        toast.error("Please enter a Desired Job Title", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.employmentType) {
+        toast.error("Please select a Desired Employment Type", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.occupationType) {
+        toast.error("Please select a Desired Occupation Type", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.salaryType) {
+        toast.error(
+          "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
+          {
+            autoClose: 2000,
+            theme: "colored",
+          }
+        );
+        return;
+      }
+
+      if (!careerGoalsData.salaryCurrency) {
+        toast.error("Please select a Salary Currency", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (
+        !careerGoalsData.salaryAmount ||
+        isNaN(careerGoalsData.salaryAmount)
+      ) {
+        toast.error("Please enter a valid Salary Amount", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.lookingForJob) {
+        toast.error("Please select a job opportunity", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       // ✅ Map form keys -> API keys
@@ -606,6 +721,13 @@ function CandidateProfile() {
 
   const handleSave = async () => {
     try {
+      if (!summary?.trim()) {
+        toast.error("Professional Summary is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -663,6 +785,50 @@ function CandidateProfile() {
   };
   const handleSaveEducation = async () => {
     try {
+      if (!educationForm.degree) {
+        toast.error("Please enter a valid Degree", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.University) {
+        toast.error("Please enter a valid University", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.startDate) {
+        toast.error("Please select a Start Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.endDate) {
+        toast.error("Please select an End Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Ensure start date is not after end date
+      if (
+        !educationForm.currentlyStudyingHere &&
+        new Date(educationForm.startDate) > new Date(educationForm.endDate)
+      ) {
+        toast.error("End Date cannot be before Start Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -745,6 +911,64 @@ function CandidateProfile() {
   };
   const handleSavePersonal = async () => {
     try {
+      if (!personalDetails.firstName?.trim()) {
+        toast.error("First name is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!personalDetails.lastName?.trim()) {
+        toast.error("Last name is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!personalDetails.birthYear) {
+        toast.error("Date of birth is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Check if birthYear is a valid past date
+      const dob = new Date(personalDetails.birthYear);
+      if (isNaN(dob.getTime()) || dob > new Date()) {
+        toast.error("Please enter a valid date of birth", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!personalDetails.gender) {
+        toast.error("Gender is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!personalDetails.phone?.trim()) {
+        toast.error("Phone number is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Phone number validation (10 digits, you can adjust regex for your format)
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(personalDetails.phone)) {
+        toast.error("Please enter a valid 10-digit phone number", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       const payload = {
@@ -854,6 +1078,27 @@ function CandidateProfile() {
   };
   const handleSaveAboutRole = async () => {
     try {
+      if (!aboutRole.jobTitle) {
+        toast.error("Job title is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!aboutRole.yearsOfExperience) {
+        toast.error("Years of experience is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!aboutRole.jobCategory) {
+        toast.error("Job category is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const payload = {
@@ -1009,6 +1254,29 @@ function CandidateProfile() {
 
   const handleSavePortfolioLinks = async () => {
     try {
+      if (!portfolioLinks.personalWebsite) {
+        toast.error("Please enter a valid Personal Website URL", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!portfolioLinks.github) {
+        toast.error("Please enter a valid GitHub profile link", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!portfolioLinks.linkedin) {
+        toast.error("Please enter a valid LinkedIn profile link", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_BASE_URL}updateLinks`,
@@ -1095,6 +1363,21 @@ function CandidateProfile() {
   };
   const handleSaveCertificate = async () => {
     try {
+      if (!formData.title?.trim()) {
+        toast.error("Certificate title is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!formData.issueDate) {
+        toast.error("Issue date is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -1211,6 +1494,7 @@ function CandidateProfile() {
       toast.error("Failed to delete skill", { theme: "colored" });
     }
   };
+  console.log(image);
   return (
     <>
       <ToastContainer />
@@ -1239,11 +1523,23 @@ function CandidateProfile() {
               <div className="candidates-detail-main-area">
                 <div className="candidates-img-detail-info">
                   <div className="candidates-img-info">
-                    <img
-                      src="assets/images/dashboard/dashboard-img-5.jpg"
-                      alt="Image"
+                    {/* Candidate Image */}
+                    <img src={image} alt="Candidate" crossorigin="anonymous" />
+
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleFileChange}
                     />
-                    <div className="img-edit-icon">
+
+                    {/* Edit icon */}
+                    <div
+                      className="img-edit-icon"
+                      onClick={() => fileInputRef.current.click()}
+                    >
                       <i className="fas fa-pencil-alt" />
                     </div>
                   </div>
@@ -1808,7 +2104,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseTwo"
-                    className="accordion-collapse collapse show"
+                    className="accordion-collapse collapse collapse"
                     aria-labelledby="headingTwo"
                     data-bs-parent="#professionalSummary"
                   >
@@ -1842,11 +2138,35 @@ function CandidateProfile() {
                                   >
                                     Save
                                   </button>
+                                  {/* <button
+                                    type="button"
+                                    className="default-btn btn"
+                                    onClick={() => {
+                                      setEditMode(false);
+                                    }}
+                                  >
+                                    Cancel
+                                  </button> */}
                                   <button
                                     type="button"
                                     className="default-btn btn"
                                     onClick={() => {
                                       setEditMode(false);
+
+                                      // also collapse the accordion manually
+                                      const collapseElement =
+                                        document.getElementById("collapseTwo");
+                                      if (
+                                        collapseElement &&
+                                        collapseElement.classList.contains(
+                                          "show"
+                                        )
+                                      ) {
+                                        new window.bootstrap.Collapse(
+                                          collapseElement,
+                                          { toggle: true }
+                                        );
+                                      }
                                     }}
                                   >
                                     Cancel
@@ -1994,7 +2314,7 @@ function CandidateProfile() {
                                   })
                                 ) : (
                                   <p
-                                    className="text-muted"
+                                    className="text-center"
                                     style={{ padding: "2px" }}
                                   >
                                     No CVs uploaded yet.
@@ -2028,7 +2348,9 @@ function CandidateProfile() {
                   </div>
                 </div>
               </div>
-              <div className="accordion" id="careerGoals">
+              <div className="accordion" id="accordionCareerGoals">
+                {" "}
+                {/* ✅ unique parent ID */}
                 <div className="accordion-item">
                   <div className="accordion-header" id="headingCareerGoals">
                     <div className="accordion-button collapsed" type="button">
@@ -2038,7 +2360,6 @@ function CandidateProfile() {
                           <i
                             className="fa-solid fa-plus"
                             onClick={() => {
-                              // clear for new entry
                               setCareerGoalsData({
                                 desiredJobTitle: "",
                                 employmentType: "",
@@ -2069,7 +2390,6 @@ function CandidateProfile() {
                           <i
                             className="fas fa-pencil-alt"
                             onClick={() => {
-                              // ✅ Map API keys to form keys
                               setCareerGoalsData({
                                 desiredJobTitle:
                                   profileData.career_goals?.DesiredJobTitle ||
@@ -2114,6 +2434,7 @@ function CandidateProfile() {
                           />
                         )}
                       </div>
+
                       <span
                         className="ms-auto accordion-icon-toggle collapsed"
                         data-bs-toggle="collapse"
@@ -2129,9 +2450,9 @@ function CandidateProfile() {
 
                   <div
                     id="collapseCareerGoals"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingCareerGoals"
-                    data-bs-parent="#careerGoals"
+                    data-bs-parent="#accordionCareerGoals"
                   >
                     <div className="accordion-body">
                       <div className="candidate-blank-form-detail-edit-info">
@@ -2666,7 +2987,7 @@ function CandidateProfile() {
                   </div>
                 </div>
               </div>
-              <div className="accordion" id="workExperience">
+              <div className="accordion" id="accordionWorkExperience">
                 <div className="accordion-item">
                   <div className="accordion-header" id="headingSeven">
                     <div className="accordion-button collapsed" type="button">
@@ -2727,7 +3048,7 @@ function CandidateProfile() {
                     id="collapseSeven"
                     className="accordion-collapse collapse"
                     aria-labelledby="headingSeven"
-                    data-bs-parent="#workExperience"
+                    data-bs-parent="#accordionWorkExperience"
                   >
                     <div className="accordion-body">
                       <div className="candidate-blank-form-detail-edit-info">
@@ -3614,7 +3935,9 @@ function CandidateProfile() {
                               </div>
                             ))
                           ) : (
-                            <p>No languages added yet.</p>
+                            <p className="text-center ">
+                              No languages added yet.
+                            </p>
                           )}
                         </div>
                       )}
@@ -3795,7 +4118,9 @@ function CandidateProfile() {
                                 </div>
                               ))
                             ) : (
-                              <p>No certificates added yet.</p>
+                              <p className="text-center">
+                                No certificates added yet.
+                              </p>
                             )}
                           </div>
                         )}
@@ -3878,7 +4203,7 @@ function CandidateProfile() {
                   </div>
                   <div
                     id="collapseTwelve"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingTwelve"
                     data-bs-parent="#portfolioLinks"
                   >
@@ -3949,7 +4274,7 @@ function CandidateProfile() {
                                   >
                                     Save
                                   </button>
-                                  <button
+                                  {/* <button
                                     type="button"
                                     className="default-btn btn"
                                     onClick={() => {
@@ -3965,6 +4290,44 @@ function CandidateProfile() {
                                             ?.linkedin || "",
                                       });
                                       setEditPortfolioLinks(false);
+                                    }}
+                                  >
+                                    Cancel
+                                  </button> */}
+                                  <button
+                                    type="button"
+                                    className="default-btn btn"
+                                    onClick={() => {
+                                      // reset state
+                                      setPortfolioLinks({
+                                        personalWebsite:
+                                          profileData?.links?.portfolio || "",
+                                        github:
+                                          profileData?.links?.github || "",
+                                        linkedin:
+                                          profileData?.links?.linkedin || "",
+                                      });
+                                      setEditPortfolioLinks(false);
+
+                                      // ✅ also close accordion if open
+                                      const collapseElement =
+                                        document.getElementById(
+                                          "collapseTwelve"
+                                        );
+                                      if (
+                                        collapseElement &&
+                                        collapseElement.classList.contains(
+                                          "show"
+                                        )
+                                      ) {
+                                        const collapseInstance =
+                                          window.bootstrap.Collapse.getInstance(
+                                            collapseElement
+                                          );
+                                        if (collapseInstance) {
+                                          collapseInstance.hide(); // close it
+                                        }
+                                      }
                                     }}
                                   >
                                     Cancel

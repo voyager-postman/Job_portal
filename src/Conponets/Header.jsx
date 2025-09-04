@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 function Header() {
@@ -195,7 +195,7 @@ function Header() {
                         >
                           <div className="menu-profile">
                             <img
-                              src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                              src="assets/images/dashboard/dashboard-img-5.jpg"
                               className="rounded-circle"
                               alt="image"
                             />
@@ -207,10 +207,9 @@ function Header() {
                         </a>
                         <div className="dropdown-menu">
                           <div className="dropdown-header d-flex flex-column align-items-center">
-                           
                             <div className="figure mb-3">
                               <img
-                                src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                src="assets/images/dashboard/dashboard-img-5.jpg"
                                 className="rounded-circle"
                                 alt="image"
                               />
