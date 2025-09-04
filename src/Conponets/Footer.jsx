@@ -15,7 +15,7 @@ function Footer() {
         <div className="footer-area bg-color pt-50 pb-50">
           <div className="container">
             <div className="row">
-              <div className="col-lg-4 col-sm-6">
+              <div className="col-lg-3 col-sm-6">
                 <div className="single-footer-widget logo-content">
                   <div className="footer-logo">
                     <Link className="navbar-brand" to="/">
@@ -27,8 +27,7 @@ function Footer() {
                   </div>
                   <p>
                     Lorem ipsum dolor sit amet, consec tetur adipiscing elit
-                    eiusmod tempor incididunt labore dolore magna aliqua consec
-                    tetur adipiscing elite sed do labor.
+                    eiusmod tempor incididunt eiusmod tempor incididunt.
                   </p>
                   <div className="social-content">
                     <ul>
@@ -58,7 +57,7 @@ function Footer() {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-2 col-sm-6">
+              <div className="col-lg-3 col-sm-6">
                 <div className="single-footer-widget quick-link">
                   <h3>Job Seeker</h3>
                   <ul>

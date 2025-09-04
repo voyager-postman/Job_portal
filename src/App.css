@@ -201,7 +201,7 @@
   height: 50px;
 }
 .single-footer-widget.logo-content .footer-logo a img {
-  height: 74px;
+  width: 60%;
 }
 .oragneColor {
   color: #ff6600;

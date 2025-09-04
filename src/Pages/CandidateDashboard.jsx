@@ -124,6 +124,9 @@ function CandidateDashboard() {
                     <li />
                     <li />
                     <li />
+                    <li />
+                    <li />
+                    <li />
                   </ul>
                   <div className="candidate-complete-progress-circle-main-area">
                     <div className="candidate-complete-progress-circle">
@@ -136,6 +139,9 @@ function CandidateDashboard() {
                       <div className="candidate-complete-circel-icon">
                         <i className="fa-solid fa-check" />
                       </div>
+                       {/* <div className="candidate-complete-circel-icon">
+                        <i className="fa-solid fa-check" />
+                      </div> */}
                     </div>
                   </div>
                 </div>
