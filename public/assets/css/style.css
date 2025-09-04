@@ -578,20 +578,20 @@ Navbar Area Style
 ======================================================*/
 .navbar-area {
   position: relative;
-  background-color: #ffffff;
+  /* background-color: #ffffff !important; */
   z-index: 999;
   padding-top: 18px;
   padding-bottom: 18px;
 }
 .navbar-area.bg-f0f4fc {
-  background-color: #f0f4fc;
+  /* background-color: #f0f4fc; */
 }
 .navbar-area.is-sticky {
   top: 0;
   left: 0;
   width: 100%;
   z-index: 999;
-  background-color: #ffffff;
+  background-color: #ffffff !important;
   position: sticky !important;
   animation: 500ms ease-in-out 0s normal none 1 running fadeInDown;
   box-shadow: 0 0 20px 3px rgba(0, 0, 0, 0.05);
@@ -6949,10 +6949,10 @@ Footer Style
   margin-bottom: 30px;
 }
 .single-footer-widget h3 {
-  font-size: 22px;
+  font-size: 18px;
   color: #ffffff;
   position: relative;
-  margin-bottom: 45px;
+  margin-bottom: 35px;
 }
 
 .single-footer-widget h4 {
@@ -6980,14 +6980,14 @@ Footer Style
   left: 0;
 }
 .single-footer-widget.logo-content {
-  padding-right: 100px;
+  padding-right: 50px;
 }
 .single-footer-widget.logo-content .footer-logo {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 .single-footer-widget.logo-content p {
   color: #ffffff;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
   font-weight: 500;
 }
 .single-footer-widget.logo-content .social-content ul {
@@ -9822,8 +9822,9 @@ Dashboard Area CSS
 }
 
 .copy-right-area {
-  padding-top: 20px;
-  padding-bottom: 30px;
+  margin-top: 30px;
+  padding: 20px 20px;
+  background: #fff;
 }
 .copy-right-area .copyright-left-content p .template-name {
   color: #1967d2;
@@ -18066,6 +18067,7 @@ width:65%;
 }
 
 /*Your job posts pulish tab form css end here*/
+<<<<<<< HEAD
 /*Your job posts pulish tab form css start here*/
 
 .publish-job-payment-details {
@@ -18190,6 +18192,8 @@ width:65%;
 }
 
 /*Your job posts pulish tab form css end here*/
+=======
+>>>>>>> bb03fc6723881384168bdb56ea1bc58ca41814fb
 
 /*Your job posts pulish tab form css start here*/
 
@@ -20836,3 +20840,8 @@ tr {
 /* applide job list css end here*/
 
 /*employer Candidates List filter css end here*/
+.job-filter-cancel-heading h4 {
+  color: #ff6600;
+  font-size: 16px;
+  cursor: pointer;
+}

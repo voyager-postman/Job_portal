@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 function CandidateDashboard() {
   return (
     <>
@@ -23,7 +24,7 @@ function CandidateDashboard() {
               <div className="candidate-dashboard-box">
                 <div className="row">
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application">
+                    <Link to="/manage-job-application?tab=applications">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-file" />
@@ -36,7 +37,7 @@ function CandidateDashboard() {
                     </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application">
+                    <Link to="/manage-job-application?tab=saved-jobs">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-heart" />
@@ -49,7 +50,7 @@ function CandidateDashboard() {
                     </Link>
                   </div>
                   <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application">
+                    <Link to="/manage-job-application?tab=job-alerts">
                       <div className="dashboard-box-icon-content">
                         <div className="box-icon">
                           <i className="fa-solid fa-bell" />
@@ -123,6 +124,9 @@ function CandidateDashboard() {
                     <li />
                     <li />
                     <li />
+                    <li />
+                    <li />
+                    <li />
                   </ul>
                   <div className="candidate-complete-progress-circle-main-area">
                     <div className="candidate-complete-progress-circle">
@@ -135,6 +139,9 @@ function CandidateDashboard() {
                       <div className="candidate-complete-circel-icon">
                         <i className="fa-solid fa-check" />
                       </div>
+                       {/* <div className="candidate-complete-circel-icon">
+                        <i className="fa-solid fa-check" />
+                      </div> */}
                     </div>
                   </div>
                 </div>

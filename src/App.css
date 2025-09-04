@@ -201,7 +201,7 @@
   height: 50px;
 }
 .single-footer-widget.logo-content .footer-logo a img {
-  height: 74px;
+  width: 60%;
 }
 .oragneColor {
   color: #ff6600;
@@ -482,15 +482,14 @@
 margin: 20px 0px;
 text-align:center;
 }
- 
+
 .set-job-alert-btn .default-btn {
 font-size:17px;
 font-weight: 400;
 padding: 10px 30px;
 border-radius: 5px !important;
 }
- 
- 
+
 .tag-box {
 gap: 5px;
 padding: 8px;
@@ -529,5 +528,11 @@ font-weight: bold;
 margin-right: 10px;
 padding-bottom: 10px; 
 }
- 
+
+.application_modal .modal-footer{
+  justify-content: center !important;
+}
+.application_modal .modal-footer button.default-btn.btn{
+  padding: 8px 25px !important;
+}
 /*Job Alerts page css end here*/

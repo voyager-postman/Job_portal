@@ -69,13 +69,13 @@ const Employers = () => {
               <div className="job-filter-main-info">
                 <div className="job-filter-heading-area">
                   <h4>
-                    <Link to="/jobs" className="active">
+                    <Link to="/jobs">
                       <i className="fa-regular fa-file"></i> Job offers
                     </Link>
                   </h4>
                 </div>
                 <div className="divder-line-info"></div>
-                <div className="job-filter-heading-area">
+                <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
                     <Link to="/employers">
                       <i className="fa-regular fa-building"></i> Companies

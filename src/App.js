@@ -84,11 +84,14 @@ function LayoutWrapper() {
   const showSidebar = sidebarRoutes.some((route) =>
     location.pathname.startsWith(route)
   );
+
+  const bgColor = showSidebar ? "#fff" : "#f0f5f7";
+
   const showFooter = !showSidebar;
 
   return (
     <>
-      <Header />
+      <Header bgColor={bgColor} />
       {showSidebar && <Sidebar />}
       <Routes>
         {/* Public Routes */}

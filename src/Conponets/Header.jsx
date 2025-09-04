@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-function Header() {
+function Header({ bgColor }) {
   const { isLoggedIn } = useAuth();
   const userRole = localStorage.getItem("user_role");
 
@@ -76,7 +76,7 @@ function Header() {
   };
   return (
     <>
-      <div className="navbar-area bg-f0f4fc">
+      <div className="navbar-area" style={{ backgroundColor: bgColor }}>
         <div className="mobile-responsive-nav">
           <div className="container">
             <div className="mobile-responsive-menu">
@@ -195,7 +195,7 @@ function Header() {
                         >
                           <div className="menu-profile">
                             <img
-                              src="assets/images/dashboard/dashboard-img-5.jpg"
+                              src="/jobPortal/assets/images/dashboard/images1.png"
                               className="rounded-circle"
                               alt="image"
                             />
@@ -209,7 +209,7 @@ function Header() {
                           <div className="dropdown-header d-flex flex-column align-items-center">
                             <div className="figure mb-3">
                               <img
-                                src="assets/images/dashboard/dashboard-img-5.jpg"
+                                src="/jobPortal/assets/images/dashboard/images1.png"
                                 className="rounded-circle"
                                 alt="image"
                               />
