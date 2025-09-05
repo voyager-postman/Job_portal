@@ -1626,21 +1626,53 @@ function CandidateProfile() {
                             </div>
                             <div className="modal-body">
                               <div className="form-group">
-                                <div className="custom-file-upload">
+                                <div className="custom-file-upload text-center">
                                   <label>Upload Your File (PDF/JPG/PNG)</label>
+
+                                  {/* ✅ hidden file input */}
                                   <input
                                     type="file"
                                     id="file-upload"
                                     accept=".pdf,.jpg,.jpeg,.png"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => {
+                                      handleUploadCv(e); // <-- your function for upload
+
+                                      // ✅ close modal after file selection
+                                      const modalEl =
+                                        document.getElementById("exampleModal");
+                                      const modal =
+                                        window.bootstrap.Modal.getInstance(
+                                          modalEl
+                                        );
+                                      modal.hide();
+                                    }}
                                     required
                                   />
-                                  <div className="file-text">
-                                    <i className="fas fa-cloud-upload-alt" />
+
+                                  {/* ✅ clickable area (same design as yours) */}
+                                  <div
+                                    className="file-text cursor-pointer  border-primary p-3 rounded"
+                                    onClick={() =>
+                                      document
+                                        .getElementById("file-upload")
+                                        .click()
+                                    }
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <i
+                                      className="fas fa-cloud-upload-alt"
+                                      style={{
+                                        fontSize: "30px",
+                                        color: "#007bff",
+                                      }}
+                                    />
                                     <br />
-                                    <label>
+                                    <label style={{ cursor: "pointer" }}>
                                       Click to Upload or drag &amp; drop
                                     </label>
                                   </div>
+
                                   <div className="invalid-feedback mt-2">
                                     Please select a file.
                                   </div>

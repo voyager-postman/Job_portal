@@ -14096,6 +14096,7 @@ Dashboard Area CSS
   margin-top: 30px;
   background: #fff;
   padding: 20px 20px;
+  position: relative;
 }
 
 .available-job-type-details h5 {
@@ -17974,11 +17975,7 @@ width:65%;
   margin: 0px 0px 5px 0px;
 }
 
-.job-detail-in-cart-info {
-  background: #fff;
-  margin-top: 30px;
-  padding: 20px 30px;
-}
+
 
 .job-post-other-info {
   display: flex;
@@ -18067,7 +18064,6 @@ width:65%;
 }
 
 /*Your job posts pulish tab form css end here*/
-<<<<<<< HEAD
 /*Your job posts pulish tab form css start here*/
 
 .publish-job-payment-details {
@@ -18192,8 +18188,6 @@ width:65%;
 }
 
 /*Your job posts pulish tab form css end here*/
-=======
->>>>>>> bb03fc6723881384168bdb56ea1bc58ca41814fb
 
 /*Your job posts pulish tab form css start here*/
 
@@ -18339,7 +18333,7 @@ width:65%;
 }
 
 .job-detail-cart-info {
-  width: 65%;
+  width: 100%;
 }
 
 .job-post-address-info {
@@ -18351,11 +18345,6 @@ width:65%;
   margin: 0px 0px 5px 0px;
 }
 
-.job-detail-in-cart-info {
-  background: #fff;
-  margin-top: 30px;
-  padding: 20px 30px;
-}
 
 .job-post-other-info {
   display: flex;
@@ -20053,7 +20042,12 @@ tr {
 }
 /*table end page   css end here*/
 /*employer dashboard css start here*/
-
+.left, .right {
+  width: 49%;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+}
 .employer-dashboard-box {
   display: flex;
   align-items: center;
@@ -20204,13 +20198,13 @@ tr {
   justify-content: space-between;
 }
 
-.left,
+/* .left,
 .right {
   width: 49%;
   padding: 20px;
   background: #fff;
   border-radius: 10px;
-}
+} */
 
 .response-rates-info-area select {
   padding: 5px;

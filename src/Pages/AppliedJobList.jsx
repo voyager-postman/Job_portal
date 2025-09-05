@@ -90,9 +90,9 @@ function AppliedJobList() {
                 </div>
               </a>
               <div className="total-applicants-info">
-                <a href="application-management.html">
+                <Link to="/application-management">
                   <p>Applicants: 100</p>
-                </a>
+                </Link>
               </div>
             </div>
             <div className="available-job-posts-box">
@@ -143,9 +143,9 @@ function AppliedJobList() {
                 </div>
               </a>
               <div className="total-applicants-info">
-                <a href="application-management.html">
+                <Link to="/application-management">
                   <p>Applicants: 100</p>
-                </a>
+                </Link>
               </div>
             </div>
             <div className="available-job-posts-box">
@@ -196,9 +196,9 @@ function AppliedJobList() {
                 </div>
               </a>
               <div className="total-applicants-info">
-                <a href="application-management.html">
+                <Link to="/application-management">
                   <p>Applicants: 100</p>
-                </a>
+                </Link>
               </div>
             </div>
             <div className="available-job-posts-box">
@@ -249,9 +249,9 @@ function AppliedJobList() {
                 </div>
               </a>
               <div className="total-applicants-info">
-                <a href="application-management.html">
+                <Link to="/application-management">
                   <p>Applicants: 100</p>
-                </a>
+                </Link>
               </div>
             </div>
             <div className="available-job-posts-box">

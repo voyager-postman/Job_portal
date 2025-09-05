@@ -964,9 +964,9 @@ function Home() {
             </div>
           </div>
           <div className="text-center">
-            <a href="job-listing.html" className="default-btn btn">
+            <Link to="/jobs" className="default-btn btn">
               Browse All Jobs
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -1977,9 +1977,9 @@ function Home() {
             </div>
             <div className="col-lg-4 col-md-3">
               <div className="contact-btn">
-                <a href="contact.html" className="default-btn btn">
+                <Link to="/contact-us" className="default-btn btn">
                   Contact Us Now
-                </a>
+                </Link>
               </div>
             </div>
           </div>
