@@ -87,8 +87,8 @@ function Home() {
     autoplayTimeout: 3000,
     smartSpeed: 800,
     navText: [
-      '<span class="custom-nav-arrow left">&#8249;</span>', // ‹
-      '<span class="custom-nav-arrow right">&#8250;</span>', // ›
+      '<span class="custom-nav-arrow ">&#8249;</span>', // ‹
+      '<span class="custom-nav-arrow ">&#8250;</span>', // ›
     ],
     responsive: {
       0: {
@@ -439,7 +439,7 @@ function Home() {
           <div className="section-title text-center">
             <h2>
               Companies of <label className="oragneColor">the Week</label>
-            </h2>
+            </h2> 
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt.
@@ -1651,7 +1651,7 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="download-area bg-f0f5f7 ptb-100">
+      {/* <div className="download-area bg-f0f5f7 ptb-100">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
@@ -1707,7 +1707,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="blog-area pt-100 pb-70">
         <div className="container">
           <div className="blog-top-content">

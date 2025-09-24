@@ -8,7 +8,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
 // import bannerImg from "";
 
-function Login() {
+function EmailOTPVerification() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -173,28 +173,11 @@ function Login() {
                       <div className="login-btn-recover-password">
                         <div className="login-recover-password-btn">
                           <button type="submit" className="default-btn btn">
-                            {loading ? "Logging in..." : "Login"}
+                            {loading ? "V in..." : "Verify"}
                           </button>
-                        </div>
-                        <div className="login-singup-bottom-content">
-                          <p>
-                            Don't have an account yet?
-                            <Link to="/register">
-                              <i className="fa-solid fa-square-plus" /> Create
-                              an account
-                            </Link>
-                          </p>
                         </div>
                       </div>
                     </form>
-                    <div className="recruiter-login-content-area">
-                      <p>
-                        Are you a recruiter? Log in via our dedicated portal
-                      </p>
-                      <Link to="/employer-login">
-                        <i className="fa-solid fa-users" /> Recruiter Loging
-                      </Link>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -214,4 +197,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default EmailOTPVerification;

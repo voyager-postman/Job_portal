@@ -75,21 +75,7 @@ const EmployerBasicInformation = () => {
     setCitySuggestions([]);
   };
 
-  const fetchCities = async (key) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key },
-      });
-      if (res.data && Array.isArray(res.data.cities)) {
-        setCitySuggestions(res.data.cities);
-      } else {
-        setCitySuggestions([]);
-      }
-    } catch (error) {
-      console.error("Error fetching cities:", error);
-      setCitySuggestions([]);
-    }
-  };
+
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -400,16 +386,7 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-                {/* <div className="col-lg-6 col-md-6">
-                  <div className="form-group">
-                    <label>Street Address</label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Street Address"
-                    />
-                  </div>
-                </div> */}
+              
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group position-relative">
                     <label>Street Address</label>
@@ -453,7 +430,7 @@ const EmployerBasicInformation = () => {
                 {/* City */}
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>City</label>
+                    <label>City</label> (auto-generated from location):
                     <input
                       className="form-control"
                       type="text"
@@ -467,7 +444,7 @@ const EmployerBasicInformation = () => {
                 {/* State */}
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>State</label>
+                    <label>State</label>  (auto-generated from location):
                     <input
                       className="form-control"
                       type="text"
@@ -481,7 +458,7 @@ const EmployerBasicInformation = () => {
                 {/* Country */}
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>Country</label>
+                    <label>Country</label>  (auto-generated from location):
                     <input
                       className="form-control"
                       type="text"

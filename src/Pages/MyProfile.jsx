@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
@@ -30,6 +30,7 @@ function MyProfile() {
     firstName: "",
     lastName: "",
     city: "",
+    County: "",
     jobTitle: "",
     experience: "",
     employmentType: "",
@@ -40,8 +41,10 @@ function MyProfile() {
     selectedCategory: "",
     attachment: null,
   });
+  const [countries, setCountries] = useState([]);
   const navigate = useNavigate();
-
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -94,6 +97,30 @@ function MyProfile() {
       eligibleInFrance: value,
     }));
   };
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}get/countries`);
+        console.log("Countries API Response:", response.data);
+
+        if (response.status === 200) {
+          // check if response contains "countries" key
+          if (Array.isArray(response.data)) {
+            setCountries(response.data);
+          } else if (Array.isArray(response.data.countries)) {
+            setCountries(response.data.countries);
+          } else {
+            console.error("Unexpected countries API format", response.data);
+            setCountries([]); // fallback empty
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+
+    fetchCountries();
+  }, []);
   const validate = () => {
     // if (!formData.attachment) {
     //   toast.error("Resume file is required.");
@@ -107,10 +134,10 @@ function MyProfile() {
       toast.error("Last name is required.");
       return false;
     }
-    if (!formData.city) {
-      toast.error("City is required.");
-      return false;
-    }
+    // if (!formData.city) {
+    //   toast.error("City is required.");
+    //   return false;
+    // }
     // if (!formData.jobTitle?.trim()) {
     //   toast.error("Job title is required.");
     //   return false;
@@ -154,19 +181,31 @@ function MyProfile() {
     data.append("firstname", formData.firstName);
     data.append("lastname", formData.lastName);
     data.append("city", formData.city);
+    data.append("County", formData.County);
     data.append("jobTitle", formData.jobTitle);
     data.append("yearOfExprerience", formData.experience);
     data.append("jobCategory", formData.selectedCategory);
     data.append("DesiredEmploymentType", formData.employmentType);
     data.append("DesiredOccupationType", formData.occupationType);
-    data.append(
-      "MinimumDesiredSalary",
-      JSON.stringify({
-        type: formData.salaryType || "Yearly",
-        amount: formData.salaryAmount,
-        currency: "EUR",
-      })
-    );
+    // data.append(
+    //   "MinimumDesiredSalary",
+    //   JSON.stringify({
+    //     type: formData.salaryType || "Yearly",
+    //     amount: formData.salaryAmount,
+    //     currency: "USD",
+    //   })
+    // );
+    if (formData.salaryType || formData.salaryAmount) {
+  data.append(
+    "MinimumDesiredSalary",
+    JSON.stringify({
+      type: formData.salaryType || "Yearly",
+      amount: formData.salaryAmount || "",
+      currency: "USD",
+    })
+  );
+}
+
     const isEligible = formData.eligibleInFrance?.toLowerCase() === "yes";
     data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
 
@@ -185,7 +224,7 @@ function MyProfile() {
         }
       );
       if (response.data.success) {
-        const {userDetails } = response.data;
+        const { userDetails } = response.data;
         localStorage.setItem("user", JSON.stringify(userDetails));
         localStorage.setItem("user_id", userDetails._id);
         localStorage.setItem("user_email", userDetails.email);
@@ -231,6 +270,43 @@ function MyProfile() {
   //     toast.error("Failed to upload resume. Try again.");
   //   }
   // };
+  const handleCitySearch = async (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, city: value }));
+
+    if (!value.trim()) {
+      setCitySuggestions([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}searchCities`, {
+        params: { key: value },
+      });
+
+      if (res.data?.success && Array.isArray(res.data.cities)) {
+        setCitySuggestions(res.data.cities);
+      } else {
+        setCitySuggestions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cities:", err);
+      setCitySuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectCity = (city) => {
+    setFormData((prev) => ({
+      ...prev,
+      city: city.name,
+      state: city.state_name,
+      country: city.country_name,
+    }));
+    setCitySuggestions([]); // ✅ hide dropdown after selecting
+  };
   const uploadResume = async () => {
     const data = new FormData();
     data.append("resume", formData.attachment);
@@ -460,7 +536,9 @@ function MyProfile() {
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group">
-                      <label>First name</label>
+                      <label>
+                        First name <span className="text-danger">*</span>
+                      </label>
                       <input
                         type="text"
                         name="firstName"
@@ -473,7 +551,9 @@ function MyProfile() {
                   </div>
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group">
-                      <label>Last Name</label>
+                      <label>
+                        Last Name <span className="text-danger">*</span>
+                      </label>
                       <input
                         type="text"
                         name="lastName"
@@ -484,7 +564,7 @@ function MyProfile() {
                       />
                     </div>
                   </div>
-                  <div className="col-lg-12 col-md-12">
+                  {/* <div className="col-lg-12 col-md-12">
                     <div className="form-group">
                       <label>City</label>
                       <select
@@ -499,16 +579,85 @@ function MyProfile() {
                         <option value="Noida">Noida</option>
                       </select>
                     </div>
+                  </div> */}
+
+                  <div className="col-lg-6 col-md-6">
+                    <div className="form-group position-relative">
+                      <label>
+                        City <span>(optional)</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleCitySearch}
+                        autoComplete="off"
+                      />
+
+                      {/* Suggestions Dropdown */}
+                      {loading && (
+                        <div className="suggestion-box">Searching...</div>
+                      )}
+                      {!loading && citySuggestions?.length > 0 && (
+                        <ul
+                          className="list-group position-absolute w-100"
+                          style={{
+                            zIndex: 1000,
+                            maxHeight: "200px",
+                            overflowY: "auto",
+                          }}
+                        >
+                          {citySuggestions?.map((city) => (
+                            <li
+                              key={city._id}
+                              className="list-group-item list-group-item-action"
+                              onClick={() => handleSelectCity(city)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {city.name}, {city.state_name},{" "}
+                              {city.country_name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <div className="form-group">
+                      <label>
+                        County <span>(optional)</span>
+                      </label>
+                      <select
+                        name="County" // ✅ Important
+                        className="form-select form-control"
+                        value={formData.County}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select County</option>
+                        {countries?.length > 0 &&
+                          countries.map((country, idx) => (
+                            <option key={idx} value={country.name || country}>
+                              {country.name || country}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="personal-info-area">
-                <h3 className="heading-bottom-line">Work Experience</h3>
+                <h3 className="heading-bottom-line">
+                  Work Experience <span>(optional)</span>
+                </h3>
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group">
-                      <label>Job Title</label>
+                      <label>
+                        Job Title <span>(optional)</span>
+                      </label>
                       <input
                         type="text"
                         name="jobTitle"
@@ -521,7 +670,9 @@ function MyProfile() {
                   </div>
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group">
-                      <label>Years of experience</label>
+                      <label>
+                        Years of experience <span>(optional)</span>
+                      </label>
                       <input
                         type="text"
                         name="experience"
@@ -535,7 +686,9 @@ function MyProfile() {
                 </div>
               </div>
               <div className="personal-info-area">
-                <h3 className="heading-bottom-line">Job Category</h3>
+                <h3 className="heading-bottom-line">
+                  Job Category <span>(optional)</span>
+                </h3>
                 <div className="job-category-tags">
                   <ul id="JobCategory">
                     {categories.map((category, index) => (
@@ -555,7 +708,9 @@ function MyProfile() {
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>Desired Employment Type</label>
+                    <label>
+                      Desired Employment Type <span>(optional)</span>
+                    </label>
                     <select
                       name="employmentType"
                       value={formData.employmentType}
@@ -577,7 +732,9 @@ function MyProfile() {
                 </div>
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>Desired Occupation Type</label>
+                    <label>
+                      Desired Occupation Type <span>(optional)</span>
+                    </label>
                     <select
                       name="occupationType"
                       value={formData.occupationType}
@@ -592,7 +749,9 @@ function MyProfile() {
                 </div>
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
-                    <p>Minimum Desired Salary (Gross)</p>
+                    <p>
+                      Minimum Desired Salary (Gross) <span>(optional)</span>
+                    </p>
                     <input
                       type="radio"
                       id="Hourly"
@@ -635,7 +794,7 @@ function MyProfile() {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-12 col-md-12">
+              {/* <div className="col-lg-12 col-md-12">
                 <div className="form-group">
                   <label>Please Enter Your Desired Salary</label>
                   <input
@@ -647,7 +806,29 @@ function MyProfile() {
                     className="form-control"
                   />
                 </div>
+              </div> */}
+              <div className="col-lg-12 col-md-12">
+                <div className="form-group">
+                  <label>
+                    Please Select Your Desired Salary <span>(optional)</span>
+                  </label>
+                  <select
+                    name="salaryAmount"
+                    value={formData.salaryAmount}
+                    onChange={handleChange}
+                    className="form-control"
+                  >
+                    <option value="">Select Desired Salary</option>
+                    <option value="0-100">$0 - $100</option>
+                    <option value="101-200">$101 - $200</option>
+                    <option value="201-300">$201 - $300</option>
+                    <option value="301-400">$301 - $400</option>
+                    <option value="401-500">$401 - $500</option>
+                    <option value="500+">$500+</option>
+                  </select>
+                </div>
               </div>
+
               {/* <div className="personal-info-area">
                 <h3 className="heading-bottom-line">
                   I Am Eligible To Work In France

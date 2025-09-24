@@ -4,7 +4,7 @@ import axios from "../utils/axiosInstance";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
-
+import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
 
 function EmployerLogin() {
@@ -16,7 +16,9 @@ function EmployerLogin() {
     password: "",
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
+  const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -26,6 +28,10 @@ function EmployerLogin() {
     const { email, password } = formData;
     if (!email || !password) {
       toast.error("Email and password are required");
+      return false;
+    }
+    if (!captchaVerified) {
+      toast.error("Please verify captcha!");
       return false;
     }
     return true;
@@ -81,109 +87,119 @@ function EmployerLogin() {
   return (
     <>
       <ToastContainer />
-      <div>
-        <section className="inner-banners-info-area">
-          <div className="inner-banners-img-area">
-            <img
-              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-              alt="breadcrumb Img"
-            />
-          </div>
-          <div className="inner-banners-title-info">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-12 col-md-12 col-sm-12">
-                  <div className="inner-page-banner-title">
-                    <h2>Employer Login</h2>
-                    <ul>
-                      <li className="menu-divide-arrow">
-                        <Link to="/">Home</Link>
-                      </li>
-                      <li>Employer Login</li>
-                    </ul>
+
+      <section className="login-area-info-area">
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-lg-6 p-0">
+              <div className="login-area">
+                <div className="company-logo-info-area">
+                  <img
+                    src="assets/images/logo/connect-work-ma-login.png"
+                    className="main-logo"
+                    alt="logo"
+                  />
+                </div>
+                <div className="container">
+                  <div className="login">
+                    <h3>Employer Log In</h3>
+                    <form>
+                      <div className="form-group">
+                        <label>Email Address</label>
+                        <input
+                          type="email"
+                          id="email"
+                          className="form-control"
+                          placeholder="Username Or Email Address*"
+                          value={formData.email}
+                          onChange={handleChange}
+                        />
+                      </div>
+                      <div className="form-group eye-icon-postion">
+                        <label>Password</label>
+                        <div style={{ position: "relative" }}>
+                          <input
+                            type={showPassword ? "text" : "password"} // ✅ toggle here
+                            id="password"
+                            className="form-control"
+                            placeholder="Password*"
+                            value={formData.password}
+                            onChange={handleChange}
+                          />
+                          <i
+                            className={`fa-solid ${
+                              showPassword ? "fa-eye-slash" : "fa-eye"
+                            } toggle-password`}
+                            onClick={() => setShowPassword((prev) => !prev)} // ✅ toggle click
+                            style={{
+                              position: "absolute",
+                              right: "10px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              cursor: "pointer",
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* ✅ reCAPTCHA Checkbox */}
+                      <div className="form-group mb-3">
+                        <ReCAPTCHA
+                          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Google test key
+                          onChange={() => setCaptchaVerified(true)}
+                        />
+                      </div>
+
+                      <div className="login-forgot-password">
+                        <Link to="/recovery-password">
+                          <i className="fa-solid fa-lock" /> Forgot your
+                          password?
+                        </Link>
+                      </div>
+                      <div className="login-btn-recover-password">
+                        <div className="login-recover-password-btn">
+                          <button
+                            type="button"
+                            className="default-btn btn"
+                            onClick={handleLogin}
+                          >
+                            {loading ? "Logging in..." : "Login"}
+                          </button>
+                        </div>
+                        <div className="login-singup-bottom-content">
+                          <p>
+                            Don't have an account yet?
+                            <Link to="/employer-register">
+                              <i className="fa-solid fa-square-plus" /> Create
+                              an account
+                            </Link>
+                          </p>
+                        </div>
+                      </div>
+                    </form>
+                    <div className="recruiter-login-content-area">
+                      <p>
+                        Are you a recruiter? Log in via our dedicated portal
+                      </p>
+                      <Link to="/employer-login">
+                        <i className="fa-solid fa-users" /> Recruiter Loging
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-        {/*End Page Banner Area*/}
-        {/*Start Login Area*/}
-        <div className="login-area ptb-100">
-          <div className="container">
-            <div className="login">
-              <div class="company-logo-info-area">
+            <div className="col-lg-6 p-0">
+              <div className="login-img-info-area">
                 <img
-                  src="/jobPortal/assets/images/logo/connect-work-ma-login.png"
-                  class="main-logo"
-                  alt="logo"
+                  src="assets/images/company/book-appointment-orignal.png"
+                  alt="register-img"
                 />
-              </div>
-              <h3>Employer Log In</h3>
-              <div className="form-group">
-                <input
-                  type="email"
-                  id="email"
-                  className="form-control"
-                  placeholder="Username Or Email Address*"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  id="password"
-                  className="form-control"
-                  placeholder="Password*"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  defaultValue
-                  id="flexCheckDefault"
-                />
-                <label className="form-check-label" htmlFor="flexCheckDefault">
-                  Keep Me Signed In
-                </label>
-              </div>
-              <div className="login-btn-recover-password">
-                <div className="login-recover-password-btn">
-                  <button
-                    type="button"
-                    className="default-btn btn"
-                    onClick={handleLogin}
-                  >
-                    Login
-                  </button>
-                </div>
-                <div className="employer-login-social-btn">
-                  <a href="#" className="default-btn btn">
-                    <div className="social-icon">
-                      <img src="/jobPortal/assets/images/icon/Google-icon.png" />
-                    </div>
-                  </a>
-                </div>
-              </div>
-
-              <div className="employer-login-singup-password-btn">
-                <div className="employer-login-singup-password-link">
-                  <p>Don't have an account yet?</p>
-                  <Link to="/employer-register">Sign up</Link>
-                </div>
-                <div className="employer-login-singup-password-link">
-                  <p>Forgot your password?</p>
-                  <Link to="/recovery-password">Reset your password</Link>
-                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </>
   );
 }

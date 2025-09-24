@@ -49,6 +49,12 @@ import CreateRecruiters from "./Conponets/CreateRecruiters";
 import MassagingSystem from "./Pages/MassagingSystem";
 import ApplicationManagement from "./Pages/ApplicationManagement";
 import AppliedJobList from "./Pages/AppliedJobList";
+import EmailOTPVerification from "./Pages/EmailOTPVerification";
+import VerifiedCancel from "./Pages/VerifiedCancel";
+import AccountVerified from "./Pages/AccountVerified";
+import Varification from "./Pages/Varification";
+import JobDetalsInfo from "./Pages/JobDetalsInfo";
+
 // "build 04-09-2025"
 function LayoutWrapper() {
   const location = useLocation();
@@ -97,10 +103,16 @@ function LayoutWrapper() {
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/verification" element={<Varification />} />
+        <Route path="/account-verified" element={<AccountVerified />} />
+        <Route path="/verified-cancel" element={<VerifiedCancel />} />
+
         <Route path="/register" element={<Register />} />
         <Route path="/recovery-password" element={<RecoveryPassword />} />
         <Route path="/employer-register" element={<EmployerRegister />} />
         <Route path="/employer-login" element={<EmployerLogin />} />
+        <Route path="/email-verification" element={<EmailOTPVerification />} />
+
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/employers" element={<Employers />} />
         <Route path="/faq" element={<Faq />} />
@@ -177,7 +189,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-         <Route
+        <Route
           path="/application-management"
           element={
             <PrivateRoute>
@@ -185,7 +197,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-         <Route
+        <Route
           path="/applied-jobs-list"
           element={
             <PrivateRoute>
@@ -215,6 +227,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <JobDetails />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/job-details-info"
+          element={
+            <PrivateRoute>
+              <JobDetalsInfo />
             </PrivateRoute>
           }
         />
@@ -298,7 +318,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-         <Route
+        <Route
           path="/messaging-system"
           element={
             <PrivateRoute>

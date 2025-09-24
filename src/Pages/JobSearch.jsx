@@ -5,9 +5,32 @@ import { NavLink } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
+const companyOptions = [
+  "Apple",
+  "Banana",
+  "Cherry",
+  "Date",
+  "Elderberry",
+  "Fig",
+  "Grape",
+  "Honeydew",
+];
+const industries = [
+  "Agriculture",
+  "Air Transport",
+  "Automotive",
+  "Consulting",
+  "Biotechnology",
+  "Construction",
+  "Chemicals",
+  "Consumer Goods and Services",
+];
+
 function JobSearch() {
+  const wrapperRef = useRef(null);
+
   const location = useLocation();
   const navigate = useNavigate();
   const [jobList, setJobList] = useState([]);
@@ -19,6 +42,68 @@ function JobSearch() {
     location: "",
     category: "",
   });
+    const [selected, setSelected] = useState([]);
+  const [selectedCompanies, setSelectedCompanies] = useState([]);
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const companyContainerRef = useRef(null);
+  const [search, setSearch] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
+  const handleToggleCompany = (company) => {
+    if (selectedCompanies.includes(company)) {
+      setSelectedCompanies(selectedCompanies.filter((c) => c !== company));
+    } else {
+      setSelectedCompanies([...selectedCompanies, company]);
+    }
+    setCompanySearchTerm("");
+  };
+
+  const handleRemoveCompany = (company) => {
+    setSelectedCompanies(selectedCompanies.filter((c) => c !== company));
+  };
+
+  const handleClearCompanies = () => {
+    setSelectedCompanies([]);
+    setCompanySearchTerm("");
+  };
+
+  const filteredCompanyOptions = companyOptions.filter(
+    (company) =>
+      company.toLowerCase().includes(companySearchTerm.toLowerCase()) &&
+      !selectedCompanies.includes(company)
+  );
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [wrapperRef]);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        companyContainerRef.current &&
+        !companyContainerRef.current.contains(event.target)
+      ) {
+        setShowCompanyDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [companyContainerRef]);
+
+  const filteredOptions = industries.filter((item) =>
+    item.toLowerCase().includes(search.toLowerCase())
+  );
 
   // ✅ Fetch categories
   const getCategories = async () => {
@@ -61,6 +146,20 @@ function JobSearch() {
     getCategories();
     getAllJobList(10, 1);
   }, []);
+  const clearAll = () => {
+    setSelected([]);
+    setSearch("");
+  };
+    const removeTag = (value) => {
+    setSelected(selected.filter((v) => v !== value));
+  };
+  const toggleOption = (value) => {
+    if (selected.includes(value)) {
+      setSelected(selected.filter((v) => v !== value));
+    } else {
+      setSelected([...selected, value]);
+    }
+  };
 
   return (
     <>
@@ -148,7 +247,7 @@ function JobSearch() {
           <div className="job-filter-job-list-info">
             <div className="container">
               <div className="row">
-                <div className="col-lg-3 col-sm-3">
+                {/* <div className="col-lg-3 col-sm-3">
                   <div className="job-filter-main-info">
                     <div
                       className="job-filter-heading-area job-filter-cancel-heading"
@@ -456,6 +555,710 @@ function JobSearch() {
                       </div>
                     </div>
                   </div>
+                </div> */}
+                <div className="col-lg-3 col-md-3">
+                  <div className="job-filter-main-info">
+                    <div className="job-filter-heading-area">
+                      <h4>
+                        <Link to="/companies-list" className="active">
+                          <i className="fa-regular fa-file" /> Job offers
+                        </Link>
+                      </h4>
+                    </div>
+                    <div className="job-filter-heading-area">
+                      <h4>
+                        <Link to="/companies-list">
+                          <i className="fa-regular fa-building" /> Companies
+                        </Link>
+                      </h4>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-gear" /> Tech Stack
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <div className="job-filter-tech-stack">
+                          <ul>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Data / Big data (75)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                DevOps / Cloud (80)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Information systems / Networks (100)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Quality Assurance (150)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Project / Product Management (120)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Software Engineering / Web Development (140)
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="myCollapse1"
+                          style={{}}
+                        >
+                          <div className="job-filter-tech-stack-search-box">
+                            <input
+                              type="search"
+                              className="form-control"
+                              id="gsearch"
+                              name="gsearch"
+                              placeholder="Search"
+                            />
+                          </div>
+                          <ul>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Data / Big data (140)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                DevOps / Cloud (150)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Information systems / Networks (120)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Quality Assurance (110)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Project / Product Management (95)
+                              </label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Software Engineering / Web Development (2000)
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#myCollapse1"
+                          aria-expanded="false"
+                          aria-controls="myCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-gear" /> Job Type
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Full Time</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Part Time</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Freelance</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1">
+                              {" "}
+                              Internship / Apprenticeship
+                            </label>
+                          </li>
+                        </ul>
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="myCollapse2"
+                        >
+                          <ul>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> Volunteer</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> Seasonal</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1">
+                                {" "}
+                                Contract / Freelance / Self-employed
+                              </label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#myCollapse2"
+                          aria-expanded="false"
+                          aria-controls="myCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-location-dot" /> Location
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        {/*  <select class="form-select form-control" aria-label="Default select example">
+          <option selected="">Select Job Location</option>
+          <option value="1">India</option>
+          <option value="2">USA</option>
+          <option value="3">Paris</option>
+          <option value="4">Germany</option>
+          <option value="2">Spain</option>
+          <option value="3">Mau</option>
+      </select> */}
+                        <div className="job-filter-select-location">
+                          <input
+                            className="form-control"
+                            type="search"
+                            id="locationSearch"
+                            placeholder="Search Location"
+                          />
+                          <div
+                            className="dropdown"
+                            id="resultsDropdown"
+                            style={{ display: "none" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-signal" /> Experience Level
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 0 - 2 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 2 - 4 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 5 - 7 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 8 - 10 Years</label>
+                          </li>
+                        </ul>
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="myCollapse3"
+                        >
+                          <ul>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> 11 - 13 Years</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> 14 - 16 Years</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> 17 - 19 Years</label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#myCollapse3"
+                          aria-expanded="false"
+                          aria-controls="myCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-money-bill-alt" /> Salary Range
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 0 to $100</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $100 to $150</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $150 to $200</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $200 to $250</label>
+                          </li>
+                        </ul>
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="myCollapse4"
+                        >
+                          <ul>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> $250 to $300</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> $300 - $350</label>
+                            </li>
+                            <li>
+                              <input
+                                type="checkbox"
+                                id="OtherPreferences"
+                                name="OtherPreferences"
+                                defaultValue="Other Preferences"
+                              />
+                              <label htmlFor="vehicle1"> $350 - $400</label>
+                            </li>
+                          </ul>
+                        </div>
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#myCollapse4"
+                          aria-expanded="false"
+                          aria-controls="myCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area" ref={wrapperRef}>
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Industry Sector
+                          </h4>
+                        </div>
+                        <div
+                          className="job-filter-cancel-heading"
+                          onClick={clearAll}
+                        >
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <div className="multi-select-container">
+                          <div
+                            className="selected-items"
+                            onClick={() => setShowOptions(true)}
+                          >
+                            {selected.map((val) => (
+                              <div key={val} className="tag">
+                                <span>{val}</span>
+                                <span
+                                  className="remove-tag"
+                                  onClick={() => removeTag(val)}
+                                >
+                                  ×
+                                </span>
+                              </div>
+                            ))}
+                            <input
+                              type="text"
+                              placeholder="Select industries..."
+                              value={search}
+                              onChange={(e) => setSearch(e.target.value)}
+                              onFocus={() => setShowOptions(true)}
+                            />
+                          </div>
+
+                          {showOptions && (
+                            <ul className="options-list">
+                              {filteredOptions.map((item) => (
+                                <li
+                                  key={item}
+                                  onClick={() => toggleOption(item)}
+                                  className={
+                                    selected.includes(item) ? "selected" : ""
+                                  }
+                                >
+                                  {item}
+                                  {selected.includes(item) && (
+                                    <span className="checkmark">✔</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div
+                      className="job-filter-search-area"
+                      ref={companyContainerRef}
+                    >
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Company
+                          </h4>
+                        </div>
+                        <div
+                          className="job-filter-cancel-heading"
+                          onClick={handleClearCompanies}
+                        >
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <div className="multi-select-container">
+                          <div className="selected-items">
+                            {selectedCompanies.map((company) => (
+                              <div key={company} className="tag">
+                                <span>{company}</span>
+                                <span
+                                  className="remove-tag"
+                                  onClick={() => handleRemoveCompany(company)}
+                                >
+                                  ×
+                                </span>
+                              </div>
+                            ))}
+                            <input
+                              type="text"
+                              placeholder="Search Company..."
+                              value={companySearchTerm}
+                              onChange={(e) =>
+                                setCompanySearchTerm(e.target.value)
+                              }
+                              onFocus={() => setShowCompanyDropdown(true)}
+                            />
+                          </div>
+
+                          {showCompanyDropdown && (
+                            <ul className="options-list">
+                              {filteredCompanyOptions.map((company) => (
+                                <li
+                                  key={company}
+                                  onClick={() => handleToggleCompany(company)}
+                                >
+                                  {company}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="col-lg-9 col-md-9">
                   <div className="available-job-posts-info">
@@ -471,15 +1274,18 @@ function JobSearch() {
                           <div className="available-job-posts-box">
                             <div className="available-job-company-name-save-job">
                               <div className="available-job-company-name">
-                                <h4>
-                                  <i className="fa-solid fa-building" />{" "}
-                                  {job?.brandName}
-                                </h4>
+                                <a href="job-details.html">
+                                  <h4>
+                                    <img
+                                      src="assets/images/icon/icon-25.png"
+                                      alt="logo"
+                                    />{" "}
+                                    Alibaba Cloud
+                                  </h4>
+                                </a>
                               </div>
                               <div className="available-job-save-job">
-                                <a href="job-details.html">
-                                  <i className="fa-regular fa-heart" />
-                                </a>
+                                <i className="fa-regular fa-heart" />
                                 <a
                                   href="https://www.linkedin.com/login"
                                   target="_blank"
@@ -500,30 +1306,53 @@ function JobSearch() {
                                 </a>
                               </div>
                             </div>
-                            <div className="available-job-type-details">
-                              <h5>{job?.jobTitle}</h5>
-                              <ul>
-                                <li>
-                                  <i className="fa-regular fa-calendar" />&nbsp;
-                                  {moment(job?.createdAt).fromNow()}
-                                </li>
-                                <li>
-                                  <i className="fa-regular fa-file" />{" "}
-                                  {job?.minimumLevel}
-                                </li>
-                                <li>
-                                  <i className="fa-regular fa-user" />{" "}
-                                  {job?.employmentType}
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-location-dot" />{" "}
-                                  {job?.city}
-                                </li>
-                                <li>
-                                  <i className="fa-regular fa-file" />{" "}
-                                  {job?.jobCategory}
-                                </li>
-                              </ul>
+                            <a href="job-details.html">
+                              <div className="available-job-type-details">
+                                <h5>
+                                  Alibaba Cloud-Facility Operation
+                                  Manager-Paris, France
+                                </h5>
+                                <p>
+                                  Lorem Ipsum is simply dummy text of the
+                                  printing and typesetting industry. Lorem Ipsum
+                                  has been the industry's standard dummy text
+                                  ever since the 1500s, when an unknown printer
+                                  took a galley
+                                </p>
+                                <ul>
+                                  <li>
+                                    <i className="fa-regular fa-calendar" /> 3
+                                    hours ago
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-file" /> 5 Years
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-user" /> Full
+                                    time
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-location-dot" />{" "}
+                                    Paris
+                                  </li>
+                                  <li>
+                                    <i className="fa-regular fa-file" />{" "}
+                                    Information Systems
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-users" />{" "}
+                                    Available: 3
+                                  </li>
+                                </ul>
+                              </div>
+                            </a>
+                            <div className="available-job-type-apply-btn">
+                              <a
+                                href="job-details.html"
+                                className="apply-btn-info default-btn btn"
+                              >
+                                Apply
+                              </a>
                             </div>
                           </div>
                         </Link>

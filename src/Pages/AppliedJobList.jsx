@@ -64,7 +64,7 @@ function AppliedJobList() {
                   </a>
                 </div>
               </div>
-              <a href="job-details.html">
+              <Link to="/job-details">
                 <div className="available-job-type-details">
                   <h5>
                     Alibaba Cloud-Facility Operation Manager-Paris, France
@@ -88,7 +88,7 @@ function AppliedJobList() {
                     </li>
                   </ul>
                 </div>
-              </a>
+              </Link>
               <div className="total-applicants-info">
                 <Link to="/application-management">
                   <p>Applicants: 100</p>
@@ -117,7 +117,7 @@ function AppliedJobList() {
                   </a>
                 </div>
               </div>
-              <a href="job-details.html">
+              <Link to="/job-details">
                 <div className="available-job-type-details">
                   <h5>
                     Alibaba Cloud-Facility Operation Manager-Paris, France
@@ -141,7 +141,7 @@ function AppliedJobList() {
                     </li>
                   </ul>
                 </div>
-              </a>
+              </Link>
               <div className="total-applicants-info">
                 <Link to="/application-management">
                   <p>Applicants: 100</p>
@@ -170,7 +170,7 @@ function AppliedJobList() {
                   </a>
                 </div>
               </div>
-              <a href="job-details.html">
+              <Link to="/job-details">
                 <div className="available-job-type-details">
                   <h5>
                     Alibaba Cloud-Facility Operation Manager-Paris, France
@@ -194,7 +194,7 @@ function AppliedJobList() {
                     </li>
                   </ul>
                 </div>
-              </a>
+              </Link>
               <div className="total-applicants-info">
                 <Link to="/application-management">
                   <p>Applicants: 100</p>
@@ -223,7 +223,7 @@ function AppliedJobList() {
                   </a>
                 </div>
               </div>
-              <a href="job-details.html">
+              <Link to="/job-details">
                 <div className="available-job-type-details">
                   <h5>
                     Alibaba Cloud-Facility Operation Manager-Paris, France
@@ -247,7 +247,7 @@ function AppliedJobList() {
                     </li>
                   </ul>
                 </div>
-              </a>
+              </Link>
               <div className="total-applicants-info">
                 <Link to="/application-management">
                   <p>Applicants: 100</p>
@@ -276,7 +276,7 @@ function AppliedJobList() {
                   </a>
                 </div>
               </div>
-              <a href="job-details.html">
+              <Link to="/job-details">
                 <div className="available-job-type-details">
                   <h5>
                     Alibaba Cloud-Facility Operation Manager-Paris, France
@@ -300,7 +300,7 @@ function AppliedJobList() {
                     </li>
                   </ul>
                 </div>
-              </a>
+              </Link>
               <div className="total-applicants-info">
                 <Link to="/application-management">
                   <p>Applicants: 100</p>

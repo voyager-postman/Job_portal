@@ -217,7 +217,7 @@
 /*Company Details page css start here*/
 
 .company-detail-info-area {
-  margin: 80px 0px 80px 0px;
+  /* margin: 80px 0px 80px 0px; */
   padding: 0px 0px 0px 0px;
 }
 
@@ -231,11 +231,6 @@
   padding: 15px 15px;
 }
 
-.company-img-info img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 
 .company-detail-tab-description-info {
   background-color: #f0f5f7;
@@ -476,63 +471,72 @@
 
 /*Company Details page css end here*/
 
-
 /*Job Alerts page css start here*/
 .set-job-alert-btn {
-margin: 20px 0px;
-text-align:center;
+  margin: 20px 0px;
+  text-align: center;
 }
 
 .set-job-alert-btn .default-btn {
-font-size:17px;
-font-weight: 400;
-padding: 10px 30px;
-border-radius: 5px !important;
+  font-size: 17px;
+  font-weight: 400;
+  padding: 10px 30px;
+  border-radius: 5px !important;
 }
 
 .tag-box {
-gap: 5px;
-padding: 8px;
-display: flex;
-min-height: 40px;
-flex-wrap: wrap;
-align-items: center;
-border: 1px solid #ccc;
-}
- 
-.tag-box input {
-flex: 1;
-border: none;
-padding: 5px;
-outline: none;
-font-size: 14px;
-}
- 
-.tag {
-color:#fff;
-display: flex;
-font-size: 14px;
-padding: 5px 10px;
-border-radius: 3px;
-align-items: center;
-background-color:#0066cc;
-}
- 
-.tag .remove {
-margin-left: 8px;
-cursor: pointer;
-font-weight: bold;
-}
- 
-.frequency-radio-btn label {
-margin-right: 10px;
-padding-bottom: 10px; 
+  gap: 5px;
+  padding: 8px;
+  display: flex;
+  min-height: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid #ccc;
 }
 
-.application_modal .modal-footer{
+.tag-box input {
+  flex: 1;
+  border: none;
+  padding: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.tag {
+  color: #fff;
+  display: flex;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  align-items: center;
+  background-color: #0066cc;
+}
+
+.tag .remove {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.frequency-radio-btn label {
+  margin-right: 10px;
+  padding-bottom: 10px;
+}
+
+.application_modal .modal-footer {
   justify-content: center !important;
 }
-.application_modal .modal-footer button.default-btn.btn{
+.application_modal .modal-footer button.default-btn.btn {
   padding: 8px 25px !important;
 }
 /*Job Alerts page css end here*/
+/* custom by neha css */
+.single-team-card
+  .team-content
+  .social-content
+  .social-control
+  .social-icon
+  ul {
+  padding-left: 0;
+  margin-bottom: 35px;
+}

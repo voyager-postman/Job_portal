@@ -1,11 +1,53 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
+import { ToastContainer, toast } from "react-toastify";
 
 function YourJobPosts() {
+  const navigate = useNavigate();
   const [isPost, setIsPost] = useState("");
   const [cateroryList, setCategoryList] = useState([]);
+  const [jobTitle, setJobTitle] = useState("");
+  const [jobCategory, setJobCategory] = useState("");
+  const handleCreate = async () => {
+    if (!jobTitle || !jobCategory) {
+      toast.error("Please fill all required fields"); // validation
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}createJob`,
+        {
+          jobTitle: jobTitle,
+          jobCategory: jobCategory,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Job Created:", response.data);
+      toast.success("Job created successfully!");
+
+      // reset form
+      setJobTitle("");
+      setJobCategory("");
+
+      // close modal manually
+      const modalElement = document.getElementById("exampleModal");
+      const modal = window.bootstrap.Modal.getInstance(modalElement);
+      modal.hide();
+    } catch (error) {
+      console.error("Error creating job:", error);
+      toast.error("Failed to create job");
+    }
+  };
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -57,6 +99,7 @@ function YourJobPosts() {
 
   return (
     <>
+      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -132,17 +175,102 @@ function YourJobPosts() {
           </div>
           {/* End Manage Jobs Area */}
           {/* Your Job Posts Info*/}
+
           <div className="your-job-post-main-info">
             <div className="row">
               <div className="col-lg-3 col-sm-3">
                 <div className="your-job-post-side-menu">
                   <div className="your-job-post-side-heading">
                     <h4>
-                      <i className="fa-regular fa-file" /> Your Job Posts
+                      <i className="fa-regular fa-file" /> Your Job Posts{" "}
+                      <span
+                        className="create-job-icon"
+                        data-bs-toggle="modal"
+                        data-bs-target="#exampleModal"
+                      >
+                        <i
+                          className="fa-solid fa-plus"
+                          style={{ cursor: "pointer" }}
+                        ></i>
+                      </span>
                     </h4>
                   </div>
+                  <div
+                    className="modal fade"
+                    id="exampleModal"
+                    tabIndex={-1}
+                    aria-labelledby="exampleModalLabel"
+                    aria-hidden="true"
+                  >
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                      <div className="modal-content">
+                        <div className="modal-header">
+                          <h1
+                            className="modal-title fs-5"
+                            id="exampleModalLabel"
+                          >
+                            Create a job offer
+                          </h1>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          />
+                        </div>
+                        <div className="modal-body">
+                          <div className="post-job-form-info">
+                            <div className="form-group">
+                              <label>Job Title</label>
+                              <span className="text-danger">*</span>
+                              <input
+                                className="form-control"
+                                type="text"
+                                placeholder="Job Title"
+                                value={jobTitle}
+                                onChange={(e) => setJobTitle(e.target.value)}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label>Job Category</label>
+                              <span className="text-danger">*</span>
+                              <select
+                                className="form-select form-control"
+                                value={jobCategory}
+                                onChange={(e) => setJobCategory(e.target.value)}
+                              >
+                                <option value="">Select Category</option>
+                                {cateroryList.map((list) => (
+                                  <option value={list.name} key={list._id}>
+                                    {list.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="modal-footer text-center">
+                          <button
+                            type="button" // ✅ fixed
+                            onClick={handleCreate}
+                            className="default-btn btn"
+                          >
+                            Create
+                          </button>
+                          <button
+                            type="button"
+                            className="default-btn btn"
+                            data-bs-dismiss="modal"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <ul className="nav nav-tabs" role="tablist">
-                    <li className="nav-item">
+                    {/* <li className="nav-item">
                       <a
                         className="nav-link active"
                         data-bs-toggle="tab"
@@ -150,10 +278,10 @@ function YourJobPosts() {
                       >
                         <i className="fas fa-tasks" /> Create New Job
                       </a>
-                    </li>
+                    </li> */}
                     <li className="nav-item">
                       <a
-                        className="nav-link"
+                        className="nav-link active"
                         data-bs-toggle="tab"
                         href="#menu2"
                       >
@@ -234,40 +362,6 @@ function YourJobPosts() {
                               <i className="fa-regular fa-file" /> Create New
                               job post
                             </h4>
-                          </div>
-                          <div className="post-job-form-info">
-                            <form>
-                              <div className="form-group">
-                                <label>Job Title</label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  placeholder="Job Title"
-                                />
-                              </div>
-                              <div className="form-group">
-                                <label>Job Category</label>
-                                <select
-                                  className="form-select form-control"
-                                  aria-label="Default select example"
-                                >
-                                  <option selected>Select Category</option>
-                                  {cateroryList.map((list) => (
-                                    <option value={list.name} key={list._id}>
-                                      {list.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div className="post-job-next-btn">
-                                <Link
-                                  to="/job-details-form"
-                                  className="default-btn btn"
-                                >
-                                  Next
-                                </Link>
-                              </div>
-                            </form>
                           </div>
                         </>
                       )}

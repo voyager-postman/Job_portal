@@ -134,12 +134,12 @@ function ManagesJobApplication() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img src="assets/images/icon/icon-26.png" />{" "}
                               Alibaba Cloud
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-applied-withdraw">
                           <div className="job-applied-details">
@@ -257,7 +257,7 @@ function ManagesJobApplication() {
                           </div>
                         </div>
                       </div>
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-type-details">
                           <h5>
                             Alibaba Cloud-Facility Operation Manager-Paris,
@@ -281,19 +281,22 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img src="assets/images/icon/icon-26.png" />{" "}
                               Alibaba Cloud
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-applied-withdraw">
                           <div className="job-applied-details">
@@ -411,7 +414,7 @@ function ManagesJobApplication() {
                           </div>
                         </div>
                       </div>
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-type-details">
                           <h5>
                             Alibaba Cloud-Facility Operation Manager-Paris,
@@ -435,19 +438,22 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img src="assets/images/icon/icon-26.png" />{" "}
                               Alibaba Cloud
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-applied-withdraw">
                           <div className="job-applied-details">
@@ -565,7 +571,7 @@ function ManagesJobApplication() {
                           </div>
                         </div>
                       </div>
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-type-details">
                           <h5>
                             Alibaba Cloud-Facility Operation Manager-Paris,
@@ -589,19 +595,23 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
+                            {" "}
                             <h4>
                               <img src="assets/images/icon/icon-26.png" />{" "}
                               Alibaba Cloud
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-applied-withdraw">
                           <div className="job-applied-details">
@@ -719,7 +729,7 @@ function ManagesJobApplication() {
                           </div>
                         </div>
                       </div>
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-type-details">
                           <h5>
                             Alibaba Cloud-Facility Operation Manager-Paris,
@@ -743,9 +753,12 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -762,7 +775,7 @@ function ManagesJobApplication() {
                   </div>
                   <div className="mannage-job-application-saved-job">
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -797,12 +810,15 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -837,12 +853,15 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -877,12 +896,15 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -917,12 +939,15 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -957,12 +982,15 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                     <div className="available-job-posts-box">
-                      <a href="job-details.html">
+                      <Link to="/job-details">
                         <div className="available-job-company-name-save-job">
                           <div className="available-job-company-name">
                             <h4>
@@ -997,9 +1025,12 @@ function ManagesJobApplication() {
                               <i className="fa-regular fa-file" /> Information
                               Systems / Networks
                             </li>
+                            <li>
+                              <i className="fa-solid fa-users" /> Available: 3
+                            </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -1014,197 +1045,735 @@ function ManagesJobApplication() {
                     </p>
                   </div>
                   <div className="mannage-job-application-notification">
-                    <div className="job-alert-card">
-                      <div className="job-alert-info">
-                        <h4 className="job-type">Full-time</h4>
-                        <span className="job-frequency">Every 3 Days</span>
-                      </div>
-                      <div className="job-alert-actions">
-                        {/* Toggle switch */}
-                        <div className="mannage-job-notification-status">
-                          <label className="switch">
-                            <input type="checkbox" defaultChecked />
-                            <span className="slider round" />
-                          </label>
-                        </div>
-                        {/* Edit icon */}
-                        <div className="mannage-job-notification-icon">
-                          <a
-                            href="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#jobAlertModal"
-                          >
-                            <i className="fa-solid fa-pencil"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="job-alert-card">
-                      <div className="job-alert-info">
-                        <h4 className="job-type">Full-time</h4>
-                        <span className="job-frequency">Every 1 Days</span>
-                      </div>
-                      <div className="job-alert-actions">
-                        {/* Toggle switch */}
-                        <div className="mannage-job-notification-status">
-                          <label className="switch">
-                            <input type="checkbox" defaultChecked />
-                            <span className="slider round" />
-                          </label>
-                        </div>
-                        {/* Edit icon */}
-                        <div className="mannage-job-notification-icon">
-                          <a
-                            href="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#jobAlertModal"
-                          >
-                            <i className="fa-solid fa-pencil"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="job-alert-card">
-                      <div className="job-alert-info">
-                        <h4 className="job-type">Full-time</h4>
-                        <span className="job-frequency">Every 3 Days</span>
-                      </div>
-                      <div className="job-alert-actions">
-                        {/* Toggle switch */}
-                        <div className="mannage-job-notification-status">
-                          <label className="switch">
-                            <input type="checkbox" defaultChecked />
-                            <span className="slider round" />
-                          </label>
-                        </div>
-                        {/* Edit icon */}
-                        <div className="mannage-job-notification-icon">
-                          <a
-                            href="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#jobAlertModal"
-                          >
-                            <i className="fa-solid fa-pencil"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="job-alert-card">
-                      <div className="job-alert-info">
-                        <h4 className="job-type">Full-time</h4>
-                        <span className="job-frequency">Every Week</span>
-                      </div>
-                      <div className="job-alert-actions">
-                        {/* Toggle switch */}
-                        <div className="mannage-job-notification-status">
-                          <label className="switch">
-                            <input type="checkbox" defaultChecked />
-                            <span className="slider round" />
-                          </label>
-                        </div>
-                        {/* Edit icon */}
-                        <div className="mannage-job-notification-icon">
-                          <a
-                            href="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#jobAlertModal"
-                          >
-                            <i className="fa-solid fa-pencil"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Modal */}
-                    <div
-                      className="modal fade"
-                      id="jobAlertModal"
-                      tabIndex="-1"
-                      aria-hidden="true"
-                    >
-                      <div className="modal-dialog">
-                        <div className="modal-content application_modal">
-                          <div className="modal-header">
-                            <h5 className="modal-title">
-                              Set job alerts notification
-                            </h5>
-                            <button
-                              type="button"
-                              className="btn-close"
-                              data-bs-dismiss="modal"
-                            />
-                          </div>
-                          <div className="modal-body">
-                            <div className="mannage-job-notification-info">
-                              <h6>Send me a notification</h6>
-                              <span>
-                                <input
-                                  type="radio"
-                                  id="html"
-                                  name="fav_language"
-                                  defaultValue="HTML"
-                                />
-                                <label htmlFor="html">1 Day</label>
-                              </span>
-                              <span>
-                                <input
-                                  type="radio"
-                                  id="css"
-                                  name="fav_language"
-                                  defaultValue="CSS"
-                                />
-                                <label htmlFor="css">3 Days</label>
-                              </span>
-                              <span>
-                                <input
-                                  type="radio"
-                                  id="javascript"
-                                  name="fav_language"
-                                  defaultValue="JavaScript"
-                                />
-                                <label htmlFor="javascript">Week</label>
-                              </span>
-                              <span>
-                                <input
-                                  type="radio"
-                                  id="javascript"
-                                  name="fav_language"
-                                  defaultValue="JavaScript"
-                                />
-                                <label htmlFor="javascript">Month</label>
-                              </span>
-                              <span>
-                                <input
-                                  type="radio"
-                                  id="javascript"
-                                  name="fav_language"
-                                  defaultValue="JavaScript"
-                                />
-                                <label htmlFor="javascript">Just save</label>
-                              </span>
+                    <table className="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>S.No</th>
+                          <th className="job-notification-info">
+                            Job Notification
+                          </th>
+                          <th>Status</th>
+                          <th>Notify Me</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th>1</th>
+                          <td>
+                            <div className="mannage-notification-job-application">
+                              <div className="available-job-posts-box">
+                                <div className="available-job-company-name-save-job">
+                                  <div className="available-job-company-name">
+                                    <h4>Paris</h4>
+                                  </div>
+                                </div>
+                                <div className="available-job-type-details">
+                                  <p>Every Day</p>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-
-                          <div className="modal-footer">
-                            <button type="button" className="default-btn btn">
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              className="default-btn btn"
-                              data-bs-dismiss="modal"
-                            >
-                              Cancel
-                            </button>
-                            <button type="button" className="default-btn btn">
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-status">
+                              <label className="switch">
+                                <input type="checkbox" defaultChecked />
+                                <span className="slider round" />
+                              </label>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-icon-popup-modal">
+                              <div className="mannage-job-notification-icon">
+                                <a
+                                  href="#"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#staticBackdrop"
+                                >
+                                  <i className="fa-solid fa-pencil" />
+                                </a>
+                              </div>
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id="staticBackdrop"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="staticBackdropLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        <h5>Send me a notification</h5>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="html"
+                                            name="fav_language"
+                                            defaultValue="HTML"
+                                          />
+                                          <label htmlFor="html">1 Day</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="css"
+                                            name="fav_language"
+                                            defaultValue="CSS"
+                                          />
+                                          <label htmlFor="css">3 Days</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Week
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Month
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Just save
+                                          </label>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>2</th>
+                          <td>
+                            <div className="mannage-notification-job-application">
+                              <div className="available-job-posts-box">
+                                <div className="available-job-company-name-save-job">
+                                  <div className="available-job-company-name">
+                                    <h4>Paris</h4>
+                                  </div>
+                                </div>
+                                <div className="available-job-type-details">
+                                  <p>Every Day</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-status">
+                              <label className="switch">
+                                <input type="checkbox" defaultChecked />
+                                <span className="slider round" />
+                              </label>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-icon-popup-modal">
+                              <div className="mannage-job-notification-icon">
+                                <a
+                                  href="#"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#staticBackdrop"
+                                >
+                                  <i className="fa-solid fa-pencil" />
+                                </a>
+                              </div>
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id="staticBackdrop"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="staticBackdropLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        <h5>Send me a notification</h5>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="html"
+                                            name="fav_language"
+                                            defaultValue="HTML"
+                                          />
+                                          <label htmlFor="html">1 Day</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="css"
+                                            name="fav_language"
+                                            defaultValue="CSS"
+                                          />
+                                          <label htmlFor="css">3 Days</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Week
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Month
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Just save
+                                          </label>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>3</th>
+                          <td>
+                            <div className="mannage-notification-job-application">
+                              <div className="available-job-posts-box">
+                                <div className="available-job-company-name-save-job">
+                                  <div className="available-job-company-name">
+                                    <h4>Paris</h4>
+                                  </div>
+                                </div>
+                                <div className="available-job-type-details">
+                                  <p>Every Day</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-status">
+                              <label className="switch">
+                                <input type="checkbox" defaultChecked />
+                                <span className="slider round" />
+                              </label>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-icon-popup-modal">
+                              <div className="mannage-job-notification-icon">
+                                <a
+                                  href="#"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#staticBackdrop"
+                                >
+                                  <i className="fa-solid fa-pencil" />
+                                </a>
+                              </div>
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id="staticBackdrop"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="staticBackdropLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        <h5>Send me a notification</h5>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="html"
+                                            name="fav_language"
+                                            defaultValue="HTML"
+                                          />
+                                          <label htmlFor="html">1 Day</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="css"
+                                            name="fav_language"
+                                            defaultValue="CSS"
+                                          />
+                                          <label htmlFor="css">3 Days</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Week
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Month
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Just save
+                                          </label>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>4</th>
+                          <td>
+                            <div className="mannage-notification-job-application">
+                              <div className="available-job-posts-box">
+                                <div className="available-job-company-name-save-job">
+                                  <div className="available-job-company-name">
+                                    <h4>Paris</h4>
+                                  </div>
+                                </div>
+                                <div className="available-job-type-details">
+                                  <p>Every Day</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-status">
+                              <label className="switch">
+                                <input type="checkbox" defaultChecked />
+                                <span className="slider round" />
+                              </label>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-icon-popup-modal">
+                              <div className="mannage-job-notification-icon">
+                                <a
+                                  href="#"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#staticBackdrop"
+                                >
+                                  <i className="fa-solid fa-pencil" />
+                                </a>
+                              </div>
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id="staticBackdrop"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="staticBackdropLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        <h5>Send me a notification</h5>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="html"
+                                            name="fav_language"
+                                            defaultValue="HTML"
+                                          />
+                                          <label htmlFor="html">1 Day</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="css"
+                                            name="fav_language"
+                                            defaultValue="CSS"
+                                          />
+                                          <label htmlFor="css">3 Days</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Week
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Month
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Just save
+                                          </label>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>5</th>
+                          <td>
+                            <div className="mannage-notification-job-application">
+                              <div className="available-job-posts-box">
+                                <div className="available-job-company-name-save-job">
+                                  <div className="available-job-company-name">
+                                    <h4>Paris</h4>
+                                  </div>
+                                </div>
+                                <div className="available-job-type-details">
+                                  <p>Every Day</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-status">
+                              <label className="switch">
+                                <input type="checkbox" defaultChecked />
+                                <span className="slider round" />
+                              </label>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mannage-job-notification-icon-popup-modal">
+                              <div className="mannage-job-notification-icon">
+                                <a
+                                  href="#"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#staticBackdrop"
+                                >
+                                  <i className="fa-solid fa-pencil" />
+                                </a>
+                              </div>
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id="staticBackdrop"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="staticBackdropLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        <h5>Send me a notification</h5>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="html"
+                                            name="fav_language"
+                                            defaultValue="HTML"
+                                          />
+                                          <label htmlFor="html">1 Day</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="css"
+                                            name="fav_language"
+                                            defaultValue="CSS"
+                                          />
+                                          <label htmlFor="css">3 Days</label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Week
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Month
+                                          </label>
+                                        </span>
+                                        <span>
+                                          <input
+                                            type="radio"
+                                            id="javascript"
+                                            name="fav_language"
+                                            defaultValue="JavaScript"
+                                          />
+                                          <label htmlFor="javascript">
+                                            Just save
+                                          </label>
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
