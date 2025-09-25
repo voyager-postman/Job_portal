@@ -10,7 +10,7 @@ import { jwtDecode } from "jwt-decode";
 function Header({ bgColor }) {
   const { isLoggedIn } = useAuth();
   const userRole = localStorage.getItem("user_role");
-
+  const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -182,7 +182,7 @@ function Header({ bgColor }) {
                 </ul>
 
                 <div className="others-options">
-                  {isLoggedIn ? (
+                  {emailName ? (
                     <div className="option-item">
                       <div className="dropdown profile-nav-item">
                         <a

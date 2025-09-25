@@ -439,7 +439,7 @@ function Home() {
           <div className="section-title text-center">
             <h2>
               Companies of <label className="oragneColor">the Week</label>
-            </h2> 
+            </h2>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt.
@@ -623,12 +623,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix marketing writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-1.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -638,9 +638,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       UI/UX Design Pattern For Successful Software Applications
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -679,12 +679,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-2.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -697,9 +697,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Basic Knowldge About Hodiernal Bharat In History
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -738,12 +738,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix service health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-3.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -753,9 +753,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Visual Effects For Games In Unity Beginner To Intermediate
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -794,12 +794,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design marketing writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-4.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -809,9 +809,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       The Complete Accounting &amp; Bank Financial Course 2024
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -850,12 +850,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix service health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-5.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -865,9 +865,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       The Complete Business Plan Course Includes 40 Templates
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -906,12 +906,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design service writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-6.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -924,9 +924,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Full Web Designing Course With 20 Web Template Designing
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>

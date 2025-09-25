@@ -1651,9 +1651,7 @@ function CandidateProfile() {
                       <strong>Name:</strong> {profileData.first_name}{" "}
                       {profileData.last_name}
                     </h3>
-                    <h3>
-                      <strong>Position:</strong>Website Desginer
-                    </h3>
+                   
                     <h3>
                       <strong>Position:</strong> {profileData.position}
                     </h3>

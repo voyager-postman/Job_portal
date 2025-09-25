@@ -1,58 +1,26 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
-const companiesData = [
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  // You can add more companies here
-];
-
-const JobDetalsInfo = () => {
+function ContactUs() {
   return (
     <>
-      <section className="inner-banners-info-area">
-        <div className="inner-banners-img-area">
+      <section class="inner-banners-info-area">
+        <div class="inner-banners-img-area">
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt="breadcrumb Img"
           />
         </div>
-        <div className="inner-banners-title-info">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-12 col-md-12 col-sm-12">
-                <div className="inner-page-banner-title">
-                  <h2>Companies</h2>
+        <div class="inner-banners-title-info">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="inner-page-banner-title">
+                  <h2>Contact Us</h2>
                   <ul>
-                    <li className="menu-divide-arrow">
+                    <li class="menu-divide-arrow">
                       <Link to="/">Home</Link>
                     </li>
-                    <li>Job</li>
+                    <li>Contact Us</li>
                   </ul>
                 </div>
               </div>
@@ -60,391 +28,183 @@ const JobDetalsInfo = () => {
           </div>
         </div>
       </section>
-
-      <section className="job-details-main-info-area">
+      <div className="contact-us-area pt-100 pb-70">
         <div className="container">
           <div className="row">
-            <div className="col-lg-12 col-md-12">
-              <div className="job-details-top-info-area">
-                <div className="job-name-company-name">
-                  <div className="job-details-job-name">
-                    <h2>
-                      Senior Back-end Software Engineer PHP (F/M) - Sophia
-                      Antipolis
-                    </h2>
-                    <p>
-                      <strong>Company Name: </strong>
-                      <Link to="/company-details">Integra Technologies</Link>
-                    </p>
-                    <p>
-                      <strong>Posted by: </strong>Vcloud Technologies Investment
-                    </p>
+            <div className="col-lg-4">
+              <div className="single-contact-info-box">
+                <div className="info-content">
+                  <div className="icon">
+                    <i className="fa-solid fa-location-dot" />
                   </div>
-                  <div className="job-name-company-logo">
-                    <img
-                      src="assets/images/logo/connect-work-ma-login.png"
-                      alt="logo"
-                    />
-                  </div>
+                  <h3>Our location</h3>
+                  <span>
+                    CA 560 bush st &amp; 20th ave, apt 5 san francisco,230909,
+                    canada
+                  </span>
                 </div>
-                <div className="job-apply-link-save-btn-info">
-                  <div className="job-save-btn">
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-link" />
-                      </li>
-                      <li>
-                        <i className="fa-regular fa-heart" />
-                      </li>
-                      <li>
-                        <a
-                          href="https://www.linkedin.com/login"
-                          target="_blank"
-                        >
-                          <i className="fa-brands fa-linkedin-in" />
-                        </a>
-                      </li>
-                      <li>
-                        <a href="https://www.facebook.com/" target="_blank">
-                          <i className="fa-brands fa-facebook-f" />
-                        </a>
-                      </li>
-                      <li>
-                        <a href="https://web.whatsapp.com/" target="_blank">
-                          <i className="fa-brands fa-whatsapp" />
-                        </a>
-                      </li>
-                    </ul>
+              </div>
+              <div className="single-contact-info-box">
+                <div className="info-content">
+                  <div className="icon">
+                    <i className="fa-solid fa-envelope" />
                   </div>
-                  <div className="job-apply-btn edit-popup-modal">
-                    <a
-                      href="#"
-                      className="default-btn btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#exampleModal"
+                  <h3>Email Us</h3>
+                  <a href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#543c3138383b143339353d387a373b39">
+                    <span
+                      className="__cf_email__"
+                      data-cfemail="4b232e2727240b2c262a222765282426"
                     >
-                      Apply Now
-                    </a>
-                  </div>
-                </div>
-                <div className="custom-resume-cover-letter-info">
-                  {/* Modal */}
-                  <div
-                    className="modal fade"
-                    id="exampleModal"
-                    tabIndex={-1}
-                    aria-labelledby="exampleModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h1
-                            className="modal-title fs-5"
-                            id="exampleModalLabel"
-                          >
-                            Apply now
-                          </h1>
-                          <button
-                            type="button"
-                            className="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          />
-                        </div>
-                        <div className="modal-body">
-                          <div className="job-apply-defult-resume-custom-resume">
-                            <div className="job-apply-with-defult-resume">
-                              <span>
-                                <i className="fa-solid fa-circle-check" />
-                                DavidSmithResume.docx
-                              </span>
-                            </div>
-
-                            <div className="defult-resume-custom-resume-divder-line">
-                              <h4>or</h4>
-                            </div>
-                            <div className="job-apply-with-defult-resume-info">
-                              <div className="job-apply-custom-resume-info-area">
-                                <div className="job-apply-custom-resume-info">
-                                  <span>
-                                    <i className="fa-solid fa-file" />
-                                    Custom_Resume.docx
-                                  </span>
-                                </div>
-                                <div className="job-apply-custom-resume-cover-letter-btn">
-                                  <Link
-                                    to="/custom-resume-cover-letter"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close"
-                                    className="default-btn btn"
-                                  >
-                                    Custom resume with cover letter
-                                  </Link>
-                                </div>
-                              </div>
-                              <div className="defult-resume-custom-resume-divder" />
-                              <div className="job-apply-defult-resume-btn">
-                                <Link
-                                  to="/custom-resume-cover-letter"
-                                  data-bs-dismiss="modal"
-                                  aria-label="Close"
-                                  className="default-btn btn"
-                                >
-                                  Apply job
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="job-details-tag-info-area">
-                <div className="job-details-tag-main-area">
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-location-dot" />
-                      Place
-                    </h4>
-                    <Link to="/job-details-list">
-                      <p className="active_link">Boulogne-Billancourt</p>
-                    </Link>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-calendar-days" />
-                      Publication date
-                    </h4>
-                    <p>6 hours ago</p>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-signal" />
-                      Experience level
-                    </h4>
-                    <Link to="/job-details-list">
-                      <p className="active_link">Intermediate</p>
-                    </Link>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-user" />
-                      Type of contract
-                    </h4>
-                    <p className="active_link">Full time</p>
-                  </div>
-                </div>
-                <div className="job-details-spaceline" />
-                <div className="job-details-tag-main-area">
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-gear" /> Job category
-                    </h4>
-                    <Link to="/job-details-list">
-                      <p className="active_link">
-                        Software Engineering / Web Development
-                      </p>
-                    </Link>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-briefcase" />
-                      Openings
-                    </h4>
-                    <p>10</p>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-file" />
-                      Applicants
-                    </h4>
-                    <p>1000</p>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-money-bill" />
-                      Salary
-                    </h4>
-                    <p>€ 20000</p>
-                  </div>
-                </div>
-              </div>
-              <div className="job-details-role-company-discription">
-                <h5>About the role</h5>
-                <p>
-                  The Master Data Management (MDM) competence center in Nantes
-                  is expanding rapidly with the integration of new strategic
-                  projects aimed at strengthening master data management for our
-                  clients.
-                </p>
-                <p>
-                  In this dynamic context, we are looking to integrate DATA
-                  consultants. An opportunity to participate in the evolution of
-                  the competence center by contributing to the implementation of
-                  innovative MDM solutions. The consultant will be involved in
-                  various projects, in collaboration with experts in the field,
-                  to support clients in optimizing the quality and governance of
-                  their data.
-                </p>
-                <p>
-                  The objective of this mission is to contribute to the
-                  implementation and optimization of MDM solutions in order to
-                  improve the quality, consistency and governance of master data
-                  for our clients.
-                </p>
-                <h5>Company Description</h5>
-                <p>
-                  The Master Data Management (MDM) competence center in Nantes
-                  is expanding rapidly with the integration of new strategic
-                  projects aimed at strengthening master data management for our
-                  clients.
-                </p>
-                <p>
-                  In this dynamic context, we are looking to integrate DATA
-                  consultants. An opportunity to participate in the evolution of
-                  the competence center by contributing to the implementation of
-                  innovative MDM solutions. The consultant will be involved in
-                  various projects, in collaboration with experts in the field,
-                  to support clients in optimizing the quality and governance of
-                  their data.
-                </p>
-                <p>
-                  The objective of this mission is to contribute to the
-                  implementation and optimization of MDM solutions in order to
-                  improve the quality, consistency and governance of master data
-                  for our clients.
-                </p>
-              </div>
-              <div className="job-details-job-description">
-                <h5>Job Description</h5>
-                <p>
-                  You will join Believe's Data Office Tribu and the
-                  Dataplateforme squad as a Data Engineer. The Dataplateforme is
-                  based on an AWS / Snowflake stack with state-of-the-art
-                  practices in data engineering and data modeling, and high
-                  volume and high performance constraints.
-                </p>
-                <p>
-                  Within the squad organized according to the Scrum practice, in
-                  charge of the Build and Run of its scope, you will be
-                  responsible for implementing data flows from the ingestion of
-                  new sources to their preparation for exposure through the
-                  Bronze, Silver and Gold levels.
-                </p>
-              </div>
-              <div className="job-details-job-qualifications">
-                <h5>Required Qualifications</h5>
-                <p>
-                  You are at BAC + 3 to BAC + 5 level (Engineering schools, BTS,
-                  DUT, DESS, Master).
-                </p>
-                <p>Your level of English is fluent, both spoken and written.</p>
-                <p>
-                  You like to stay up to date with new technological
-                  developments, and practice regular monitoring.
-                </p>
-                <p>
-                  You have significant experience (at least 3 years) in the
-                  technologies of our stack: AWS, Snowflake, python, spark
-                  scala, SQL.
-                </p>
-              </div>
-              <div className="job-details-job-qualifications">
-                <h5>Required Skills</h5>
-                <p>
-                  Proficiency in front-end technologies (HTML, CSS, JavaScript,
-                  React, Angular, or Vue.js).
-                </p>
-                <p>
-                  Experience with back-end development using Node.js, Python,
-                  PHP, or Java.
-                </p>
-                <p>
-                  Familiarity with SQL and NoSQL databases (PostgreSQL, MySQL,
-                  MongoDB, etc.).
-                </p>
-                <p>Experience with cloud platforms (AWS, GCP, or Azure).</p>
-                <p>
-                  Proficiency in version control systems (Git, GitHub, GitLab,
-                  etc.).
-                </p>
-              </div>
-              <div className="job-details-related-tags">
-                <h5>Related Tags</h5>
-                <ul>
-                  <li>Node.Js</li>
-                  <li>Web Designing</li>
-                  <li>Devops</li>
-                  <li>Microsoft Azure</li>
-                  <li>Responsive Web Design</li>
-                  <li>Responsive Design</li>
-                  <li>Java</li>
-                  <li>Selenium</li>
-                  <li>Bootstrap</li>
-                  <li>JQuery</li>
-                  <li>Frontend Development</li>
-                  <li>Responsive Web Design</li>
-                </ul>
-              </div>
-              <div className="summary-offer-info-area">
-                <div className="summary-offer-post-details">
-                  <div className="summary-offer-job-post">
-                    <h4>
-                      <img
-                        src="assets/images/logo/connect-work-ma-login.png"
-                        alt="logo"
-                      />{" "}
-                      Integra Technologies
-                    </h4>
-                  </div>
-                  <div className="summary-offer-save-job">
-                    <i className="fa-regular fa-heart" />
-                  </div>
-                </div>
-                <div className="summary-offer-job-short-detail">
-                  <h4>
-                    Senior Back-end Software Engineer PHP (F/M) - Sophia
-                    Antipolis
-                  </h4>
-                  <ul>
-                    <li>
-                      <i className="fa-solid fa-location-dot" />{" "}
-                      Boulogne-Billancourt
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 6 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Intermediate
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                  </ul>
-                  <div className="summary-offer-apply-report-btn edit-popup-modal">
-                    <a
-                      href="#"
-                      className="default-btn btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#exampleModal"
+                      [email&nbsp;protected]
+                    </span>
+                  </a>
+                  <a href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#5d1b3c251d3a303c3431733e3230">
+                    <span
+                      className="__cf_email__"
+                      data-cfemail="5a1c3b221a3d373b333674393537"
                     >
-                      Apply Now
-                    </a>
-                    <a href="#" className="report-btn-info">
-                      Report this job
-                    </a>
-                  </div>
+                      [email&nbsp;protected]
+                    </span>
+                  </a>
                 </div>
+              </div>
+              <div className="single-contact-info-box">
+                <div className="info-content">
+                  <div className="icon">
+                    <i className="fa-solid fa-envelope" />
+                  </div>
+                  <h3>Phone</h3>
+                  <a href="tel:+44587154756">+44 587 154756</a>
+                  <a href="tel:+55555514574">+55555514574</a>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-8">
+              <div className="contact-map">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12711295.912702927!2d-97.8942370839028!3d38.93897514662292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54eab584e432360b%3A0x1c3bb99243deb742!2sUnited%20States!5e0!3m2!1sen!2sbd!4v1654928837073!5m2!1sen!2sbd"
+                  style={{ border: "0" }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+      <div className="contact-form-area pb-100">
+        <div className="container">
+          <div className="section-title">
+            <span>SEND MESSAGE</span>
+            <h2>Ready To Get Started?</h2>
+          </div>
+          <div className="contact-form">
+            <form id="contactForm">
+              <div className="row">
+                <div className="col-lg-6 col-sm-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Name"
+                      id="name"
+                      className="form-control"
+                      required
+                      data-error="Please enter your name"
+                    />
+                    <div className="help-block with-errors" />
+                  </div>
+                </div>
+                <div className="col-lg-6 col-sm-6">
+                  <div className="form-group">
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      placeholder="Email"
+                      className="form-control"
+                      required
+                      data-error="Please enter your email"
+                    />
+                    <div className="help-block with-errors" />
+                  </div>
+                </div>
+                <div className="col-lg-6 col-sm-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      name="phone_number"
+                      id="phone_number"
+                      placeholder="Number"
+                      required
+                      data-error="Please enter your number"
+                      className="form-control"
+                    />
+                    <div className="help-block with-errors" />
+                  </div>
+                </div>
+                <div className="col-lg-6 col-sm-6">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      name="msg_subject"
+                      id="msg_subject"
+                      className="form-control"
+                      placeholder="Subject"
+                      required
+                      data-error="Please enter your subject"
+                    />
+                    <div className="help-block with-errors" />
+                  </div>
+                </div>
+                <div className="col-12">
+                  <div className="form-group">
+                    <textarea
+                      name="message"
+                      className="form-control"
+                      placeholder="Message"
+                      id="message"
+                      cols={30}
+                      rows={6}
+                      required
+                      data-error="Write your message"
+                      defaultValue={""}
+                    />
+                    <div className="help-block with-errors" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <div className="form-check">
+                    <input
+                      name="gridCheck"
+                      defaultValue="I agree to the terms and privacy policy."
+                      className="form-check-input"
+                      type="checkbox"
+                      id="gridCheck"
+                      required
+                    />
+                    <label className="form-check-label" htmlFor="gridCheck">
+                      I agree to the <a href="terms-conditions.html">terms</a>{" "}
+                      and <a href="privacy-policy.html">privacy policy</a>
+                    </label>
+                    <div className="help-block with-errors gridCheck-error" />
+                  </div>
+                </div>
+                <div className="col-lg-12 col-md-12">
+                  <button type="submit" className="default-btn">
+                    <span>Send Message</span>
+                  </button>
+                  <div id="msgSubmit" className="h3 text-center hidden" />
+                  <div className="clearfix" />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </>
   );
-};
+}
 
-export default JobDetalsInfo;
+export default ContactUs;

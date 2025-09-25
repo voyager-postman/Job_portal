@@ -222,7 +222,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>
@@ -239,7 +242,7 @@ function CandidateDashboard() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img
                                 src="assets/images/icon/icon-2.png"
@@ -247,7 +250,7 @@ function CandidateDashboard() {
                               />{" "}
                               Xceed IT Solutions
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-save-job">
                           <i className="fa-regular fa-heart" />
@@ -290,7 +293,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>
@@ -307,7 +313,7 @@ function CandidateDashboard() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img
                                 src="assets/images/icon/icon-4.png"
@@ -315,7 +321,7 @@ function CandidateDashboard() {
                               />{" "}
                               INVA Business Solution
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-save-job">
                           <i className="fa-regular fa-heart" />
@@ -358,7 +364,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>
@@ -375,7 +384,8 @@ function CandidateDashboard() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
+                            {" "}
                             <h4>
                               <img
                                 src="assets/images/icon/icon-5.png"
@@ -383,7 +393,7 @@ function CandidateDashboard() {
                               />{" "}
                               Bamigos VR LLP
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-save-job">
                           <i className="fa-regular fa-heart" />
@@ -428,7 +438,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>
@@ -445,7 +458,7 @@ function CandidateDashboard() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img
                                 src="assets/images/icon/icon-6.png"
@@ -453,7 +466,7 @@ function CandidateDashboard() {
                               />{" "}
                               Aksum Trademart Pvt Ltd
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-save-job">
                           <i className="fa-regular fa-heart" />
@@ -496,7 +509,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>
@@ -513,7 +529,7 @@ function CandidateDashboard() {
                     <div className="available-job-posts-box">
                       <div className="available-job-company-name-save-job">
                         <div className="available-job-company-name">
-                          <a href="job-details.html">
+                          <Link to="/job-details">
                             <h4>
                               <img
                                 src="assets/images/icon/icon-4.png"
@@ -521,7 +537,7 @@ function CandidateDashboard() {
                               />{" "}
                               INVA Business Solution
                             </h4>
-                          </a>
+                          </Link>
                         </div>
                         <div className="available-job-save-job">
                           <i className="fa-regular fa-heart" />
@@ -564,7 +580,10 @@ function CandidateDashboard() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" /> Information
-                              Systems / Networks
+                              Systems
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-users"></i> Available:3
                             </li>
                           </ul>
                         </div>

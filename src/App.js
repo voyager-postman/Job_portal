@@ -53,7 +53,6 @@ import EmailOTPVerification from "./Pages/EmailOTPVerification";
 import VerifiedCancel from "./Pages/VerifiedCancel";
 import AccountVerified from "./Pages/AccountVerified";
 import Varification from "./Pages/Varification";
-import JobDetalsInfo from "./Pages/JobDetalsInfo";
 
 // "build 04-09-2025"
 function LayoutWrapper() {
@@ -76,7 +75,9 @@ function LayoutWrapper() {
     "/messaging-system",
     "/employer-profile",
     "/job-details-form",
-    "/job-details",
+    "/job-details-list",
+    // "/job-details",
+
     "/candidate-dashboard",
     "/chat-messaging-system",
     "/applied-jobs-list",
@@ -104,6 +105,7 @@ function LayoutWrapper() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verification" element={<Varification />} />
+
         <Route path="/account-verified" element={<AccountVerified />} />
         <Route path="/verified-cancel" element={<VerifiedCancel />} />
 
@@ -134,7 +136,7 @@ function LayoutWrapper() {
         <Route path="/company-details" element={<CompanyDetailsInfo />} />
         {/* Protected Routes */}
         <Route
-          path="/job-details-form"
+          path="/job-details-form/:id"
           element={
             <PrivateRoute>
               <JobDetailsForm />
@@ -214,30 +216,9 @@ function LayoutWrapper() {
           }
         />
 
-        <Route
-          path="/companies-details"
-          element={
-            <PrivateRoute>
-              <CompanyDetailsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/job-details"
-          element={
-            <PrivateRoute>
-              <JobDetails />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/job-details-info"
-          element={
-            <PrivateRoute>
-              <JobDetalsInfo />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/companies-details" element={<CompanyDetailsPage />} />
+        <Route path="/job-details" element={<JobDetails />} />
+
         <Route
           path="/job-details-list"
           element={
@@ -350,14 +331,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         ></Route>
-        <Route
-          path="/companies-list"
-          element={
-            <PrivateRoute>
-              <Companies />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/companies-list" element={<Companies />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showFooter && <Footer />}

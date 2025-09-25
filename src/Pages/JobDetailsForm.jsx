@@ -3,41 +3,123 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 function JobDetailsForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const location = useLocation();
+  const job = location.state?.job || {};
+  console.log("job from state:", job);
+  // const jobId = job?._id;
+  const Title = job?.jobTitle;
+  console.log("Job Title:-", Title);
   const [loading, setLoading] = useState(false);
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [mapUrl, setMapUrl] = useState("");
+  // ✅ Job data passed from previous page
+  const jobFromState = location.state?.jobData || {};
 
-  const [formData, setFormData] = useState({
-    minimumLevel: "",
-    employmentType: "",
-    location: "",
-    jobCategory: "",
-    tags: [],
-    description: "",
-    externalApply: false,
-    confidentialPost: false,
-    emailNotification: false,
-    privateMinSalary: "",
-    privateMaxSalary: "",
-    referenceId: "",
+  // ---- Initialize once with either state job or empty
+  const [formData, setFormData] = useState(() => ({
+    jobTitle: jobFromState.jobTitle || "",
+    jobCategory: jobFromState.jobCategory || "",
+    minimumLevel: jobFromState.minimumLevel || "",
+    employmentType: jobFromState.employmentType || "",
+    remote: jobFromState.remote || "",
+    jobAddress: jobFromState.jobAddress || "",
+    city: jobFromState.city || "",
+    region: jobFromState.region || "",
+    Country: jobFromState.Country || "",
+    shortDescription: jobFromState.shortDescription || "",
+    tags: jobFromState.tags || [],
+    jobDescription: jobFromState.jobDescription || "",
+    enableExternalApply: jobFromState.enableExternalApply || false,
+    confidentialJobPost: jobFromState.confidentialJobPost || false,
+    referenceId: jobFromState.referenceId || "",
+    enableEmailNotification: jobFromState.enableEmailNotification || false,
+    ExternalApplyLink: jobFromState.ExternalApplyLink || "",
+    minSalary: jobFromState.minSalary || "",
+    maxSalary: jobFromState.maxSalary || "",
     coverPhoto: null,
-    coverPhotoPreview: null, // ✅ needed for preview
-  });
+    coverPhotoPreview: null,
+  }));
+
+  // ✅ Fill form if job is passed from state
+  // useEffect(() => {
+  //   if (jobFromState._id) {
+  //     setFormData({
+  //       jobTitle: jobFromState.jobTitle || "",
+  //       jobCategory: jobFromState.jobCategory || "",
+  //       minimumLevel: jobFromState.minimumLevel || "",
+  //       employmentType: jobFromState.employmentType || "",
+  //       remote: jobFromState.remote || "",
+  //       jobAddress: jobFromState.jobAddress || "",
+  //       city: jobFromState.city || "",
+  //       region: jobFromState.region || "",
+  //       Country: jobFromState.Country || "",
+  //       shortDescription: jobFromState.shortDescription || "",
+  //       tags: jobFromState.tags || [],
+  //       jobDescription: jobFromState.jobDescription || "",
+  //       enableExternalApply: jobFromState.enableExternalApply || false,
+  //       confidentialJobPost: jobFromState.confidentialJobPost || false,
+  //       referenceId: jobFromState.referenceId || "",
+  //       enableEmailNotification: jobFromState.enableEmailNotification || false,
+  //       ExternalApplyLink: jobFromState.ExternalApplyLink || "",
+  //       minSalary: jobFromState.minSalary || "",
+  //       maxSalary: jobFromState.maxSalary || "",
+  //       coverPhoto: null,
+  //     });
+  //   }
+  // }, [jobFromState]);
+
+  // ---- Fetch if page was refreshed (no state) but we have an id
+  useEffect(() => {
+    if (!jobFromState._id && id) {
+      const token = localStorage.getItem("token");
+      axios
+        .get(`${API_BASE_URL}getJobById/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const job = res.data.data;
+          setFormData((prev) => ({
+            ...prev,
+            jobTitle: job.jobTitle || "",
+            jobCategory: job.jobCategory || "",
+            minimumLevel: job.minimumLevel || "",
+            employmentType: job.employmentType || "",
+            remote: job.remote || "",
+            jobAddress: job.jobAddress || "",
+            city: job.city || "",
+            region: job.region || "",
+            Country: job.country || "",
+            shortDescription: job.shortDescription || "",
+            tags: job.tags || [],
+            jobDescription: job.jobDescription || "",
+            enableExternalApply: job.enableExternalApply || false,
+            confidentialJobPost: job.confidentialJobPost || false,
+            referenceId: job.referenceId || "",
+            enableEmailNotification: job.enableEmailNotification || false,
+            ExternalApplyLink: job.ExternalApplyLink || "",
+            minSalary: job?.privatJobDetails?.minSalary || "",
+            maxSalary: job?.privatJobDetails?.maxSalary || "",
+            coverPhoto: null,
+          }));
+        })
+        .catch((err) => console.error("Failed to fetch job:", err));
+    }
+  }, [id, jobFromState._id]);
+
   const handleCitySearch = async (e) => {
     const value = e.target.value;
-    handleChange(e); // update formData.company_address
+    handleChange(e);
 
     if (!value.trim()) {
       setCitySuggestions([]);
       return;
     }
-
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE_URL}searchCities`, {
@@ -70,7 +152,6 @@ function JobDetailsForm() {
     // Simpler map URL
     const mapSrc = `https://www.google.com/maps?q=${city.latitude},${city.longitude}&z=15&output=embed`;
     setMapUrl(mapSrc);
-
     setCitySuggestions([]);
   };
 
@@ -80,7 +161,6 @@ function JobDetailsForm() {
     // Next button
 
     const nextButtons = document.querySelectorAll(".next-tab-btn");
-
     nextButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -108,7 +188,6 @@ function JobDetailsForm() {
     // Back button
 
     const backButtons = document.querySelectorAll(".back-tab-btn");
-
     backButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -151,6 +230,7 @@ function JobDetailsForm() {
   useEffect(() => {
     fetchCategoryList();
   }, []);
+
   const [jobCoverPhoto, setJobCoverPhoto] = useState(null);
 
   // ✅ handle input change
@@ -188,72 +268,89 @@ function JobDetailsForm() {
       setTagInput("");
     }
   };
+
   const handleRemoveTag = (tag) => {
     setFormData({
       ...formData,
       tags: formData.tags.filter((t) => t !== tag),
     });
   };
+
   // ✅ handle tags (comma separated input OR add/remove logic)
   const validateForm = () => {
     if (!formData.minimumLevel) return "Minimum Level is required";
     if (!formData.employmentType) return "Employment Type is required";
-    if (!formData.description) return "Job description is required";
-    if (!formData.privateMinSalary) return "Minimum salary is required";
-    if (!formData.privateMaxSalary) return "Maximum salary is required";
+    if (!formData.jobDescription) return "Job description is required";
+    if (!formData.shortDescription) return "Short Job Description is required";
+    if (!formData.minSalary) return "Minimum salary is required";
+    if (!formData.maxSalary) return "Maximum salary is required";
 
     // Optional: Validate file
     if (formData.coverPhoto && formData.coverPhoto.size > 2 * 1024 * 1024) {
       return "Cover photo must be less than 2MB";
     }
-
     return null; // ✅ no error
   };
 
   const handlePublishJob = async () => {
     const errorMsg = validateForm();
     if (errorMsg) {
-      alert(errorMsg); // or toast.error(errorMsg)
+      alert(errorMsg);
       return;
     }
     try {
+      const token = localStorage.getItem("token");
       const formDataToSend = new FormData();
-      formDataToSend.append("jobTitle", jobTitle);
-      formDataToSend.append("jobCategory", jobCategory);
+      formDataToSend.append("job_id", id || jobFromState._id);
+      formDataToSend.append("jobTitle", formData.jobTitle);
+      formDataToSend.append("jobCategory", formData.jobCategory);
       formDataToSend.append("minimumLevel", formData.minimumLevel);
       formDataToSend.append("employmentType", formData.employmentType);
       formDataToSend.append("remote", formData.remote);
-      formDataToSend.append("jobAddress", formData.location);
+      formDataToSend.append("jobAddress", formData.jobAddress);
       formDataToSend.append("city", formData.city);
       formDataToSend.append("region", formData.region);
-      formDataToSend.append("country", formData.country);
+      formDataToSend.append("country", formData.Country);
       formDataToSend.append("shortDescription", formData.shortDescription);
       formDataToSend.append("tags", JSON.stringify(formData.tags));
-      formDataToSend.append("jobDescription", formData.description);
-      formDataToSend.append("enableExternalApply", formData.externalApply);
-      formDataToSend.append("confidentialJobPost", formData.confidentialPost);
+      formDataToSend.append("jobDescription", formData.jobDescription);
+      formDataToSend.append(
+        "enableExternalApply",
+        formData.enableExternalApply
+      );
+      formDataToSend.append("ExternalApplyLink", formData.ExternalApplyLink);
+      formDataToSend.append(
+        "confidentialJobPost",
+        formData.confidentialJobPost
+      );
       formDataToSend.append("referenceId", formData.referenceId);
       formDataToSend.append(
         "enableEmailNotification",
-        formData.emailNotification
+        formData.enableEmailNotification
       );
-      formDataToSend.append("minSalary", formData.privateMinSalary);
-      formDataToSend.append("maxSalary", formData.privateMaxSalary);
+      formDataToSend.append("minSalary", formData.minSalary);
+      formDataToSend.append("maxSalary", formData.maxSalary);
 
       if (formData.coverPhoto) {
         formDataToSend.append("jobCoverPhoto", formData.coverPhoto);
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}createJob`,
+        `${API_BASE_URL}updateJob`,
         formDataToSend,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       console.log("Job Created:", response.data);
+      toast.success(response.data.message);
 
       // ✅ Redirect to jobs with jobTitle & jobCategory
-      navigate("/jobs", {
+      navigate("/your-job-posts", {
         state: {
           jobTitle: formData.jobTitle,
           jobCategory: formData.jobCategory,
@@ -277,7 +374,7 @@ function JobDetailsForm() {
 
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/employer-dashboard">Home </Link>
               </li>
 
               <li className="item">
@@ -328,8 +425,7 @@ function JobDetailsForm() {
             </div>
 
             <div className="input-info-edit-area job-details-seprate-heading">
-              <h3>Testing</h3>
-
+              <h3>{Title}</h3>
               <i className="fas fa-pencil-alt" />
             </div>
 
@@ -360,13 +456,17 @@ function JobDetailsForm() {
                               <option value="" disabled>
                                 Select minimum level
                               </option>
-                              <option value="1">
+                              <option value="No experience / No degree">
                                 No experience / No degree
                               </option>
-                              <option value="2">Entry / Junior</option>
-                              <option value="3">Mid-level</option>
-                              <option value="4">Senior</option>
-                              <option value="5">C-level / Executive</option>
+                              <option value="Entry / Junior">
+                                Entry / Junior
+                              </option>
+                              <option value="Mid-level">Mid-level</option>
+                              <option value="Senior">Senior</option>
+                              <option value="C-level / Executive">
+                                C-level / Executive
+                              </option>
                             </select>
                           </div>
                         </div>
@@ -389,17 +489,47 @@ function JobDetailsForm() {
                               <option value="" disabled>
                                 Select employment type
                               </option>
-                              <option value="1">Full-time</option>
-                              <option value="2">Part-time</option>
-                              <option value="3">Full-time / Part-time</option>
-                              <option value="4">
+                              <option value="Full-time">Full-time</option>
+                              <option value="Part-time">Part-time</option>
+                              <option value="Full-time / Part-time">
+                                Full-time / Part-time
+                              </option>
+                              <option value="Contract / Freelance / Self-employed">
                                 Contract / Freelance / Self-employed
                               </option>
-                              <option value="5">
+                              <option value="Internship / Apprenticeship">
                                 Internship / Apprenticeship
                               </option>
-                              <option value="6">Seasonal</option>
-                              <option value="7">Volunteer</option>
+                              <option value="Seasonal">Seasonal</option>
+                              <option value="Volunteer">Volunteer</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="col-lg-6 col-md-6">
+                          <div className="form-group">
+                            <label>
+                              Remote <span className="text-danger">*</span>
+                            </label>
+
+                            <select
+                              className="form-select form-control"
+                              aria-label="Default select example"
+                              name="remote"
+                              value={formData.remote}
+                              onChange={handleChange}
+                              required
+                            >
+                              <option value="" disabled>
+                                Select remote type
+                              </option>
+                              <option value="Fully remote">Fully remote</option>
+                              <option value="Partialy-remote">
+                                Partialy-remote
+                              </option>
+                              <option value="Full-time / Part-time">
+                                Temporarily remote
+                              </option>
                             </select>
                           </div>
                         </div>
@@ -532,6 +662,23 @@ function JobDetailsForm() {
                   </form>
                 </div>
 
+                <div className="job-description-box-info">
+                  <h3>
+                    Short Description <span className="text-danger">*</span>
+                  </h3>
+
+                  <div className="form-group">
+                    <textarea
+                      className="form-control"
+                      placeholder="Enter a short description for this job post"
+                      rows={10}
+                      name="shortDescription"
+                      value={formData.shortDescription}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
                 <div className="post-job-form-info-area">
                   <div className="input-info-edit-area form-heading-info">
                     <h3>Tags</h3>
@@ -570,7 +717,6 @@ function JobDetailsForm() {
 
                           <div className="enter-skill-tag-info">
                             <br />
-
                             <ul>
                               {formData.tags.map((tag) => (
                                 <li key={tag}>
@@ -600,8 +746,8 @@ function JobDetailsForm() {
                       className="form-control"
                       placeholder="Enter a description for this job post"
                       rows={10}
-                      name="description"
-                      value={formData.description}
+                      name="jobDescription"
+                      value={formData.jobDescription}
                       onChange={handleChange}
                     />
                   </div>
@@ -618,7 +764,6 @@ function JobDetailsForm() {
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>External Apply</h3>
-
                     <span className="heading-small-description">
                       Add tags to your job post. This will help it appear in as
                       many relevant job posts as possible.
@@ -634,15 +779,29 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="externalApply"
-                          checked={formData.externalApply}
+                          name="enableExternalApply"
+                          checked={formData.enableExternalApply}
                           onChange={handleChange}
                         />
-
                         <span className="slider round" />
                       </label>
                     </div>
                   </div>
+                  {formData.enableExternalApply && (
+                    <div className="col-lg-12 col-md-12 mt-2">
+                      <div className="form-group">
+                        <label>External Url</label>
+                        <span className="text-danger">*</span>
+                        <input
+                          className="form-control"
+                          type="text"
+                          name="ExternalApplyLink"
+                          value={formData.ExternalApplyLink}
+                          placeholder="Enter the link"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="job-option-branding-input-area">
@@ -664,11 +823,10 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="confidentialPost"
-                          checked={formData.confidentialPost}
+                          name="confidentialJobPost"
+                          checked={formData.confidentialJobPost}
                           onChange={handleChange}
                         />
-
                         <span className="slider round" />
                       </label>
                     </div>
@@ -702,13 +860,11 @@ function JobDetailsForm() {
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>Email notification</h3>
-
                     <span className="heading-small-description">
                       We can notify you via email when you receive a new
                       application for this job post.
                     </span>
                   </div>
-
                   <div className="job-option-branding-content-switch">
                     <div className="job-option-branding-content">
                       <p>Enable / Disable</p>
@@ -718,11 +874,10 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="emailNotification"
-                          checked={formData.emailNotification}
+                          name="enableEmailNotification"
+                          checked={formData.enableEmailNotification}
                           onChange={handleChange}
                         />
-
                         <span className="slider round" />
                       </label>
                     </div>
@@ -732,13 +887,11 @@ function JobDetailsForm() {
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>Private job details</h3>
-
                     <span className="heading-small-description">
                       Private job details are non-visible to job seekers that
                       see your job post.
                     </span>
                   </div>
-
                   <div className="job-option-branding-input-box">
                     <div className="row">
                       <div className="col-lg-6 col-md-6">
@@ -748,14 +901,13 @@ function JobDetailsForm() {
                           <input
                             className="form-control"
                             type="text"
-                            name="privateMinSalary"
+                            name="minSalary"
                             placeholder="Enter the minimum salary (€)"
-                            value={formData.privateMinSalary}
+                            value={formData.minSalary}
                             onChange={handleChange}
                           />
                         </div>
                       </div>
-
                       <div className="col-lg-6 col-md-6">
                         <div className="form-group">
                           <label>Max salary (Gross)</label>
@@ -763,9 +915,9 @@ function JobDetailsForm() {
                           <input
                             className="form-control"
                             type="text"
-                            name="privateMaxSalary"
+                            name="maxSalary"
                             placeholder="Enter the maximum salary (€)"
-                            value={formData.privateMaxSalary}
+                            value={formData.maxSalary}
                             onChange={handleChange}
                           />
                         </div>
@@ -773,7 +925,6 @@ function JobDetailsForm() {
                     </div>
                   </div>
                 </div>
-
                 <div className="job-create-form-back-next-info">
                   <div className="job-create-form-back-next-btn">
                     <a href="#" className="default-btn btn back-tab-btn">
@@ -825,7 +976,7 @@ function JobDetailsForm() {
                           name="coverPhoto"
                           accept=".jpg,.jpeg,.png,.pdf"
                           onChange={handleChange}
-                          style={{ display: "none" }} // ✅ Hide real input
+                          style={{ display: "none" }}
                         />
 
                         {/* If file uploaded, show preview */}
@@ -956,62 +1107,41 @@ function JobDetailsForm() {
                     <div className="job-detail-in-cart-info">
                       <div className="input-info-edit-area cart-job-detail-edit">
                         <h3>Job post review</h3>
-
                         <i className="fas fa-pencil-alt" />
                       </div>
-
                       <div className="job-post-address-info">
                         <h4>Job post address</h4>
-
                         <p>
-                          Sector 59, Noida,
+                          {formData.city || "Not provided"}
                           <br />
-                          Uttar Pradesh, India
+                          {formData.region || "Not provided"},{" "}
+                          {formData.Country || "Not provided"}
                         </p>
                       </div>
-
                       <div className="job-post-other-info">
                         <div className="minimum-level-remote">
                           <h4>Minimum level</h4>
-                          <p>C-level / Executive</p>
+                          <p>{formData.minimumLevel || "Not provided"}</p>
                           <div className="divder-space-line" />
                           <h4>Location</h4>
-                          <p>Paris</p>
+                          <p>{formData.city || "Not provided"}</p>
                         </div>
-
                         <div className="employment-type-job-category">
                           <h4>Employment type</h4>
-
-                          <p>Full-time</p>
-
+                          <p>{formData.employmentType || "Not provided"}</p>
                           <div className="divder-space-line" />
-
                           <h4>Job category</h4>
-
-                          <p>Information systems / Networks</p>
+                          <p>{formData.jobCategory || "Not provided"}</p>
                         </div>
                       </div>
 
                       <div className="job-cart-short-description-info">
-                        <h4>Job category</h4>
-
-                        <p>
-                          The short description will be shown when your job post
-                          is loaded on the Job Seeker homepage.
-                        </p>
+                        <h4>Job Short Description</h4>
+                        <p>{formData.shortDescription || "Not provided"}</p>
                       </div>
-
                       <div className="job-cart-long-description-info">
                         <h4>Job Description</h4>
-
-                        <p>
-                          The short description will be shown when your job post
-                          is loaded on the Job Seeker homepage. The short
-                          description will be shown when your job post is loaded
-                          on the Job Seeker homepage. The short description will
-                          be shown when your job post is loaded on the Job
-                          Seeker homepage.
-                        </p>
+                        <p>{formData.jobDescription || "Not provided"}</p>
                       </div>
                       <div className="job-create-form-back-next-info">
                         <div className="job-create-form-back-next-btn">
