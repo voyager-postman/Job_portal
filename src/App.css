@@ -222,8 +222,8 @@
 }
 
 .company-img-short-detail {
-  padding: 20px 20px;
-  background: #f0f5f7;
+  padding: 20px 0px;
+  /* background: #f0f5f7; */
 }
 
 .company-img-info {

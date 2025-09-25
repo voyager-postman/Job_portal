@@ -3,21 +3,8 @@ import { Link } from "react-router-dom";
 function CompanyDetailsPage() {
   return (
     <>
-      {/* <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Comapny Details</h1>
-            <ul>
-              <li>
-                <a href="index.html">Home</a>
-              </li>
-              <li>Comapny Details</li>
-            </ul>
-          </div>
-        </div>
-      </div> */}
       <section className="company-detail-info-area">
-        <div className="container-fluid">
+        <div className="container">
           <div className="row">
             <div className="company-img-short-detail">
               <div className="company-img-info">
