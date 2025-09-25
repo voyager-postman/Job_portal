@@ -4,56 +4,53 @@ import { Link } from "react-router-dom";
 function RecoveryPassword() {
   return (
     <>
-      <section class="inner-banners-info-area">
-        <div class="inner-banners-img-area">
-          <img
-            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-            alt="breadcrumb Img"
-          />
-        </div>
-        <div class="inner-banners-title-info">
-          <div class="container">
-            <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12">
-                <div class="inner-page-banner-title">
-                  <h2>Recover Password</h2>
-                  <ul>
-                    <li class="menu-divide-arrow">
-                      <Link to="/">Home</Link>
-                    </li>
-                    <li>Recover Password</li>
-                  </ul>
+      <section className="forgot-password-info-area">
+        <div className="container-fluid">
+          <div className="row">
+            <div className="col-lg-6 p-0">
+              <div className="password-area">
+                <div className="company-logo-info-area">
+                  <img
+                    src="assets/images/logo/connect-work-ma-login.png"
+                    className="main-logo"
+                    alt="logo"
+                  />
                 </div>
+                <div className="container">
+                  <div className="password">
+                    <h3>Forgot Password</h3>
+                    <form>
+                      <h6>Enter your email to reset your password</h6>
+                      <div className="form-group">
+                        <label>Email Address</label>
+                        <input
+                          type="email"
+                          id="email"
+                          className="form-control"
+                          placeholder="Email Address"
+                        />
+                      </div>
+                      <div className="forgot-password-btn">
+                        <button type="submit" className="default-btn btn">
+                          Reset Now
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-6 p-0">
+              <div className="login-img-info-area">
+                <img
+                  src="assets/images/company/book-appointment-orignal.png"
+                  alt="register-img"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
-      <div className="password-area ptb-100">
-        <div className="container">
-          <div className="password">
-            <div class="company-logo-info-area">
-              <img
-                src="/jobPortal/assets/images/logo/connect-work-ma-login.png"
-                class="main-logo"
-                alt="logo"
-              />
-            </div>
-            <h3>Forgot Password</h3>
-            <div className="form-group">
-              <input
-                type="email"
-                id="email"
-                className="form-control"
-                placeholder="Username Or Email Address*"
-              />
-            </div>
-            <button type="submit" className="default-btn btn">
-              Reset Now
-            </button>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

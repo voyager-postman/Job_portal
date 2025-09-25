@@ -2,7 +2,7 @@ import Slider from "react-slick";
 import { FaStar, FaQuoteLeft, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import mixitup from "mixitup";
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
@@ -12,6 +12,8 @@ import "owl.carousel/dist/assets/owl.carousel.css";
 import "owl.carousel/dist/assets/owl.theme.default.css";
 import OwlCarousel from "react-owl-carousel3";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
 
 const NextArrow = ({ onClick }) => (
   <button className="custom-arrow next-arrow" onClick={onClick}>
@@ -55,6 +57,7 @@ const reviews = [
 ];
 function Home() {
   const containerRef = useRef(null);
+  const [categoryList, setCategoryList] = useState([]);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
     triggerOnce: true,
@@ -87,8 +90,8 @@ function Home() {
     autoplayTimeout: 3000,
     smartSpeed: 800,
     navText: [
-      '<span class="custom-nav-arrow left">&#8249;</span>', // ‹
-      '<span class="custom-nav-arrow right">&#8250;</span>', // ›
+      '<span class="custom-nav-arrow ">&#8249;</span>', // ‹
+      '<span class="custom-nav-arrow ">&#8250;</span>', // ›
     ],
     responsive: {
       0: {
@@ -228,6 +231,21 @@ function Home() {
       { breakpoint: 480, settings: { slidesToShow: 1 } },
     ],
   };
+
+  const fetchCategory = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}getJobCategory`);
+      // console.log(response.data.jobCategories);
+      setCategoryList(response.data.jobCategories);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategory();
+  }, []);
+
   return (
     <>
       <div className="banner-area bg-f0f4fc">
@@ -272,9 +290,11 @@ function Home() {
                         <div className="form-group style">
                           <select className="form-select form-control">
                             <option selected>Category</option>
-                            <option value={1}>Development</option>
-                            <option value={2}>Information IT</option>
-                            <option value={3}>Corporate Job</option>
+                            {categoryList.map((list) => (
+                              <option value={list.name} key={list._id}>
+                                {list.name}
+                              </option>
+                            ))}
                           </select>
                           <i className="flaticon-list" />
                         </div>
@@ -412,7 +432,7 @@ function Home() {
                   </div>
                   <h3>Web Development Class</h3>
                   <span>Today at 12.00 PM</span>
-                  <a href="company.html" className="default-btn btn">
+                  <a href="#" className="default-btn btn">
                     Join Now
                   </a>
                 </div>
@@ -623,12 +643,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix marketing writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-1.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -638,9 +658,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       UI/UX Design Pattern For Successful Software Applications
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -679,12 +699,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-2.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -697,9 +717,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Basic Knowldge About Hodiernal Bharat In History
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -738,12 +758,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix service health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-3.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -753,9 +773,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Visual Effects For Games In Unity Beginner To Intermediate
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -794,12 +814,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design marketing writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-4.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -809,9 +829,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       The Complete Accounting &amp; Bank Financial Course 2024
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -850,12 +870,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix service health-care business">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-5.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -865,9 +885,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       The Complete Business Plan Course Includes 40 Templates
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -906,12 +926,12 @@ function Home() {
             <div className="col-lg-4 col-md-6 mix design service writing">
               <div className="single-job-card">
                 <div className="job-image">
-                  <a href="job-details.html">
+                  <Link to="/job-details">
                     <img
                       src="/jobPortal/assets/images/job/job-img-6.jpg"
                       alt="Image"
                     />
-                  </a>
+                  </Link>
                   <a href="#">
                     <div className="bookmark">
                       <i className="flaticon-bookmark" />
@@ -924,9 +944,9 @@ function Home() {
                 <div className="job-content">
                   <span className="time">Fulltime</span>
                   <h2>
-                    <a href="job-details.html">
+                    <Link to="/job-details">
                       Full Web Designing Course With 20 Web Template Designing
-                    </a>
+                    </Link>
                   </h2>
                   <div className="info">
                     <ul>
@@ -964,9 +984,9 @@ function Home() {
             </div>
           </div>
           <div className="text-center">
-            <a href="job-listing.html" className="default-btn btn">
+            <Link to="/jobs" className="default-btn btn">
               Browse All Jobs
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -1328,7 +1348,7 @@ function Home() {
                     <img src={job.image} alt={job.title} />
                     <span className="job-count">{job.count}</span>
                     <h3>
-                      <a href="job-listing.html">{job.title}</a>
+                      <a href="#">{job.title}</a>
                     </h3>
                   </div>
                 </div>
@@ -1354,7 +1374,7 @@ function Home() {
               </div>
               <div className="col-lg-4">
                 <div className="browse-btn">
-                  <a href="freelancer.html">Browse All Candidates</a>
+                  <a href="#">Browse All Candidates</a>
                 </div>
               </div>
             </div>
@@ -1370,7 +1390,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-1.jpg"
                           alt="Image"
@@ -1380,7 +1400,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Jequline Fenda</h3>
                       </a>
                       <span>IT Developer</span>
@@ -1418,7 +1438,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-2.jpg"
                           alt="Image"
@@ -1428,7 +1448,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Thomas Abedin</h3>
                       </a>
                       <span>Software Engineer</span>
@@ -1466,7 +1486,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-3.jpg"
                           alt="Image"
@@ -1476,7 +1496,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Jean Burke</h3>
                       </a>
                       <span>Graphics Designer</span>
@@ -1514,7 +1534,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-4.jpg"
                           alt="Image"
@@ -1524,7 +1544,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Robin William</h3>
                       </a>
                       <span>Manager Support</span>
@@ -1562,7 +1582,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-5.jpg"
                           alt="Image"
@@ -1572,7 +1592,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Tom Henry</h3>
                       </a>
                       <span>Director At School</span>
@@ -1610,7 +1630,7 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/freelancers/freelancers-img-6.jpg"
                           alt="Image"
@@ -1620,7 +1640,7 @@ function Home() {
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="freelancer-details.html">
+                      <a href="#">
                         <h3>Jubra Ward</h3>
                       </a>
                       <span>CEO Founder</span>
@@ -1651,7 +1671,7 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="download-area bg-f0f5f7 ptb-100">
+      {/* <div className="download-area bg-f0f5f7 ptb-100">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-lg-6">
@@ -1707,7 +1727,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="blog-area pt-100 pb-70">
         <div className="container">
           <div className="blog-top-content">
@@ -1726,7 +1746,7 @@ function Home() {
               </div>
               <div className="col-lg-4">
                 <div className="browse-btn">
-                  <a href="freelancer.html">Browse All Candidates</a>
+                  <a href="#">Browse All Candidates</a>
                 </div>
               </div>
             </div>
@@ -1742,7 +1762,7 @@ function Home() {
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="blog-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-1.jpg"
                           alt="Image"
@@ -1763,7 +1783,7 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="blog-details.html">
+                        <a href="#">
                           The Internet Is A Job Seeker Most Crucial Success
                         </a>
                       </h2>
@@ -1771,7 +1791,7 @@ function Home() {
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="blog-details.html" className="read-more">
+                      <a href="#" className="read-more">
                         Read More
                       </a>
                     </div>
@@ -1785,7 +1805,7 @@ function Home() {
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="blog-details.html">
+                      <a href="#">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-2.jpg"
                           alt="Image"
@@ -1806,7 +1826,7 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="blog-details.html">
+                        <a href="#">
                           Today From Connecting With Potential Employers
                         </a>
                       </h2>
@@ -1814,7 +1834,7 @@ function Home() {
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="blog-details.html" className="read-more">
+                      <a href="#" className="read-more">
                         Read More
                       </a>
                     </div>
@@ -1834,7 +1854,7 @@ function Home() {
                     <div className="row">
                       <div className="col-lg-4 col-sm-4">
                         <div className="blog-img">
-                          <a href="blog-details.html">
+                          <a href="#">
                             <img
                               src="/jobPortal/assets/images/blog/blog-img-3.jpg"
                               alt="Image"
@@ -1857,11 +1877,9 @@ function Home() {
                             </ul>
                           </div>
                           <h2>
-                            <a href="blog-details.html">
-                              The Most Popular Job in The Country
-                            </a>
+                            <a href="#">The Most Popular Job in The Country</a>
                           </h2>
-                          <a href="blog-details.html" className="read-more">
+                          <a href="#" className="read-more">
                             Read More
                           </a>
                         </div>
@@ -1879,7 +1897,7 @@ function Home() {
                     <div className="row">
                       <div className="col-lg-4 col-sm-4">
                         <div className="blog-img">
-                          <a href="blog-details.html">
+                          <a href="#">
                             <img
                               src="/jobPortal/assets/images/blog/blog-img-4.jpg"
                               alt="Image"
@@ -1902,11 +1920,9 @@ function Home() {
                             </ul>
                           </div>
                           <h2>
-                            <a href="blog-details.html">
-                              We’ve Weeded Through a Job Hunting
-                            </a>
+                            <a href="#">We’ve Weeded Through a Job Hunting</a>
                           </h2>
-                          <a href="blog-details.html" className="read-more">
+                          <a href="#" className="read-more">
                             Read More
                           </a>
                         </div>
@@ -1924,7 +1940,7 @@ function Home() {
                     <div className="row">
                       <div className="col-lg-4 col-sm-4">
                         <div className="blog-img">
-                          <a href="blog-details.html">
+                          <a href="#">
                             <img
                               src="/jobPortal/assets/images/blog/blog-img-5.jpg"
                               alt="Image"
@@ -1947,11 +1963,11 @@ function Home() {
                             </ul>
                           </div>
                           <h2>
-                            <a href="blog-details.html">
+                            <a href="#">
                               Find Thousand Job If You Ready To Get
                             </a>
                           </h2>
-                          <a href="blog-details.html" className="read-more">
+                          <a href="#" className="read-more">
                             Read More
                           </a>
                         </div>
@@ -1977,9 +1993,9 @@ function Home() {
             </div>
             <div className="col-lg-4 col-md-3">
               <div className="contact-btn">
-                <a href="contact.html" className="default-btn btn">
+                <Link to="/contact-us" className="default-btn btn">
                   Contact Us Now
-                </a>
+                </Link>
               </div>
             </div>
           </div>

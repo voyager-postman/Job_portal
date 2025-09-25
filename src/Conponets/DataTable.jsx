@@ -67,7 +67,7 @@ export const TableView = ({
             id="datatable_wrapper"
             className="information_dataTables dataTables_wrapper dt-bootstrap4 table-responsive"
           >
-            <table
+            <table 
               id="example"
               className="display table table-bordered borderTerpProduce"
               style={{ width: "100%" }}
@@ -94,10 +94,7 @@ export const TableView = ({
                     <tr key={row.id} className="rowCursorPointer">
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
                     </tr>

@@ -239,7 +239,7 @@ function EmployerDashboard() {
             </div>
             <div className="dashboard">
               {/* Left Panel */}
-              <div className="left">
+              <div className="left dashboard-bottom">
                 <div className="filters">
                   <select id="locationFilter" onchange="filterJobs()">
                     <option value="All">All Locations</option>
@@ -288,7 +288,7 @@ function EmployerDashboard() {
                 </table>
               </div>
               {/* Right Panel */}
-              <div className="right">
+              <div className="right dashboard-bottom">
                 <h5>Candidate Engagement Ini sights</h5>
                 <ReactApexChart
                   options={chartData.options}

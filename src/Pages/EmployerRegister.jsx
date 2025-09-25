@@ -1,123 +1,62 @@
-// import React from "react";
-
-// import { Link, useNavigate } from "react-router-dom";
-// function Login() {
-//   const navigate = useNavigate();
-//   const handleRegister = () => {
-//     navigate("/register");
-//   };
-//   return (
-//     <>
-//       <div className="page-banner-area bg-f0f4fc">
-//         <div className="container">
-//           <div className="page-banner-content">
-//             <h1>Login</h1>
-//             <ul>
-//               <li>
-//                 <Link to="/" className="nav-link">
-//                   {" "}
-//                   Home
-//                 </Link>
-//               </li>
-//               <li>Login</li>
-//             </ul>
-//           </div>
-//         </div>
-//       </div>
-//       <div className="login-area ptb-100">
-//         <div className="container">
-//           <div className="login">
-//             <h3>Log In</h3>
-//             <form>
-//               <div className="form-group">
-//                 <input
-//                   type="email"
-//                   id="email"
-//                   className="form-control"
-//                   placeholder="Username Or Email Address*"
-//                 />
-//               </div>
-//               <div className="form-group">
-//                 <input
-//                   type="password"
-//                   id="password"
-//                   className="form-control"
-//                   placeholder="Password*"
-//                 />
-//               </div>
-//               <div className="form-check">
-//                 <input
-//                   className="form-check-input"
-//                   type="checkbox"
-//                   defaultValue
-//                   id="flexCheckDefault"
-//                 />
-//                 <label className="form-check-label" htmlFor="flexCheckDefault">
-//                   Remember Me
-//                 </label>
-//               </div>
-//               <div className="login-btn-recover-password">
-//                 <div className="login-btn">
-//                   <button type="submit" className="default-btn btn">
-//                     Login
-//                   </button>
-//                 </div>
-//                 <div className="recover-password">
-//                   <span className="default-btn btn">
-//                     <Link to="/recovery-password">Lost your password?</Link>
-//                   </span>
-//                 </div>
-//               </div>
-//               <label>
-//                 Don't have an account?{" "}
-//                 <span onClick={handleRegister}>Sign in</span>
-//               </label>
-//             </form>
-//           </div>
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
-
-// export default Login;
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance"; // path based on your folder structure
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import { API_BASE_URL } from "../Url/Url";
 
 function EmployerRegister() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const validateForm = () => {
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       toast.error("Please fill in all required fields");
       return false;
     }
+
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email address");
       return false;
     }
+
+    // Validate password length
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return false;
     }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      toast.error("Password and confirm password do not match");
+      return false;
+    }
+
+    // Validate captcha
+    if (!captchaVerified) {
+      toast.error("Please verify the captcha!");
+      return false;
+    }
+
+    // Validate terms & conditions
     if (!agree) {
       toast.error("You must accept the terms and conditions");
       return false;
     }
-    return true;
+
+    return true; // All validations passed
   };
 
   const handleRegister = async () => {
@@ -125,13 +64,10 @@ function EmployerRegister() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}register/company`, // ✅ fixed missing slash
-        {
-          email,
-          password,
-        }
-      );
+      const response = await axios.post(`${API_BASE_URL}register/company`, {
+        email,
+        password,
+      });
       console.log(response);
 
       if (response.data.success) {
@@ -139,9 +75,12 @@ function EmployerRegister() {
 
         // ✅ store token and user details correctly
         localStorage.setItem("token", token);
+
         toast.success("Registration successful!");
         login(); // ✅ update auth context / global state
-        navigate("/employer-basic-info");
+
+        // ✅ Navigate to verification page with email
+        navigate("/verification", { state: { email, showToast: true } });
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -157,122 +96,122 @@ function EmployerRegister() {
     <>
       <ToastContainer />
       <div>
-        <section className="inner-banners-info-area">
-          <div className="inner-banners-img-area">
-            <img
-              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-              alt="breadcrumb Img"
-            />
-          </div>
-          <div className="inner-banners-title-info">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-12 col-md-12 col-sm-12">
-                  <div className="inner-page-banner-title">
-                    <h2>Employer Register</h2>
-                    <ul>
-                      <li className="menu-divide-arrow">
-                        <Link to="/">Home</Link>
-                      </li>
-                      <li>Employer Register</li>
-                    </ul>
+        <section className="register-area-info-area">
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col-lg-6 p-0">
+                <div className="register-area">
+                  <div className="register-logo-heading">
+                    <img
+                      src="assets/images/logo/connect-work-ma-login.png"
+                      className="main-logo"
+                      alt="logo"
+                    />
                   </div>
+                  <div className="container">
+                    <div className="register">
+                      <h3>Employer Sign Up</h3>
+                      <div className="form-group">
+                        <label>Email Address*</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          placeholder="Email Address*"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group  eye-icon-postion">
+                        <label>Password*</label>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className="form-control"
+                          placeholder="Password*"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <i
+                          className={`fa-solid ${
+                            showPassword ? "fa-eye-slash" : "fa-eye"
+                          } toggle-password`}
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      </div>
+                      <div className="form-group eye-icon-postion">
+                        <label>Confirm password*</label>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          className="form-control"
+                          placeholder="Confirm Password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        <i
+                          className={`fa-solid ${
+                            showConfirmPassword ? "fa-eye-slash" : "fa-eye"
+                          } toggle-password`}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          style={{ cursor: "pointer" }}
+                        />
+                      </div>
+                      <div className="form-group mb-3">
+                        <ReCAPTCHA
+                          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Google test key
+                          onChange={() => setCaptchaVerified(true)}
+                        />
+                      </div>
+                      <div className="register-terms-Policy-box">
+                        <input
+                          type="checkbox"
+                          id="terms"
+                          checked={agree}
+                          onChange={(e) => setAgree(e.target.checked)}
+                        />
+                        <label htmlFor="vehicle1">
+                          {" "}
+                          I accept the <a href="#">
+                            Terms &amp; Condition
+                          </a> and <a href="#">Privacy Policy</a>
+                        </label>
+                      </div>
+                      <div className="register-and-social-icon-info">
+                        <div className="register-btn">
+                          <button
+                            type="button"
+                            onClick={handleRegister}
+                            className="default-btn btn"
+                          >
+                            {loading ? "Registering..." : "Register"}
+                          </button>
+                        </div>
+                        <div className="register-login-text-btn">
+                          <p>
+                            Already have an account?{" "}
+                            <Link to="/employer-login">
+                              <i className="fa-solid fa-user" />
+                              Sign in
+                            </Link>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-lg-6 p-0">
+                <div className="register-img-info-area">
+                  <img
+                    src="assets/images/company/book-appointment-orignal.png"
+                    alt="register-img"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </section>
-        {/*End Page Banner Area*/}
-        {/*Start Register Area*/}
-        <div className="register-area ptb-100">
-          <div className="container">
-            <div className="register">
-              <div class="company-logo-info-area">
-                <img
-                  src="/jobPortal/assets/images/logo/connect-work-ma-login.png"
-                  class="main-logo"
-                  alt="logo"
-                />
-              </div>
-              <h3>Employer Register</h3>
-              <form>
-                <div className="form-group">
-                  <input
-                    type="email"
-                    className="form-control"
-                    placeholder="Email Address*"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="password"
-                    className="form-control"
-                    placeholder="Password*"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                {/* <div className="register-terms-Policy-box">
-                  <input
-                    type="checkbox"
-                    id="vehicle1"
-                    name="vehicle1"
-                    defaultValue="Bike"
-                  />
-                  <label htmlFor="vehicle1">
-                    {" "}
-                    I accept the <a href="#">Terms &amp; Condition</a> and{" "}
-                    <a href="#">Privacy Policy</a>
-                  </label>
-                </div> */}
-                <div className="register-terms-Policy-box">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={agree}
-                    onChange={(e) => setAgree(e.target.checked)}
-                  />
-                  <label htmlFor="terms">
-                    I accept the <a href="#">Terms &amp; Condition</a> and{" "}
-                    <a href="#">Privacy Policy</a>
-                  </label>
-                </div>
-                <div className="register-and-social-icon-info">
-                  <div className="register-btn">
-                    <button
-                      type="button"
-                      onClick={handleRegister}
-                      className="default-btn btn"
-                    >
-                      {loading ? "Registering..." : "Register"}
-                    </button>
-                  </div>
-                  <div className="register-social-icon employer-register">
-                    <button className="default-btn btn">
-                      <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/Google-icon.png" />
-                      </div>
-                      {/* <div class="social-icon-name">
-                       Google
-                      </div> */}
-                    </button>
-                  </div>
-                </div>
-                {/* <div class="register-or-content">
-                    <p>OR</p>  
-                   </div> */}
-                <div className="register-login-text-btn">
-                  <p>
-                    Already have an account?{" "}
-                    <Link to="/employer-login">Sign in</Link>
-                  </p>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );

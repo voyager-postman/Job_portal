@@ -14,10 +14,11 @@
 # Ignore all video files
 /video/
 *.mp4
+/public/assets/
 
 # Archives
 *.zip
-
+# hghkfygikhi
 # misc
 .DS_Store
 .env.local

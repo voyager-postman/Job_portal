@@ -77,7 +77,9 @@ const Employers = () => {
                 <div className="divder-line-info"></div>
                 <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
-                    <i className="fa-regular fa-building"></i> Companies
+                    <Link to="/employers">
+                      <i className="fa-regular fa-building"></i> Companies
+                    </Link>
                   </h4>
                 </div>
                 <div className="divder-line-info"></div>

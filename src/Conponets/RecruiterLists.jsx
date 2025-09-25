@@ -1,7 +1,39 @@
-import React, { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
+import { API_BASE_URL } from "../Url/Url";
+import axios from "axios";
 function RecruiterLists() {
+  const [data, setData] = useState([]);
+  const getRecruiterList = () => {
+    const token = localStorage.getItem("token");
+
+    axios
+      .get(`${API_BASE_URL}getRecruiterList`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        let recruiters = response.data.recruiters || [];
+
+        // ✅ Add static image to each recruiter
+        recruiters = recruiters.map((rec) => ({
+          ...rec,
+          image: "/jobPortal/assets/images/candidate-img/candidate1.jpg", // static image
+        }));
+
+        setData(recruiters);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getRecruiterList();
+  }, []);
+
   const columns = [
     {
       accessorKey: "id",
@@ -24,21 +56,18 @@ function RecruiterLists() {
       ),
     },
     {
-      accessorKey: "name",
-      header: "Recruiter",
+      accessorKey: "first_name",
+      header: "First Name",
+    },
+    {
+      accessorKey: "last_name",
+      header: "Last Name",
     },
     {
       accessorKey: "email",
       header: "Email",
     },
-    {
-      accessorKey: "position",
-      header: "Position",
-    },
-    {
-      accessorKey: "phone",
-      header: "Number",
-    },
+
     {
       accessorKey: "status",
       header: "Status",
@@ -66,168 +95,168 @@ function RecruiterLists() {
   ];
 
   // ✅ Static Data
-  const data = [
-    {
-      id: 1,
-      image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-      name: "Samyara Robert",
-      email: "samyara.robert@gmail.com",
-      position: "Staff Member",
-      phone: "9874563214",
-    },
-    {
-      id: 2,
-      image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-      name: "John Smith",
-      email: "john.smith@gmail.com",
-      position: "HR Manager",
-      phone: "9876543210",
-    },
-    {
-      id: 3,
-      image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-      name: "Emma Watson",
-      email: "emma.watson@gmail.com",
-      position: "Recruiter",
-      phone: "9123456789",
-    },
-    {
-      id: 4,
-      image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-      name: "Robert Brown",
-      email: "robert.brown@gmail.com",
-      position: "Staff Member",
-      phone: "9988776655",
-    },
-    {
-      id: 5,
-      image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-      name: "Sophia Johnson",
-      email: "sophia.johnson@gmail.com",
-      position: "Team Lead",
-      phone: "9871234567",
-    },
-    {
-      id: 6,
-      image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-      name: "Liam Williams",
-      email: "liam.williams@gmail.com",
-      position: "Software Engineer",
-      phone: "9765432109",
-    },
-    {
-      id: 7,
-      image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-      name: "Olivia Martinez",
-      email: "olivia.martinez@gmail.com",
-      position: "Designer",
-      phone: "9456123789",
-    },
-    {
-      id: 8,
-      image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-      name: "James Anderson",
-      email: "james.anderson@gmail.com",
-      position: "Staff Member",
-      phone: "9870098765",
-    },
-    {
-      id: 9,
-      image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-      name: "Isabella Taylor",
-      email: "isabella.taylor@gmail.com",
-      position: "Recruiter",
-      phone: "9567843210",
-    },
-    {
-      id: 10,
-      image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-      name: "Mason Lee",
-      email: "mason.lee@gmail.com",
-      position: "HR Assistant",
-      phone: "9345678123",
-    },
-    {
-      id: 11,
-      image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-      name: "Mia Davis",
-      email: "mia.davis@gmail.com",
-      position: "Coordinator",
-      phone: "9012345678",
-    },
-    {
-      id: 12,
-      image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-      name: "Ethan White",
-      email: "ethan.white@gmail.com",
-      position: "Recruiter",
-      phone: "9234567890",
-    },
-    {
-      id: 13,
-      image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-      name: "Charlotte Harris",
-      email: "charlotte.harris@gmail.com",
-      position: "Staff Member",
-      phone: "9123987654",
-    },
-    {
-      id: 14,
-      image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-      name: "Benjamin Clark",
-      email: "benjamin.clark@gmail.com",
-      position: "HR Manager",
-      phone: "9345098761",
-    },
-    {
-      id: 15,
-      image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-      name: "Amelia Lewis",
-      email: "amelia.lewis@gmail.com",
-      position: "Software Engineer",
-      phone: "9785612345",
-    },
-    {
-      id: 16,
-      image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-      name: "Lucas Walker",
-      email: "lucas.walker@gmail.com",
-      position: "Designer",
-      phone: "9654321789",
-    },
-    {
-      id: 17,
-      image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-      name: "Harper Hall",
-      email: "harper.hall@gmail.com",
-      position: "Recruiter",
-      phone: "9543216789",
-    },
-    {
-      id: 18,
-      image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-      name: "Henry Allen",
-      email: "henry.allen@gmail.com",
-      position: "Team Lead",
-      phone: "9234785612",
-    },
-    {
-      id: 19,
-      image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-      name: "Evelyn Young",
-      email: "evelyn.young@gmail.com",
-      position: "Staff Member",
-      phone: "9874567891",
-    },
-    {
-      id: 20,
-      image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-      name: "Alexander King",
-      email: "alexander.king@gmail.com",
-      position: "HR Assistant",
-      phone: "9765123489",
-    },
-  ];
+  // const data = [
+  //   {
+  //     id: 1,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
+  //     name: "Samyara Robert",
+  //     email: "samyara.robert@gmail.com",
+  //     position: "Staff Member",
+  //     phone: "9874563214",
+  //   },
+  //   {
+  //     id: 2,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
+  //     name: "John Smith",
+  //     email: "john.smith@gmail.com",
+  //     position: "HR Manager",
+  //     phone: "9876543210",
+  //   },
+  //   {
+  //     id: 3,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
+  //     name: "Emma Watson",
+  //     email: "emma.watson@gmail.com",
+  //     position: "Recruiter",
+  //     phone: "9123456789",
+  //   },
+  //   {
+  //     id: 4,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
+  //     name: "Robert Brown",
+  //     email: "robert.brown@gmail.com",
+  //     position: "Staff Member",
+  //     phone: "9988776655",
+  //   },
+  //   {
+  //     id: 5,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
+  //     name: "Sophia Johnson",
+  //     email: "sophia.johnson@gmail.com",
+  //     position: "Team Lead",
+  //     phone: "9871234567",
+  //   },
+  //   {
+  //     id: 6,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
+  //     name: "Liam Williams",
+  //     email: "liam.williams@gmail.com",
+  //     position: "Software Engineer",
+  //     phone: "9765432109",
+  //   },
+  //   {
+  //     id: 7,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
+  //     name: "Olivia Martinez",
+  //     email: "olivia.martinez@gmail.com",
+  //     position: "Designer",
+  //     phone: "9456123789",
+  //   },
+  //   {
+  //     id: 8,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
+  //     name: "James Anderson",
+  //     email: "james.anderson@gmail.com",
+  //     position: "Staff Member",
+  //     phone: "9870098765",
+  //   },
+  //   {
+  //     id: 9,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
+  //     name: "Isabella Taylor",
+  //     email: "isabella.taylor@gmail.com",
+  //     position: "Recruiter",
+  //     phone: "9567843210",
+  //   },
+  //   {
+  //     id: 10,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
+  //     name: "Mason Lee",
+  //     email: "mason.lee@gmail.com",
+  //     position: "HR Assistant",
+  //     phone: "9345678123",
+  //   },
+  //   {
+  //     id: 11,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
+  //     name: "Mia Davis",
+  //     email: "mia.davis@gmail.com",
+  //     position: "Coordinator",
+  //     phone: "9012345678",
+  //   },
+  //   {
+  //     id: 12,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
+  //     name: "Ethan White",
+  //     email: "ethan.white@gmail.com",
+  //     position: "Recruiter",
+  //     phone: "9234567890",
+  //   },
+  //   {
+  //     id: 13,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
+  //     name: "Charlotte Harris",
+  //     email: "charlotte.harris@gmail.com",
+  //     position: "Staff Member",
+  //     phone: "9123987654",
+  //   },
+  //   {
+  //     id: 14,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
+  //     name: "Benjamin Clark",
+  //     email: "benjamin.clark@gmail.com",
+  //     position: "HR Manager",
+  //     phone: "9345098761",
+  //   },
+  //   {
+  //     id: 15,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
+  //     name: "Amelia Lewis",
+  //     email: "amelia.lewis@gmail.com",
+  //     position: "Software Engineer",
+  //     phone: "9785612345",
+  //   },
+  //   {
+  //     id: 16,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
+  //     name: "Lucas Walker",
+  //     email: "lucas.walker@gmail.com",
+  //     position: "Designer",
+  //     phone: "9654321789",
+  //   },
+  //   {
+  //     id: 17,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
+  //     name: "Harper Hall",
+  //     email: "harper.hall@gmail.com",
+  //     position: "Recruiter",
+  //     phone: "9543216789",
+  //   },
+  //   {
+  //     id: 18,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
+  //     name: "Henry Allen",
+  //     email: "henry.allen@gmail.com",
+  //     position: "Team Lead",
+  //     phone: "9234785612",
+  //   },
+  //   {
+  //     id: 19,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
+  //     name: "Evelyn Young",
+  //     email: "evelyn.young@gmail.com",
+  //     position: "Staff Member",
+  //     phone: "9874567891",
+  //   },
+  //   {
+  //     id: 20,
+  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
+  //     name: "Alexander King",
+  //     email: "alexander.king@gmail.com",
+  //     position: "HR Assistant",
+  //     phone: "9765123489",
+  //   },
+  // ];
 
   return (
     <>

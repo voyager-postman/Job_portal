@@ -1,12 +1,16 @@
 import axios from "axios";
 import React, { useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
-
+import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 
 function CandidateProfile() {
+   const navigate = useNavigate();
+  const { logout } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
 
   const [activeLevel, setActiveLevel] = useState(null);
@@ -74,6 +78,10 @@ function CandidateProfile() {
   const token = localStorage.getItem("token");
   const [cvFiles, setCvFiles] = useState([]); // List of uploaded CVs
   const [menuOpenId, setMenuOpenId] = useState(null); // Track which CV menu is open
+  // ✅ Cover Letter states
+  const [coverLetters, setCoverLetters] = useState([]); // uploaded cover letters
+  const [menuOpenIdCL, setMenuOpenIdCL] = useState(null); // track which menu is open
+
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState([]);
@@ -113,6 +121,7 @@ function CandidateProfile() {
     endDate: "",
     yearOfExperience: "",
     currentlyWorkingHere: false,
+    currentlyWorkingHereEmp: false,
     Description: "",
     EmploymentType: "",
     workLocation: "",
@@ -176,6 +185,8 @@ function CandidateProfile() {
       }
       setEducationList(res.data.profile?.education || []);
       setCvFiles(res.data.profile?.resumeUrls || []);
+      setCoverLetters(res.data.profile?.coverLetter || []);
+
       const profileImg = res.data?.profile?.profileImage;
       if (profileImg && profileImg.trim() !== "") {
         setImage(API_IMAGE_URL + profileImg); // stored image
@@ -391,7 +402,7 @@ function CandidateProfile() {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        `${API_BASE_URL}/DeleteAccount`,
+        `${API_BASE_URL}DeleteAccount`,
         { reason, comments },
         {
           headers: {
@@ -408,11 +419,68 @@ function CandidateProfile() {
       modalInstance.hide();
 
       toast.success("Your account has been deleted successfully!");
+      logout(); // clears localStorage + state
+      navigate("/"); // redirect to home or login
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error("Failed to delete account.");
     }
   };
+  const handleUploadCoverLetter = async (e) => {
+    const files = e.target.files;
+    if (!files.length) return;
+
+    if (coverLetters.length >= 3) {
+      toast.error(
+        "You can upload only up to 3 cover letters. Please delete one first.",
+        {
+          autoClose: 2000,
+          theme: "colored",
+        }
+      );
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    for (let file of files) {
+      if (coverLetters.length >= 3) break;
+
+      const formData = new FormData();
+      formData.append("coverLetter", file);
+
+      try {
+        const response = await axios.put(
+          `${API_BASE_URL}updateCoverLetter`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.status === 200) {
+          setCoverLetters((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              url: response.data.coverLetterUrl, // ✅ backend returns this
+              _id: String(response.data.coverLetterId || Date.now()), // always string
+            },
+          ]);
+          await fetchProfile();
+          toast.success("Cover letter uploaded successfully!", {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Upload cover letter error:", error);
+        toast.error("Failed to upload cover letter", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    }
+  };
+
   const handleUploadCv = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
@@ -465,6 +533,40 @@ function CandidateProfile() {
         });
       }
     }
+  };
+  const handleDeleteCoverLetter = async (clId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}DeleteCoverLetter`,
+        { coverLetterId: String(clId) },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 200) {
+        setCoverLetters((prev) => prev.filter((cl) => cl._id !== clId));
+        toast.success("Cover letter deleted successfully!", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Failed to delete cover letter", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      }
+    } catch (error) {
+      console.error("Delete cover letter error:", error);
+      toast.error("Failed to delete cover letter", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+    }
+
+    setMenuOpenIdCL(null);
   };
 
   // ✅ Delete CV
@@ -541,6 +643,67 @@ function CandidateProfile() {
   // Save Career Goals
   const handleSaveGoals = async () => {
     try {
+      if (!careerGoalsData.desiredJobTitle?.trim()) {
+        toast.error("Please enter a Desired Job Title", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.employmentType) {
+        toast.error("Please select a Desired Employment Type", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.occupationType) {
+        toast.error("Please select a Desired Occupation Type", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.salaryType) {
+        toast.error(
+          "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
+          {
+            autoClose: 2000,
+            theme: "colored",
+          }
+        );
+        return;
+      }
+
+      if (!careerGoalsData.salaryCurrency) {
+        toast.error("Please select a Salary Currency", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (
+        !careerGoalsData.salaryAmount ||
+        isNaN(careerGoalsData.salaryAmount)
+      ) {
+        toast.error("Please enter a valid Salary Amount", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!careerGoalsData.lookingForJob) {
+        toast.error("Please select a job opportunity", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       // ✅ Map form keys -> API keys
@@ -660,6 +823,13 @@ function CandidateProfile() {
 
   const handleSave = async () => {
     try {
+      if (!summary?.trim()) {
+        toast.error("Professional Summary is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -717,6 +887,50 @@ function CandidateProfile() {
   };
   const handleSaveEducation = async () => {
     try {
+      if (!educationForm.degree) {
+        toast.error("Please enter a valid Degree", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.University) {
+        toast.error("Please enter a valid University", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.startDate) {
+        toast.error("Please select a Start Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!educationForm.endDate) {
+        toast.error("Please select an End Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Ensure start date is not after end date
+      if (
+        !educationForm.currentlyStudyingHere &&
+        new Date(educationForm.startDate) > new Date(educationForm.endDate)
+      ) {
+        toast.error("End Date cannot be before Start Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -799,6 +1013,64 @@ function CandidateProfile() {
   };
   const handleSavePersonal = async () => {
     try {
+      if (!personalDetails.firstName?.trim()) {
+        toast.error("First name is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!personalDetails.lastName?.trim()) {
+        toast.error("Last name is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!personalDetails.birthYear) {
+        toast.error("Date of birth is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Check if birthYear is a valid past date
+      const dob = new Date(personalDetails.birthYear);
+      if (isNaN(dob.getTime()) || dob > new Date()) {
+        toast.error("Please enter a valid date of birth", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!personalDetails.gender) {
+        toast.error("Gender is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!personalDetails.phone?.trim()) {
+        toast.error("Phone number is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Phone number validation (10 digits, you can adjust regex for your format)
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(personalDetails.phone)) {
+        toast.error("Please enter a valid 10-digit phone number", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       const payload = {
@@ -908,6 +1180,27 @@ function CandidateProfile() {
   };
   const handleSaveAboutRole = async () => {
     try {
+      if (!aboutRole.jobTitle) {
+        toast.error("Job title is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!aboutRole.yearsOfExperience) {
+        toast.error("Years of experience is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+      if (!aboutRole.jobCategory) {
+        toast.error("Job category is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const payload = {
@@ -979,6 +1272,7 @@ function CandidateProfile() {
         endDate: workExperienceData.endDate,
         yearOfExperience: workExperienceData.yearOfExperience,
         currentlyWorkingHere: workExperienceData.currentlyWorkingHere,
+        keep_employer_anonymous: workExperienceData.currentlyWorkingHereEmp,
         Description: workExperienceData.Description,
         EmploymentType: workExperienceData.EmploymentType,
         workLocation: workExperienceData.workLocation,
@@ -1063,6 +1357,29 @@ function CandidateProfile() {
 
   const handleSavePortfolioLinks = async () => {
     try {
+      if (!portfolioLinks.personalWebsite) {
+        toast.error("Please enter a valid Personal Website URL", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!portfolioLinks.github) {
+        toast.error("Please enter a valid GitHub profile link", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!portfolioLinks.linkedin) {
+        toast.error("Please enter a valid LinkedIn profile link", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_BASE_URL}updateLinks`,
@@ -1149,6 +1466,21 @@ function CandidateProfile() {
   };
   const handleSaveCertificate = async () => {
     try {
+      if (!formData.title?.trim()) {
+        toast.error("Certificate title is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!formData.issueDate) {
+        toast.error("Issue date is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -1397,21 +1729,53 @@ function CandidateProfile() {
                             </div>
                             <div className="modal-body">
                               <div className="form-group">
-                                <div className="custom-file-upload">
+                                <div className="custom-file-upload text-center">
                                   <label>Upload Your File (PDF/JPG/PNG)</label>
+
+                                  {/* ✅ hidden file input */}
                                   <input
                                     type="file"
                                     id="file-upload"
                                     accept=".pdf,.jpg,.jpeg,.png"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => {
+                                      handleUploadCv(e); // <-- your function for upload
+
+                                      // ✅ close modal after file selection
+                                      const modalEl =
+                                        document.getElementById("exampleModal");
+                                      const modal =
+                                        window.bootstrap.Modal.getInstance(
+                                          modalEl
+                                        );
+                                      modal.hide();
+                                    }}
                                     required
                                   />
-                                  <div className="file-text">
-                                    <i className="fas fa-cloud-upload-alt" />
+
+                                  {/* ✅ clickable area (same design as yours) */}
+                                  <div
+                                    className="file-text cursor-pointer  border-primary p-3 rounded"
+                                    onClick={() =>
+                                      document
+                                        .getElementById("file-upload")
+                                        .click()
+                                    }
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <i
+                                      className="fas fa-cloud-upload-alt"
+                                      style={{
+                                        fontSize: "30px",
+                                        color: "#007bff",
+                                      }}
+                                    />
                                     <br />
-                                    <label>
+                                    <label style={{ cursor: "pointer" }}>
                                       Click to Upload or drag &amp; drop
                                     </label>
                                   </div>
+
                                   <div className="invalid-feedback mt-2">
                                     Please select a file.
                                   </div>
@@ -1969,7 +2333,7 @@ function CandidateProfile() {
                   </div>
                 </div>
               </div>
-              <div className="accordion" id="myCvs">
+              <div className="accordion" id="coveLatter">
                 <div className="accordion-item">
                   <div className="accordion-header" id="headingFour">
                     <div className="accordion-button collapsed" type="button">
@@ -2085,7 +2449,7 @@ function CandidateProfile() {
                                   })
                                 ) : (
                                   <p
-                                    className="text-muted"
+                                    className="text-center"
                                     style={{ padding: "2px" }}
                                   >
                                     No CVs uploaded yet.
@@ -2110,6 +2474,156 @@ function CandidateProfile() {
                                     </p>
                                   )}
                                 </div>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="accordion" id="coveLatter">
+                <div className="accordion-item">
+                  <div className="accordion-header" id="headingFour">
+                    <div className="accordion-button collapsed" type="button">
+                      <div className="input-info-edit-area">
+                        <h3>Cover Letter</h3>
+                      </div>
+                      <span
+                        className="ms-auto accordion-icon-toggle collapsed"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseFour1"
+                        aria-expanded="true"
+                        aria-controls="collapseFour1"
+                      >
+                        <i className="fa-solid fa-angle-up" />
+                        <i className="fa-solid fa-angle-down" />
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    id="collapseFour1"
+                    className="accordion-collapse show"
+                    aria-labelledby="headingFour"
+                    data-bs-parent="#coveLatter"
+                  >
+                    <div className="accordion-body">
+                      <div className="candidate-blank-form-detail-edit-info">
+                        <div className="profile-form">
+                          <form>
+                            <div className="row">
+                              <div className="col-lg-12 col-md-12">
+                                {/* ✅ CV LIST */}
+                                {coverLetters.length > 0 ? (
+                                  coverLetters.map((cl, index) => {
+                                    const fileUrl =
+                                      typeof cl === "string"
+                                        ? `${API_IMAGE_URL}${cl}`
+                                        : cl?.url
+                                        ? `${API_IMAGE_URL}${cl.url}`
+                                        : null;
+
+                                    const fileName =
+                                      typeof cl === "string"
+                                        ? decodeURIComponent(
+                                            cl.split("/").pop()
+                                          )
+                                        : cl?.url
+                                        ? decodeURIComponent(
+                                            cl.url.split("/").pop()
+                                          )
+                                        : cl?.name || "Unknown file";
+
+                                    return (
+                                      <div
+                                        key={cl._id || index}
+                                        className="upload-download-dlt-cv d-flex justify-content-between align-items-center mb-2"
+                                      >
+                                        <div className="upload-cv-info-area">
+                                          <p>
+                                            <i className="fas fa-file-alt" />{" "}
+                                            {fileName}
+                                          </p>
+                                        </div>
+
+                                        <div className="download-dlt-cv position-relative">
+                                          <i
+                                            className="fas fa-ellipsis-v"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() =>
+                                              setMenuOpenIdCL(
+                                                menuOpenIdCL ===
+                                                  (cl._id || index)
+                                                  ? null
+                                                  : cl._id || index
+                                              )
+                                            }
+                                          />
+                                          {menuOpenIdCL ===
+                                            (cl._id || index) && (
+                                            <div className="download-edit-info">
+                                              <ul>
+                                                {fileUrl && (
+                                                  <li
+                                                    onClick={() =>
+                                                      window.open(
+                                                        fileUrl,
+                                                        "_blank"
+                                                      )
+                                                    }
+                                                  >
+                                                    <i className="fa-solid fa-arrow-down" />{" "}
+                                                    Download
+                                                  </li>
+                                                )}
+                                                <li
+                                                  onClick={() =>
+                                                    handleDeleteCoverLetter(
+                                                      cl._id || index
+                                                    )
+                                                  }
+                                                >
+                                                  <i className="fa-solid fa-trash" />{" "}
+                                                  Delete
+                                                </li>
+                                              </ul>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <p
+                                    className="text-center"
+                                    style={{ padding: "2px" }}
+                                  >
+                                    No Cover Letters uploaded yet.
+                                  </p>
+                                )}
+
+                                {/* ✅ Upload Input */}
+                                <div className="upload-cv-area mt-3">
+                                  <input
+                                    type="file"
+                                    name="coverLetter"
+                                    accept=".pdf, .doc, .docx"
+                                    multiple
+                                    onChange={handleUploadCoverLetter}
+                                    disabled={coverLetters.length >= 3}
+                                  />
+                                  {coverLetters.length >= 3 && (
+                                    <p className="text-danger mt-2">
+                                      You can upload up to 3 Cover Letters. To
+                                      upload a new one, delete an existing one.
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* ✅ Upload Input */}
+                                {/* ✅ Upload Input */}
                               </div>
                             </div>
                           </form>
@@ -2778,6 +3292,7 @@ function CandidateProfile() {
                               endDate: "",
                               yearOfExperience: "",
                               currentlyWorkingHere: false,
+                              currentlyWorkingHereEmp: false,
                               Description: "",
                               EmploymentType: "",
                               workLocation: "",
@@ -2872,7 +3387,20 @@ function CandidateProfile() {
                                       />
                                     </div>
                                   </div>
-
+                                  <div className="currently-working-here">
+                                    <input
+                                      type="checkbox"
+                                      id="CurrentlyWorking"
+                                      name="currentlyWorkingHereEmp"
+                                      checked={
+                                        workExperienceData.currentlyWorkingHereEmp
+                                      }
+                                      onChange={handleChangeOfWork}
+                                    />
+                                    <label htmlFor="CurrentlyWorking">
+                                      &nbsp; Keep my current employer anonymous
+                                    </label>
+                                  </div>
                                   {/* Start / End Date */}
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
@@ -2895,9 +3423,6 @@ function CandidateProfile() {
                                         name="endDate"
                                         value={workExperienceData.endDate}
                                         onChange={handleChangeOfWork}
-                                        disabled={
-                                          workExperienceData.currentlyWorkingHere
-                                        }
                                       />
                                     </div>
                                   </div>
@@ -2914,7 +3439,7 @@ function CandidateProfile() {
                                       onChange={handleChangeOfWork}
                                     />
                                     <label htmlFor="CurrentlyWorking">
-                                      I Am Currently Working Here
+                                      &nbsp; I Am Currently Working Here
                                     </label>
                                   </div>
 
@@ -3122,6 +3647,10 @@ function CandidateProfile() {
                                                 currentlyWorkingHere:
                                                   exp.currentlyWorkingHere ||
                                                   false,
+                                                currentlyWorkingHereEmp:
+                                                  exp.keep_employer_anonymous ||
+                                                  false,
+
                                                 Description:
                                                   exp.Description || "",
                                                 EmploymentType:
@@ -3706,7 +4235,9 @@ function CandidateProfile() {
                               </div>
                             ))
                           ) : (
-                            <p>No languages added yet.</p>
+                            <p className="text-center ">
+                              No languages added yet.
+                            </p>
                           )}
                         </div>
                       )}
@@ -3887,7 +4418,9 @@ function CandidateProfile() {
                                 </div>
                               ))
                             ) : (
-                              <p>No certificates added yet.</p>
+                              <p className="text-center">
+                                No certificates added yet.
+                              </p>
                             )}
                           </div>
                         )}

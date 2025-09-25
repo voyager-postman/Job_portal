@@ -68,6 +68,22 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
+                to="/chat-messaging-system"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <img
+                    src="assets/images/svg-icon/icon-2.svg"
+                    alt="Job Search"
+                  />
+                </span>
+                <span className="menu-title">Messages</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
                 to="/candidate-profile"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
@@ -146,7 +162,7 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/manage-applicants"
+                to="/applied-jobs-list"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
@@ -157,7 +173,7 @@ function Sidebar() {
                     alt="Job Search"
                   />
                 </span>
-                <span className="menu-title">Manages Jobs</span>
+                <span className="menu-title">Application Management</span>
               </NavLink>
             </li>
             <li className="nav-item">
