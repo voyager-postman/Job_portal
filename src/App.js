@@ -53,6 +53,10 @@ import EmailOTPVerification from "./Pages/EmailOTPVerification";
 import VerifiedCancel from "./Pages/VerifiedCancel";
 import AccountVerified from "./Pages/AccountVerified";
 import Varification from "./Pages/Varification";
+import PrivecyPolicy from "./Pages/PrivecyPolicy";
+import TearmCondition from "./Pages/TearmCondition";
+import Blog from "./Pages/Blog";
+import BlogDetails from "./Pages/BlogDetails";
 
 // "build 04-09-2025"
 function LayoutWrapper() {
@@ -116,6 +120,9 @@ function LayoutWrapper() {
         <Route path="/email-verification" element={<EmailOTPVerification />} />
 
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/privacy-policy" element={<PrivecyPolicy />} />
+        <Route path="/terms-condition" element={<TearmCondition />} />
+
         <Route path="/employers" element={<Employers />} />
         <Route path="/faq" element={<Faq />} />
         <Route
@@ -123,6 +130,10 @@ function LayoutWrapper() {
           element={<EmployerCandinateList />}
         />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/blog" element={<Blog />} />
+
+        <Route path="/blogDetails" element={<BlogDetails />} />
+
         <Route path="/employer-home" element={<EmployerHomePage />} />
         <Route
           path="/employer-basic-info"
@@ -217,7 +228,7 @@ function LayoutWrapper() {
         />
 
         <Route path="/companies-details" element={<CompanyDetailsPage />} />
-        <Route path="/job-details" element={<JobDetails />} />
+        <Route path="/job-details/:id" element={<JobDetails />} />
 
         <Route
           path="/job-details-list"

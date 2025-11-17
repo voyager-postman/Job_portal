@@ -135,10 +135,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-1.svg"
-                    alt="Dashboard"
-                  />
+                  <i className="fa-solid fa-chart-line" />
                 </span>
                 <span className="menu-title">Dashboard</span>
               </NavLink>
@@ -152,10 +149,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                 <i className="fa-solid fa-briefcase" />
                 </span>
                 <span className="menu-title">Job Posts</span>
               </NavLink>
@@ -168,10 +162,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                 <i className="fa-solid fa-list-check" />
                 </span>
                 <span className="menu-title">Application Management</span>
               </NavLink>
@@ -184,10 +175,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                   <i className="fa-solid fa-bookmark" />
                 </span>
                 <span className="menu-title">Bookmark Resumes</span>
               </NavLink>
@@ -201,10 +189,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                   <i className="fa-solid fa-magnifying-glass" />
                 </span>
                 <span className="menu-title">Candidate Search</span>
               </NavLink>
@@ -217,10 +202,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                 <i className="fa-solid fa-user-tie" />
                 </span>
                 <span className="menu-title">Employer Profile</span>
               </NavLink>
@@ -233,10 +215,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                  <i className="fa-solid fa-users-gear" />
                 </span>
                 <span className="menu-title">Manages Recruiters</span>
               </NavLink>
@@ -249,10 +228,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                   <i className="fa-solid fa-message" />
                 </span>
                 <span className="menu-title">Messages</span>
               </NavLink>

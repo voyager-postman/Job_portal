@@ -216,10 +216,10 @@
 }
 /*Company Details page css start here*/
 
-.company-detail-info-area {
-  /* margin: 80px 0px 80px 0px; */
+/* .company-detail-info-area {
+margin: 80px 0px 80px 0px; 
   padding: 0px 0px 0px 0px;
-}
+} */
 
 .company-img-short-detail {
   padding: 20px 20px;
@@ -230,7 +230,6 @@
   background: #fff;
   padding: 15px 15px;
 }
-
 
 .company-detail-tab-description-info {
   background-color: #f0f5f7;
@@ -539,4 +538,9 @@
   ul {
   padding-left: 0;
   margin-bottom: 35px;
+}
+.ck-editor__editable_inline {
+  min-height: 150px;
+  resize: both !important;
+  overflow: auto !important;
 }

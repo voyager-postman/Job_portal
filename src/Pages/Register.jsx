@@ -174,7 +174,7 @@ function Register() {
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         className="form-control"
-                        placeholder="Confirm Password"
+                        placeholder="Confirm Password*"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
@@ -203,10 +203,30 @@ function Register() {
                         onChange={(e) => setAgree(e.target.checked)}
                       />
                       <label htmlFor="vehicle1">
-                        {" "}
-                        I accept the <a href="#">
-                          Terms &amp; Condition
-                        </a> and <a href="#">Privacy Policy</a>
+                        I accept the{" "}
+                        <Link
+                          to="/terms-condition"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Terms &amp; Conditions
+                        </Link>{" "}
+                        and{" "}
+                        <Link
+                          to="/privacy-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Privacy Policy
+                        </Link>
                       </label>
                     </div>
                     <div className="register-and-social-icon-info">

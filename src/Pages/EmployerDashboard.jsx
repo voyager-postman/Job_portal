@@ -163,24 +163,21 @@ function EmployerDashboard() {
                   </div>
                 </div>
              </Link>
-              <a
-                className="box-size"
-                href="employer-manage-job-application.html"
-              >
+                <Link to="/jobs">
                 <div className="employer-dashboard-box-icon-content">
                   <div className="employer-box-icon">
                     <i className="fa-solid fa-envelope" />
                   </div>
                   <div className="employer-box-content">
-                    <h4>Interview Invitations Sent</h4>
+                    <h4>Interview Invitations </h4>
                     <h5>1000</h5>
                     <p>
                       <i className="fa-solid fa-arrow-up" /> 15% this week
                     </p>
                   </div>
                 </div>
-              </a>
-              <a href="employer-manage-job-application.html">
+             </Link>
+              <Link to="/jobs">
                 <div className="employer-dashboard-box-icon-content">
                   <div className="employer-box-icon">
                     <i className="fa-solid fa-bookmark" />
@@ -193,7 +190,7 @@ function EmployerDashboard() {
                     </p>
                   </div>
                 </div>
-              </a>
+             </Link>
             </div>
           </section>
           {/* employer dashboard end here */}
@@ -289,7 +286,7 @@ function EmployerDashboard() {
               </div>
               {/* Right Panel */}
               <div className="right dashboard-bottom">
-                <h5>Candidate Engagement Ini sights</h5>
+                <h5>Candidate Engagement Inisights</h5>
                 <ReactApexChart
                   options={chartData.options}
                   series={chartData.series}

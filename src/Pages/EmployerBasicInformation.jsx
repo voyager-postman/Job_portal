@@ -8,7 +8,6 @@ import Select from "react-select";
 const EmployerBasicInformation = () => {
   const [formData, setFormData] = useState({
     brand_name: "",
-    // vat: "",
     industry: "",
     number_of_employees: "",
     phone_number: "",
@@ -61,7 +60,7 @@ const EmployerBasicInformation = () => {
     setFormData((prev) => ({
       ...prev,
       company_address: `${city.name}, ${city.state_name}, ${city.country_name}`,
-      city: city.name,
+
       region: city.state_name,
       Country: city.country_name,
       latitude: city.latitude,
@@ -74,15 +73,30 @@ const EmployerBasicInformation = () => {
 
     setCitySuggestions([]);
   };
-
-
-
   useEffect(() => {
     const fetchCountries = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}get/countries`);
         if (res.data && Array.isArray(res.data.countries)) {
-          setCountries(res.data.countries);
+          // ✅ 1. Filter out Western Sahara
+          let filtered = res.data.countries.filter(
+            (c) => c.name.toLowerCase() !== "western sahara"
+          );
+
+          // ✅ 2. Find Morocco (+212)
+          const morocco = filtered.find(
+            (c) => c.phonecode === "212" || c.name.toLowerCase() === "morocco"
+          );
+
+          // ✅ 3. If Morocco exists, move it to the top
+          if (morocco) {
+            filtered = [
+              morocco,
+              ...filtered.filter((c) => c._id !== morocco._id),
+            ];
+          }
+
+          setCountries(filtered);
         } else {
           console.error("Countries data is not an array", res.data);
           setCountries([]);
@@ -94,6 +108,23 @@ const EmployerBasicInformation = () => {
     };
     fetchCountries();
   }, []);
+  // useEffect(() => {
+  //   const fetchCountries = async () => {
+  //     try {
+  //       const res = await axios.get(`${API_BASE_URL}get/countries`);
+  //       if (res.data && Array.isArray(res.data.countries)) {
+  //         setCountries(res.data.countries);
+  //       } else {
+  //         console.error("Countries data is not an array", res.data);
+  //         setCountries([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching countries:", error);
+  //       setCountries([]);
+  //     }
+  //   };
+  //   fetchCountries();
+  // }, []);
   useEffect(() => {
     const fetchIndustries = async () => {
       try {
@@ -170,9 +201,14 @@ const EmployerBasicInformation = () => {
 
     try {
       const token = localStorage.getItem("token");
+      const updatedFormData = {
+        ...formData,
+        city: formData.company_address, // send company_address as city
+        company_address: formData.city, // send city as company_address
+      };
       const response = await axios.post(
         `${API_BASE_URL}company/profile`,
-        formData,
+        updatedFormData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -181,13 +217,20 @@ const EmployerBasicInformation = () => {
       );
 
       if (response.data.success) {
-        const { userDetails } = response.data;
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        const { userDetails, profile } = response.data;
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...userDetails,
+            companyId: profile?._id,
+          })
+        );
         localStorage.setItem("user_id", userDetails._id);
         localStorage.setItem("user_email", userDetails.email);
         localStorage.setItem("user_role", userDetails.role);
         localStorage.setItem("first_name", userDetails.first_name);
         localStorage.setItem("last_name", userDetails.last_name);
+        localStorage.setItem("is_completed", userDetails?.is_completed);
 
         toast.success("Recruiter profile created successfully!");
         // Navigate or reset form
@@ -262,19 +305,7 @@ const EmployerBasicInformation = () => {
           </div>
         </div>
       </section>
-      {/* <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Employer Basic Info</h1>
-            <ul>
-              <li>
-                <a href="index.html">Home</a>
-              </li>
-              <li>Employer Basic Info</li>
-            </ul>
-          </div>
-        </div>
-      </div> */}
+
       <section className="employer-profile-basic-info-area">
         <div className="employer-profile-basic-info-heading">
           <div className="section-title">
@@ -305,19 +336,7 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-                {/* <div className="col-lg-12 col-md-12">
-                  <div className="form-group">
-                    <label>VAT</label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="VAT"
-                      name="vat"
-                      value={formData.vat}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div> */}
+               
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Industry</label>
@@ -353,7 +372,7 @@ const EmployerBasicInformation = () => {
                     </select>
                   </div>
                 </div>
-                {/* Country Code */}
+           
                 <div className="col-lg-3 col-md-12">
                   <div className="form-group">
                     <label>Country code</label>
@@ -386,10 +405,10 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-              
+
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group position-relative">
-                    <label>Street Address</label>
+                    <label>City</label>
                     <input
                       className="form-control"
                       type="text"
@@ -427,48 +446,49 @@ const EmployerBasicInformation = () => {
                     )}
                   </div>
                 </div>
-                {/* City */}
+               
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>City</label> (auto-generated from location):
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                {/* State */}
-                <div className="col-lg-6 col-md-6">
-                  <div className="form-group">
-                    <label>State</label>  (auto-generated from location):
+                    <label>State</label> (auto-generated from location, or edit
+                    manually):
                     <input
                       className="form-control"
                       type="text"
                       name="region"
+                      placeholder="State"
                       value={formData.region}
-                      readOnly
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
-
-                {/* Country */}
+            
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>Country</label>  (auto-generated from location):
+                    <label>Country</label> (auto-generated from location, or
+                    edit manually):
                     <input
                       className="form-control"
                       type="text"
                       name="Country"
+                      placeholder="Country"
                       value={formData.Country}
-                      readOnly
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
-
+                <div className="col-lg-6 col-md-6">
+                  <div className="form-group">
+                    <label>Street Address</label>
+                    <textarea
+                      className="form-control"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      rows={3} // optional: controls textarea height
+                      placeholder="Enter street address"
+                    ></textarea>
+                  </div>
+                </div>
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Our Map Location</label>

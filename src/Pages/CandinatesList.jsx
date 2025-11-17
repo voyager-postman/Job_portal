@@ -1,6 +1,49 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../Url/Url";
+import { API_IMAGE_URL } from "../Url/Url";
 function CandinatesList() {
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const candidatesPerPage = 6; // ✅ show 6 candidates per page
+  const fetchCandidates = async (page = 1) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}getCandidateList`,
+        {}, // send body if API expects filters, else keep empty
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCandidates(response.data.data || []);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
+      setCandidates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCandidates(currentPage);
+  }, [currentPage]);
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -225,7 +268,8 @@ function CandinatesList() {
                       </div>
                     </div>
                   </div>
-                  <div className="row">
+                  {/* <div className="row">
+                    
                     <div
                       className="col-lg-6 col-sm-6 aos-init aos-animate"
                       data-aos="fade-up"
@@ -284,521 +328,106 @@ function CandinatesList() {
                         </div>
                       </div>
                     </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={400}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-profile-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-2.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <Link to="/candidates-profile-details">
-                                <h3>Jequline Fenda</h3>
+                  
+                  </div> */}
+                  <div className="row">
+                    {candidates.length > 0 ? (
+                      candidates.map((candidate, index) => {
+                        // ✅ Declare variables here (not inside JSX)
+                        const user = candidate?.userId || {};
+                        const role = candidate?.aboutRole || {};
+
+                        return (
+                          <div
+                            key={candidate._id || index}
+                            className="col-lg-6 col-sm-6 aos-init aos-animate"
+                            data-aos="fade-up"
+                            data-aos-duration={1200}
+                            data-aos-delay={200}
+                          >
+                            <div className="candidate-list-info single-freelancer-card">
+                              <Link
+                                to="/candidates-profile-details"
+                                state={{ userId: user._id }}
+                              >
+                                <div className="row align-items-center">
+                                  <div className="col-lg-4">
+                                    <div className="freelancer-img">
+                                      <img
+                                        src={
+                                          user?.profileImage
+                                            ? `${API_IMAGE_URL}${user?.profileImage}`
+                                            : "assets/images/freelancers/freelancers-img-1.jpg"
+                                        }
+                                        crossOrigin="anonymous"
+                                      />
+                                      {/* <img
+                                        src="assets/images/freelancers/freelancers-img-1.jpg"
+                                        alt="Image"
+                                      /> */}
+                                    </div>
+                                  </div>
+                                  <div className="col-lg-8">
+                                    <div className="freelancer-content">
+                                      <h3>
+                                        {`${user.first_name || ""} ${
+                                          user.last_name || ""
+                                        }`}
+                                      </h3>
+
+                                      <span>
+                                        {role.jobTitle || "Not specified"}
+                                      </span>
+                                      <div className="info">
+                                        <ul>
+                                          <li>
+                                            <i className="fa-solid fa-file" />{" "}
+                                            {role.yearOfExperience
+                                              ? `${role.yearOfExperience} Years`
+                                              : "N/A"}
+                                          </li>
+                                          <li>
+                                            <i className="fa-solid fa-money-bill" />
+                                            {candidate.expectedSalary
+                                              ? `$ ${candidate.expectedSalary}`
+                                              : "$ 0"}
+                                          </li>
+                                          <li>
+                                            <i className="fa-solid fa-location-dot" />
+                                            {user.city ||
+                                              "Location not available"}
+                                          </li>
+                                          <li>
+                                            <i className="fa-solid fa-graduation-cap" />
+                                            {candidate.educationLevel ||
+                                              "Not specified"}
+                                          </li>
+                                          <li>
+                                            <i className="fa-solid fa-gear" />
+                                            <span className="candidate-active">
+                                              {candidate.isActive
+                                                ? "Active"
+                                                : "Inactive"}
+                                            </span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                      <div className="candidate-list-bookmark">
+                                        <i className="fa-regular fa-heart" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                               </Link>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-inactive">
-                                      inactive
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={600}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-3.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-inactive">
-                                      Inactive
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={800}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-4.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-active">
-                                      Active
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={200}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-6.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-active">
-                                      Active
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={400}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-5.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-inactive">
-                                      inactive
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={600}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-15.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-active">
-                                      Active
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={600}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-16.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-inactive">
-                                      inactive
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={600}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-17.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-active">
-                                      Active
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={600}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-18.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <a href="candidates-details.html">
-                                <h3>Jequline Fenda</h3>
-                              </a>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-inactive">
-                                      inactive
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                        );
+                      })
+                    ) : (
+                      <p>No candidates found.</p>
+                    )}
                   </div>
-                  <div className="paginations mb-30">
+                  {/* <div className="paginations mb-30">
                     <ul>
                       <li>
                         <a href="#">
@@ -818,6 +447,57 @@ function CandinatesList() {
                       </li>
                       <li>
                         <a href="#">
+                          <i className="fa-solid fa-angle-right" />
+                        </a>
+                      </li>
+                    </ul>
+                  </div> */}
+                  <div className="paginations mb-30">
+                    <ul>
+                      {/* Previous button */}
+                      <li>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1)
+                              handlePageChange(currentPage - 1);
+                          }}
+                          className={currentPage === 1 ? "disabled" : ""}
+                        >
+                          <i className="fa-solid fa-angle-left" />
+                        </a>
+                      </li>
+
+                      {/* Page numbers */}
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <li key={i + 1}>
+                          <a
+                            href="#"
+                            className={currentPage === i + 1 ? "active" : ""}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(i + 1);
+                            }}
+                          >
+                            {i + 1}
+                          </a>
+                        </li>
+                      ))}
+
+                      {/* Next button */}
+                      <li>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages)
+                              handlePageChange(currentPage + 1);
+                          }}
+                          className={
+                            currentPage === totalPages ? "disabled" : ""
+                          }
+                        >
                           <i className="fa-solid fa-angle-right" />
                         </a>
                       </li>

@@ -9,8 +9,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 
 function CandidateProfile() {
-   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
 
   const [activeLevel, setActiveLevel] = useState(null);
@@ -35,11 +35,49 @@ function CandidateProfile() {
   const fileInputRef = useRef(null);
 
   // Handle file selection
+  // const handleFileChange = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   // Preview before upload
+  //   const imageUrl = URL.createObjectURL(file);
+  //   setImage(imageUrl);
+
+  //   const formData = new FormData();
+  //   formData.append("profile", file);
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const res = await axios.post(
+  //       `${API_BASE_URL}updateProfileImage`,
+  //       formData,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+
+  //     // ✅ Always check if API returned stored image
+  //     const profileImg = res.data?.profileImage;
+  //     if (res.data?.success && profileImg && profileImg.trim() !== "") {
+  //       setImage(API_IMAGE_URL + profileImg); // stored image
+  //       toast.success(res.data.message || "Profile updated successfully!");
+  //     } else {
+  //       setImage(DEFAULT_IMAGE); // fallback
+  //       toast.error(res.data.message || "Something went wrong!");
+  //     }
+  //   } catch (err) {
+  //     console.error("Upload failed:", err);
+  //     setImage(DEFAULT_IMAGE);
+  //     toast.error("Upload failed. Please try again.");
+  //   }
+  // };
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Preview before upload
     const imageUrl = URL.createObjectURL(file);
     setImage(imageUrl);
 
@@ -59,13 +97,14 @@ function CandidateProfile() {
         }
       );
 
-      // ✅ Always check if API returned stored image
       const profileImg = res.data?.profileImage;
       if (res.data?.success && profileImg && profileImg.trim() !== "") {
-        setImage(API_IMAGE_URL + profileImg); // stored image
+        const fullUrl = API_IMAGE_URL + profileImg;
+        setImage(fullUrl);
+        updateProfileImage(fullUrl); // ✅ update header image instantly
         toast.success(res.data.message || "Profile updated successfully!");
       } else {
-        setImage(DEFAULT_IMAGE); // fallback
+        setImage(DEFAULT_IMAGE);
         toast.error(res.data.message || "Something went wrong!");
       }
     } catch (err) {
@@ -74,7 +113,6 @@ function CandidateProfile() {
       toast.error("Upload failed. Please try again.");
     }
   };
-
   const token = localStorage.getItem("token");
   const [cvFiles, setCvFiles] = useState([]); // List of uploaded CVs
   const [menuOpenId, setMenuOpenId] = useState(null); // Track which CV menu is open
@@ -911,8 +949,23 @@ function CandidateProfile() {
         return;
       }
 
-      if (!educationForm.endDate) {
+      if (!educationForm.endDate && !educationForm.currentlyStudyingHere) {
         toast.error("Please select an End Date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
+      const today = new Date();
+      const startDate = new Date(educationForm.startDate);
+      const endDate = educationForm.endDate
+        ? new Date(educationForm.endDate)
+        : null;
+
+      // ✅ Start date should not be in the future
+      if (startDate > today) {
+        toast.error("Start Date cannot be in the future", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -922,7 +975,8 @@ function CandidateProfile() {
       // ✅ Ensure start date is not after end date
       if (
         !educationForm.currentlyStudyingHere &&
-        new Date(educationForm.startDate) > new Date(educationForm.endDate)
+        endDate &&
+        startDate > endDate
       ) {
         toast.error("End Date cannot be before Start Date", {
           autoClose: 2000,
@@ -970,6 +1024,7 @@ function CandidateProfile() {
           { autoClose: 2000, theme: "colored" }
         );
       }
+      await fetchProfile();
     } catch (error) {
       console.error("Error saving education:", error);
       toast.error("Failed to save education", {
@@ -1115,7 +1170,7 @@ function CandidateProfile() {
           city: payload.city,
           phone: payload.phone,
         }));
-
+        updateName(payload.firstname, payload.lastname);
         setCheckStatus((prev) => ({
           ...prev,
           personalDetails: 1,
@@ -1260,29 +1315,333 @@ function CandidateProfile() {
   };
 
   // 🚀 Save function (fixed key: workHistory)
+  // const handleSaveWorkExperience = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+
+  //     const payload = {
+  //       workHistory_id: workExperienceData.workHistory_id || undefined,
+  //       companyName: workExperienceData.companyName,
+  //       jobTitle: workExperienceData.jobTitle,
+  //       startDate: workExperienceData.startDate,
+  //       endDate: workExperienceData.endDate,
+  //       yearOfExperience: workExperienceData.yearOfExperience,
+  //       currentlyWorkingHere: workExperienceData.currentlyWorkingHere,
+  //       keep_employer_anonymous: workExperienceData.currentlyWorkingHereEmp,
+  //       Description: workExperienceData.Description,
+  //       EmploymentType: workExperienceData.EmploymentType,
+  //       workLocation: workExperienceData.workLocation,
+  //       currentSalary: {
+  //         payrollFrequency: workExperienceData.salaryType,
+  //         amount: workExperienceData.salaryAmount,
+  //         currency: workExperienceData.salaryCurrency,
+  //       },
+  //     };
+
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}updateWorkHistory`,
+  //       payload,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     if (response.status === 200) {
+  //       const updatedWorkHistory = response.data.workHistory; // ✅ get updated array from API
+
+  //       setProfileData((prev) => ({
+  //         ...prev,
+  //         workHistory: updatedWorkHistory, // ✅ replace with API response
+  //       }));
+
+  //       setCheckStatus((prev) => ({
+  //         ...prev,
+  //         workExperience: 1,
+  //       }));
+
+  //       setEditMode(false);
+
+  //       toast.success("Work experience saved successfully!", {
+  //         theme: "colored",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving work experience:", error);
+  //     toast.error("Failed to save work experience", { theme: "colored" });
+  //   }
+  // };
+  // const handleSaveWorkExperience = async () => {
+  //   try {
+  //     const {
+  //       companyName,
+  //       jobTitle,
+  //       startDate,
+  //       endDate,
+  //       yearOfExperience,
+  //       currentlyWorkingHere,
+  //       currentlyWorkingHereEmp,
+  //       Description,
+  //       EmploymentType,
+  //       workLocation,
+  //       salaryType,
+  //       salaryAmount,
+  //       salaryCurrency,
+  //     } = workExperienceData;
+
+  //     // ✅ VALIDATION SECTION
+  //     if (!jobTitle?.trim()) {
+  //       toast.error("Please enter Job Title", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!companyName?.trim()) {
+  //       toast.error("Please enter Company Name", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!startDate) {
+  //       toast.error("Please select Start Date", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!currentlyWorkingHere && !endDate) {
+  //       toast.error("Please select End Date or mark 'Currently Working Here'", {
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     // if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+  //     //   toast.error("End Date cannot be before Start Date", { theme: "colored" });
+  //     //   return;
+  //     // }
+
+  //     if (
+  //       !yearOfExperience ||
+  //       isNaN(yearOfExperience) ||
+  //       yearOfExperience <= 0
+  //     ) {
+  //       toast.error("Please enter valid Years of Experience", {
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!EmploymentType?.trim()) {
+  //       toast.error("Please select Employment Type", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!workLocation?.trim()) {
+  //       toast.error("Please enter Work Location", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!salaryCurrency) {
+  //       toast.error("Please select Salary Currency", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!salaryAmount || isNaN(salaryAmount) || salaryAmount <= 0) {
+  //       toast.error("Please enter valid Salary Amount", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     if (!salaryType) {
+  //       toast.error("Please select Payroll Frequency", { theme: "colored" });
+  //       return;
+  //     }
+
+  //     // ✅ Clean Description — only send if not empty
+  //     const cleanDescription =
+  //       Description && Description.trim() !== ""
+  //         ? Description.trim()
+  //         : undefined;
+
+  //     // ✅ Construct Payload (remove empty fields)
+  //     const payload = {
+  //       workHistory_id: workExperienceData.workHistory_id || undefined,
+  //       companyName: companyName.trim(),
+  //       jobTitle: jobTitle.trim(),
+  //       startDate,
+  //       endDate: endDate || undefined,
+  //       yearOfExperience,
+  //       currentlyWorkingHere,
+  //       keep_employer_anonymous: currentlyWorkingHereEmp,
+  //       ...(cleanDescription && { Description: cleanDescription }), // ✅ include only if not empty
+  //       EmploymentType,
+  //       workLocation: workLocation.trim(),
+  //       currentSalary: {
+  //         payrollFrequency: salaryType,
+  //         amount: salaryAmount,
+  //         currency: salaryCurrency,
+  //       },
+  //     };
+
+  //     const token = localStorage.getItem("token");
+
+  //     // ✅ API CALL
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}updateWorkHistory`,
+  //       payload,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     if (response.status === 200) {
+  //       const updatedWorkHistory = response.data.workHistory;
+
+  //       setProfileData((prev) => ({
+  //         ...prev,
+  //         workHistory: updatedWorkHistory,
+  //       }));
+
+  //       setCheckStatus((prev) => ({
+  //         ...prev,
+  //         workExperience: 1,
+  //       }));
+
+  //       setEditMode(false);
+  //       toast.success("Work experience saved successfully!", {
+  //         theme: "colored",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving work experience:", error);
+  //     const backendError = error.response?.data?.errors?.[0];
+  //     toast.error(backendError || "Failed to save work experience", {
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
   const handleSaveWorkExperience = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const {
+        companyName,
+        jobTitle,
+        startDate,
+        endDate,
+        yearOfExperience,
+        currentlyWorkingHere,
+        currentlyWorkingHereEmp,
+        Description,
+        EmploymentType,
+        workLocation,
+        salaryType,
+        salaryAmount,
+        salaryCurrency,
+      } = workExperienceData;
 
+      // ✅ VALIDATION SECTION
+      if (!jobTitle?.trim()) {
+        toast.error("Please enter Job Title", { theme: "colored" });
+        return;
+      }
+
+      if (!companyName?.trim()) {
+        toast.error("Please enter Company Name", { theme: "colored" });
+        return;
+      }
+
+      if (!startDate) {
+        toast.error("Please select Start Date", { theme: "colored" });
+        return;
+      }
+
+      if (!currentlyWorkingHere && !endDate) {
+        toast.error("Please select End Date or mark 'Currently Working Here'", {
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Normalize Dates to avoid time-zone issues
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+
+      const end = endDate ? new Date(endDate) : null;
+      if (end) end.setHours(0, 0, 0, 0);
+
+      // ✅ Start Date cannot be in the future
+      if (start > today) {
+        toast.error("Start Date cannot be a future date", { theme: "colored" });
+        return;
+      }
+
+      // ✅ End Date cannot be before Start Date
+      if (start && end && end < start) {
+        toast.error("End Date cannot be earlier than Start Date", {
+          theme: "colored",
+        });
+        return;
+      }
+
+      // ✅ Experience validation
+      if (
+        !yearOfExperience ||
+        isNaN(yearOfExperience) ||
+        yearOfExperience <= 0
+      ) {
+        toast.error("Please enter valid Years of Experience", {
+          theme: "colored",
+        });
+        return;
+      }
+
+      if (!EmploymentType?.trim()) {
+        toast.error("Please select Employment Type", { theme: "colored" });
+        return;
+      }
+
+      if (!workLocation?.trim()) {
+        toast.error("Please enter Work Location", { theme: "colored" });
+        return;
+      }
+
+      if (!salaryCurrency) {
+        toast.error("Please select Salary Currency", { theme: "colored" });
+        return;
+      }
+
+      if (Number.isNaN(Number(salaryAmount)) || Number(salaryAmount) <= 0) {
+        toast.error("Please enter valid Salary Amount", { theme: "colored" });
+        return;
+      }
+
+      if (!salaryType) {
+        toast.error("Please select Payroll Frequency", { theme: "colored" });
+        return;
+      }
+
+      // ✅ Clean Description — only send if not empty
+      const cleanDescription =
+        Description && Description.trim() !== ""
+          ? Description.trim()
+          : undefined;
+
+      // ✅ Construct Payload (remove empty fields)
       const payload = {
         workHistory_id: workExperienceData.workHistory_id || undefined,
-        companyName: workExperienceData.companyName,
-        jobTitle: workExperienceData.jobTitle,
-        startDate: workExperienceData.startDate,
-        endDate: workExperienceData.endDate,
-        yearOfExperience: workExperienceData.yearOfExperience,
-        currentlyWorkingHere: workExperienceData.currentlyWorkingHere,
-        keep_employer_anonymous: workExperienceData.currentlyWorkingHereEmp,
-        Description: workExperienceData.Description,
-        EmploymentType: workExperienceData.EmploymentType,
-        workLocation: workExperienceData.workLocation,
+        companyName: companyName.trim(),
+        jobTitle: jobTitle.trim(),
+        startDate,
+        endDate: currentlyWorkingHere ? undefined : endDate || undefined,
+        yearOfExperience,
+        currentlyWorkingHere,
+        keep_employer_anonymous: currentlyWorkingHereEmp,
+        ...(cleanDescription && { Description: cleanDescription }),
+        EmploymentType,
+        workLocation: workLocation.trim(),
         currentSalary: {
-          payrollFrequency: workExperienceData.salaryType,
-          amount: workExperienceData.salaryAmount,
-          currency: workExperienceData.salaryCurrency,
+          payrollFrequency: salaryType,
+          amount: salaryAmount,
+          currency: salaryCurrency,
         },
       };
 
+      const token = localStorage.getItem("token");
+
+      // ✅ API CALL
       const response = await axios.post(
         `${API_BASE_URL}updateWorkHistory`,
         payload,
@@ -1290,11 +1649,11 @@ function CandidateProfile() {
       );
 
       if (response.status === 200) {
-        const updatedWorkHistory = response.data.workHistory; // ✅ get updated array from API
+        const updatedWorkHistory = response.data.workHistory;
 
         setProfileData((prev) => ({
           ...prev,
-          workHistory: updatedWorkHistory, // ✅ replace with API response
+          workHistory: updatedWorkHistory,
         }));
 
         setCheckStatus((prev) => ({
@@ -1303,16 +1662,19 @@ function CandidateProfile() {
         }));
 
         setEditMode(false);
-
         toast.success("Work experience saved successfully!", {
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error saving work experience:", error);
-      toast.error("Failed to save work experience", { theme: "colored" });
+      const backendError = error.response?.data?.errors?.[0];
+      toast.error(backendError || "Failed to save work experience", {
+        theme: "colored",
+      });
     }
   };
+
   // DELETE WORK EXPERIENCE
   const handleDeleteWorkExperience = async (experience_id) => {
     try {
@@ -1481,6 +1843,21 @@ function CandidateProfile() {
         });
         return;
       }
+
+      // ✅ Check if issue date is in the future
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const issueDate = new Date(formData.issueDate);
+      issueDate.setHours(0, 0, 0, 0);
+
+      if (issueDate > today) {
+        toast.error("Issue date cannot be a future date", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
@@ -1525,6 +1902,68 @@ function CandidateProfile() {
       });
     }
   };
+
+  // const handleSaveCertificate = async () => {
+  //   try {
+  //     if (!formData.title?.trim()) {
+  //       toast.error("Certificate title is required", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!formData.issueDate) {
+  //       toast.error("Issue date is required", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+  //     const token = localStorage.getItem("token");
+
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}updateCertificates`,
+  //       formData,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     if (response.status === 200) {
+  //       // ✅ Update profileData state
+  //       const updatedCertificates = formData.certificate_id
+  //         ? profileData.certificates.map((c) =>
+  //             c._id === formData.certificate_id ? { ...c, ...formData } : c
+  //           )
+  //         : [
+  //             ...profileData.certificates,
+  //             { ...formData, _id: response.data.certificate_id },
+  //           ];
+
+  //       setProfileData((prev) => ({
+  //         ...prev,
+  //         certificates: updatedCertificates,
+  //       }));
+  //       setCheckStatus((prev) => ({ ...prev, certificates: 1 }));
+  //       setEditMode(false);
+
+  //       // reset form
+  //       setFormData({ certificate_id: "", title: "", issueDate: "" });
+  //       await fetchProfile();
+  //       toast.success(
+  //         formData.certificate_id
+  //           ? "Certificate updated successfully!"
+  //           : "Certificate added successfully!",
+  //         { autoClose: 2000, theme: "colored" }
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving certificate:", error);
+  //     toast.error("Failed to save Certificate", {
+  //       autoClose: 2000,
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
   const handleDeleteCertificate = async (certificate_id) => {
     try {
       const token = localStorage.getItem("token");
@@ -1608,7 +2047,7 @@ function CandidateProfile() {
             <h1>My Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/"> Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard
@@ -1651,7 +2090,7 @@ function CandidateProfile() {
                       <strong>Name:</strong> {profileData.first_name}{" "}
                       {profileData.last_name}
                     </h3>
-                   
+
                     <h3>
                       <strong>Position:</strong> {profileData.position}
                     </h3>
@@ -1701,6 +2140,7 @@ function CandidateProfile() {
                         <i className="fa-solid fa-file" />
                         Upload CV
                       </a>
+
                       {/* Modal */}
                       <div
                         className="modal fade"
@@ -1725,21 +2165,25 @@ function CandidateProfile() {
                                 aria-label="Close"
                               />
                             </div>
+
                             <div className="modal-body">
                               <div className="form-group">
                                 <div className="custom-file-upload text-center">
-                                  <label>Upload Your File (PDF/JPG/PNG)</label>
+                                  <label>
+                                    {" "}
+                                    Upload Your File (PDF/DOC/DOCX)
+                                  </label>
 
-                                  {/* ✅ hidden file input */}
+                                  {/* Hidden File Input */}
                                   <input
                                     type="file"
                                     id="file-upload"
                                     accept=".pdf,.jpg,.jpeg,.png"
                                     style={{ display: "none" }}
                                     onChange={(e) => {
-                                      handleUploadCv(e); // <-- your function for upload
+                                      handleUploadCv(e);
 
-                                      // ✅ close modal after file selection
+                                      // Close modal after upload
                                       const modalEl =
                                         document.getElementById("exampleModal");
                                       const modal =
@@ -1751,15 +2195,60 @@ function CandidateProfile() {
                                     required
                                   />
 
-                                  {/* ✅ clickable area (same design as yours) */}
+                                  {/* Clickable + Drag & Drop Area */}
                                   <div
-                                    className="file-text cursor-pointer  border-primary p-3 rounded"
+                                    className="file-text cursor-pointer border-primary p-3 rounded"
                                     onClick={() =>
                                       document
                                         .getElementById("file-upload")
                                         .click()
                                     }
-                                    style={{ cursor: "pointer" }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.style.backgroundColor =
+                                        "#f1f9ff"; // light blue shade
+                                      e.currentTarget.style.border =
+                                        "2px dashed #007bff";
+                                    }}
+                                    onDragLeave={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.style.backgroundColor =
+                                        "transparent";
+                                      e.currentTarget.style.border =
+                                        "1px solid #007bff";
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.style.backgroundColor =
+                                        "transparent";
+                                      e.currentTarget.style.border =
+                                        "1px solid #007bff";
+
+                                      const files = e.dataTransfer.files;
+                                      if (files && files.length > 0) {
+                                        const fakeEvent = { target: { files } };
+                                        handleUploadCv(fakeEvent);
+
+                                        // Close modal after drop
+                                        const modalEl =
+                                          document.getElementById(
+                                            "exampleModal"
+                                          );
+                                        const modal =
+                                          window.bootstrap.Modal.getInstance(
+                                            modalEl
+                                          );
+                                        modal.hide();
+                                      }
+                                    }}
+                                    style={{
+                                      cursor: "pointer",
+
+                                      transition: "all 0.2s ease",
+                                    }}
                                   >
                                     <i
                                       className="fas fa-cloud-upload-alt"
@@ -1784,6 +2273,7 @@ function CandidateProfile() {
                         </div>
                       </div>
                     </div>
+
                     <div className="candidate-personal-info-upload-content-linkedin">
                       <a
                         href="https://www.linkedin.com/login"
@@ -1886,7 +2376,7 @@ function CandidateProfile() {
                   </div>
                   <div
                     id="collapseOne"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingOne"
                     data-bs-parent="#accordionExample"
                   >
@@ -1933,11 +2423,12 @@ function CandidateProfile() {
                                   </div>
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
-                                      <label>Email</label>
+                                      <label>Email (cannot change)</label>
                                       <input
                                         className="form-control"
                                         placeholder="Email"
                                         type="email"
+                                        readOnly
                                         value={personalDetails.email}
                                         onChange={(e) =>
                                           setPersonalDetails({
@@ -2116,7 +2607,7 @@ function CandidateProfile() {
                                 <div className="divder-line-info" />
                                 <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
-                                    <label>Email</label>
+                                    <label>Email (cannot change)</label>
                                     <p>{profileData.email || "N/A"}</p>
                                   </div>
                                 </div>
@@ -2353,7 +2844,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseFour"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingFour"
                     data-bs-parent="#myCvs"
                   >
@@ -2503,7 +2994,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseFour1"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse"
                     aria-labelledby="headingFour"
                     data-bs-parent="#coveLatter"
                   >
@@ -2722,7 +3213,7 @@ function CandidateProfile() {
                         className="ms-auto accordion-icon-toggle collapsed"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseCareerGoals"
-                        aria-expanded="true"
+                        aria-expanded="false"
                         aria-controls="collapseCareerGoals"
                       >
                         <i className="fa-solid fa-angle-up" />
@@ -2733,7 +3224,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseCareerGoals"
-                    className="accordion-collapse collapse"
+                    className="accordion-collapse collapse" // ✅ 'collapse' only, no 'show'
                     aria-labelledby="headingCareerGoals"
                     data-bs-parent="#accordionCareerGoals"
                   >
@@ -3123,10 +3614,10 @@ function CandidateProfile() {
                         )}
                       </div>
                       <span
-                        className="ms-auto accordion-icon-toggle collapsed"
+                        className="ms-auto accordion-icon-toggle collapsed" // ✅ keep 'collapsed'
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseSix"
-                        aria-expanded="true"
+                        aria-expanded="false" // ✅ should be false when closed
                         aria-controls="collapseSix"
                       >
                         <i className="fa-solid fa-angle-up" />
@@ -3136,7 +3627,7 @@ function CandidateProfile() {
                   </div>
                   <div
                     id="collapseSix"
-                    className="accordion-collapse show"
+                    className="accordion-collapse collapse" // ✅ note: 'collapse' only, not 'show'
                     aria-labelledby="headingSix"
                     data-bs-parent="#yourRole"
                   >
@@ -3362,7 +3853,7 @@ function CandidateProfile() {
                                       <label>Years of Experience</label>
                                       <input
                                         className="form-control"
-                                        type="text"
+                                        type="number"
                                         name="yearOfExperience"
                                         value={
                                           workExperienceData.yearOfExperience
@@ -3396,7 +3887,8 @@ function CandidateProfile() {
                                       onChange={handleChangeOfWork}
                                     />
                                     <label htmlFor="CurrentlyWorking">
-                                      &nbsp; Keep my current employer anonymous
+                                      &nbsp;Keep my current employer anonymous
+                                      functionality hold for now
                                     </label>
                                   </div>
                                   {/* Start / End Date */}
@@ -3714,6 +4206,8 @@ function CandidateProfile() {
                                                 {exp.companyName}
                                               </p>
                                               <p>{exp.EmploymentType}</p>
+                                              <label>Years of Experience</label>
+                                              <p>{exp.yearOfExperience}</p>
                                             </div>
                                             <div className="divder-line-info" />
                                           </div>
@@ -3722,6 +4216,10 @@ function CandidateProfile() {
                                             <div className="form-group">
                                               <label>Achievements</label>
                                               <p>{exp.Description}</p>
+                                            </div>
+                                            <div className="form-group">
+                                              <label>Work Location</label>
+                                              <p>{exp.workLocation}</p>
                                             </div>
                                             <div className="divder-line-info" />
                                           </div>
@@ -3742,6 +4240,7 @@ function CandidateProfile() {
                                               </p>
                                             </div>
                                           </div>
+                                          <div className="divder-line-info-otherCompany" />
                                         </div>
                                       </div>
                                     )
@@ -4026,7 +4525,6 @@ function CandidateProfile() {
                     <div className="accordion-button collapsed" type="button">
                       <div className="input-info-edit-area">
                         <h3>Skills &amp; Technologies</h3>
-                        <i className="fa-solid fa-plus" />
                       </div>
                       <span
                         className="ms-auto accordion-icon-toggle collapsed"
@@ -4043,7 +4541,7 @@ function CandidateProfile() {
 
                   <div
                     id="collapseNine"
-                    className="accordion-collapse collapse show" // ✅ Always open
+                    className="accordion-collapse collapse " // ✅ Always open
                     aria-labelledby="headingNine"
                     data-bs-parent="#skillsTechnologies"
                   >

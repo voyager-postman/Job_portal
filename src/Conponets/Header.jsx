@@ -7,8 +7,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { useTranslation } from "react-i18next";
+
 function Header({ bgColor }) {
-  const { isLoggedIn } = useAuth();
+  const { t, i18n } = useTranslation("global");
+
+  const { isLoggedIn, profileImage, firstName, lastName } = useAuth();
   const userRole = localStorage.getItem("user_role");
   const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
@@ -122,7 +126,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Home
+                      {t("header.home")}
                     </NavLink>
                   </li>
 
@@ -133,7 +137,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      About Us
+                      {t("header.aboutUs")}
                     </NavLink>
                   </li>
 
@@ -144,7 +148,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Jobs
+                      {t("header.jobs")}
                     </NavLink>
                   </li>
                   <li className="nav-item">
@@ -154,7 +158,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Employers
+                      {t("header.employers")}
                     </NavLink>
                   </li>
                   {userRole === "Recruiter" && (
@@ -165,7 +169,7 @@ function Header({ bgColor }) {
                           "nav-link" + (isActive ? " active" : "")
                         }
                       >
-                        Candidates
+                        {t("header.candidates")}
                       </NavLink>
                     </li>
                   )}
@@ -176,7 +180,17 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Contact Us
+                      {t("header.contactUs")}
+                    </NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink
+                      to="/blog"
+                      className={({ isActive }) =>
+                        "nav-link" + (isActive ? " active" : "")
+                      }
+                    >
+                      {t("header.blog")}
                     </NavLink>
                   </li>
                 </ul>
@@ -195,12 +209,13 @@ function Header({ bgColor }) {
                         >
                           <div className="menu-profile">
                             <img
-                              src="/jobPortal/assets/images/dashboard/images1.png"
+                              crossorigin="anonymous"
+                              src={profileImage}
                               className="rounded-circle"
-                              alt="image"
+                              alt="Profile"
                             />
                             <span className="name">
-                              My Account{" "}
+                              {t("header.myAccount")}
                               <i className="fa-solid fa-angle-down" />
                             </span>
                           </div>
@@ -209,18 +224,14 @@ function Header({ bgColor }) {
                           <div className="dropdown-header d-flex flex-column align-items-center">
                             <div className="figure mb-3">
                               <img
-                                src="/jobPortal/assets/images/dashboard/images1.png"
+                                crossorigin="anonymous"
+                                src={profileImage}
                                 className="rounded-circle"
-                                alt="image"
+                                alt="Profile"
                               />
                             </div>
                             <div className="info text-center">
                               {(() => {
-                                const firstName =
-                                  localStorage.getItem("first_name");
-                                const lastName =
-                                  localStorage.getItem("last_name");
-
                                 const hasValidName =
                                   (firstName &&
                                     firstName !== "null" &&
@@ -262,7 +273,7 @@ function Header({ bgColor }) {
                             </div>
                           </div>
 
-                          {localStorage.getItem("user_email") && (
+                          {localStorage.getItem("is_completed") === "true" && (
                             <div className="dropdown-body">
                               <ul className="profile-nav p-0 pt-3">
                                 <li className="nav-item active">
@@ -281,7 +292,7 @@ function Header({ bgColor }) {
                                       />
                                     </span>
                                     <span className="menu-title">
-                                      Dashboard
+                                      {t("header.dashboard")}
                                     </span>
                                   </Link>
                                 </li>
@@ -303,7 +314,7 @@ function Header({ bgColor }) {
                                     src="/jobPortal/assets/images/svg-icon/icon-11.svg"
                                     alt="Image"
                                   />
-                                  <span>Logout</span>
+                                  <span>{t("header.logout")}</span>
                                 </button>
                               </li>
                             </ul>
@@ -367,13 +378,14 @@ function Header({ bgColor }) {
                     </>
                   )}
                 </div>
-                <div className="header-language-toggleg">
+                <div className="header-language-toggle">
                   <select
-                    className="form-select form-control"
-                    aria-label="Default select example"
+                    className="form-select"
+                    value={i18n.language}
+                    onChange={(e) => i18n.changeLanguage(e.target.value)}
                   >
-                    <option selected>English</option>
-                    <option value={1}>French</option>
+                    <option value="en">Eng</option>
+                    <option value="fr">Fr</option>
                   </select>
                 </div>
               </div>

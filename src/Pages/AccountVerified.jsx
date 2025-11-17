@@ -13,10 +13,12 @@ const AccountVerified = () => {
   const token = queryParams.get("token");
 
   useEffect(() => {
-    console.log("Reason:", reason);
-    console.log("Email:", email);
-    console.log("Role:", role);
-    console.log("Token:", token);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("isLoggedIn");
   }, [reason, email, role, token]);
   const handleContinue = () => {
     if (token) {
@@ -24,6 +26,10 @@ const AccountVerified = () => {
     }
     if (email) {
       localStorage.setItem("user_email", email);
+    }
+    if (role) {
+      localStorage.setItem("user_role", role);
+      localStorage.setItem("isLoggedIn", true);
     }
     // Navigate to login/profile based on role
     if (role === "JobSeeker") {

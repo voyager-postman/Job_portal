@@ -1,6 +1,40 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
+import { useLocation } from "react-router-dom";
+import { API_IMAGE_URL } from "../Url/Url";
 function CandinateProfileDetails() {
+  const location = useLocation();
+  const { userId } = location.state || {}; // get userId from Link state
+
+  const [candidate, setCandidate] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (userId) {
+      fetchCandidateDetails(userId);
+    }
+  }, [userId]);
+
+  const fetchCandidateDetails = async (id) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}getCandidateDetails/${id}`,
+        {}, // body can be empty if your API only needs user_id in URL
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res.data?.data[0]);
+      setCandidate(res.data?.data[0]); // store the candidate details
+    } catch (err) {
+      console.error("Error fetching candidate details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
@@ -10,26 +44,34 @@ function CandinateProfileDetails() {
               <div className="candidates-details-left-content">
                 <div className="candidates-img">
                   <img
-                    src="assets/images/candidate-img/candidate1.jpg"
+                    crossorigin="anonymous"
+                    src={
+                      candidate?.userId?.profileImage
+                        ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}` // Replace API_IMAGE_URL with your base URL
+                        : "assets/images/candidate-img/candidate1.jpg" // default image
+                    }
                     alt="Image"
                   />
                 </div>
                 <div className="candidates-content">
                   <div className="candidate-profile-details-info">
                     <h3>
-                      <strong>Name:</strong> Andy Smith
+                      <strong>Name:</strong> {candidate?.userId?.first_name}{" "}
+                      {candidate?.userId?.last_name}
                     </h3>
                     <h3>
-                      <strong>Position:</strong>Website Desginer
+                      <strong>Position:</strong>
+                      {candidate?.userId?.position}
                     </h3>
                     <h3>
-                      <strong>Email:</strong> andysmith@gmail.com
+                      <strong>Email:</strong> {candidate?.userId?.email}
                     </h3>
                     <h3>
-                      <strong>Contact:</strong> +567 908 234 875
+                      <strong>Contact:</strong> {candidate?.userId?.phone}
                     </h3>
                     <h3>
-                      <strong>Address:</strong> New York, USA
+                      <strong>Address:</strong>
+                      {candidate?.userId?.city}
                     </h3>
                   </div>
                 </div>
@@ -75,49 +117,61 @@ function CandinateProfileDetails() {
               <div className="candidates-details-content">
                 <div className="about-content candidate-profile-summary">
                   <h3>Professional Summary</h3>
-                  <p>
-                    A talented professional with an academic background in IT
-                    and proven commercial development experience as C++
-                    developer since 1999. Has a sound knowledge of the software
-                    development life cycle. Was involved in more than 140
-                    software development outsourcing projects.
-                  </p>
-                  <p>
-                    Programming Languages: C/C++, .NET C++, Python, Bash, Shell,
-                    PERL, Python, Angular, React, Node.js, Vue.js, Gatsby,
-                    Regular expressions Active-script.
-                  </p>
+                  <p>{candidate?.professionalSummary}</p>
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="candidate-profile-detail-info candidate-profile-summary">
                   <h3>Career Goals</h3>
                   <h5>Desired Job Title</h5>
-                  <p>Website Designer</p>
+                  <p>{candidate?.career_goals?.DesiredJobTitle}</p>
                   <h5>Desired Employment Type</h5>
-                  <p>Permanent contract</p>
+                  <p>{candidate?.career_goals?.DesiredEmploymentType}</p>
                   <h5>Desired Occupation Type</h5>
-                  <p>Full-time</p>
+                  <p>{candidate?.career_goals?.DesiredOccupationType}</p>
                   <div className="candidate-profile-divider-line" />
                   <h3>Other Preferences</h3>
-                  <h5>Eligible to work in</h5>
-                  <p>France</p>
-                  <h5>Minimum Desired Salary (Gross)</h5>
-                  <p>€1,000 / Monthly</p>
-                  <h5>Looking for a new job opportunity?</h5>
-                  <p>Open to the right opportunity</p>
+                  {candidate?.career_goals ? (
+                    <>
+                      <h5>Eligible to work in</h5>
+                      <p>
+                        {candidate.career_goals.DesiredOccupationType ||
+                          "Not specified"}
+                      </p>
+
+                      <h5>Minimum Desired Salary (Gross)</h5>
+                      {candidate.career_goals.MinimumDesiredSalary ? (
+                        <p>
+                          {candidate.career_goals.MinimumDesiredSalary.currency}
+                          {
+                            candidate.career_goals.MinimumDesiredSalary.amount
+                          } / {candidate.career_goals.MinimumDesiredSalary.type}
+                        </p>
+                      ) : (
+                        <p>Not specified</p>
+                      )}
+
+                      <h5>Looking for a new job opportunity?</h5>
+                      <p>
+                        {candidate.career_goals.jobSearchStatus ||
+                          "Not specified"}
+                      </p>
+                    </>
+                  ) : (
+                    <p>No career goals specified</p>
+                  )}
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="candidate-profile-detail-info candidate-profile-summary">
                   <h3>About your role</h3>
                   <h5>Job Title</h5>
-                  <p>Website Designer</p>
+                  <p>{candidate?.aboutRole?.jobTitle}</p>
                   <h5>Years of experience</h5>
-                  <p>3 Years</p>
+                  <p>{candidate?.aboutRole?.yearOfExperience} Years</p>
                   <h5>Job category</h5>
-                  <p>Software Engineering / Web Development</p>
+                  <p>{candidate?.aboutRole?.jobCategory}</p>
                 </div>
                 <div className="candidate-profile-divider-line" />
-                <div className="works-experience candidate-profile-summary">
+                {/* <div className="works-experience candidate-profile-summary">
                   <h3>Experience</h3>
                   <h5>Website Designer</h5>
                   <p>Feb 2020 - Until now</p>
@@ -140,7 +194,77 @@ function CandinateProfileDetails() {
                   <p>2000 $</p>
                   <h5>Payroll frequency</h5>
                   <p>Monthly</p>
+                </div> */}
+                <div className="works-experience candidate-profile-summary">
+                  <h3>Experience</h3>
+
+                  {candidate?.workHistory &&
+                  candidate.workHistory.length > 0 ? (
+                    candidate.workHistory.map((work) => {
+                      const startDate = new Date(work.startDate);
+                      const endDate = work.currentlyWorkingHere
+                        ? "Until now"
+                        : new Date(work.endDate);
+
+                      return (
+                        <div key={work._id} className="work-history-item">
+                          {/* Job Title */}
+                          <h5>{work.jobTitle || "Not specified"}</h5>
+
+                          {/* Duration */}
+                          <p>
+                            {startDate.toLocaleString("default", {
+                              month: "short",
+                            })}{" "}
+                            {startDate.getFullYear()} -{" "}
+                            {work.currentlyWorkingHere
+                              ? "Until now"
+                              : `${endDate.toLocaleString("default", {
+                                  month: "short",
+                                })} ${endDate.getFullYear?.() || ""}`}
+                          </p>
+
+                          {/* Company Info */}
+                          {!work.keep_employer_anonymous && (
+                            <>
+                              <h5>{work.companyName}</h5>
+                              <p>
+                                {work.workLocation || "Location not specified"},{" "}
+                                {work.EmploymentType ||
+                                  "Employment type not specified"}
+                              </p>
+                            </>
+                          )}
+
+                          {/* Job Description */}
+                          {work.Description && (
+                            <>
+                              <h5>Description</h5>
+                              <p>{work.Description}</p>
+                            </>
+                          )}
+
+                          {/* Salary Section */}
+                          {work.currentSalary && (
+                            <>
+                              <h3>Position Salary (Gross)</h3>
+                              <h5>Salary</h5>
+                              <p>
+                                {work.currentSalary.amount}{" "}
+                                {work.currentSalary.currency}
+                              </p>
+                              <h5>Payroll frequency</h5>
+                              <p>{work.currentSalary.payrollFrequency}</p>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p>No work experience available</p>
+                  )}
                 </div>
+
                 <div className="candidate-profile-divider-line" />
                 <div className="education candidate-profile-summary">
                   <h3>Education</h3>
@@ -157,30 +281,46 @@ function CandinateProfileDetails() {
                   <h3>Skills</h3>
                   <div className="candidate-profile-skill-info">
                     <ul>
-                      <li>PHP</li>
-                      <li>PYTHON</li>
-                      <li>ANDROID</li>
-                      <li>SEO</li>
-                      <li>DIGITAL MARKETING</li>
-                      <li>WEBSITE DESIGN</li>
+                      {candidate?.skills && candidate.skills.length > 0 ? (
+                        candidate.skills.map((skill, index) => (
+                          <li key={index}>{skill}</li>
+                        ))
+                      ) : (
+                        <li>No skills listed</li>
+                      )}
                     </ul>
                   </div>
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="languages candidate-profile-summary">
                   <h3>Languages</h3>
-                  <h5>French</h5>
-                  <p>Native / Bilingual (C2)</p>
-                  <h5>English</h5>
-                  <p>Basic (A1 / A2)</p>
+                  {candidate?.languages && candidate.languages.length > 0 ? (
+                    candidate.languages.map((lang) => (
+                      <div key={lang._id}>
+                        <h5>{lang.language}</h5>
+                        <p>{lang.proficiency}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No languages listed</p>
+                  )}
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="languages candidate-profile-summary">
                   <h3>Certificates</h3>
-                  <h5>B.Tech</h5>
-                  <p>Issue Date: 2025</p>
-                  <h5>BCA</h5>
-                  <p>Issue Date: 2021</p>
+                  {candidate?.certificates &&
+                  candidate.certificates.length > 0 ? (
+                    candidate.certificates.map((cert) => (
+                      <div key={cert._id}>
+                        <h5>{cert.title}</h5>
+                        <p>
+                          Issue Date: {new Date(cert.issueDate).getFullYear()}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No certificates available</p>
+                  )}
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="candidate-profile-review-heading">
@@ -375,4 +515,3 @@ function CandinateProfileDetails() {
 }
 
 export default CandinateProfileDetails;
-

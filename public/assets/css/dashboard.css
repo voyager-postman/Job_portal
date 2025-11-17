@@ -176,7 +176,7 @@ Dashboard Area CSS
 =================================================*/
 .main-dashboard-content {
   transition: all ease 0.5s;
-  overflow: hidden;
+  /* overflow: hidden; */
   background-color: #f0f5f7;
   min-height: 100vh;
   padding-right: 60px;
@@ -322,8 +322,9 @@ Dashboard Area CSS
 }
 
 /*Notifications and Invoices CSS*/
+
 .recent-notifications-box {
-  margin-bottom: 30px;
+  margin-top: 30px;
   background-color: #ffffff;
   box-shadow: 1px 5px 24px 0 rgba(68, 102, 242, 0.05);
 }
@@ -698,6 +699,27 @@ Dashboard Area CSS
   border: unset;
   font-size: 16px;
 }
+
+.application-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px;
+  background: #fff;
+  margin-top: 30px;
+}
+
+.application-filter h4 {
+  font-size: 20px;
+  text-transform: capitalize;
+}
+
+.application-filter .form-select {
+  width: 20%;
+  height: 40px;
+}
+
 .manage-jobs-box .manage-jobs-table table tbody tr td.application-btn {
   padding-right: 60px;
   padding-left: 60px;
@@ -1902,9 +1924,12 @@ Dashboard Area CSS
 }
 
 .copy-right-area {
-  padding-top: 20px;
-  padding-bottom: 30px;
+  width: 100%;
+  margin-top: 50px;
+  background: #fff;
+  padding: 15px 20px 10px 20px;
 }
+
 .copy-right-area .copyright-left-content p .template-name {
   color: #1967d2;
   font-weight: 500;
@@ -2732,8 +2757,10 @@ Dashboard Area CSS
   .sidemenu-area .sidemenu-header .responsive-burger-menu {
     display: none !important;
   }
+
   .sidemenu-area .sidemenu-body .sidemenu-nav .nav-item .nav-link {
-    padding: 15px 30px 15px;
+    font-size: 14px;
+    padding: 10px 10px 10px 30px;
   }
   .main-dashboard-content {
     padding-right: 30px;
@@ -2996,7 +3023,10 @@ Dashboard Area CSS
   border-top: 1px solid #eeee;
   margin-bottom: 25px;
 }
-
+.divder-line-info-otherCompany {
+  border-top: 2px solid #1868ca;
+  margin-bottom: 25px;
+}
 /*global css end here*/
 
 /*candidate profile basic info page css start here*/
@@ -3075,7 +3105,11 @@ input:checked + .slider:before {
 .candidates-img-info {
   width: 28%;
 }
-
+.candidates-img-info img {
+  width: 150px;
+  height: 170px;
+  object-fit: cover;
+}
 .my-profile-area .candidates-details-info h3 {
   font-size: 15px;
   padding-left: 20px;
@@ -3149,7 +3183,13 @@ input:checked + .slider:before {
 }
 
 .currently-working-here {
+  display: flex;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.currently-working-here input {
+  margin-right: 5px;
 }
 
 .skill-btn-info .default-btn {
@@ -3287,17 +3327,15 @@ input:checked + .slider:before {
 }
 
 .work-exprinace-edit {
-  position: relative;
+  position: absolute;
+  right: 20px;
 }
 
 .work-exprinace-edit i {
-  top: 10px;
-  right: 50px;
   color: #fff;
   cursor: pointer;
-  padding: 10px 10px;
+  padding: 5px 5px;
   border-radius: 5px;
-  position: absolute;
   background: #ff6600;
 }
 
@@ -3715,12 +3753,14 @@ background:#0066CC;
 .available-job-posts-heading {
   background: #fff;
   padding: 20px 20px;
+  position: relative;
 }
 
 .available-job-posts-heading h4 {
   font-size: 18px;
   margin: 0px 0px 0px 0px;
   padding: 0px 0px 0px 0px;
+  text-transform: capitalize;
 }
 
 .available-job-posts-heading h4 i {
@@ -3737,7 +3777,7 @@ background:#0066CC;
 }
 
 .available-job-company-name h4 {
-  font-size: 18px;
+  font-size: 16px;
   margin: 0px 0px 0px 0px;
   padding: 0px 0px 0px 0px;
 }
@@ -3752,18 +3792,18 @@ background:#0066CC;
   height: 35px;
   padding: 3px 2px;
   margin-right: 5px;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 5px;
   background: #f0f5f7;
 }
 
 .available-job-save-job i {
   color: #fff;
-  width: 25px;
-  height: 25px;
-  font-size: 16px;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
   cursor: pointer;
-  line-height: 25px;
+  line-height: 20px;
   margin-left: 5px;
   border-radius: 5px;
   text-align: center;
@@ -3779,16 +3819,34 @@ background:#0066CC;
   background: #fff;
   position: relative;
   padding: 15px 20px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+
+.similar-jobs-heading h5 {
+  margin-top: 50px;
+  padding: 15px 20px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
 .available-job-type-details h5 {
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 10px;
   margin-bottom: 0px;
 }
 
 .available-job-type-details p {
   margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.available-job-type-apply-btn .default-btn {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0px 8px 5px 8px;
 }
 
 .available-job-type-details ul {
@@ -3799,16 +3857,22 @@ background:#0066CC;
 }
 
 .available-job-type-details ul li {
-  color: #666666;
+  width: 18%;
+  font-size: 13px;
   list-style: none;
-  margin: 5px 0px 0px 0px;
+  font-weight: 500;
+  color: #666666;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin: 10px 0px 0px 0px;
   padding: 0px 10px 0px 0px;
 }
 
 .available-job-type-details ul li i {
   font-size: 13px;
   color: #0066cc;
-  margin-right: 0px;
+  margin-right: 5px;
 }
 
 .job-details-job-name p a {
@@ -3917,15 +3981,27 @@ background:#0066CC;
 
 .available-job-type-apply-btn {
   right: 20px;
-  bottom: 10px;
+  bottom: 12px;
   position: absolute;
 }
 
-.apply-btn-info.default-btn {
+/* .apply-btn-info.default-btn {
   padding: 3px 30px;
+} */
+
+.job-filter-main-info.sidebar-scroll-touch-footer {
+  top: 100px;
+  z-index: 1;
+  position: sticky;
+  height: 750px;
+  overflow: auto;
 }
 
 /*new fillter css end here*/
+
+.compnies-slider-search-job .companies-week-box-info {
+  background: #fff;
+}
 
 /*Search Job List page css end here*/
 
@@ -4399,6 +4475,12 @@ background:#0066CC;
   padding: 20px 0px 40px 0px;
 }
 
+.view-job-count-btn .default-btn {
+  font-size: 14px;
+  font-weight: 400;
+  padding: 5px 10px;
+}
+
 /*Your job posts option tab form css start here*/
 
 .job-option-branding-input-area {
@@ -4602,7 +4684,11 @@ width:65%;
   background: #f0f5f7;
   border-radius: 5px;
 }
-
+.job-name-company-logo img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
 .job-apply-link-save-btn-info {
   display: flex;
   align-items: center;
@@ -4659,13 +4745,13 @@ width:65%;
 
 .job-details-tag-main-area {
   display: flex;
-  justify-content: space-between;
 }
 
 .job-details-tag-box {
   width: 23%;
   padding: 10px 15px;
   margin-right: 0px;
+  margin-right: 25px;
   background: #eeeeee82;
 }
 
@@ -4773,8 +4859,10 @@ width:65%;
 }
 
 .summary-offer-job-post h4 img {
-  width: 6%;
+  width: 5%;
   margin-right: 10px;
+  background-color: #f0f5f7;
+  padding: 5px;
 }
 
 .summary-offer-save-job i {
@@ -4859,10 +4947,18 @@ width:65%;
 .available-company-logo {
   top: 15px;
   left: 15px;
-  width: 40%;
+  max-width: 20%;
   padding: 5px 5px;
   background: #fff;
   position: absolute;
+  overflow: hidden;
+  height: 40px;
+}
+
+.available-company-img img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
 }
 
 .available-company-content h4 {
@@ -5112,6 +5208,14 @@ width:34%;
   align-items: center;
 }
 
+/* .companes-slider-job-info {
+width:100%;  
+} */
+
+.candidate-dashboard-slider .companies-week-box-info {
+  background: #fff;
+}
+
 /*candidate dashboard css end here*/
 
 /*manage job application css start here*/
@@ -5132,7 +5236,7 @@ width:34%;
 
 .job-applied-details h5 {
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 500;
   padding: 3px 5px;
   margin-right: 11px;
@@ -5142,23 +5246,23 @@ width:34%;
 
 .job-applied-details h5 i {
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
   margin-right: 5px;
 }
 
 .job-withdraw-details a {
   color: #fff;
   font-weight: 500;
-  font-size: 11px;
-  padding: 3px 5px;
+  font-size: 12px;
+  padding: 4px 7px;
   border-radius: 5px;
   background: #0066cc;
 }
 
 .job-withdraw-details a i {
   color: #fff;
-  font-size: 12px;
-  margin-right: 5px;
+  font-size: 14px;
+  margin-right: 0px;
 }
 
 .job-withdraw-details-from h4 {
@@ -5540,10 +5644,11 @@ width:34%;
 }
 
 .job-apply-custom-resume-info {
-  text-align: center;
-  padding: 30px 30px;
-  border-radius: 5px;
-  border: 1px solid #ff6600;
+    text-align: center;
+    padding: 15px 15px;
+    border-radius: 5px;
+    margin: 5px;
+    border: 1px solid #ff6600;
 }
 
 .job-apply-custom-resume-info span {
@@ -7048,7 +7153,35 @@ width:34%;
 .messaging-system-typeing-send-btn i {
   cursor: pointer;
 }
+.swiper-button-prev:after,
+.swiper-button-next:after {
+  color: #fff;
+  padding: 5px 6px;
+  border-radius: 5px;
+  background: #cac8c8 !important;
+  font-size: 16px !important;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  top: 0 !important;
+  bottom: 82px !important;
+  margin: auto !important;
+}
 
 /*messaging-system css end here*/
+.job-filter-main-info.sidebar-scroll-footer::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  /*  background-color:#fe6600;*/
+}
 
+.job-filter-main-info.sidebar-scroll-footer::-webkit-scrollbar {
+  width: 5px;
+  /*  background-color:#fe6600;*/
+}
+
+.job-filter-main-info.sidebar-scroll-footer::-webkit-scrollbar-thumb {
+  background-color: #fe6600;
+  border: 2px solid #fe6600;
+}
 /*Amrjeet Dashboard Css End here*/

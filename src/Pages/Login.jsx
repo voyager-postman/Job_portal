@@ -6,10 +6,11 @@ import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
+import { API_IMAGE_URL } from "../Url/Url";
 // import bannerImg from "";
 
 function Login() {
-  const { login } = useAuth();
+  const { login, updateProfileImage, updateName } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -39,6 +40,63 @@ function Login() {
     return true;
   };
 
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!validateForm()) return;
+
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await axios.post(`${API_BASE_URL}user/login`, {
+  //       email: formData.email,
+  //       password: formData.password,
+  //     });
+
+  //     if (response.status === 200 && response.data.success) {
+  //       const { token, user } = response.data;
+
+  //       // Save login data
+  //       localStorage.setItem("token", token);
+  //       localStorage.setItem("user", JSON.stringify(user));
+  //       localStorage.setItem("user_id", user.id);
+  //       localStorage.setItem("user_email", user.email);
+  //       localStorage.setItem("user_role", user.role);
+  //       localStorage.setItem("first_name", user.first_name);
+  //       localStorage.setItem("last_name", user.last_name);
+  //       login(); // call your login context or auth function
+
+  //       toast.success("Login successful!");
+
+  //       // Navigate based on profile completion
+  //       if (user?.is_completed) {
+  //         navigate("/candidate-profile");
+  //       } else {
+  //         navigate("/profile-basic-info");
+  //       }
+  //     } else {
+  //       toast.error(response.data?.message || "Invalid credentials");
+  //     }
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+
+  //     if (error.response?.status === 429) {
+  //       // Handle Too Many Requests
+  //       toast.error(
+  //         "Too many login attempts. Please wait a moment and try again."
+  //       );
+  //     } else if (Array.isArray(error.response?.data?.errors)) {
+  //       error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
+  //     } else {
+  //       toast.error(
+  //         error.response?.data?.message || "Login failed. Please try again."
+  //       );
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -50,11 +108,12 @@ function Login() {
       const response = await axios.post(`${API_BASE_URL}user/login`, {
         email: formData.email,
         password: formData.password,
+        role: "JobSeeker",
       });
 
       if (response.status === 200 && response.data.success) {
-        const { token, user } = response.data;
-
+        const { token, user, profile } = response.data;
+        console.log(response.data);
         // Save login data
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -63,15 +122,55 @@ function Login() {
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("first_name", user.first_name);
         localStorage.setItem("last_name", user.last_name);
+        localStorage.setItem("is_completed", user?.is_completed);
+        try {
+          const profileRes = await axios.get(
+            `${API_BASE_URL}candidate/profile`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const profileImg = profileRes.data?.profile?.profileImage;
+          const profileData = profileRes.data?.profile;
+
+          if (profileImg && profileImg.trim() !== "") {
+            const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+            localStorage.setItem("profileImage", fullUrl);
+
+            // ✅ Update AuthContext instantly
+            if (typeof updateProfileImage === "function") {
+              updateProfileImage(fullUrl);
+            }
+          } else {
+            localStorage.setItem(
+              "profileImage",
+              "/jobPortal/assets/images/dashboard/images1.png"
+            );
+          }
+          if (profileData) {
+            updateName(profileData.first_name, profileData.last_name);
+          }
+        } catch (profileErr) {
+          console.error("Profile fetch error:", profileErr);
+        }
         login(); // call your login context or auth function
 
         toast.success("Login successful!");
 
         // Navigate based on profile completion
         if (user?.is_completed) {
-          navigate("/candidate-profile");
+          if (user.role == "Recruiter" || user.role == "Company") {
+            navigate("/employer-dashboard");
+          } else {
+            navigate("/candidate-profile");
+          }
         } else {
-          navigate("/profile-basic-info");
+          if (user.role == "Recruiter" || user.role == "Company") {
+            navigate("/employer-basic-info");
+          } else {
+            navigate("/profile-basic-info");
+          }
         }
       } else {
         toast.error(response.data?.message || "Invalid credentials");
@@ -79,7 +178,16 @@ function Login() {
     } catch (error) {
       console.error("Login error:", error);
 
-      if (error.response?.status === 429) {
+      if (
+        error.response?.data?.success === false &&
+        error.response?.data?.action === "resendVerificationEmail"
+      ) {
+        // Special case: Email not verified
+        toast.error(error.response.data.message);
+        navigate("/verification", {
+          state: { email: formData.email, showToast: true },
+        });
+      } else if (error.response?.status === 429) {
         // Handle Too Many Requests
         toast.error(
           "Too many login attempts. Please wait a moment and try again."
@@ -94,10 +202,6 @@ function Login() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const goToRegister = () => {
-    navigate("/candidate-dashboard");
   };
 
   return (
@@ -120,7 +224,7 @@ function Login() {
                     <h3>Jobseeker Log In</h3>
                     <form onSubmit={handleLogin}>
                       <div className="form-group">
-                        <label>Email Address</label>
+                        <label>Email Address*</label>
                         <input
                           type="email"
                           id="email"
@@ -131,7 +235,7 @@ function Login() {
                         />{" "}
                       </div>
                       <div className="form-group eye-icon-postion">
-                        <label>Password</label>
+                        <label>Password*</label>
                         <div style={{ position: "relative" }}>
                           <input
                             type={showPassword ? "text" : "password"} // ✅ toggle type

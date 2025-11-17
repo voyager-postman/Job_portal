@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import { Modal, Typography, Card, Divider, Box } from "@mui/material";
+import { API_IMAGE_URL } from "../Url/Url";
 
 function YourJobPosts() {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ function YourJobPosts() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [viewData, setViewData] = useState("");
+  const [viewOpen, setViewOpen] = useState(false);
 
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
@@ -22,32 +26,33 @@ function YourJobPosts() {
     }
     try {
       const token = localStorage.getItem("token");
+      const tempTitle = jobTitle;
+      const tempCategory = jobCategory;
+
       const response = await axios.post(
         `${API_BASE_URL}createJob`,
-        {
-          jobTitle: jobTitle,
-          jobCategory: jobCategory,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { jobTitle: tempTitle, jobCategory: tempCategory },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       console.log("Job Created:", response.data);
       const createdJob = response.data.job;
       toast.success("Job created successfully!");
-      // reset form
+
+      // Clear inputs AFTER successful navigation
       setJobTitle("");
       setJobCategory("");
-      // close modal manually
+
       const modalElement = document.getElementById("exampleModal");
       const modal = window.bootstrap.Modal.getInstance(modalElement);
       modal.hide();
+
+      // If you want to copy the draft here:
+      // await copyDraft(createdJob._id, tempTitle, tempCategory);
+
       navigate(`/job-details-form/${createdJob._id}`, {
-        state: { job: createdJob },
+        state: { jobData: createdJob },
       });
-      // navigate("/job-details-form", { state: { job: createdJob } });
     } catch (error) {
       console.error("Error creating job:", error);
       toast.error("Failed to create job");
@@ -139,25 +144,86 @@ function YourJobPosts() {
     });
   };
 
-  const copyDraft = async (id) => {
+  const copyDraft = async (id, title, category) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("You need to log in first.");
+        return;
+      }
+
+      const data = {
+        jobTitle: title,
+        jobCategory: category,
+      };
+      console.log("Job title:-", title);
+      console.log("Job Category:-", category);
       const response = await axios.post(
         `${API_BASE_URL}jobs/${id}/copy-as-draft`,
-        {}
+        data,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+      // ✅ Show success message
+      toast.success(response.data?.message || "Draft copied successfully!");
+      setMenuOpen(false);
+      fetchJobs(activeStatus);
     } catch (error) {
-      console.error(error);
+      console.error("Copy Draft Error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to copy draft. Try again."
+      );
     }
   };
 
-  // const handlePostClick = () => {
-  //   setIsPost(true);
-  // };
+  const archiveData = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("You need to log in first.");
+        return;
+      }
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${id}/archived`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // ✅ Show success message
+      toast.success(response.data?.message || "Archived Job successfully!");
+      setMenuOpen(false);
+      fetchJobs(activeStatus);
+    } catch (error) {
+      console.error("Archived Job Error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to Archived Job. Try again."
+      );
+    }
+  };
 
-  // const handlePostCancel = () => {
-  //   setIsPost(false);
-  // };
+  const handleViewOpen = () => setViewOpen(true);
+  const handleViewClose = () => setViewOpen(false);
+
+  const handleView = (id) => {
+    const token = localStorage.getItem("token");
+    axios
+      .get(`${API_BASE_URL}getJobById/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setViewData(response.data.data);
+        handleViewOpen();
+        setMenuOpen(false);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
   return (
     <>
@@ -180,59 +246,6 @@ function YourJobPosts() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
-          {/* Start Manage Jobs Area */}
-          {/* <div className="manage-jobs-box">
-            <div className="job-listing-search-form job-search-info-area">
-              <form>
-                <div className="row g-0">
-                  <div className="col-lg-3 col-sm-6">
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Keywords / Job Title"
-                      />
-                      <i className="flaticon-portfolio" />
-                    </div>
-                  </div>
-                  <div className="col-lg-3 col-sm-6">
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="City Or Postcode"
-                      />
-                      <i className="flaticon-location" />
-                    </div>
-                  </div>
-                  <div className="col-lg-4 col-sm-6">
-                    <div className="form-group style">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Choose A Category</option>
-                        {cateroryList.map((list) => (
-                          <option value={list.name} key={list._id}>
-                            {list.name}
-                          </option>
-                        ))}
-                      </select>
-                      <i className="flaticon-list" />
-                    </div>
-                  </div>
-                  <div className="col-lg-2 col-sm-6">
-                    <div className="search-btn">
-                      <button type="submit" className="default-btn btn">
-                        Find Jobs
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div> */}
-          {/* End Manage Jobs Area */}
           {/* Your Job Posts Info*/}
           <div className="your-job-post-main-info">
             <div className="row">
@@ -240,7 +253,7 @@ function YourJobPosts() {
                 <div className="your-job-post-side-menu">
                   <div className="your-job-post-side-heading">
                     <h4>
-                      <i className="fa-regular fa-file" /> Your Job Posts{" "}
+                      <i className="fa-regular fa-file" /> Create job{" "}
                       <span
                         className="create-job-icon"
                         data-bs-toggle="modal"
@@ -300,7 +313,7 @@ function YourJobPosts() {
                               >
                                 <option value="">Select Category</option>
                                 {cateroryList.map((list) => (
-                                  <option value={list.name} key={list._id}>
+                                  <option value={list._id} key={list._id}>
                                     {list.name}
                                   </option>
                                 ))}
@@ -329,16 +342,16 @@ function YourJobPosts() {
                   </div>
 
                   <ul className="nav nav-tabs" role="tablist">
-                    {/* <li className="nav-item">
+                    <li className="nav-item">
                       <a
-                        className="nav-link active"
-                        data-bs-toggle="tab"
-                        href="#menu1"
+                        className={`nav-link ${
+                          activeStatus === "all" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveStatus("all")}
                       >
-                        <i className="fas fa-tasks" /> Create New Job
+                        <i className="fas fa-tasks"></i> All
                       </a>
-                    </li> */}
-
+                    </li>
                     <li className="nav-item">
                       <a
                         className={`nav-link ${
@@ -389,16 +402,6 @@ function YourJobPosts() {
                         <i className="fas fa-archive"></i> Archived
                       </a>
                     </li>
-                    <li className="nav-item">
-                      <a
-                        className={`nav-link ${
-                          activeStatus === "all" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveStatus("all")}
-                      >
-                        <i className="fas fa-tasks"></i> All
-                      </a>
-                    </li>
                   </ul>
                 </div>
               </div>
@@ -427,9 +430,6 @@ function YourJobPosts() {
                               <h4>{job.jobTitle}</h4>
                             </div>
                             <div className="job-short-detail-crud-info">
-                              <a href="#" className="job-short-crud-btn">
-                                <i className="fa-solid fa-pencil"></i> Draft
-                              </a>
                               <i
                                 className="fa-solid fa-ellipsis-vertical menu-icon"
                                 style={{ cursor: "pointer" }}
@@ -444,25 +444,48 @@ function YourJobPosts() {
                               <div className="job-short-detail-crud-menu">
                                 <ul>
                                   <li onClick={() => jobUpdate(job)}>
-                                    <i className="fa-solid fa-pencil"></i> Edit
+                                    <i className="fa-solid fa-pencil cursor-pointer"></i>{" "}
+                                    Edit
                                   </li>
-                                  <li>
+                                  <li onClick={() => handleView(job._id)}>
                                     <i className="fa-regular fa-eye"></i>
                                     Preview
                                   </li>
-                                  <li>
-                                    <i className="fa-solid fa-file"></i> Copy as
-                                    draft
+                                  <li
+                                    onClick={() =>
+                                      copyDraft(
+                                        job._id,
+                                        job.jobTitle,
+                                        job.jobCategory
+                                      )
+                                    }
+                                  >
+                                    {/* <button
+                                      onClick={() =>
+                                        copyDraft(
+                                          job._id,
+                                          job.jobTitle,
+                                          job.jobCategory
+                                        )
+                                      }
+                                    >
+                                      Copy as Draft
+                                    </button> */}
+                                    <i
+                                      className="fa-solid fa-file cursor-pointer"
+                                      title="Copy as draft"
+                                    ></i>{" "}
+                                    Copy as draft
                                   </li>
-                                  <li>
-                                    <i className="fa-solid fa-box-archive"></i>
+
+                                  <li onClick={() => archiveData(job._id)}>
+                                    <i className="fa-solid fa-box-archive cursor-pointer"></i>
                                     Archive
                                   </li>
                                 </ul>
                               </div>
                             )}
                           </div>
-
                           <div className="job-short-detail-tags">
                             <ul>
                               <li>
@@ -472,11 +495,10 @@ function YourJobPosts() {
                               <li>
                                 <i className="fa-solid fa-calendar-days"></i>{" "}
                                 {new Date(job.createdAt).toLocaleDateString()}
-                                {/* {job.createdAt} */}
                               </li>
                               <li>
                                 <i className="fa-solid fa-file-invoice"></i>{" "}
-                                {job.employmentType || "null"}
+                                {job.employmentType?.name || "null"}
                               </li>
                               <li>
                                 <i className="fa-solid fa-user-plus"></i>{" "}
@@ -487,424 +509,6 @@ function YourJobPosts() {
                         </div>
                       ))
                     )}
-                    {/* <div id="menu1" className="tab-pane active">
-                      {!isPost && (
-                        <div className="job-post-info-heading">
-                          <h2>There Are No Created Any Job Posts.</h2>
-                          <div className="post-job-next-btn">
-                            <a
-                              href="#"
-                              className="default-btn btn"
-                              onClick={handlePostClick}
-                            >
-                              Create Job
-                            </a>
-                          </div>
-                        </div>
-                      )}
-                      {isPost && (
-                        <>
-                          <div className="your-job-posts-form-heading mt-5">
-                            <h4>
-                              <i className="fa-regular fa-file" /> Create New
-                              job post
-                            </h4>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <div id="menu2" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Published Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-
-                          <div className="job-short-detail-crud-info">
-                            <a href="#" className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil"></i> Draft
-                            </a>
-                            <i
-                              className="fa-solid fa-ellipsis-vertical menu-icon"
-                              style={{ cursor: "pointer" }}
-                            ></i>
-                          </div>
-
-                          <div className="job-short-detail-crud-menu">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-pencil"></i> Edit
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-eye"></i> Preview
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file"></i> Copy as
-                                draft
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-box-archive"></i>{" "}
-                                Archive
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot"></i>{" "}
-                              Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days"></i> 11
-                              Jul 2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice"></i> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus"></i> Full
-                              Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="menu3" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Draft Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-
-                          <div className="job-short-detail-crud-info">
-                            <a href="#" className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil"></i> Draft
-                            </a>
-                            <i
-                              className="fa-solid fa-ellipsis-vertical menu-icon"
-                              style={{ cursor: "pointer" }}
-                            ></i>
-                          </div>
-
-                          <div className="job-short-detail-crud-menu">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-pencil"></i> Edit
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-eye"></i> Preview
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file"></i> Copy as
-                                draft
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-box-archive"></i>{" "}
-                                Archive
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot"></i>{" "}
-                              Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days"></i> 11
-                              Jul 2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice"></i> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus"></i> Full
-                              Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="menu4" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Expired Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-                          <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              Expired
-                            </a>
-                          </div>
-                        </div>
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice" /> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="menu5" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Unpublished Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-
-                          <div className="job-short-detail-crud-info">
-                            <a href="#" className="job-short-crud-btn">
-                              <i className="fa-solid fa-pencil"></i> Draft
-                            </a>
-                            <i
-                              className="fa-solid fa-ellipsis-vertical menu-icon"
-                              style={{ cursor: "pointer" }}
-                            ></i>
-                          </div>
-
-                          <div className="job-short-detail-crud-menu">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-pencil"></i> Edit
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-eye"></i> Preview
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file"></i> Copy as
-                                draft
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-box-archive"></i>{" "}
-                                Archive
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot"></i>{" "}
-                              Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days"></i> 11
-                              Jul 2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice"></i> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus"></i> Full
-                              Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="menu6" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No Archived Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-                          <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fas fa-archive" /> Archived
-                            </a>
-                            <i
-                              className="fa-solid fa-ellipsis-vertical menu-icon"
-                              style={{ cursor: "pointer" }}
-                            />
-                          </div>
-                          <div className="job-short-detail-crud-menu">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-pencil" /> Edit
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-eye" /> Preview
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
-                                Archive
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="job-short-application-detail-info">
-                          <div className="job-short-detail-tags">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-location-dot" />{" "}
-                                Germany
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-calendar-days" /> 11
-                                Jul 2025
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file-invoice" /> No
-                                experience / No degree
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-user-plus" /> Full
-                                Time
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="job-short-application-detail">
-                            <ul>
-                              <li>
-                                <i className="fa-regular fa-eye" /> 0
-                                <div className="tooltip-text-info views bottom-arrow">
-                                  <p>Views</p>
-                                </div>
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-arrow-up" /> 0
-                                <div className="tooltip-text-info clicks bottom-arrow">
-                                  <p>Clicks</p>
-                                </div>
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-file" /> 0
-                                <div className="tooltip-text-info total-applicants-withdrawn bottom-arrow">
-                                  <p>Total Applicants: 0</p>
-                                  <br />
-                                  <p>Withdrawn: 0</p>
-                                </div>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="menu7" className="tab-pane fade">
-                      <div className="job-post-info-heading">
-                        <h2>There Are No All Job Posts.</h2>
-                        <div className="post-job-next-btn">
-                          <a href="#" className="default-btn btn">
-                            All Jobs
-                          </a>
-                        </div>
-                      </div>
-                      <div className="job-short-detail-box">
-                        <div className="job-short-heading-crud">
-                          <div className="job-short-detail-heading">
-                            <h4>Testing</h4>
-                          </div>
-                          <div className="job-short-detail-crud-info">
-                            <a href className="job-short-crud-btn">
-                              <i className="fas fa-archive" /> Archived
-                            </a>
-                            <i
-                              className="fa-solid fa-ellipsis-vertical menu-icon"
-                              style={{ cursor: "pointer" }}
-                            />
-                          </div>
-                          <div className="job-short-detail-crud-menu">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-pencil" /> Edit
-                              </li>
-                              <li>
-                                <i className="fa-regular fa-eye" /> Preview
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file" /> Copy as draft
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-box-archive" />{" "}
-                                Archive
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="job-short-detail-tags">
-                          <ul>
-                            <li>
-                              <i className="fa-solid fa-location-dot" /> Germany
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-calendar-days" /> 11 Jul
-                              2025
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-file-invoice" /> No
-                              experience / No degree
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-user-plus" /> Full Time
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div> */}
                   </div>
                 </div>
               </div>
@@ -938,6 +542,152 @@ function YourJobPosts() {
           </div>
         </div>
       </div>
+
+      {/* Modal for View Particular data */}
+      <Modal open={viewOpen} onClose={handleViewClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "50%",
+            maxHeight: "80vh",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 3,
+            overflowY: "scroll",
+            overflowX: "hidden",
+            border: "2px solid none",
+          }}
+        >
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{ fontWeight: "bold", mb: 2 }}
+          >
+            Job Details
+          </Typography>
+
+          <Box sx={{ mb: 3 }}>
+            <div>
+              <img
+                src={
+                  viewData?.jobDetails?.JobCoverPhoto
+                    ? `${API_IMAGE_URL}${viewData?.jobDetails?.JobCoverPhoto}`
+                    : "assets/images/dashboard/images1.png"
+                }
+                crossorigin="anonymous"
+                alt="logo"
+                style={{
+                  width: "100px",
+                  maxHeight: "100px",
+                  objectFit: "cover",
+                  borderRadius: "12px",
+                }}
+              />
+            </div>
+          </Box>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Divider sx={{ mb: 2 }} />
+            <Typography>
+              <strong>Job Title:</strong>{" "}
+              {viewData?.jobDetails?.jobTitle || "null"}
+            </Typography>
+            <Typography>
+              <strong>Job Category:</strong>{" "}
+              {viewData?.jobDetails?.jobCategory?.name || "null"}
+            </Typography>
+            <Typography>
+              <strong>Employment Type:</strong>{" "}
+              {viewData?.jobDetails?.employmentType?.name || "null"}
+            </Typography>
+            <Typography>
+              <strong>Minimum Level:</strong>{" "}
+              {viewData?.jobDetails?.minimumLevel?.name || "null"}
+            </Typography>
+            <Typography>
+              <strong>Remote Type:</strong>{" "}
+              {viewData?.jobDetails?.remote || "null"}
+            </Typography>
+            <Typography>
+              <strong>Reference Id:</strong>{" "}
+              {viewData?.jobDetails?.referenceId || "null"}
+            </Typography>
+            <Typography>
+              <strong>City:</strong> {viewData?.jobDetails?.city || "null"}
+            </Typography>
+            <Typography>
+              <strong>State:</strong> {viewData?.jobDetails?.region || "null"}
+            </Typography>
+            <Typography>
+              <strong>Country:</strong>{" "}
+              {viewData?.jobDetails?.country || "null"}
+            </Typography>
+            <Typography>
+              <strong>Status:</strong> {viewData?.jobDetails?.status || "null"}
+            </Typography>
+            <Typography>
+              <strong>Enable External Apply:</strong>{" "}
+              {viewData?.jobDetails?.enableExternalApply ? "Yes" : "No"}
+            </Typography>
+            <Typography>
+              <strong>External Apply Link:</strong>{" "}
+              {viewData?.jobDetails?.ExternalApplyLink || "null"}
+            </Typography>
+            <Typography>
+              <strong>Confidential JobPost:</strong>{" "}
+              {viewData?.jobDetails?.confidentialJobPost ? "Yes" : "No"}
+            </Typography>
+            <Typography>
+              <strong>Enable Email Notification:</strong>{" "}
+              {viewData?.jobDetails?.enableEmailNotification ? "Yes" : "No"}
+            </Typography>
+            <Typography>
+              <strong>Enable Relevant Job:</strong>{" "}
+              {viewData?.jobDetails?.enableRemovalRelevantJobs ? "Yes" : "No"}
+            </Typography>
+            <Typography>
+              <strong>Min Salary:</strong>{" "}
+              {viewData?.jobDetails?.privatJobDetails?.minSalary}
+            </Typography>
+            <Typography>
+              <strong>Max Salary:</strong>{" "}
+              {viewData?.jobDetails?.privatJobDetails?.maxSalary}
+            </Typography>
+            <Typography>
+              <strong>Tags:</strong>
+            </Typography>
+            <ul>
+              {viewData?.jobDetails?.tags?.map((item, index) => (
+                <li key={index}>
+                  <Typography>{item}</Typography>
+                </li>
+              ))}
+            </ul>
+            <Typography>
+              <strong>Short Description:</strong>{" "}
+              {viewData?.jobDetails?.shortDescription || "null"}
+            </Typography>
+            <Typography>
+              <strong>Job Description:</strong>{" "}
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: viewData?.jobDetails?.jobDescription,
+                }}
+              />
+              {/* {viewData?.jobDetails?.jobDescription || "null"} */}
+            </Typography>
+          </Card>
+
+          {/* Close Button */}
+          <Box textAlign="right" mt={3}>
+            <button className="default-btn btn" onClick={handleViewClose}>
+              Close
+            </button>
+          </Box>
+        </Box>
+      </Modal>
     </>
   );
 }
