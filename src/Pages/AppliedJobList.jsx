@@ -8,7 +8,7 @@ import moment from "moment";
 function AppliedJobList() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // 🔹 New state for search
+  const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -127,20 +127,23 @@ function AppliedJobList() {
                           </li> */}
                         <li>
                           <i className="fa-regular fa-user" />
-                          {job?.employmentType}
+                          {job?.employmentType?.name}
                         </li>
                         <li>
                           <i className="fa-solid fa-location-dot" /> {job?.city}
                         </li>
                         <li>
                           <i className="fa-regular fa-file" />{" "}
-                          {job?.jobCategory}{" "}
+                          {job?.jobCategory?.name}{" "}
                         </li>
                       </ul>
                     </div>
 
                     <div className="total-applicants-info">
-                      <Link to="/application-management">
+                      <Link
+                        to="/employer-candidates-list"
+                        state={{ jobId: job._id }}
+                      >
                         <p>Applicants: {job?.applicantCount || 0} </p>
                       </Link>
                     </div>
