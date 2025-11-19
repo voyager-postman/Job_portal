@@ -7,28 +7,58 @@ function EmployerCandinateList() {
   const location = useLocation();
   const token = localStorage.getItem("token");
   const jobId = location.state?.jobId;
-
   const [candidateList, setCandidateList] = useState([]);
+  const [candidateListSummary, setCandidateListSummary] = useState({});
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   // Fetch Applicant List
-  const fetchCandidates = async () => {
+  // const fetchCandidates = async () => {
+  //   try {
+  //     const res = await fetch(`${API_BASE_URL}getApplicantsByJob/${jobId}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     const data = await res.json();
+
+  //     setCandidateList(data.applicants || []);
+  //     setCandidateListSummary(data.summary || {});
+  //     // 👉 Load FIRST applicant details automatically
+  //     if (data.applicants?.length > 0) {
+  //       fetchApplicantDetails(data.applicants[0]._id);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error:", err);
+  //   }
+  // };
+  const fetchCandidates = async (status = "") => {
     try {
-      const res = await fetch(`${API_BASE_URL}getApplicantsByJob/${jobId}`, {
+      const url = status
+        ? `${API_BASE_URL}getApplicantsByJob/${jobId}?status=${status}`
+        : `${API_BASE_URL}getApplicantsByJob/${jobId}`;
+
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
 
       setCandidateList(data.applicants || []);
+      setCandidateListSummary(data.summary || {});
 
-      // 👉 Load FIRST applicant details automatically
+      // Load first applicant automatically
       if (data.applicants?.length > 0) {
         fetchApplicantDetails(data.applicants[0]._id);
       }
     } catch (err) {
       console.error("Error:", err);
     }
+  };
+  const handleSortChange = (e) => {
+    const status = e.target.value;
+    setSelectedStatus(status);
+
+    fetchCandidates(status); // 🔥 Fetch filtered list
   };
 
   // Fetch Full Details of Single Applicant
@@ -50,9 +80,10 @@ function EmployerCandinateList() {
 
   useEffect(() => {
     if (jobId) {
-      fetchCandidates();
+      fetchCandidates(selectedStatus); // load with current filter
     }
   }, [jobId]);
+
   return (
     <>
       <section className="employer-candidate-filter-info-area">
@@ -212,15 +243,22 @@ function EmployerCandinateList() {
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
                 <div className="employer-candidate-number">
-                  <h4>Candidates (158574)</h4>
+                  <h4>Candidates ({candidateListSummary?.Total})</h4>
                 </div>
                 <div className="employer-candidate-profile-count">
                   <ul>
-                    <li>(20) New Candidate</li>
-                    <li>(50) Reviewed Candidate</li>
-                    <li>(40) Interviewed Candidate</li>
-                    <li>(30) Rejected Candidate</li>
-                    <li>(10) Hired Candidate</li>
+                    <li>({candidateListSummary?.New}) New Candidate</li>
+                    <li>
+                      ({candidateListSummary?.Reviewed}) Reviewed Candidate
+                    </li>
+                    <li>
+                      ({candidateListSummary?.Interviewed}) Interviewed
+                      Candidate
+                    </li>
+                    <li>
+                      ({candidateListSummary?.Rejected}) Rejected Candidate
+                    </li>
+                    <li>({candidateListSummary?.Hired}) Hired Candidate</li>
                   </ul>
                 </div>
               </div>
@@ -233,21 +271,38 @@ function EmployerCandinateList() {
           <div className="row">
             <div className="col-lg-4 col-sm-4">
               <div className="employer-candidate-card-filter-info">
-                <form>
-                  <div className="form-group">
-                    <select
-                      class="form-select form-control"
-                      aria-label="Default select example"
-                    >
-                      <option selected="">Sort by: Relevance</option>
-                      <option value="1">Sort by: New Candidate</option>
-                      <option value="2">Sort by: Reviewed Candidate</option>
-                      <option value="2">Sort by: Interviewed Candidate</option>
-                      <option value="2">Sort by: Rejected Candidate</option>
-                      <option value="2">Sort by: Hired Candidate</option>
-                    </select>
-                  </div>
-                </form>
+                <div className="form-group">
+                  <select
+                    className="form-select form-control"
+                    aria-label="Default select example"
+                    onChange={handleSortChange} // ← ADD THIS
+                  >
+                    <option value="">Sort by: Relevance</option>
+
+                    <option value="New">
+                      Sort by: New Candidate ({candidateListSummary?.New})
+                    </option>
+
+                    <option value="Reviewed">
+                      Sort by: Reviewed Candidate (
+                      {candidateListSummary?.Reviewed})
+                    </option>
+
+                    <option value="Interviewed">
+                      Sort by: Interviewed Candidate (
+                      {candidateListSummary?.Interviewed})
+                    </option>
+
+                    <option value="Rejected">
+                      Sort by: Rejected Candidate (
+                      {candidateListSummary?.Rejected})
+                    </option>
+
+                    <option value="Hired">
+                      Sort by: Hired Candidate ({candidateListSummary?.Hired})
+                    </option>
+                  </select>
+                </div>
               </div>
               {/* {candidateList?.map((candidate) => (
                 <div
@@ -308,61 +363,80 @@ function EmployerCandinateList() {
               ))} */}
 
               <div className="employer-candidate-card-info">
-                {candidateList?.map((candidate) => (
-                  <div
-                    className="candidate-list-info single-freelancer-card"
-                    key={candidate._id}
-                    onClick={() => fetchApplicantDetails(candidate._id)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="row align-items-center">
-                      <div className="col-lg-4">
-                        <div className="freelancer-img">
-                          <Link to="/candidates-profile-details">
-                            <img
-                              src="assets/images/freelancers/freelancers-img-1.jpg"
-                              alt="Image"
-                            />
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="col-lg-8">
-                        <div className="freelancer-content">
-                          <Link to="/candidates-profile-details">
-                            <h3>{candidate?.userId?.first_name}</h3>
-                          </Link>
-
-                          <span>IT Developer</span>
-                          <div className="info">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-file" /> 5 Years
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-money-bill" />$ 2000
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-location-dot" />
-                                Washington DC, US
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-graduation-cap" />
-                                Master’s Degree
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-gear" />
-                                <span className="candidate-active">Active</span>
-                              </li>
-                            </ul>
+                {candidateList?.length === 0 ? (
+                  <div className="no-data-message">
+                    <p>No candidates found for this filter.</p>
+                  </div>
+                ) : (
+                  candidateList?.map((candidate) => (
+                    <div
+                      className="candidate-list-info single-freelancer-card"
+                      key={candidate._id}
+                      onClick={() => fetchApplicantDetails(candidate._id)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="row align-items-center">
+                        <div className="col-lg-4">
+                          <div className="freelancer-img">
+                            <Link to="/candidates-profile-details">
+                              <img
+                                crossorigin="anonymous"
+                                src={
+                                  candidate?.userId?.profileImage
+                                    ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}`
+                                    : "assets/images/freelancers/freelancers-img-1.jpg"
+                                }
+                                alt="Image"
+                              />
+                            </Link>
                           </div>
-                          <div className="candidate-list-bookmark">
-                            <i className="fa-regular fa-heart" />
+                        </div>
+
+                        <div className="col-lg-8">
+                          <div className="freelancer-content">
+                            <Link to="/candidates-profile-details">
+                              <h3>
+                                {candidate?.userId?.first_name}{" "}
+                                {candidate?.userId?.last_name}
+                              </h3>
+                            </Link>
+
+                            <span>IT Developer</span>
+
+                            <div className="info">
+                              <ul>
+                                <li>
+                                  <i className="fa-solid fa-file" /> 5 Years
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-money-bill" /> $2000
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-location-dot" />{" "}
+                                  {candidate?.userId?.city}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-graduation-cap" />{" "}
+                                  Master's Degree
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-gear" />{" "}
+                                  <span className="candidate-active">
+                                    Active
+                                  </span>
+                                </li>
+                              </ul>
+                            </div>
+
+                            <div className="candidate-list-bookmark">
+                              <i className="fa-regular fa-heart" />
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="employer-candidate-pagination-info">
@@ -641,6 +715,55 @@ function EmployerCandinateList() {
                           <strong>Address:</strong>{" "}
                           {selectedCandidate?.userInfo?.city}
                         </h3>
+                      </div>
+                    </div>
+                    <div className="employer-candidate-dcv-icons">
+                      <div className="employer-candidate-dcv-btn">
+                        <a href="#" className="default-btn btn">
+                          Download CV
+                        </a>
+                      </div>
+                      <div className="employer-candidate-icon-info">
+                        <ul>
+                          <li>
+                            <a href="#" target="_blank">
+                              <i className="fa-regular fa-heart" />
+                            </a>
+                          </li>
+                          <li>
+                            <a href="https://in.linkedin.com/" target="_blank">
+                              <i className="fa-brands fa-linkedin-in" />
+                            </a>
+                          </li>
+                          <li>
+                            <a href="https://x.com/" target="_blank">
+                              <i className="fa-brands fa-x-twitter" />
+                            </a>
+                          </li>
+                          <li>
+                            <a href="mailto:andysmith@gmail.com">
+                              <i className="fa-solid fa-envelope" />
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="new-reviewed-interviewed-rejected-hired">
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option value=""> Relevance</option>
+
+                          <option value="New">New</option>
+
+                          <option value="Reviewed">Reviewed</option>
+
+                          <option value="Interviewed">Interviewed</option>
+
+                          <option value="Rejected">Rejected</option>
+
+                          <option value="Hired">Hired</option>
+                        </select>
                       </div>
                     </div>
                   </div>
