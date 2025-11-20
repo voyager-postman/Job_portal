@@ -60,7 +60,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_role");
     localStorage.removeItem("profileImage");
-
     setProfileImage("/jobPortal/assets/images/dashboard/images1.png");
     setFirstName("");
     setLastName("");

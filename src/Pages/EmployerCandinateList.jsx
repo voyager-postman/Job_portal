@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import axios from "axios";
 function EmployerCandinateList() {
   const location = useLocation();
   const token = localStorage.getItem("token");
@@ -11,26 +12,15 @@ function EmployerCandinateList() {
   const [candidateListSummary, setCandidateListSummary] = useState({});
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [levels, setLevels] = useState([]);
+  const [jobTypes, setJobTypes] = useState([]);
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [newApplicationStatus, setNewApplicationStatus] = useState("");
 
-  // Fetch Applicant List
-  // const fetchCandidates = async () => {
-  //   try {
-  //     const res = await fetch(`${API_BASE_URL}getApplicantsByJob/${jobId}`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-
-  //     const data = await res.json();
-
-  //     setCandidateList(data.applicants || []);
-  //     setCandidateListSummary(data.summary || {});
-  //     // 👉 Load FIRST applicant details automatically
-  //     if (data.applicants?.length > 0) {
-  //       fetchApplicantDetails(data.applicants[0]._id);
-  //     }
-  //   } catch (err) {
-  //     console.error("Error:", err);
-  //   }
-  // };
   const fetchCandidates = async (status = "") => {
     try {
       const url = status
@@ -54,6 +44,111 @@ function EmployerCandinateList() {
       console.error("Error:", err);
     }
   };
+  useEffect(() => {
+    fetchSalaryRanges();
+  }, []);
+
+  const fetchSalaryRanges = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSalaryRangeList`);
+      if (res.data.success) {
+        setSalaryRanges(res.data.data); // ✅ data[] from API
+      }
+    } catch (error) {
+      console.error("Error fetching salary ranges:", error);
+    }
+  };
+  useEffect(() => {
+    fetchExperienceLevels();
+  }, []);
+
+  const fetchExperienceLevels = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSeniorityLevelList`);
+
+      if (res.data.success) {
+        setLevels(res.data.levels); // ⭐ API sends levels[]
+      }
+    } catch (error) {
+      console.error("Error fetching experience levels:", error);
+    }
+  };
+  useEffect(() => {
+    fetchEducationList();
+  }, []);
+  const handleStatusUpdate = async (e) => {
+    const value = e.target.value;
+    setNewApplicationStatus(value);
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}updateApplicationStatus`,
+        {
+          jobId: jobId, // From useLocation()
+          applicationId: selectedCandidate?.userInfo?._id,
+          newStatus: value,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Status Updated", res.data);
+
+      // Refresh candidate details
+      fetchApplicantDetails(selectedCandidate?.userInfo?._id);
+    } catch (error) {
+      console.error("Update Status Error:", error);
+    }
+  };
+
+  const fetchEducationList = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+
+      if (res.data.success) {
+        setJobTypes(res.data.jobTypes); // ⭐ using jobTypes[]
+      }
+    } catch (error) {
+      console.error("Error fetching education types:", error);
+    }
+  };
+  const handleLocationSearch = async (e) => {
+    const value = e.target.value;
+    setLocationSearchTerm(value);
+
+    if (!value.trim()) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      setIsLocationLoading(true);
+      const res = await axios.get(`${API_BASE_URL}searchCities`, {
+        params: { key: value },
+      });
+
+      if (res.data?.success && Array.isArray(res.data.cities)) {
+        setLocationSuggestions(res.data.cities);
+      } else {
+        setLocationSuggestions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cities:", err);
+      setLocationSuggestions([]);
+    } finally {
+      setIsLocationLoading(false);
+    }
+  };
+
+  const handleSelectLocation = (city) => {
+    setSelectedLocation(city); // store selected city
+    setLocationSearchTerm(city.name); // show only inside input
+    setLocationSuggestions([]); // hide dropdown
+  };
+
   const handleSortChange = (e) => {
     const status = e.target.value;
     setSelectedStatus(status);
@@ -160,12 +255,13 @@ function EmployerCandinateList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose Experience level</option>
-                        <option value={1}>Fresher</option>
-                        <option value={1}>0 - 2 Years</option>
-                        <option value={2}>2 - 4 Years</option>
-                        <option value={3}>5 - 7 Years</option>
-                        <option value={4}>8 - 10 Years</option>
+                        <option value="">Choose Experience Level</option>
+
+                        {levels?.map((item) => (
+                          <option key={item._id} value={item._id}>
+                            {item.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </form>
@@ -175,19 +271,20 @@ function EmployerCandinateList() {
             <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Education</h3>
+                  <h3>Job Type</h3>
                   <form>
                     <div className="form-group">
                       <select
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose Education</option>
-                        <option value={1}>Certified</option>
-                        <option value={2}>Diploma</option>
-                        <option value={3}>Associate Degree</option>
-                        <option value={4}>Bachelor Degree</option>
-                        <option value={4}>Master’s Degree</option>
+                        <option value="">Choose Job Type</option>
+
+                        {jobTypes?.map((item) => (
+                          <option key={item._id} value={item._id}>
+                            {item.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </form>
@@ -198,25 +295,48 @@ function EmployerCandinateList() {
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Location</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
+                  <div className="form-group position-relative">
+                    {/* Input field with selected city */}
+                    <input
+                      className="form-control"
+                      type="search"
+                      placeholder="Search Location"
+                      value={locationSearchTerm}
+                      onChange={handleLocationSearch}
+                    />
+
+                    {/* Loading */}
+                    {isLocationLoading && (
+                      <div className="suggestion-box">Searching...</div>
+                    )}
+
+                    {/* Suggestions */}
+                    {!isLocationLoading && locationSuggestions.length > 0 && (
+                      <ul
+                        className="list-group position-absolute w-100"
+                        style={{
+                          zIndex: 1000,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                        }}
                       >
-                        <option selected>Choose Location</option>
-                        <option value={1}>California, US</option>
-                        <option value={2}>London, UK</option>
-                        <option value={3}>Dubai, UAE</option>
-                        <option value={4}>New York, US</option>
-                        <option value={5}>Milan, Italy</option>
-                        <option value={5}>Washington, US</option>
-                      </select>
-                    </div>
-                  </form>
+                        {locationSuggestions.map((city) => (
+                          <li
+                            key={city._id}
+                            className="list-group-item list-group-item-action"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleSelectLocation(city)}
+                          >
+                            {city.name}, {city.state_name}, {city.country_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
             <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
@@ -227,13 +347,13 @@ function EmployerCandinateList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose Salary Range</option>
-                        <option value={1}>$1200 - $1400</option>
-                        <option value={2}>$400 - $600</option>
-                        <option value={3}>$1000 - $1200</option>
-                        <option value={4}>$800 - $1000</option>
-                        <option value={5}>$600 - $800</option>
-                        <option value={5}>$1200 - $1400</option>
+                        <option value="">Choose Salary Range</option>
+
+                        {salaryRanges?.map((item) => (
+                          <option key={item._id} value={item._id}>
+                            {item.range}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </form>
@@ -304,64 +424,6 @@ function EmployerCandinateList() {
                   </select>
                 </div>
               </div>
-              {/* {candidateList?.map((candidate) => (
-                <div
-                  key={candidate._id}
-                  className="employer-candidate-card-info"
-                  onClick={() => fetchApplicantDetails(candidate._id)} // <-- FIXED
-                  style={{ cursor: "pointer" }}
-                >
-                  <div className="candidate-list-info single-freelancer-card">
-                    <div className="row align-items-center">
-                      <div className="col-lg-4">
-                        <div className="freelancer-img">
-                          <Link to="/candidates-profile-details">
-                            <img
-                              src="assets/images/freelancers/freelancers-img-1.jpg"
-                              alt="Image"
-                            />
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="col-lg-8">
-                        <div className="freelancer-content">
-                          <Link to="/candidates-profile-details">
-                            <h3>{candidate?.userId?.first_name}</h3>
-                          </Link>
-
-                          <span>IT Developer</span>
-                          <div className="info">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-file" /> 5 Years
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-money-bill" />$ 2000
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-location-dot" />
-                                Washington DC, US
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-graduation-cap" />
-                                Master’s Degree
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-gear" />
-                                <span className="candidate-active">Active</span>
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="candidate-list-bookmark">
-                            <i className="fa-regular fa-heart" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))} */}
-
               <div className="employer-candidate-card-info">
                 {candidateList?.length === 0 ? (
                   <div className="no-data-message">
@@ -497,178 +559,6 @@ function EmployerCandinateList() {
                 </nav>
               </div>
             </div>
-            {/* <div className="col-lg-8 col-sm-8">
-              {selectedCandidate ? (
-                <>
-                  <div className="employer-candidate-detail-new-info">
-                    <div className="employer-candidate-img-content-info">
-                      <div className="employer-candidate-img-info">
-                        <img
-                          src="assets/images/freelancers/freelancers-img-1.jpg"
-                          alt="Image"
-                        />
-                      </div>
-                      <div className="employers-condidate-content">
-                        <h3>
-                          <strong>Name:</strong> Andy Smith
-                        </h3>
-                        <h3>
-                          <strong>Position:</strong> Website Desginer
-                        </h3>
-                        <h3>
-                          <strong>Email:</strong> andysmith@gmail.com
-                        </h3>
-                        <h3>
-                          <strong>Contact:</strong> +567 908 234 875
-                        </h3>
-                        <h3>
-                          <strong>Address:</strong> New York, USA
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="employer-candidate-detail-info-area">
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Professional Summary</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <p>
-                        A talented professional with an academic background in
-                        IT and proven commercial development experience as C++
-                        developer since 1999. Has a sound knowledge of the
-                        software development life cycle. Was involved in more
-                        than 140 software development outsourcing projects.
-                      </p>
-                      <p>
-                        Programming Languages: C/C++, .NET C++, Python, Bash,
-                        Shell, PERL, Python, Angular, React, Node.js, Vue.js,
-                        Gatsby, Regular expressions Active-script.
-                      </p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Career Goals</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Desired Job Title</h5>
-                      <p>Website Designer</p>
-                      <h5>Desired Employment Type</h5>
-                      <p>Permanent contract</p>
-                      <h5>Desired Occupation Type</h5>
-                      <p>Full-time</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Other Preferences</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Eligible to work in</h5>
-                      <p>France</p>
-                      <h5>Minimum Desired Salary (Gross)</h5>
-                      <p>€1,000 / Monthly</p>
-                      <h5>Looking for a new job opportunity?</h5>
-                      <p>Open to the right opportunity</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>About your role</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Job Title</h5>
-                      <p>Website Designer</p>
-                      <h5>Years of experience</h5>
-                      <p>3 Years</p>
-                      <h5>Job category</h5>
-                      <p>Software Engineering / Web Development</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Experience</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Website Designer</h5>
-                      <p>Feb 2020 - Until now</p>
-                      <h5>Agriculture PVT LTD</h5>
-                      <p>
-                        United States, TN, Cordova, Frence Creek Cv S Full-time
-                      </p>
-                      <h5>Description</h5>
-                      <p>
-                        We are a dynamic agricultural products, farming, and
-                        service company committed to meeting the diverse needs
-                        of farmers, wholesale markets, traders, exportersWe are
-                        a dynamic agricultural products, farming, and service
-                        company committed to meeting the diverse needs of
-                        farmers, wholesale markets, traders, exportersWe are a
-                        dynamic agricultural products, farming, and service
-                        company committed to meeting the diverse needs of
-                        farmers, wholesale markets, traders, exporters
-                      </p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Position Salary(Gross)</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Salary</h5>
-                      <p>$ 2000</p>
-                      <h5>Payroll frequency</h5>
-                      <p>Monthly</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Education</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>Degree</h5>
-                      <p>B.Tech</p>
-                      <h5>University</h5>
-                      <p>IGNU</p>
-                      <h5>Start Date</h5>
-                      <p>05 / 2020</p>
-                      <h5>End Date</h5>
-                      <p>Until now</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Skills</h3>
-                    </div>
-                    <div className="employer-candidate-profile-skill-info">
-                      <ul>
-                        <li>PHP</li>
-                        <li>PYTHON</li>
-                        <li>ANDROID</li>
-                        <li>SEO</li>
-                        <li>DIGITAL MARKETING</li>
-                        <li>WEBSITE DESIGN</li>
-                      </ul>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Languages</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>French</h5>
-                      <p>Native / Bilingual (C2)</p>
-                      <h5>English</h5>
-                      <p>Basic (A1 / A2)</p>
-                    </div>
-                    <div className="candidate-profile-divider-line" />
-                    <div className="employer-candidate-cv-heading">
-                      <h3>Certificates</h3>
-                    </div>
-                    <div className="employer-candidate-cv-details">
-                      <h5>B.Tech</h5>
-                      <p>Issue Date: 2025</p>
-                      <h5>BCA</h5>
-                      <p>Issue Date: 2021</p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <p>Loading details...</p>
-              )}
-            </div> */}
 
             <div className="col-lg-8 col-sm-8">
               {selectedCandidate ? (
@@ -751,17 +641,14 @@ function EmployerCandinateList() {
                         <select
                           className="form-select form-control"
                           aria-label="Default select example"
+                          value={newApplicationStatus}
+                          onChange={handleStatusUpdate}
                         >
-                          <option value=""> Relevance</option>
-
-                          <option value="New">New</option>
-
+                          <option value="">Relevance</option>
+                          <option value="Applied">Applied</option>
                           <option value="Reviewed">Reviewed</option>
-
-                          <option value="Interviewed">Interviewed</option>
-
+                          <option value="Shortlisted">Shortlisted</option>
                           <option value="Rejected">Rejected</option>
-
                           <option value="Hired">Hired</option>
                         </select>
                       </div>

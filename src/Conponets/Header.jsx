@@ -6,7 +6,6 @@ import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
-
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
@@ -45,17 +44,75 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-
   const handleGithubLogin = () => {
-    const clientId = "Ov23liXRhmjwwotvLSVw";
-    const redirectUri = "http://localhost:4000/api/auth/github/callback";
-
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&scope=user:email`;
-
-    window.location.href = githubAuthUrl;
+    window.location.href = `${API_BASE_URL}auth/github`;
   };
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    console.log(queryParams);
+    const success = queryParams.get("success");
+    const token = queryParams.get("token");
+
+    if (!success || !token) return; // No GitHub login → stop
+
+    const email = queryParams.get("email");
+    const name = queryParams.get("name");
+    const avatar = queryParams.get("avatar");
+    const role = queryParams.get("role");
+    const isVerified = queryParams.get("isVerified");
+
+    // Split first/last name (GitHub doesn't give both)
+    const [first_name = "", last_name = ""] = name?.split(" ") || [];
+
+    // Create user object
+    const user = {
+      email,
+      role,
+      first_name,
+      last_name,
+      profileImage: avatar,
+      is_completed: isVerified === "true" ? true : false,
+    };
+
+    // 👉 Save login data
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user_email", email);
+    localStorage.setItem("user_role", role);
+    localStorage.setItem("first_name", first_name);
+    localStorage.setItem("last_name", last_name);
+    localStorage.setItem("user_profile", avatar);
+    localStorage.setItem("user_name", `${first_name} ${last_name}`);
+    localStorage.setItem("is_completed", user.is_completed);
+
+    toast.success("GitHub Login Successful!");
+
+    // 👉 Close Login Modal
+    const modal = document.getElementById("exampleModalLogin");
+    if (modal) {
+      const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+      bootstrapModal?.hide();
+    }
+
+    // 👉 Redirect based on role & completion
+    if (user.is_completed) {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-dashboard");
+      } else {
+        navigate("/candidate-profile");
+      }
+    } else {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-basic-info");
+      } else {
+        navigate("/profile-basic-info");
+      }
+    }
+
+    // 👉 Remove params from URL (clean URL)
+    window.history.replaceState({}, document.title, "/jobPortal");
+  }, []);
+
   const handleLinkedinLogin = () => {
     const clientId = "86nez3pnzuzjq3";
     const redirectUri = "http://localhost:3000/jobPortal";
@@ -105,13 +162,89 @@ function Header({ bgColor }) {
 
       console.log("🟦 Backend Response:", response.data);
 
-      // Save token + user
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      if (!response.data?.success) {
+        toast.error(response.data?.message || "LinkedIn Login Failed");
+        return;
+      }
 
-      navigate("/");
+      const { token, user } = response.data;
+
+      // 1️⃣ Save Basic Auth Data
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user_id", user?._id);
+      localStorage.setItem("user_email", user?.email);
+      localStorage.setItem("user_role", user?.role);
+      localStorage.setItem("first_name", user?.first_name);
+      localStorage.setItem("last_name", user?.last_name);
+      localStorage.setItem("is_completed", user?.is_completed);
+      localStorage.setItem("user_profile", user?.profileImage);
+      localStorage.setItem(
+        "user_name",
+        `${user?.first_name} ${user?.last_name}`
+      );
+
+      // 2️⃣ Fetch Full Profile Data
+      try {
+        const profileRes = await axios.get(`${API_BASE_URL}candidate/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const profileData = profileRes.data?.profile;
+        const profileImg = profileData?.profileImage;
+
+        if (profileImg && profileImg.trim() !== "") {
+          const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+          localStorage.setItem("profileImage", fullUrl);
+
+          if (typeof updateProfileImage === "function") {
+            updateProfileImage(fullUrl);
+          }
+        } else {
+          localStorage.setItem(
+            "profileImage",
+            "/jobPortal/assets/images/dashboard/images1.png"
+          );
+        }
+
+        if (profileData) {
+          updateName(profileData.first_name, profileData.last_name);
+        }
+      } catch (profileErr) {
+        console.error("Profile fetch error:", profileErr);
+      }
+
+      // 3️⃣ Call AuthContext Login
+      if (typeof authLogin === "function") {
+        authLogin();
+      }
+
+      toast.success("LinkedIn Login Successful!");
+
+      // 4️⃣ Navigation (same logic as Google)
+      if (user?.is_completed) {
+        if (user.role === "Recruiter" || user.role === "Company") {
+          navigate("/employer-dashboard");
+        } else {
+          navigate("/candidate-profile");
+        }
+      } else {
+        if (user.role === "Recruiter" || user.role === "Company") {
+          navigate("/employer-basic-info");
+        } else {
+          navigate("/profile-basic-info");
+        }
+      }
+
+      // 5️⃣ Close Login Modal
+      const modal = document.getElementById("exampleModalLogin");
+      if (modal) {
+        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+        bootstrapModal?.hide();
+      }
     } catch (err) {
       console.error("❌ LinkedIn Login Error:", err.response?.data || err);
+      toast.error("LinkedIn login failed!");
     }
   };
 
@@ -154,7 +287,6 @@ function Header({ bgColor }) {
 
         const { token, user } = apiRes.data;
 
-        // 3️⃣ Save Data in LocalStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user?._id);
@@ -200,11 +332,7 @@ function Header({ bgColor }) {
         } catch (profileErr) {
           console.error("Profile fetch error:", profileErr);
         }
-
-        // 5️⃣ Call your login context function
         authLogin();
-
-        // 6️⃣ Toast
         toast.success("Login successful!");
         console.log(user?.is_completed);
         // 7️⃣ Navigation

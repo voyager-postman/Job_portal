@@ -1,13 +1,11 @@
 import axios from "axios";
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
-
 function CandidateProfile() {
   const navigate = useNavigate();
   const { logout, updateProfileImage, updateName } = useAuth();
