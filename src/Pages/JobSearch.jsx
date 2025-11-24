@@ -125,6 +125,7 @@ function JobSearch() {
     setSelectedType(type);
     setSelectedId(id);
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -2191,7 +2192,6 @@ function JobSearch() {
                               <Link
                                 key={job._id}
                                 to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                
                                 className="job-link"
                               >
                                 {" "}
@@ -2368,27 +2368,25 @@ function JobSearch() {
                                                 className={
                                                   "job-apply-custom-resume-info " +
                                                   (selectedType === "resume" &&
-                                                  selectedId === resume._id
+                                                  selectedId === resume.url
                                                     ? "active"
                                                     : "")
                                                 }
                                                 onClick={() =>
                                                   handleSelect(
                                                     "resume",
-                                                    resume._id
+                                                    resume.url
                                                   )
-                                                }
+                                                } // pass URL here
                                                 style={{ cursor: "pointer" }}
                                               >
-                                                {/* Left side: file icon + filename */}
                                                 <span className="file-name-text">
                                                   <i className="fa-solid fa-file"></i>
                                                   {fileName}
                                                 </span>
 
-                                                {/* Right side: check icon */}
                                                 {selectedType === "resume" &&
-                                                  selectedId === resume._id && (
+                                                  selectedId === resume.url && (
                                                     <i className="fa-solid fa-circle-check selected-check-icon"></i>
                                                   )}
                                               </div>
@@ -2412,16 +2410,16 @@ function JobSearch() {
                                                 className={
                                                   "job-apply-custom-resume-info " +
                                                   (selectedType === "cover" &&
-                                                  selectedId === cover._id
+                                                  selectedId === cover.url
                                                     ? "active"
                                                     : "")
                                                 }
                                                 onClick={() =>
                                                   handleSelect(
                                                     "cover",
-                                                    cover._id
+                                                    cover.url
                                                   )
-                                                }
+                                                } // ✅ Pass URL
                                                 style={{ cursor: "pointer" }}
                                               >
                                                 <span className="file-name-text">
@@ -2430,7 +2428,7 @@ function JobSearch() {
                                                 </span>
 
                                                 {selectedType === "cover" &&
-                                                  selectedId === cover._id && (
+                                                  selectedId === cover.url && (
                                                     <i className="fa-solid fa-circle-check selected-check-icon"></i>
                                                   )}
                                               </div>

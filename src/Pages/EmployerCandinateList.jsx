@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 function EmployerCandinateList() {
   const location = useLocation();
@@ -27,35 +29,29 @@ function EmployerCandinateList() {
   });
 
   const fetchCandidates = async (status = "") => {
-    try {
-      let query = [];
+    let query = [];
 
-      // check filters – but only include them if they have value
-      if (status) query.push(`status=${status}`);
-      if (filters.search.trim()) query.push(`search=${filters.search}`);
-      if (filters.location.trim()) query.push(`location=${filters.location}`);
-      if (filters.skills.trim()) query.push(`skills=${filters.skills}`);
+    if (status) query.push(`status=${status}`);
+    if (filters.search.trim()) query.push(`search=${filters.search}`);
+    if (filters.location.trim()) query.push(`location=${filters.location}`);
+    if (filters.skills.trim()) query.push(`skills=${filters.skills}`);
 
-      // if no filters → load default full list
-      const queryString = query.length > 0 ? `?${query.join("&")}` : "";
-
-      const url = `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`;
-
-      const res = await fetch(url, {
+    const queryString = query.length ? `?${query.join("&")}` : "";
+    const res = await fetch(
+      `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
+      {
         headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-
-      setCandidateList(data.applicants || []);
-      setCandidateListSummary(data.summary || {});
-
-      // ❌ SAFETY FIX — only load first applicant if list has data
-      if (data.applicants?.length > 0) {
-        fetchApplicantDetails(data.applicants[0]._id);
       }
-    } catch (err) {
-      console.error("Error:", err);
+    );
+
+    const data = await res.json();
+
+    setCandidateList(data.applicants || []);
+    setCandidateListSummary(data.summary || {});
+    // Fix: keep selected record
+
+    if (data.applicants?.length > 0) {
+      fetchApplicantDetails(data.applicants[0]._id);
     }
   };
 
@@ -207,28 +203,38 @@ function EmployerCandinateList() {
     try {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
-        {
-          candidateId,
-          jobId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { candidateId, jobId },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Bookmark Response:", res.data);
+      // Show message from backend
+      toast.success(res.data.message);
 
-      // OPTIONAL: Refresh candidate list after bookmarking
       fetchCandidates();
     } catch (err) {
       console.error("Error bookmarking candidate:", err);
+
+      // If backend sends error message
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Failed to bookmark candidate!");
+      }
     }
+  };
+  const getResumeUrl = () => {
+    const { coverLetter, cv, customResume } = selectedCandidate || {};
+    console.log(selectedCandidate);
+    if (coverLetter) return coverLetter;
+    if (cv) return cv;
+    if (customResume) return customResume;
+
+    return null;
   };
 
   return (
     <>
+      <ToastContainer />
       <section className="employer-candidate-filter-info-area">
         <div className="container">
           <div className="row">
@@ -427,7 +433,7 @@ function EmployerCandinateList() {
                       ({candidateListSummary?.Reviewed}) Reviewed Candidate
                     </li>
                     <li>
-                      ({candidateListSummary?.Interviewed}) Interviewed
+                      ({candidateListSummary?.Interviewed}) Shortlisted
                       Candidate
                     </li>
                     <li>
@@ -454,7 +460,7 @@ function EmployerCandinateList() {
                   >
                     <option value="">Sort by: Relevance</option>
 
-                    <option value="New">
+                    <option value="Applied">
                       Sort by: New Candidate ({candidateListSummary?.New})
                     </option>
 
@@ -464,7 +470,7 @@ function EmployerCandinateList() {
                     </option>
 
                     <option value="Interviewed">
-                      Sort by: Interviewed Candidate (
+                      Sort by: Shortlisted Candidate (
                       {candidateListSummary?.Interviewed})
                     </option>
 
@@ -518,23 +524,35 @@ function EmployerCandinateList() {
                               </h3>
                             </Link>
 
-                            <span>IT Developer</span>
+                            <span>
+                              {" "}
+                              {candidate?.userId?.candidateProfile?.aboutRole
+                                ?.jobCategory ?? "NA"}
+                            </span>
 
                             <div className="info">
                               <ul>
                                 <li>
-                                  <i className="fa-solid fa-file" /> 5 Years
+                                  <i className="fa-solid fa-file" />{" "}
+                                  {candidate?.userId?.candidateProfile
+                                    ?.aboutRole?.yearOfExperience ?? "NA"}{" "}
+                                  Years
                                 </li>
                                 <li>
-                                  <i className="fa-solid fa-money-bill" /> $2000
+                                  <i className="fa-solid fa-money-bill" />$
+                                  {candidate?.userId?.candidateProfile
+                                    ?.career_goals?.MinimumDesiredSalary
+                                    ?.amount ?? "0"}
                                 </li>
+
                                 <li>
                                   <i className="fa-solid fa-location-dot" />{" "}
                                   {candidate?.userId?.city}
                                 </li>
                                 <li>
-                                  <i className="fa-solid fa-graduation-cap" />{" "}
-                                  Master's Degree
+                                  <i className="fa-solid fa-briefcase" />{" "}
+                                  {candidate?.userId?.candidateProfile
+                                    ?.aboutRole?.jobTitle ?? "NA"}{" "}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-gear" />{" "}
@@ -549,11 +567,26 @@ function EmployerCandinateList() {
                               className="candidate-list-bookmark"
                               onClick={(e) => {
                                 e.stopPropagation(); // stop parent onClick
-                                handleBookmark(candidate._id, candidate.jobId);
+                                handleBookmark(
+                                  candidate?.userId?._id,
+                                  candidate.jobId
+                                );
                               }}
                               style={{ cursor: "pointer" }}
                             >
-                              <i className="fa-regular fa-bookmark" />
+                              <i
+                                className={
+                                  candidate.isBookmarked
+                                    ? "fa-solid fa-bookmark"
+                                    : "fa-regular fa-bookmark"
+                                }
+                                style={{
+                                  cursor: "pointer",
+                                  color: candidate.isBookmarked
+                                    ? "red"
+                                    : "#888",
+                                }}
+                              />
                             </div>
                           </div>
                         </div>
@@ -671,34 +704,98 @@ function EmployerCandinateList() {
                     </div>
                     <div className="employer-candidate-dcv-icons">
                       <div className="employer-candidate-dcv-btn">
-                        <a href="#" className="default-btn btn">
+                        <a
+                          href="#"
+                          className="default-btn btn"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const fileUrl = getResumeUrl();
+
+                            if (!fileUrl) {
+                              toast.error("No resume uploaded");
+                              return;
+                            }
+
+                            // open in new tab
+                            window.open(
+                              `http://13.48.130.179:4000${fileUrl}`,
+                              "_blank"
+                            );
+                          }}
+                        >
                           Download CV
                         </a>
                       </div>
+
                       <div className="employer-candidate-icon-info">
                         <ul>
+                          {/* LinkedIn */}
                           <li>
-                            <a href="#" target="_blank">
-                              <i className="fa-regular fa-heart" />
-                            </a>
-                          </li>
-                          <li>
-                            <a href="https://in.linkedin.com/" target="_blank">
+                            <a
+                              href={
+                                selectedCandidate?.profile?.links?.linkedin ||
+                                "#"
+                              }
+                              target="_blank"
+                              onClick={(e) => {
+                                if (
+                                  !selectedCandidate?.profile?.links?.linkedin
+                                ) {
+                                  e.preventDefault();
+                                  toast.info("LinkedIn link not available");
+                                }
+                                e.stopPropagation(); // prevent parent click
+                              }}
+                            >
                               <i className="fa-brands fa-linkedin-in" />
                             </a>
                           </li>
+
+                          {/* GitHub */}
                           <li>
-                            <a href="https://x.com/" target="_blank">
-                              <i className="fa-brands fa-x-twitter" />
+                            <a
+                              href={
+                                selectedCandidate?.profile?.links?.github || "#"
+                              }
+                              target="_blank"
+                              onClick={(e) => {
+                                if (
+                                  !selectedCandidate?.profile?.links?.github
+                                ) {
+                                  e.preventDefault();
+                                  toast.info("GitHub link not available");
+                                }
+                                e.stopPropagation();
+                              }}
+                            >
+                              <i className="fa-brands fa-github" />
                             </a>
                           </li>
+
+                          {/* Portfolio */}
                           <li>
-                            <a href="mailto:andysmith@gmail.com">
-                              <i className="fa-solid fa-envelope" />
+                            <a
+                              href={
+                                selectedCandidate?.profile?.links?.portfolio ||
+                                "#"
+                              }
+                              target="_blank"
+                              onClick={(e) => {
+                                if (
+                                  !selectedCandidate?.profile?.links?.portfolio
+                                ) {
+                                  e.preventDefault();
+                                  toast.info("Portfolio link not available");
+                                }
+                                e.stopPropagation();
+                              }}
+                            >
+                              <i className="fa-solid fa-globe" />
                             </a>
                           </li>
                         </ul>
                       </div>
+
                       <div className="new-reviewed-interviewed-rejected-hired">
                         <select
                           className="form-select form-control"
@@ -707,7 +804,7 @@ function EmployerCandinateList() {
                           onChange={handleStatusUpdate}
                         >
                           <option value="">Relevance</option>
-                          <option value="Applied">Applied</option>
+                          <option value="Applied">New</option>
                           <option value="Reviewed">Reviewed</option>
                           <option value="Shortlisted">Shortlisted</option>
                           <option value="Rejected">Rejected</option>
@@ -914,7 +1011,7 @@ function EmployerCandinateList() {
                   </div>
                 </>
               ) : (
-                <p>Loading details...</p>
+                <p>No Data details...</p>
               )}
             </div>
           </div>
