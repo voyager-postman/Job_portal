@@ -16,7 +16,6 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Chip from "@mui/material/Chip";
-
 function JobDetailsForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -612,7 +611,6 @@ function JobDetailsForm() {
                           <div className="form-group">
                             <label>
                               Employment Type{" "}
-                              {/* <span className="text-danger">*</span> */}
                             </label>
 
                             <select
@@ -740,7 +738,6 @@ function JobDetailsForm() {
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>Country</label>
-                            {/* <span className="text-danger">*</span> */}
                             <select
                               className="form-select form-control"
                               aria-label="Select Country"
@@ -769,7 +766,6 @@ function JobDetailsForm() {
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>Select City</label>
-                            {/* <span className="text-danger">*</span> */}
                             <div className="multi-select-container">
                               <div
                                 className="selected-items"
@@ -1125,7 +1121,6 @@ function JobDetailsForm() {
                   <div className="job-option-branding-heading">
                     <label>
                       Number of Available Jobs{" "}
-                      {/* <span className="text-danger">*</span> */}
                     </label>
                   </div>
 

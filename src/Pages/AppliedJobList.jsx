@@ -142,12 +142,21 @@ function AppliedJobList() {
                       </ul>
                     </div>
 
-                    <div className="total-applicants-info">
+                    <div
+                      className="total-applicants-info"
+                      style={{
+                        pointerEvents:
+                          job?.applicantCount === 0 ? "none" : "auto",
+                        opacity: job?.applicantCount === 0 ? 0.5 : 1,
+                        cursor:
+                          job?.applicantCount === 0 ? "not-allowed" : "pointer",
+                      }}
+                    >
                       <Link
                         to="/employer-candidates-list"
                         state={{ jobId: job._id }}
                       >
-                        <p>Applicants: {job?.applicantCount || 0} </p>
+                        <p>Applicants: {job?.applicantCount || 0}</p>
                       </Link>
                     </div>
                   </div>

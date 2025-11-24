@@ -891,7 +891,6 @@ function EmployerProfile() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Employer Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -1031,7 +1030,6 @@ function EmployerProfile() {
                                 </div>
                               </div>
                             </div>
-
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
                                 <label>Upload Cover Photo</label>

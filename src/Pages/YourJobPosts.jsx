@@ -219,7 +219,7 @@ function YourJobPosts() {
       })
       .then((response) => {
         setViewData(response.data.data);
-        console.log(response.data.data);
+        // console.log(response.data.data);
         handleViewOpen();
         setMenuOpen(false);
       })

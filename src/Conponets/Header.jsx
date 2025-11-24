@@ -1,17 +1,26 @@
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { API_BASE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
-
+import axios from "axios";
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
-  const { isLoggedIn, profileImage, firstName, lastName } = useAuth();
+  const {
+    isLoggedIn,
+    profileImage,
+    firstName,
+    lastName,
+    login: authLogin,
+    updateProfileImage,
+    updateName,
+  } = useAuth();
   const userRole = localStorage.getItem("user_role");
   const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
@@ -36,62 +45,338 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-
   const handleGithubLogin = () => {
-    const clientId = "Ov23liXRhmjwwotvLSVw";
-    const redirectUri = "http://localhost:4000/api/auth/github/callback";
-
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&scope=user:email`;
-
-    window.location.href = githubAuthUrl;
+    window.location.href = `${API_BASE_URL}auth/github`;
   };
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    console.log(queryParams);
+    const success = queryParams.get("success");
+    const token = queryParams.get("token");
+
+    if (!success || !token) return; // No GitHub login → stop
+
+    const email = queryParams.get("email");
+    const name = queryParams.get("name");
+    const avatar = queryParams.get("avatar");
+    const role = queryParams.get("role");
+    const isVerified = queryParams.get("isVerified");
+
+    // Split first/last name (GitHub doesn't give both)
+    const [first_name = "", last_name = ""] = name?.split(" ") || [];
+
+    // Create user object
+    const user = {
+      email,
+      role,
+      first_name,
+      last_name,
+      profileImage: avatar,
+      is_completed: isVerified === "true" ? true : false,
+    };
+
+    // 👉 Save login data
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user_email", email);
+    localStorage.setItem("user_role", role);
+    localStorage.setItem("first_name", first_name);
+    localStorage.setItem("last_name", last_name);
+    localStorage.setItem("user_profile", avatar);
+    localStorage.setItem("user_name", `${first_name} ${last_name}`);
+    localStorage.setItem("is_completed", user.is_completed);
+
+    toast.success("GitHub Login Successful!");
+
+    // 👉 Close Login Modal
+    const modal = document.getElementById("exampleModalLogin");
+    if (modal) {
+      const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+      bootstrapModal?.hide();
+    }
+
+    // 👉 Redirect based on role & completion
+    if (user.is_completed) {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-dashboard");
+      } else {
+        navigate("/candidate-profile");
+      }
+    } else {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-basic-info");
+      } else {
+        navigate("/profile-basic-info");
+      }
+    }
+
+    // 👉 Remove params from URL (clean URL)
+    window.history.replaceState({}, document.title, "/jobPortal");
+  }, []);
+
   const handleLinkedinLogin = () => {
     const clientId = "86nez3pnzuzjq3";
-    const redirectUri = "http://13.48.130.179:4000/api/auth/linkedin/callback";
-
-    const state = crypto.randomUUID(); // for security
+    const redirectUri = "http://localhost:3000/jobPortal";
+    const state = crypto.randomUUID();
     const scope = "openid profile email";
+
+    console.log("🔵 Redirecting to LinkedIn with:");
+    console.log("clientId:", clientId);
+    console.log("redirectUri:", redirectUri);
+    console.log("state:", state);
+    console.log("scope:", scope);
 
     const linkedinAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri
     )}&state=${state}&scope=${encodeURIComponent(scope)}`;
 
+    console.log("🔗 LinkedIn Auth URL:", linkedinAuthUrl);
+
     window.location.href = linkedinAuthUrl;
+  };
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    const error = params.get("error");
+
+    console.log("🟢 URL Params:", { code, state, error });
+
+    if (error) {
+      console.error("❌ LinkedIn error:", error);
+    }
+
+    if (code) {
+      console.log("🟩 Authorization code received:", code);
+      exchangeCodeWithBackend(code);
+    }
+  }, []);
+
+  const exchangeCodeWithBackend = async (code) => {
+    try {
+      console.log("📤 Sending code to backend:", code);
+
+      const response = await axios.post(`${API_BASE_URL}auth/linkedin`, {
+        code,
+        redirectUri: "http://localhost:3000/jobPortal",
+      });
+
+      console.log("🟦 Backend Response:", response.data);
+
+      if (!response.data?.success) {
+        toast.error(response.data?.message || "LinkedIn Login Failed");
+        return;
+      }
+
+      const { token, user } = response.data;
+
+      // 1️⃣ Save Basic Auth Data
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user_id", user?._id);
+      localStorage.setItem("user_email", user?.email);
+      localStorage.setItem("user_role", user?.role);
+      localStorage.setItem("first_name", user?.first_name);
+      localStorage.setItem("last_name", user?.last_name);
+      localStorage.setItem("is_completed", user?.is_completed);
+      localStorage.setItem("user_profile", user?.profileImage);
+      localStorage.setItem(
+        "user_name",
+        `${user?.first_name} ${user?.last_name}`
+      );
+
+      // 2️⃣ Fetch Full Profile Data
+      try {
+        const profileRes = await axios.get(`${API_BASE_URL}candidate/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const profileData = profileRes.data?.profile;
+        const profileImg = profileData?.profileImage;
+
+        if (profileImg && profileImg.trim() !== "") {
+          const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+          localStorage.setItem("profileImage", fullUrl);
+
+          if (typeof updateProfileImage === "function") {
+            updateProfileImage(fullUrl);
+          }
+        } else {
+          localStorage.setItem(
+            "profileImage",
+            "/jobPortal/assets/images/dashboard/images1.png"
+          );
+        }
+
+        if (profileData) {
+          updateName(profileData.first_name, profileData.last_name);
+        }
+      } catch (profileErr) {
+        console.error("Profile fetch error:", profileErr);
+      }
+
+      // 3️⃣ Call AuthContext Login
+      if (typeof authLogin === "function") {
+        authLogin();
+      }
+
+      toast.success("LinkedIn Login Successful!");
+
+      // 4️⃣ Navigation (same logic as Google)
+      if (user?.is_completed) {
+        if (user.role === "Recruiter" || user.role === "Company") {
+          navigate("/employer-dashboard");
+        } else {
+          navigate("/candidate-profile");
+        }
+      } else {
+        if (user.role === "Recruiter" || user.role === "Company") {
+          navigate("/employer-basic-info");
+        } else {
+          navigate("/profile-basic-info");
+        }
+      }
+
+      // 5️⃣ Close Login Modal
+      const modal = document.getElementById("exampleModalLogin");
+      if (modal) {
+        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+        bootstrapModal?.hide();
+      }
+    } catch (err) {
+      console.error("❌ LinkedIn Login Error:", err.response?.data || err);
+      toast.error("LinkedIn login failed!");
+    }
   };
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log("Google Access Token:", tokenResponse.access_token);
+      try {
+        console.log("Google Access Token:", tokenResponse.access_token);
 
-      // Get User Info
-      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: {
-          Authorization: `Bearer ${tokenResponse.access_token}`,
-        },
-      });
+        // 1️⃣ Fetch Google User Info
+        const res = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          }
+        );
 
-      const userInfo = await res.json();
-      console.log("Google User Info:", userInfo);
+        const userInfo = await res.json();
+        console.log("Google User Info:", userInfo);
 
-      // Save user info in localStorage
-      localStorage.setItem("user", JSON.stringify(userInfo));
-      localStorage.setItem("user_email", userInfo.email);
-      localStorage.setItem("user_role", "JobSeeker");
+        const payload = {
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          first_name: userInfo.given_name,
+          last_name: userInfo.family_name,
+          profileImage: userInfo.picture,
+        };
 
-      // Close modal automatically
-      document.getElementById("exampleModalLogin").click();
+        console.log("Sending to Backend:", payload);
 
-      // Redirect to home
-      navigate("/");
+        // 2️⃣ Send to Backend API
+        const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload);
+        console.log("Backend Response:", apiRes.data);
+
+        if (!apiRes.data?.success) {
+          toast.error(apiRes.data?.message || "Invalid credentials");
+          return;
+        }
+
+        const { token, user } = apiRes.data;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user_id", user?._id);
+        localStorage.setItem("user_email", user?.email);
+        localStorage.setItem("user_role", user?.role);
+        localStorage.setItem("first_name", user?.first_name);
+        localStorage.setItem("last_name", user?.last_name);
+        localStorage.setItem("is_completed", user?.is_completed);
+        localStorage.setItem("user_profile", user?.profileImage);
+        localStorage.setItem(
+          "user_name",
+          `${user?.first_name} ${user?.last_name}`
+        );
+
+        // 4️⃣ Fetch Profile Data
+        try {
+          const profileRes = await axios.get(
+            `${API_BASE_URL}candidate/profile`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const profileData = profileRes.data?.profile;
+          const profileImg = profileData?.profileImage;
+
+          if (profileImg && profileImg.trim() !== "") {
+            const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+            localStorage.setItem("profileImage", fullUrl);
+            if (typeof updateProfileImage === "function") {
+              updateProfileImage(fullUrl);
+            }
+          } else {
+            localStorage.setItem(
+              "profileImage",
+              "/jobPortal/assets/images/dashboard/images1.png"
+            );
+          }
+
+          if (profileData) {
+            updateName(profileData.first_name, profileData.last_name);
+          }
+        } catch (profileErr) {
+          console.error("Profile fetch error:", profileErr);
+        }
+        authLogin();
+        toast.success("Login successful!");
+        console.log(user?.is_completed);
+        // 7️⃣ Navigation
+        if (user?.is_completed) {
+          console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+          if (user.role === "Recruiter" || user.role === "Company") {
+            navigate("/employer-dashboard");
+          } else {
+            console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
+            navigate("/candidate-profile");
+          }
+        } else {
+          if (user.role === "Recruiter" || user.role === "Company") {
+            navigate("/employer-basic-info");
+          } else {
+            navigate("/profile-basic-info");
+          }
+        }
+
+        // 8️⃣ Close Login Modal
+        const modal = document.getElementById("exampleModalLogin");
+        if (modal) {
+          const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+          bootstrapModal?.hide();
+        }
+      } catch (error) {
+        console.error("Google Login Error:", error.response?.data || error);
+        toast.error("Google login failed!");
+      }
     },
-    onError: () => console.log("Google Login Failed"),
+
+    onError: () => {
+      console.log("Google Login Failed");
+      toast.error("Google login failed. Try again.");
+    },
+
     flow: "implicit",
   });
 
   return (
     <>
+      <ToastContainer />
       <div className="navbar-area" style={{ backgroundColor: bgColor }}>
         <div className="mobile-responsive-nav">
           <div className="container">

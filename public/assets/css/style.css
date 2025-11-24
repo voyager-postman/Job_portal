@@ -8947,8 +8947,9 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 .employer-candidate-img-content-info {
   width: 100%;
   display: flex;
+}.new-reviewed-interviewed-rejected-hired {
+    margin-top: 20px;
 }
-
 .employer-candidate-img-info {
   width: 25%;
   overflow: hidden;

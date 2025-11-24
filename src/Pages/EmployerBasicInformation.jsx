@@ -80,7 +80,6 @@ const EmployerBasicInformation = () => {
 
     setCitySuggestions([]);
   };
-
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -164,7 +163,6 @@ const EmployerBasicInformation = () => {
   //   };
   //   fetchCountries();
   // }, []);
-
   useEffect(() => {
     const fetchIndustries = async () => {
       try {
@@ -390,7 +388,6 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Industry</label>
@@ -542,7 +539,6 @@ const EmployerBasicInformation = () => {
                     )}
                   </div>
                 </div>
-
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
                     <label>State</label> (auto-generated from location, or edit
@@ -557,7 +553,6 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
                     <label>Country</label> (auto-generated from location, or
