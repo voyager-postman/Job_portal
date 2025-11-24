@@ -20,12 +20,26 @@ function EmployerCandinateList() {
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [newApplicationStatus, setNewApplicationStatus] = useState("");
+  const [filters, setFilters] = useState({
+    search: "",
+    location: "",
+    skills: "",
+  });
 
   const fetchCandidates = async (status = "") => {
     try {
-      const url = status
-        ? `${API_BASE_URL}getApplicantsByJob/${jobId}?status=${status}`
-        : `${API_BASE_URL}getApplicantsByJob/${jobId}`;
+      let query = [];
+
+      // check filters – but only include them if they have value
+      if (status) query.push(`status=${status}`);
+      if (filters.search.trim()) query.push(`search=${filters.search}`);
+      if (filters.location.trim()) query.push(`location=${filters.location}`);
+      if (filters.skills.trim()) query.push(`skills=${filters.skills}`);
+
+      // if no filters → load default full list
+      const queryString = query.length > 0 ? `?${query.join("&")}` : "";
+
+      const url = `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`;
 
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -36,7 +50,7 @@ function EmployerCandinateList() {
       setCandidateList(data.applicants || []);
       setCandidateListSummary(data.summary || {});
 
-      // Load first applicant automatically
+      // ❌ SAFETY FIX — only load first applicant if list has data
       if (data.applicants?.length > 0) {
         fetchApplicantDetails(data.applicants[0]._id);
       }
@@ -44,6 +58,7 @@ function EmployerCandinateList() {
       console.error("Error:", err);
     }
   };
+
   useEffect(() => {
     fetchSalaryRanges();
   }, []);
@@ -84,8 +99,8 @@ function EmployerCandinateList() {
       const res = await axios.post(
         `${API_BASE_URL}updateApplicationStatus`,
         {
-          jobId: jobId, // From useLocation()
-          applicationId: selectedCandidate?.userInfo?._id,
+          jobId: selectedCandidate?.jobId, // From useLocation()
+          applicationId: selectedCandidate?._id,
           newStatus: value,
         },
         {
@@ -96,7 +111,7 @@ function EmployerCandinateList() {
       );
 
       console.log("Status Updated", res.data);
-
+      fetchCandidates();
       // Refresh candidate details
       fetchApplicantDetails(selectedCandidate?.userInfo?._id);
     } catch (error) {
@@ -142,12 +157,21 @@ function EmployerCandinateList() {
       setIsLocationLoading(false);
     }
   };
-
   const handleSelectLocation = (city) => {
-    setSelectedLocation(city); // store selected city
-    setLocationSearchTerm(city.name); // show only inside input
-    setLocationSuggestions([]); // hide dropdown
+    setSelectedLocation(city);
+    setLocationSearchTerm(city.name);
+    setLocationSuggestions([]);
+
+    setFilters((prev) => ({
+      ...prev,
+      location: city.name,
+    }));
   };
+  useEffect(() => {
+    if (filters.location) {
+      fetchCandidates(); // now always uses updated filter value
+    }
+  }, [filters.location]);
 
   const handleSortChange = (e) => {
     const status = e.target.value;
@@ -168,6 +192,7 @@ function EmployerCandinateList() {
 
       const data = await res.json();
       setSelectedCandidate(data.applicant);
+      setNewApplicationStatus(data.applicant.status || "");
     } catch (err) {
       console.error("Details Fetch Error:", err);
     }
@@ -178,6 +203,29 @@ function EmployerCandinateList() {
       fetchCandidates(selectedStatus); // load with current filter
     }
   }, [jobId]);
+  const handleBookmark = async (candidateId, jobId) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}bookmark/candidate`,
+        {
+          candidateId,
+          jobId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Bookmark Response:", res.data);
+
+      // OPTIONAL: Refresh candidate list after bookmarking
+      fetchCandidates();
+    } catch (err) {
+      console.error("Error bookmarking candidate:", err);
+    }
+  };
 
   return (
     <>
@@ -194,16 +242,23 @@ function EmployerCandinateList() {
                     className="form-control"
                     type="text"
                     placeholder="Search By: Keywords, Job Title"
+                    value={filters.search}
+                    onChange={(e) =>
+                      setFilters({ ...filters, search: e.target.value })
+                    }
                   />
                 </div>
               </div>
               <div className="employer-candidate-btn-area">
-                <a href="#" className="default-btn btn">
+                <button
+                  className="default-btn btn"
+                  onClick={() => fetchCandidates()}
+                >
                   Find
-                </a>
+                </button>
               </div>
             </div>
-            <div className="col-lg-2 col-sm-6">
+            {/* <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Search By Keyword</h3>
@@ -218,8 +273,8 @@ function EmployerCandinateList() {
                   </form>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-2 col-sm-6">
+            </div> */}
+            <div className="col-lg-6 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
@@ -245,7 +300,7 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
-            <div className="col-lg-2 col-sm-6">
+            {/* <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Experience level</h3>
@@ -267,8 +322,8 @@ function EmployerCandinateList() {
                   </form>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-2 col-sm-6">
+            </div> */}
+            {/* <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Job Type</h3>
@@ -290,8 +345,8 @@ function EmployerCandinateList() {
                   </form>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-2 col-sm-6">
+            </div> */}
+            <div className="col-lg-6 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Location</h3>
@@ -337,7 +392,7 @@ function EmployerCandinateList() {
               </div>
             </div>
 
-            <div className="col-lg-2 col-sm-6">
+            {/* <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Salary Range</h3>
@@ -359,7 +414,7 @@ function EmployerCandinateList() {
                   </form>
                 </div>
               </div>
-            </div>
+            </div> */}
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
                 <div className="employer-candidate-number">
@@ -490,8 +545,15 @@ function EmployerCandinateList() {
                               </ul>
                             </div>
 
-                            <div className="candidate-list-bookmark">
-                              <i className="fa-regular fa-heart" />
+                            <div
+                              className="candidate-list-bookmark"
+                              onClick={(e) => {
+                                e.stopPropagation(); // stop parent onClick
+                                handleBookmark(candidate._id, candidate.jobId);
+                              }}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <i className="fa-regular fa-bookmark" />
                             </div>
                           </div>
                         </div>

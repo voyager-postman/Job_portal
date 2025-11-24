@@ -117,7 +117,6 @@ function CandidateProfile() {
   // ✅ Cover Letter states
   const [coverLetters, setCoverLetters] = useState([]); // uploaded cover letters
   const [menuOpenIdCL, setMenuOpenIdCL] = useState(null); // track which menu is open
-
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [skills, setSkills] = useState([]);
