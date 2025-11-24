@@ -171,10 +171,30 @@ function EmployerRegister() {
                           onChange={(e) => setAgree(e.target.checked)}
                         />
                         <label htmlFor="vehicle1">
-                          {" "}
-                          I accept the <a href="#">
+                          I accept the{" "}
+                          <Link
+                            to="/terms-condition"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "#007bff",
+                              textDecoration: "underline",
+                            }}
+                          >
                             Terms &amp; Condition
-                          </a> and <a href="#">Privacy Policy</a>
+                          </Link>{" "}
+                          and{" "}
+                          <Link
+                            to="/privacy-policy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "#007bff",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Privacy Policy
+                          </Link>
                         </label>
                       </div>
                       <div className="register-and-social-icon-info">

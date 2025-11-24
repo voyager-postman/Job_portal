@@ -8,7 +8,7 @@
   // Sticky, Go To Top JS
   $(window).on("scroll", function () {
     // Header Sticky JS
-    if ($(this).scrollTop() > 200) {
+    if ($(this).scrollTop() > 0) {
       $(".navbar-area").addClass("is-sticky");
     } else {
       $(".navbar-area").removeClass("is-sticky");

@@ -4,9 +4,12 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "../utils/axiosInstance"; // path based on your folder structure
 import Spinner from "../Conponets/Spinner"; // optional
 import { useAuth } from "../context/AuthContext"; // adjust path
+import ReCAPTCHA from "react-google-recaptcha";
+
 import { API_BASE_URL } from "../Url/Url";
 function Register() {
   const [email, setEmail] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agree, setAgree] = useState(false);
@@ -23,26 +26,71 @@ function Register() {
       toast.error("Please fill in all required fields");
       return false;
     }
+
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Please enter a valid email address");
       return false;
     }
+
+    // Validate password length
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return false;
     }
+
+    // Validate password match
     if (password !== confirmPassword) {
-      toast.error("Password and confirm password are not the same");
+      toast.error("Password and confirm password do not match");
       return false;
     }
+
+    // Validate captcha
+    if (!captchaVerified) {
+      toast.error("Please verify the captcha!");
+      return false;
+    }
+
+    // Validate terms & conditions
     if (!agree) {
       toast.error("You must accept the terms and conditions");
       return false;
     }
-    return true;
+
+    return true; // All validations passed
   };
 
+  // const handleRegister = async () => {
+  //   if (!validateForm()) return;
+
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post(`${API_BASE_URL}user/register`, {
+  //       email,
+  //       password,
+  //     });
+
+  //     if (response.status === 200 && response.data.success) {
+  //       const { token, user } = response.data;
+
+  //       localStorage.setItem("token", token);
+
+  //       toast.success("Registration successful!");
+  //       login();
+  //       navigate("/profile-basic-info");
+  //     } else {
+  //       toast.error("Something went wrong, please try again.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Register error:", error);
+  //     toast.error(
+  //       error.response?.data?.message || "Registration failed. Try again."
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleRegister = async () => {
     if (!validateForm()) return;
 
@@ -60,7 +108,9 @@ function Register() {
 
         toast.success("Registration successful!");
         login();
-        navigate("/profile-basic-info");
+
+        // ✅ Navigate to verification page and pass email
+        navigate("/verification", { state: { email, showToast: true } });
       } else {
         toast.error("Something went wrong, please try again.");
       }
@@ -124,7 +174,7 @@ function Register() {
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         className="form-control"
-                        placeholder="Confirm Password"
+                        placeholder="Confirm Password*"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
@@ -138,6 +188,13 @@ function Register() {
                         style={{ cursor: "pointer" }}
                       />
                     </div>
+                    <div className="form-group mb-3">
+                      <ReCAPTCHA
+                        sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Google test key
+                        onChange={() => setCaptchaVerified(true)}
+                      />
+                    </div>
+
                     <div className="register-terms-Policy-box">
                       <input
                         type="checkbox"
@@ -146,10 +203,30 @@ function Register() {
                         onChange={(e) => setAgree(e.target.checked)}
                       />
                       <label htmlFor="vehicle1">
-                        {" "}
-                        I accept the <a href="#">
-                          Terms &amp; Condition
-                        </a> and <a href="#">Privacy Policy</a>
+                        I accept the{" "}
+                        <Link
+                          to="/terms-condition"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Terms &amp; Conditions
+                        </Link>{" "}
+                        and{" "}
+                        <Link
+                          to="/privacy-policy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Privacy Policy
+                        </Link>
                       </label>
                     </div>
                     <div className="register-and-social-icon-info">

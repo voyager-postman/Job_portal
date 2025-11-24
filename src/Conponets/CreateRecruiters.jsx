@@ -83,10 +83,12 @@ function CreateRecruiters() {
             <h1>Create Recruiters</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Create Recruiters
@@ -168,26 +170,28 @@ function CreateRecruiters() {
             </div>
           </div>
           {/*End My Profile Area*/}
-          <div className="row">
-            <div className="col-lg-6 col-md-6">
-              <div className="copyright-left-content">
-                <p>
-                  {" "}
-                  <span className="copy">© </span>
-                  <span id="year" />
-                  <span className="template-name"> Connect Work.ma </span> All
-                  Rights Reserved
-                </p>
+          <div className="copy-right-area bg-f0f4fc">
+            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <div className="copyright-left-content">
+                  <p>
+                    {" "}
+                    <span className="copy">© </span>
+                    <span id="year" />
+                    <span className="template-name"> Connect Work.ma </span> All
+                    Rights Reserved
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="col-lg-6 col-md-6">
-              <div className="copyright-right-content">
-                <p>
-                  Designed By{" "}
-                  <a href="https://hibootstrap.com/" target="_blank">
-                    Webnmobapps Solution Pvt. Ltd
-                  </a>
-                </p>
+              <div className="col-lg-6 col-md-6">
+                <div className="copyright-right-content">
+                  <p>
+                    Designed By{" "}
+                    <a href="https://hibootstrap.com/" target="_blank">
+                      Webnmobapps Solution Pvt. Ltd
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>

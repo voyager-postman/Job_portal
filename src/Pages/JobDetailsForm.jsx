@@ -1,26 +1,43 @@
 import axios from "axios";
-import React, { useState } from "react";
-import { useEffect } from "react";
+import * as React from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useTheme } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Chip from "@mui/material/Chip";
+
 function JobDetailsForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const job = location.state?.job || {};
   console.log("job from state:", job);
-  // const jobId = job?._id;
+  const theme = useTheme();
+  const [personName, setPersonName] = React.useState([]);
   const Title = job?.jobTitle;
+  const Category = job?.jobCategory;
   console.log("Job Title:-", Title);
-  const [loading, setLoading] = useState(false);
-  const [citySuggestions, setCitySuggestions] = useState([]);
-  const [mapUrl, setMapUrl] = useState("");
+  console.log("Job Category:-", Category);
+  const debounceTimer = useRef(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [cityList, setCityList] = useState([]);
+  const [seniorityLevels, setSeniorityLevels] = useState([]);
+  const [jobTypes, setJobTypes] = useState([]);
   // ✅ Job data passed from previous page
   const jobFromState = location.state?.jobData || {};
-
+  console.log(jobFromState);
   // ---- Initialize once with either state job or empty
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
@@ -29,9 +46,10 @@ function JobDetailsForm() {
     employmentType: jobFromState.employmentType || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
-    city: jobFromState.city || "",
+    availablePosts: jobFromState.availablePosts || "",
+    cities: [], // 👈 this holds multiple cities    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
     region: jobFromState.region || "",
-    Country: jobFromState.Country || "",
+    Country: jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
     tags: jobFromState.tags || [],
     jobDescription: jobFromState.jobDescription || "",
@@ -40,39 +58,15 @@ function JobDetailsForm() {
     referenceId: jobFromState.referenceId || "",
     enableEmailNotification: jobFromState.enableEmailNotification || false,
     ExternalApplyLink: jobFromState.ExternalApplyLink || "",
-    minSalary: jobFromState.minSalary || "",
-    maxSalary: jobFromState.maxSalary || "",
+    minSalary: jobFromState?.privatJobDetails?.minSalary || "",
+    maxSalary: jobFromState?.privatJobDetails?.maxSalary || "",
     coverPhoto: null,
     coverPhotoPreview: null,
+    availableJobs: "",
   }));
-
-  // ✅ Fill form if job is passed from state
-  // useEffect(() => {
-  //   if (jobFromState._id) {
-  //     setFormData({
-  //       jobTitle: jobFromState.jobTitle || "",
-  //       jobCategory: jobFromState.jobCategory || "",
-  //       minimumLevel: jobFromState.minimumLevel || "",
-  //       employmentType: jobFromState.employmentType || "",
-  //       remote: jobFromState.remote || "",
-  //       jobAddress: jobFromState.jobAddress || "",
-  //       city: jobFromState.city || "",
-  //       region: jobFromState.region || "",
-  //       Country: jobFromState.Country || "",
-  //       shortDescription: jobFromState.shortDescription || "",
-  //       tags: jobFromState.tags || [],
-  //       jobDescription: jobFromState.jobDescription || "",
-  //       enableExternalApply: jobFromState.enableExternalApply || false,
-  //       confidentialJobPost: jobFromState.confidentialJobPost || false,
-  //       referenceId: jobFromState.referenceId || "",
-  //       enableEmailNotification: jobFromState.enableEmailNotification || false,
-  //       ExternalApplyLink: jobFromState.ExternalApplyLink || "",
-  //       minSalary: jobFromState.minSalary || "",
-  //       maxSalary: jobFromState.maxSalary || "",
-  //       coverPhoto: null,
-  //     });
-  //   }
-  // }, [jobFromState]);
+  const [selectedCities, setSelectedCities] = useState(
+    Array.isArray(jobFromState.city) ? jobFromState.city : []
+  );
 
   // ---- Fetch if page was refreshed (no state) but we have an id
   useEffect(() => {
@@ -111,55 +105,101 @@ function JobDetailsForm() {
         .catch((err) => console.error("Failed to fetch job:", err));
     }
   }, [id, jobFromState._id]);
-
-  const handleCitySearch = async (e) => {
-    const value = e.target.value;
-    handleChange(e);
-
-    if (!value.trim()) {
-      setCitySuggestions([]);
-      return;
-    }
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
-
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setCitySuggestions(res.data.cities);
-      } else {
-        setCitySuggestions([]);
+  useEffect(() => {
+    const fetchSeniorityLevels = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}getActiveSeniorityLevelList`
+        );
+        if (res.data.success && Array.isArray(res.data.levels)) {
+          setSeniorityLevels(res.data.levels);
+        }
+      } catch (error) {
+        console.error("Error fetching seniority levels:", error);
       }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setCitySuggestions([]);
-    } finally {
-      setLoading(false);
+    };
+
+    fetchSeniorityLevels();
+  }, []);
+
+  const handleCountryChange = async (e) => {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const countryId = selectedOption.getAttribute("data-id"); // ✅ numeric id
+    const countryObjectId = e.target.value; // ✅ _id (mongo id)
+
+    // Update form data
+    setFormData((prev) => {
+      const updated = { ...prev, Country: countryObjectId };
+
+      // ✅ Auto-save with _id
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updated, false); // sends _id
+      }, 500);
+
+      return updated;
+    });
+
+    // ✅ Fetch cities using `country.id`
+    if (countryId) {
+      fetchCitiesByCountry(countryId);
     }
   };
-  const handleSelectCity = (city) => {
-    setFormData((prev) => ({
-      ...prev,
-      company_address: `${city.name}, ${city.state_name}, ${city.country_name}`,
-      city: city.name,
-      region: city.state_name,
-      Country: city.country_name,
-      latitude: city.latitude,
-      longitude: city.longitude,
-    }));
+  const [showCityOptions, setShowCityOptions] = useState(false);
+  const [citySearchTerm, setCitySearchTerm] = useState("");
 
-    // Simpler map URL
-    const mapSrc = `https://www.google.com/maps?q=${city.latitude},${city.longitude}&z=15&output=embed`;
-    setMapUrl(mapSrc);
-    setCitySuggestions([]);
+  const filteredCities = cityList.filter((city) =>
+    city.name.toLowerCase().includes(citySearchTerm.toLowerCase())
+  );
+
+  // Toggle select/unselect
+  const toggleCity = (cityName) => {
+    setSelectedCities((prev) => {
+      let updated;
+      if (prev.includes(cityName)) {
+        updated = prev.filter((c) => c !== cityName);
+      } else {
+        updated = [...prev, cityName];
+      }
+
+      // update formData and autosave
+      const updatedForm = { ...formData, cities: updated };
+      setFormData(updatedForm);
+
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updatedForm, false);
+      }, 500);
+
+      return updated;
+    });
   };
 
-  const { jobTitle, jobCategory } = location.state || {};
-  console.log(">>>>>>>>>>>>>>>>>>", location);
+  // Remove individual tag
+  const handleRemoveCity = (cityName) => {
+    const updated = selectedCities.filter((c) => c !== cityName);
+    setSelectedCities(updated);
+    setFormData((prev) => ({ ...prev, cities: updated }));
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      handlePublishJob({ ...formData, cities: updated }, false);
+    }, 500);
+  };
+
+  // Close dropdown when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".multi-select-container")) {
+        setShowCityOptions(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     // Next button
-
     const nextButtons = document.querySelectorAll(".next-tab-btn");
     nextButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -186,7 +226,6 @@ function JobDetailsForm() {
     });
 
     // Back button
-
     const backButtons = document.querySelectorAll(".back-tab-btn");
     backButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -214,6 +253,7 @@ function JobDetailsForm() {
   }, []);
 
   const [categoryList, setCategoryList] = useState([]);
+  const [countryList, setCountryList] = useState([]);
 
   const fetchCategoryList = async () => {
     try {
@@ -226,114 +266,195 @@ function JobDetailsForm() {
       console.error(error);
     }
   };
-
+  const fetchCountryList = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}get/countries`);
+      setCountryList(response.data.countries || []); // depends on your backend response shape
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
   useEffect(() => {
     fetchCategoryList();
+    fetchCountryList();
   }, []);
-
-  const [jobCoverPhoto, setJobCoverPhoto] = useState(null);
-
-  // ✅ handle input change
-  const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-
-    setFormData((prev) => {
-      if (type === "checkbox") {
-        return { ...prev, [name]: checked };
-      } else if (type === "file") {
-        const file = files[0];
-        if (file && file.size > 2 * 1024 * 1024) {
-          alert("File size exceeds 2 MB limit");
-          return prev; // don't update if invalid
-        }
-        return {
-          ...prev,
-          [name]: file,
-          coverPhotoPreview: file ? URL.createObjectURL(file) : null, // ✅ store preview
-        };
-      } else {
-        return { ...prev, [name]: value };
-      }
-    });
-  };
-
   const [tagInput, setTagInput] = useState("");
   const handleAddTag = (e) => {
     e.preventDefault();
     if (tagInput.trim() !== "") {
-      setFormData({
+      const updatedFormData = {
         ...formData,
         tags: [...formData.tags, tagInput.trim()],
-      });
+      };
+      setFormData(updatedFormData);
       setTagInput("");
+      handlePublishJob(updatedFormData, false);
     }
   };
 
   const handleRemoveTag = (tag) => {
-    setFormData({
+    const updatedFormData = {
       ...formData,
       tags: formData.tags.filter((t) => t !== tag),
+    };
+    setFormData(updatedFormData);
+    handlePublishJob(updatedFormData, false);
+  };
+
+  const handleChange = async (e) => {
+    const { name, value, type, checked, files } = e.target;
+
+    setFormData((prev) => {
+      let updated = { ...prev };
+
+      if (type === "checkbox") {
+        updated[name] = checked;
+      } else if (type === "file") {
+        const file = files[0];
+        if (file && file.size > 2 * 1024 * 1024) {
+          alert("File size exceeds 2 MB limit");
+          return prev;
+        }
+        updated[name] = file;
+        updated.coverPhotoPreview = file ? URL.createObjectURL(file) : null;
+      } else {
+        updated[name] = value;
+      }
+
+      // ✅ Clear error on change
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+
+      // ✅ If Country changes → Fetch cities
+      if (name === "Country" && value) {
+        fetchCitiesByCountry(value);
+      }
+
+      // ✅ Debounce auto-save (updateJob)
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updated, false);
+      }, 1000);
+
+      return updated;
+    });
+  };
+  const fetchCitiesByCountry = async (countryId) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}getCitiesByCountry?countryId=${countryId}`
+      );
+      const cities = response.data?.cities || [];
+      setCityList(cities);
+
+      // ✅ If editing, keep previously selected cities (if they still exist in the list)
+      if (jobFromState?.city?.length) {
+        const validCities = jobFromState.city.filter((cityName) =>
+          cities.some((c) => c.name === cityName)
+        );
+        setSelectedCities(validCities);
+        setFormData((prev) => ({ ...prev, cities: validCities }));
+      }
+    } catch (error) {
+      console.error("❌ Error fetching cities:", error);
+      setCityList([]);
+    }
+  };
+  const fetchJobTypes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      if (res.data.success && Array.isArray(res.data.jobTypes)) {
+        setJobTypes(res.data.jobTypes);
+      } else {
+        setJobTypes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobTypes();
+  }, []);
+
+  useEffect(() => {
+    if (jobFromState?.country && countryList.length > 0) {
+      const matchedCountry = countryList.find(
+        (c) => c._id === jobFromState.country
+      );
+      if (matchedCountry?.id) {
+        fetchCitiesByCountry(matchedCountry.id);
+      }
+    }
+  }, [countryList]);
+
+  const handleCityChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+
+    const updatedCities = typeof value === "string" ? value.split(",") : value;
+
+    setSelectedCities(updatedCities);
+
+    setFormData((prev) => {
+      const updated = { ...prev, cities: updatedCities };
+
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updated, false);
+      }, 1000);
+
+      return updated;
     });
   };
 
-  // ✅ handle tags (comma separated input OR add/remove logic)
-  const validateForm = () => {
-    if (!formData.minimumLevel) return "Minimum Level is required";
-    if (!formData.employmentType) return "Employment Type is required";
-    if (!formData.jobDescription) return "Job description is required";
-    if (!formData.shortDescription) return "Short Job Description is required";
-    if (!formData.minSalary) return "Minimum salary is required";
-    if (!formData.maxSalary) return "Maximum salary is required";
-
-    // Optional: Validate file
-    if (formData.coverPhoto && formData.coverPhoto.size > 2 * 1024 * 1024) {
-      return "Cover photo must be less than 2MB";
-    }
-    return null; // ✅ no error
+  const handleSave = () => {
+    setIsEditing(false);
   };
 
-  const handlePublishJob = async () => {
-    const errorMsg = validateForm();
-    if (errorMsg) {
-      alert(errorMsg);
-      return;
-    }
+  const handlePublishJob = async (data = formData, isPublish = false) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("❌ No token found");
+        return;
+      }
+
       const formDataToSend = new FormData();
       formDataToSend.append("job_id", id || jobFromState._id);
-      formDataToSend.append("jobTitle", formData.jobTitle);
-      formDataToSend.append("jobCategory", formData.jobCategory);
-      formDataToSend.append("minimumLevel", formData.minimumLevel);
-      formDataToSend.append("employmentType", formData.employmentType);
-      formDataToSend.append("remote", formData.remote);
-      formDataToSend.append("jobAddress", formData.jobAddress);
-      formDataToSend.append("city", formData.city);
-      formDataToSend.append("region", formData.region);
-      formDataToSend.append("country", formData.Country);
-      formDataToSend.append("shortDescription", formData.shortDescription);
-      formDataToSend.append("tags", JSON.stringify(formData.tags));
-      formDataToSend.append("jobDescription", formData.jobDescription);
-      formDataToSend.append(
-        "enableExternalApply",
-        formData.enableExternalApply
-      );
-      formDataToSend.append("ExternalApplyLink", formData.ExternalApplyLink);
-      formDataToSend.append(
-        "confidentialJobPost",
-        formData.confidentialJobPost
-      );
-      formDataToSend.append("referenceId", formData.referenceId);
+      formDataToSend.append("jobTitle", data.jobTitle || "");
+      formDataToSend.append("jobCategory", data.jobCategory || "");
+      formDataToSend.append("minimumLevel", data.minimumLevel || "");
+      formDataToSend.append("employmentType", data.employmentType || "");
+      formDataToSend.append("remote", data.remote || "");
+      formDataToSend.append("jobAddress", data.jobAddress || "");
+      formDataToSend.append("city", JSON.stringify(data.cities || []));
+
+      formDataToSend.append("region", data.region || "");
+      formDataToSend.append("country", data.Country || "");
+      formDataToSend.append("shortDescription", data.shortDescription || "");
+      formDataToSend.append("tags", JSON.stringify(data.tags || []));
+      formDataToSend.append("jobDescription", data.jobDescription || "");
+      formDataToSend.append("enableExternalApply", data.enableExternalApply);
+      formDataToSend.append("ExternalApplyLink", data.ExternalApplyLink || "");
+      formDataToSend.append("confidentialJobPost", data.confidentialJobPost);
+      formDataToSend.append("referenceId", data.referenceId || "");
       formDataToSend.append(
         "enableEmailNotification",
-        formData.enableEmailNotification
+        data.enableEmailNotification
       );
-      formDataToSend.append("minSalary", formData.minSalary);
-      formDataToSend.append("maxSalary", formData.maxSalary);
+      formDataToSend.append("availablePosts", data.availablePosts || "");
+      formDataToSend.append("minSalary", data.minSalary || "");
+      formDataToSend.append("maxSalary", data.maxSalary || "");
 
-      if (formData.coverPhoto) {
-        formDataToSend.append("jobCoverPhoto", formData.coverPhoto);
+      // ✅ Add "status" key ONLY when Publish button is clicked
+      if (isPublish) formDataToSend.append("status", "published");
+
+      if (data.coverPhoto) {
+        formDataToSend.append("jobCoverPhoto", data.coverPhoto);
       }
+
+      console.log("🚀 Sending to API:", Object.fromEntries(formDataToSend));
 
       const response = await axios.post(
         `${API_BASE_URL}updateJob`,
@@ -346,51 +467,46 @@ function JobDetailsForm() {
         }
       );
 
-      console.log("Job Created:", response.data);
-      toast.success(response.data.message);
-
-      // ✅ Redirect to jobs with jobTitle & jobCategory
-      navigate("/jobs", {
-        state: {
-          jobTitle: formData.jobTitle,
-          jobCategory: formData.jobCategory,
-        },
-      });
+      console.log("✅ Job Updated:", response.data);
+      // ✅ If published, navigate to "your-job-posts"
+      if (isPublish) {
+        navigate("/your-job-posts", {
+          state: {
+            jobTitle: data.jobTitle,
+            jobCategory: data.jobCategory,
+          },
+        });
+      }
     } catch (error) {
-      console.error("Error creating job:", error);
-      alert("Failed to create job. Please try again.");
+      console.error("❌ Error creating job:", error.response || error);
     }
   };
-
+  // Add new city to list
   return (
     <>
       <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
-
           <div className="breadcrumb-area">
             <h1>Job Details Form</h1>
-
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/employer-dashboard">Home </Link>
+                <Link to="/">Home </Link>
               </li>
-
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
-
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Job Details Form
               </li>
             </ol>
           </div>
-
           {/* End Breadcrumb Area */}
 
           {/* Your Job Posts Info*/}
-
           <div className="job-details-form-info">
             <div className="job-details-form-tabs">
               <ul className="nav nav-tabs" role="tablist">
@@ -403,19 +519,16 @@ function JobDetailsForm() {
                     Details
                   </a>
                 </li>
-
                 <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu2">
                     Options
                   </a>
                 </li>
-
                 <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu3">
                     Job Branding
                   </a>
                 </li>
-
                 <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu4">
                     Publish
@@ -425,8 +538,38 @@ function JobDetailsForm() {
             </div>
 
             <div className="input-info-edit-area job-details-seprate-heading">
-              <h3>{Title}</h3>
-              <i className="fas fa-pencil-alt" />
+              {!isEditing ? (
+                <>
+                  <h3>{formData.jobTitle}</h3>
+                  <i
+                    className="fas fa-pencil-alt"
+                    onClick={() => setIsEditing(true)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="col-lg-10 col-md-10 mt-2">
+                    <div className="form-group">
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="jobTitle"
+                        value={formData.jobTitle}
+                        onChange={handleChange}
+                        placeholder="Enter Job Title"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <button
+                      className="default-btn btn mx-4"
+                      onClick={handleSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="tab-content">
@@ -441,13 +584,9 @@ function JobDetailsForm() {
                       <div className="row">
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>
-                              Minimum level{" "}
-                              <span className="text-danger">*</span>
-                            </label>
+                            <label>Minimum level </label>
                             <select
                               className="form-select form-control"
-                              aria-label="Default select example"
                               name="minimumLevel"
                               value={formData.minimumLevel}
                               onChange={handleChange}
@@ -456,31 +595,28 @@ function JobDetailsForm() {
                               <option value="" disabled>
                                 Select minimum level
                               </option>
-                              <option value="No experience / No degree">
-                                No experience / No degree
-                              </option>
-                              <option value="Entry / Junior">
-                                Entry / Junior
-                              </option>
-                              <option value="Mid-level">Mid-level</option>
-                              <option value="Senior">Senior</option>
-                              <option value="C-level / Executive">
-                                C-level / Executive
-                              </option>
+
+                              {seniorityLevels.length > 0 ? (
+                                seniorityLevels.map((level) => (
+                                  <option key={level._id} value={level._id}>
+                                    {level.name}
+                                  </option>
+                                ))
+                              ) : (
+                                <option disabled>Loading levels...</option>
+                              )}
                             </select>
                           </div>
                         </div>
-
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
                               Employment Type{" "}
-                              <span className="text-danger">*</span>
+                              {/* <span className="text-danger">*</span> */}
                             </label>
 
                             <select
                               className="form-select form-control"
-                              aria-label="Default select example"
                               name="employmentType"
                               value={formData.employmentType}
                               onChange={handleChange}
@@ -489,27 +625,24 @@ function JobDetailsForm() {
                               <option value="" disabled>
                                 Select employment type
                               </option>
-                              <option value="Full-time">Full-time</option>
-                              <option value="Part-time">Part-time</option>
-                              <option value="Full-time / Part-time">
-                                Full-time / Part-time
-                              </option>
-                              <option value="Contract / Freelance / Self-employed">
-                                Contract / Freelance / Self-employed
-                              </option>
-                              <option value="Internship / Apprenticeship">
-                                Internship / Apprenticeship
-                              </option>
-                              <option value="Seasonal">Seasonal</option>
-                              <option value="Volunteer">Volunteer</option>
+
+                              {jobTypes.length > 0 ? (
+                                jobTypes.map((type) => (
+                                  <option key={type._id} value={type._id}>
+                                    {type.name}
+                                  </option>
+                                ))
+                              ) : (
+                                <option disabled>Loading job types...</option>
+                              )}
                             </select>
                           </div>
                         </div>
-
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
-                              Remote <span className="text-danger">*</span>
+                              Remote
+                              {/* <span className="text-danger">*</span> */}
                             </label>
 
                             <select
@@ -523,18 +656,24 @@ function JobDetailsForm() {
                               <option value="" disabled>
                                 Select remote type
                               </option>
+
+                              {/* ✅ New Option Added */}
+                              <option value="Not remote (On-site only)">
+                                Not remote (On-site only)
+                              </option>
+
                               <option value="Fully remote">Fully remote</option>
                               <option value="Partialy-remote">
                                 Partialy-remote
                               </option>
-                              <option value="Full-time / Part-time">
+                              <option value="Temporarily remote">
                                 Temporarily remote
                               </option>
                             </select>
                           </div>
                         </div>
 
-                        <div className="col-lg-6 col-md-6">
+                        {/* <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>Street Address</label>
                             <span className="text-danger">*</span>
@@ -573,7 +712,7 @@ function JobDetailsForm() {
                               </ul>
                             )}
                           </div>
-                        </div>
+                        </div> */}
 
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
@@ -590,71 +729,169 @@ function JobDetailsForm() {
                                 Choose A Category
                               </option>
                               {categoryList.map((list) => (
-                                <option value={list.name} key={list._id}>
+                                <option value={list._id} key={list._id}>
                                   {list.name}
                                 </option>
                               ))}
                             </select>
                           </div>
                         </div>
+                        {/* Country Field */}
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>City</label> (auto-generated from location):
-                            <span className="text-danger">*</span>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="city"
-                              value={formData.city}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-                        <div className="col-lg-6 col-md-6">
-                          <div className="form-group">
-                            <label>State</label> (auto-generated from location):
-                            <span className="text-danger">*</span>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="region"
-                              value={formData.region}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-                        <div className="col-lg-6 col-md-6">
-                          <div className="form-group">
-                            <label>Country</label> (auto-generated from
-                            location):
-                            <span className="text-danger">*</span>
-                            <input
-                              className="form-control"
-                              type="text"
+                            <label>Country</label>
+                            {/* <span className="text-danger">*</span> */}
+                            <select
+                              className="form-select form-control"
+                              aria-label="Select Country"
                               name="Country"
                               value={formData.Country}
-                              readOnly
-                            />
+                              onChange={handleCountryChange}
+                            >
+                              <option value="" disabled>
+                                Choose a Country
+                              </option>
+                              {countryList.map((country) => (
+                                <option
+                                  value={country._id}
+                                  key={country._id}
+                                  data-id={country.id} // ✅ store numeric id
+                                >
+                                  {country.name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
 
-                        <div className="col-lg-12 col-md-12">
+                        {/* Cities */}
+                        {/* City Selection (Searchable Multi-Select) */}
+                        <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Our Map Location</label>
-                            <span className="text-danger">*</span>
-                            {mapUrl ? (
-                              <iframe
-                                src={mapUrl}
-                                width="100%"
-                                height={500}
-                                style={{ border: "0" }}
-                                allowFullScreen
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                              />
-                            ) : (
-                              <p>No location selected</p>
-                            )}
+                            <label>Select City</label>
+                            {/* <span className="text-danger">*</span> */}
+                            <div className="multi-select-container">
+                              <div
+                                className="selected-items"
+                                onClick={() => setShowCityOptions(true)}
+                                style={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "6px",
+                                  padding: "6px",
+                                  cursor: "text",
+                                }}
+                              >
+                                {/* Show selected city tags */}
+                                {selectedCities.map((cityName) => (
+                                  <span
+                                    key={cityName}
+                                    className="tag"
+                                    style={{
+                                      background: "#007bff",
+                                      color: "white",
+                                      borderRadius: "4px",
+                                      padding: "3px 6px",
+                                      margin: "2px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    {cityName}
+                                    <i
+                                      className="fa-solid fa-xmark"
+                                      style={{
+                                        cursor: "pointer",
+                                        marginLeft: "6px",
+                                      }}
+                                      onClick={() => handleRemoveCity(cityName)}
+                                    />
+                                  </span>
+                                ))}
+
+                                {/* Search Input */}
+                                <input
+                                  type="text"
+                                  placeholder="Search city..."
+                                  value={citySearchTerm}
+                                  onChange={(e) =>
+                                    setCitySearchTerm(e.target.value)
+                                  }
+                                  onFocus={() => setShowCityOptions(true)}
+                                  style={{
+                                    flex: 1,
+                                    border: "none",
+                                    outline: "none",
+                                    minWidth: "100px",
+                                  }}
+                                />
+                              </div>
+
+                              {/* Dropdown list */}
+                              {showCityOptions && (
+                                <ul
+                                  className="options-list"
+                                  style={{
+                                    border: "1px solid #ccc",
+                                    borderRadius: "6px",
+                                    maxHeight: "200px",
+                                    overflowY: "auto",
+                                    background: "#fff",
+                                    position: "absolute",
+                                    width: "100%",
+                                    zIndex: 1000,
+                                    marginTop: "4px",
+                                    padding: 0,
+                                    listStyle: "none",
+                                  }}
+                                >
+                                  {filteredCities.length > 0 ? (
+                                    filteredCities.map((city) => (
+                                      <li
+                                        key={city._id}
+                                        onClick={() => toggleCity(city.name)}
+                                        className={
+                                          selectedCities.includes(city.name)
+                                            ? "selected"
+                                            : ""
+                                        }
+                                        style={{
+                                          padding: "6px 10px",
+                                          cursor: "pointer",
+                                          background: selectedCities.includes(
+                                            city.name
+                                          )
+                                            ? "#007bff"
+                                            : "transparent",
+                                          color: selectedCities.includes(
+                                            city.name
+                                          )
+                                            ? "white"
+                                            : "black",
+                                        }}
+                                      >
+                                        {city.name}
+                                        {selectedCities.includes(city.name) && (
+                                          <span style={{ float: "right" }}>
+                                            ✔
+                                          </span>
+                                        )}
+                                      </li>
+                                    ))
+                                  ) : (
+                                    <li
+                                      style={{
+                                        padding: "6px 10px",
+                                        color: "#888",
+                                      }}
+                                    >
+                                      No cities found
+                                    </li>
+                                  )}
+                                </ul>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -664,7 +901,8 @@ function JobDetailsForm() {
 
                 <div className="job-description-box-info">
                   <h3>
-                    Short Description <span className="text-danger">*</span>
+                    Short Description
+                    {/* <span className="text-danger">*</span> */}
                   </h3>
 
                   <div className="form-group">
@@ -690,65 +928,91 @@ function JobDetailsForm() {
                   </div>
 
                   <div className="profile-form">
-                    <form>
-                      <div className="row">
-                        <div className="col-lg-12 col-md-12">
-                          <div className="enter-skill-info">
-                            <div className="form-group">
-                              <input
-                                className="form-control"
-                                type="text"
-                                placeholder="Enter Skills"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                              />
-                            </div>
-
-                            <div className="skill-btn-info">
-                              <button
-                                className="default-btn btn"
-                                onClick={handleAddTag}
-                                type="button"
-                              >
-                                Add Skills
-                              </button>
-                            </div>
+                    <div className="row">
+                      <div className="col-lg-12 col-md-12">
+                        <div className="enter-skill-info">
+                          <div className="form-group">
+                            <input
+                              className="form-control"
+                              type="text"
+                              placeholder="Enter Skills"
+                              value={tagInput}
+                              onChange={(e) => setTagInput(e.target.value)}
+                            />
                           </div>
 
-                          <div className="enter-skill-tag-info">
-                            <br />
-                            <ul>
-                              {formData.tags.map((tag) => (
-                                <li key={tag}>
-                                  {tag}{" "}
-                                  <i
-                                    className="fa-solid fa-xmark"
-                                    onClick={() => handleRemoveTag(tag)}
-                                    style={{ cursor: "pointer" }}
-                                  />
-                                </li>
-                              ))}
-                            </ul>
+                          <div className="skill-btn-info">
+                            <button
+                              className="default-btn btn"
+                              onClick={handleAddTag}
+                              type="button"
+                            >
+                              Add Skills
+                            </button>
                           </div>
                         </div>
+
+                        <div className="enter-skill-tag-info">
+                          <br />
+                          <ul>
+                            {formData.tags.map((tag) => (
+                              <li key={tag}>
+                                {tag}{" "}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  onClick={() => handleRemoveTag(tag)}
+                                  style={{ cursor: "pointer" }}
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
-                    </form>
+                    </div>
                   </div>
                 </div>
 
                 <div className="job-description-box-info">
                   <h3>
-                    Job Description <span className="text-danger">*</span>
+                    Job Description
+                    {/* <span className="text-danger">*</span> */}
                   </h3>
 
                   <div className="form-group">
-                    <textarea
+                    {/* <textarea
                       className="form-control"
                       placeholder="Enter a description for this job post"
                       rows={10}
                       name="jobDescription"
                       value={formData.jobDescription}
                       onChange={handleChange}
+                    /> */}
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobDescription}
+                      onChange={(event, editor) => {
+                        const data = editor.getData();
+
+                        // Update formData
+                        setFormData((prev) => {
+                          const updated = { ...prev, jobDescription: data };
+
+                          // ✅ Clear any validation error
+                          setErrors((prevErrors) => ({
+                            ...prevErrors,
+                            jobDescription: "",
+                          }));
+
+                          // ✅ Trigger same debounce auto-save logic
+                          if (debounceTimer.current)
+                            clearTimeout(debounceTimer.current);
+                          debounceTimer.current = setTimeout(() => {
+                            handlePublishJob(updated, false);
+                          }, 1000);
+
+                          return updated;
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -797,6 +1061,7 @@ function JobDetailsForm() {
                           type="text"
                           name="ExternalApplyLink"
                           value={formData.ExternalApplyLink}
+                          onChange={handleChange}
                           placeholder="Enter the link"
                         />
                       </div>
@@ -856,7 +1121,29 @@ function JobDetailsForm() {
                     </div>
                   </div>
                 </div>
+                <div className="job-option-branding-input-area">
+                  <div className="job-option-branding-heading">
+                    <label>
+                      Number of Available Jobs{" "}
+                      {/* <span className="text-danger">*</span> */}
+                    </label>
+                  </div>
 
+                  <div className="job-option-branding-input-box">
+                    <div className="form-group">
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="availablePosts"
+                        placeholder="Enter number of openings"
+                        min="1"
+                        value={formData.availablePosts}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>Email notification</h3>
@@ -897,7 +1184,7 @@ function JobDetailsForm() {
                       <div className="col-lg-6 col-md-6">
                         <div className="form-group">
                           <label>Min salary (Gross)</label>
-                          <span className="text-danger">*</span>
+                          {/* <span className="text-danger">*</span> */}
                           <input
                             className="form-control"
                             type="text"
@@ -911,7 +1198,7 @@ function JobDetailsForm() {
                       <div className="col-lg-6 col-md-6">
                         <div className="form-group">
                           <label>Max salary (Gross)</label>
-                          <span className="text-danger">*</span>
+                          {/* <span className="text-danger">*</span> */}
                           <input
                             className="form-control"
                             type="text"
@@ -944,7 +1231,8 @@ function JobDetailsForm() {
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>
-                      Brand your job post <span className="text-danger">*</span>
+                      Brand your job post
+                      {/* <span className="text-danger">*</span> */}
                     </h3>
 
                     <span className="heading-small-description">
@@ -1121,40 +1409,49 @@ function JobDetailsForm() {
                       <div className="job-post-other-info">
                         <div className="minimum-level-remote">
                           <h4>Minimum level</h4>
-                          <p>{formData.minimumLevel || "Not provided"}</p>
+                          <p>{formData.minimumLevel?.name || "Not provided"}</p>
                           <div className="divder-space-line" />
                           <h4>Location</h4>
                           <p>{formData.city || "Not provided"}</p>
                         </div>
                         <div className="employment-type-job-category">
                           <h4>Employment type</h4>
-                          <p>{formData.employmentType || "Not provided"}</p>
+                          <p>
+                            {formData.employmentType?.name || "Not provided"}
+                          </p>
                           <div className="divder-space-line" />
                           <h4>Job category</h4>
-                          <p>{formData.jobCategory || "Not provided"}</p>
+                          <p>
+                            {categoryList.find(
+                              (cat) => cat._id === formData.jobCategory
+                            )?.name || "Not provided"}
+                          </p>
                         </div>
                       </div>
-
                       <div className="job-cart-short-description-info">
                         <h4>Job Short Description</h4>
                         <p>{formData.shortDescription || "Not provided"}</p>
                       </div>
                       <div className="job-cart-long-description-info">
                         <h4>Job Description</h4>
-                        <p>{formData.jobDescription || "Not provided"}</p>
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: formData.jobDescription,
+                          }}
+                        ></p>
                       </div>
                       <div className="job-create-form-back-next-info">
                         <div className="job-create-form-back-next-btn">
-                          <a
-                            href="job-listing.html"
+                          <button
+                            // onClick={handlePublishJob}
                             className="default-btn btn"
                           >
-                            Save Draft
-                          </a>
+                            Pay & Publish Now
+                          </button>
                         </div>
                         <div className="job-create-form-back-next-btn">
                           <button
-                            onClick={handlePublishJob}
+                            onClick={() => handlePublishJob(formData, true)}
                             className="default-btn btn"
                           >
                             Publish Job
@@ -1163,165 +1460,12 @@ function JobDetailsForm() {
                       </div>
                     </div>
                   </div>
-
-                  {/* <div className="job-payment-detail-box-info">
-
-                    <div className="job-payment-detail-info">
-
-                      <h4>Payment details</h4>
-
-                    </div>
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h5>Standard post</h5>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h5>€750</h5>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h5>Cover photo</h5>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h5>€250</h5>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h5>Remove similar job posts</h5>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h5>€360</h5>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h2>Summary (ex. VAT)</h2>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h2>€1360</h2>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h2>VAT 20%</h2>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h2>€272</h2>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="job-payment-text-price">
-
-                      <div className="job-payment-text">
-
-                        <h2>Total</h2>
-
-                      </div>
-
-                      <div className="job-payment-price">
-
-                        <h2>€1632</h2>
-
-                      </div>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="pay-publish-later-btn">
-
-                      <Link to="/your-job-posts" className="default-btn btn">
-
-                        Pay and publish
-
-                      </Link>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="pay-publish-later-btn">
-
-                      <Link to="/your-job-posts" className="default-btn btn">
-
-                        Pay Now, Publish later
-
-                      </Link>
-
-                    </div>
-
-                    <div className="job-payment-divider" />
-
-                    <div className="job-payment-content-info">
-
-                      <p>
-
-                        By clicking the "Pay and publish" or "Pay now, publish
-
-                        later", I agree to the Terms and Conditions &amp;
-
-                        Privacy Policy
-
-                      </p>
-
-                    </div>
-
-                  </div> */}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Your Job Posts Info */}
-
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">

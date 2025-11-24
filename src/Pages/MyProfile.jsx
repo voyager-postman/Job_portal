@@ -187,14 +187,25 @@ function MyProfile() {
     data.append("jobCategory", formData.selectedCategory);
     data.append("DesiredEmploymentType", formData.employmentType);
     data.append("DesiredOccupationType", formData.occupationType);
-    data.append(
-      "MinimumDesiredSalary",
-      JSON.stringify({
-        type: formData.salaryType || "Yearly",
-        amount: formData.salaryAmount,
-        currency: "USD",
-      })
-    );
+    // data.append(
+    //   "MinimumDesiredSalary",
+    //   JSON.stringify({
+    //     type: formData.salaryType || "Yearly",
+    //     amount: formData.salaryAmount,
+    //     currency: "USD",
+    //   })
+    // );
+    if (formData.salaryType || formData.salaryAmount) {
+      data.append(
+        "MinimumDesiredSalary",
+        JSON.stringify({
+          type: formData.salaryType || "Yearly",
+          amount: formData.salaryAmount || "",
+          currency: "USD",
+        })
+      );
+    }
+
     const isEligible = formData.eligibleInFrance?.toLowerCase() === "yes";
     data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
 
@@ -220,7 +231,7 @@ function MyProfile() {
         localStorage.setItem("user_role", userDetails.role);
         localStorage.setItem("first_name", userDetails.first_name);
         localStorage.setItem("last_name", userDetails.last_name);
-
+        localStorage.setItem("is_completed", userDetails?.is_completed);
         toast.success("Registration successful!");
         login(); // set auth context / localStorage
         navigate("/profile-basic-info");
@@ -386,10 +397,7 @@ function MyProfile() {
               Please Fill in your Basic &nbsp;
               <label className="oragneColor">Profile Information</label>{" "}
             </h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt.
-            </p>
+          
           </div>
         </div>
         <div className="profile-basic-info-form">
@@ -436,15 +444,53 @@ function MyProfile() {
                                     }}
                                   />
                                 </div>
+
                                 <div className="modal-body">
                                   <div className="form-group">
-                                    <div className="custom-file-upload">
+                                    <div
+                                      className="custom-file-upload text-center"
+                                      onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.add(
+                                          "drag-active"
+                                        );
+                                      }}
+                                      onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.remove(
+                                          "drag-active"
+                                        );
+                                      }}
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.remove(
+                                          "drag-active"
+                                        );
+
+                                        const droppedFiles =
+                                          e.dataTransfer.files;
+                                        if (
+                                          droppedFiles &&
+                                          droppedFiles.length > 0
+                                        ) {
+                                          // ✅ Reuse your existing handler
+                                          const fakeEvent = {
+                                            target: { files: droppedFiles },
+                                          };
+                                          handleFileChange(fakeEvent);
+                                        }
+                                      }}
+                                    >
                                       <label
                                         htmlFor="file-upload"
                                         className="fw-bold"
                                       >
-                                        Upload Your File (PDF/JPG/PNG)
+                                        Upload Your File (PDF/DOC/DOCX)
                                       </label>
+
                                       <input
                                         type="file"
                                         id="file-upload"
@@ -453,14 +499,22 @@ function MyProfile() {
                                         onChange={handleFileChange}
                                         className="input-hidden"
                                       />
+
                                       <label
                                         htmlFor="file-upload"
-                                        className="file-text"
+                                        className="file-text cursor-pointer"
                                       >
-                                        <i className="fas fa-cloud-upload-alt" />
+                                        <i
+                                          className="fas fa-cloud-upload-alt"
+                                          style={{
+                                            fontSize: "30px",
+                                            color: "#007bff",
+                                          }}
+                                        />
                                         <br />
                                         Click to Upload or drag & drop
                                       </label>
+
                                       {error && (
                                         <div className="invalid-feedback d-block mt-2">
                                           {error}
@@ -472,6 +526,7 @@ function MyProfile() {
                                         </div>
                                       )}
                                     </div>
+
                                     <div className="text-center">
                                       <button
                                         type="button"
@@ -663,7 +718,7 @@ function MyProfile() {
                         Years of experience <span>(optional)</span>
                       </label>
                       <input
-                        type="text"
+                        type="number"
                         name="experience"
                         value={formData.experience}
                         onChange={handleChange}

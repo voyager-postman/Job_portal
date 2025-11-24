@@ -7,13 +7,17 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-function Header({ bgColor }) {
-  const { isLoggedIn } = useAuth();
-  const userRole = localStorage.getItem("user_role");
+import { useTranslation } from "react-i18next";
 
+function Header({ bgColor }) {
+  const { t, i18n } = useTranslation("global");
+  const { isLoggedIn, profileImage, firstName, lastName } = useAuth();
+  const userRole = localStorage.getItem("user_role");
+  const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const isEmployerPage =
     location.pathname === "/employer-home" ||
     location.pathname === "/employer-login" ||
@@ -32,48 +36,60 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-  // const googleLogin = useGoogleLogin({
-  //   onSuccess: (tokenResponse) => {
-  //     console.log(tokenResponse);
-  //     const userInfo = jwtDecode(tokenResponse.credential);
-  //     console.log("Google User:", userInfo);
-  //     localStorage.setItem("user", JSON.stringify(userInfo));
-  //   },
-  //   onError: () => {
-  //     console.log("Google login failed");
-  //   },
-  // });
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      console.log("Access Token:", tokenResponse.access_token);
 
-      // Fetch user info from Google
+  const handleGithubLogin = () => {
+    const clientId = "Ov23liXRhmjwwotvLSVw";
+    const redirectUri = "http://localhost:4000/api/auth/github/callback";
+
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=user:email`;
+
+    window.location.href = githubAuthUrl;
+  };
+  const handleLinkedinLogin = () => {
+    const clientId = "86nez3pnzuzjq3";
+    const redirectUri = "http://13.48.130.179:4000/api/auth/linkedin/callback";
+
+    const state = crypto.randomUUID(); // for security
+    const scope = "openid profile email";
+
+    const linkedinAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&state=${state}&scope=${encodeURIComponent(scope)}`;
+
+    window.location.href = linkedinAuthUrl;
+  };
+
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      console.log("Google Access Token:", tokenResponse.access_token);
+
+      // Get User Info
       const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: {
           Authorization: `Bearer ${tokenResponse.access_token}`,
         },
       });
-      const userInfo = await res.json();
-      console.log("Google User:", userInfo);
 
+      const userInfo = await res.json();
+      console.log("Google User Info:", userInfo);
+
+      // Save user info in localStorage
       localStorage.setItem("user", JSON.stringify(userInfo));
+      localStorage.setItem("user_email", userInfo.email);
+      localStorage.setItem("user_role", "JobSeeker");
+
+      // Close modal automatically
+      document.getElementById("exampleModalLogin").click();
+
+      // Redirect to home
+      navigate("/");
     },
-    onError: () => console.log("Login Failed"),
+    onError: () => console.log("Google Login Failed"),
+    flow: "implicit",
   });
 
-  const handleGithubLogin = () => {
-    const clientId = "Ov23liXRhmjwwotvLSVw";
-    const redirectUri = "http://localhost:4000/api/auth/github/callback";
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}`;
-  };
-
-  const handleLinkedinLogin = () => {
-    const clientId = "86nez3pnzuzjq3";
-    const redirectUri = "http://13.48.130.179:4000/api/auth/linkedin/callback";
-    const state = "foobar"; // random string for security
-    const scope = "r_liteprofile r_emailaddress";
-    window.location.href = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
-  };
   return (
     <>
       <div className="navbar-area" style={{ backgroundColor: bgColor }}>
@@ -122,7 +138,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Home
+                      {t("header.home")}
                     </NavLink>
                   </li>
 
@@ -133,7 +149,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      About Us
+                      {t("header.aboutUs")}
                     </NavLink>
                   </li>
 
@@ -144,7 +160,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Jobs
+                      {t("header.jobs")}
                     </NavLink>
                   </li>
                   <li className="nav-item">
@@ -154,7 +170,7 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Employers
+                      {t("header.employers")}
                     </NavLink>
                   </li>
                   {userRole === "Recruiter" && (
@@ -165,7 +181,7 @@ function Header({ bgColor }) {
                           "nav-link" + (isActive ? " active" : "")
                         }
                       >
-                        Candidates
+                        {t("header.candidates")}
                       </NavLink>
                     </li>
                   )}
@@ -176,13 +192,23 @@ function Header({ bgColor }) {
                         "nav-link" + (isActive ? " active" : "")
                       }
                     >
-                      Contact Us
+                      {t("header.contactUs")}
+                    </NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink
+                      to="/blog"
+                      className={({ isActive }) =>
+                        "nav-link" + (isActive ? " active" : "")
+                      }
+                    >
+                      {t("header.blog")}
                     </NavLink>
                   </li>
                 </ul>
 
                 <div className="others-options">
-                  {isLoggedIn ? (
+                  {emailName ? (
                     <div className="option-item">
                       <div className="dropdown profile-nav-item">
                         <a
@@ -195,12 +221,13 @@ function Header({ bgColor }) {
                         >
                           <div className="menu-profile">
                             <img
-                              src="/jobPortal/assets/images/dashboard/images1.png"
+                              crossorigin="anonymous"
+                              src={profileImage}
                               className="rounded-circle"
-                              alt="image"
+                              alt="Profile"
                             />
                             <span className="name">
-                              My Account{" "}
+                              {t("header.myAccount")}
                               <i className="fa-solid fa-angle-down" />
                             </span>
                           </div>
@@ -209,18 +236,14 @@ function Header({ bgColor }) {
                           <div className="dropdown-header d-flex flex-column align-items-center">
                             <div className="figure mb-3">
                               <img
-                                src="/jobPortal/assets/images/dashboard/images1.png"
+                                crossorigin="anonymous"
+                                src={profileImage}
                                 className="rounded-circle"
-                                alt="image"
+                                alt="Profile"
                               />
                             </div>
                             <div className="info text-center">
                               {(() => {
-                                const firstName =
-                                  localStorage.getItem("first_name");
-                                const lastName =
-                                  localStorage.getItem("last_name");
-
                                 const hasValidName =
                                   (firstName &&
                                     firstName !== "null" &&
@@ -262,7 +285,7 @@ function Header({ bgColor }) {
                             </div>
                           </div>
 
-                          {localStorage.getItem("user_email") && (
+                          {localStorage.getItem("is_completed") === "true" && (
                             <div className="dropdown-body">
                               <ul className="profile-nav p-0 pt-3">
                                 <li className="nav-item active">
@@ -281,13 +304,30 @@ function Header({ bgColor }) {
                                       />
                                     </span>
                                     <span className="menu-title">
-                                      Dashboard
+                                      {t("header.dashboard")}
                                     </span>
                                   </Link>
                                 </li>
                               </ul>
                             </div>
                           )}
+                          {/* {userRole !== "JobSeeker" && (
+                            <div className="dropdown-body">
+                              <ul className="profile-nav p-0 pt-3">
+                                <li className="nav-item active">
+                                  <Link to="/setting" className="nav-link">
+                                    <span className="icon">
+                                      <img
+                                        src="/jobPortal/assets/images/svg-icon/icon-9.svg"
+                                        alt="Dashboard"
+                                      />
+                                    </span>
+                                    <span className="menu-title">Setting</span>
+                                  </Link>
+                                </li>
+                              </ul>
+                            </div>
+                          )} */}
                           <div className="dropdown-footer">
                             <ul className="profile-nav">
                               <li className="nav-item">
@@ -303,7 +343,7 @@ function Header({ bgColor }) {
                                     src="/jobPortal/assets/images/svg-icon/icon-11.svg"
                                     alt="Image"
                                   />
-                                  <span>Logout</span>
+                                  <span>{t("header.logout")}</span>
                                 </button>
                               </li>
                             </ul>
@@ -367,13 +407,14 @@ function Header({ bgColor }) {
                     </>
                   )}
                 </div>
-                <div className="header-language-toggleg">
+                <div className="header-language-toggle">
                   <select
-                    className="form-select form-control"
-                    aria-label="Default select example"
+                    className="form-select"
+                    value={i18n.language}
+                    onChange={(e) => i18n.changeLanguage(e.target.value)}
                   >
-                    <option selected>English</option>
-                    <option value={1}>French</option>
+                    <option value="en">Eng</option>
+                    <option value="fr">Fr</option>
                   </select>
                 </div>
               </div>
@@ -461,10 +502,7 @@ function Header({ bgColor }) {
                       </div>
                     </button>
 
-                    <button
-                      className="default-btn btn"
-                      onClick={() => googleLogin()}
-                    >
+                    <button className="default-btn btn" onClick={() => login()}>
                       <div className="social-icon">
                         <img
                           src="/jobPortal/assets/images/icon/Google-icon.png"
@@ -502,8 +540,7 @@ function Header({ bgColor }) {
             </div>
           </div>
         </div>
-        {/*Login Modal */}
-        {/* Register Modal */}
+
         <div className="register-modal-info">
           <div
             className="modal fade"

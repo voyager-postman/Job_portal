@@ -53,7 +53,11 @@ import EmailOTPVerification from "./Pages/EmailOTPVerification";
 import VerifiedCancel from "./Pages/VerifiedCancel";
 import AccountVerified from "./Pages/AccountVerified";
 import Varification from "./Pages/Varification";
-import JobDetalsInfo from "./Pages/JobDetalsInfo";
+import PrivecyPolicy from "./Pages/PrivecyPolicy";
+import TearmCondition from "./Pages/TearmCondition";
+import Blog from "./Pages/Blog";
+import BlogDetails from "./Pages/BlogDetails";
+import Setting from "./Pages/Setting";
 
 // "build 04-09-2025"
 function LayoutWrapper() {
@@ -76,7 +80,9 @@ function LayoutWrapper() {
     "/messaging-system",
     "/employer-profile",
     "/job-details-form",
-    "/job-details",
+    "/job-details-list",
+    // "/job-details",
+
     "/candidate-dashboard",
     "/chat-messaging-system",
     "/applied-jobs-list",
@@ -104,6 +110,7 @@ function LayoutWrapper() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verification" element={<Varification />} />
+
         <Route path="/account-verified" element={<AccountVerified />} />
         <Route path="/verified-cancel" element={<VerifiedCancel />} />
 
@@ -114,6 +121,9 @@ function LayoutWrapper() {
         <Route path="/email-verification" element={<EmailOTPVerification />} />
 
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/privacy-policy" element={<PrivecyPolicy />} />
+        <Route path="/terms-condition" element={<TearmCondition />} />
+
         <Route path="/employers" element={<Employers />} />
         <Route path="/faq" element={<Faq />} />
         <Route
@@ -121,6 +131,10 @@ function LayoutWrapper() {
           element={<EmployerCandinateList />}
         />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/blog" element={<Blog />} />
+
+        <Route path="/blogDetails" element={<BlogDetails />} />
+
         <Route path="/employer-home" element={<EmployerHomePage />} />
         <Route
           path="/employer-basic-info"
@@ -214,30 +228,9 @@ function LayoutWrapper() {
           }
         />
 
-        <Route
-          path="/companies-details"
-          element={
-            <PrivateRoute>
-              <CompanyDetailsPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/job-details"
-          element={
-            <PrivateRoute>
-              <JobDetails />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/job-details-info"
-          element={
-            <PrivateRoute>
-              <JobDetalsInfo />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/companies-details" element={<CompanyDetailsPage />} />
+        <Route path="/job-details/:id" element={<JobDetails />} />
+
         <Route
           path="/job-details-list"
           element={
@@ -275,6 +268,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <EmployerDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/setting"
+          element={
+            <PrivateRoute>
+              <Setting />
             </PrivateRoute>
           }
         />
@@ -350,14 +351,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         ></Route>
-        <Route
-          path="/companies-list"
-          element={
-            <PrivateRoute>
-              <Companies />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/companies-list" element={<Companies />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showFooter && <Footer />}

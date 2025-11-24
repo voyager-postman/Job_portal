@@ -4,17 +4,19 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect, useRef, useState } from "react";
 import mixitup from "mixitup";
+import axios from "axios";
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
 import { useInView } from "react-intersection-observer";
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
 import "odometer/themes/odometer-theme-default.css";
 import "owl.carousel/dist/assets/owl.carousel.css";
 import "owl.carousel/dist/assets/owl.theme.default.css";
 import OwlCarousel from "react-owl-carousel3";
 import { Link } from "react-router-dom";
-import axios from "axios";
-import { API_BASE_URL } from "../Url/Url";
-
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { useTranslation } from "react-i18next";
 const NextArrow = ({ onClick }) => (
   <button className="custom-arrow next-arrow" onClick={onClick}>
     <FaArrowRight />
@@ -27,7 +29,7 @@ const PrevArrow = ({ onClick }) => (
   </button>
 );
 
-const categories = [
+const categories1 = [
   { icon: "flaticon-web-development", label: "Development (55)" },
   { icon: "flaticon-customer-support", label: "Information IT (25)" },
   { icon: "flaticon-business", label: "Corporate Job (47)" },
@@ -56,13 +58,84 @@ const reviews = [
   // repeat or map more if needed
 ];
 function Home() {
+  const { t, i18n } = useTranslation("global");
+  const userRole = localStorage.getItem("user_role");
+  const navigate = useNavigate();
+  const [jobList, setJobList] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [filters, setFilters] = useState({
+    keywords: "",
+    location: "",
+    category: "",
+  });
+  const getCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
+      setCategories(res.data.jobCategories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+  const getAllJobList = async (limit = 6, page = 1) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
+        params: { limit, page }, // ✅ send limit & page to API
+      });
+
+      // ✅ If your API respects limit, it will return only 6 jobs
+      // But if not, we’ll still slice the data to show only 6
+      const jobs = res.data?.jobs || [];
+      setJobList(jobs.slice(0, limit));
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  useEffect(() => {
+    getAllJobList(6, 1); // ✅ Fetch only 6 jobs by default on first load
+  }, []);
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Build query params
+    const queryParams = new URLSearchParams();
+    if (filters.keywords) queryParams.append("keywords", filters.keywords);
+    if (filters.location) queryParams.append("location", filters.location);
+    if (filters.category) queryParams.append("category", filters.category);
+
+    // Navigate to job-search with params
+    navigate(`/jobs?${queryParams.toString()}`);
+  };
+
+  const getCompanyList = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`);
+
+      if (res.data.success) {
+        setCompanies(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching company list:", error);
+    }
+  };
+  useEffect(() => {
+    getCompanyList();
+  }, []);
   const containerRef = useRef(null);
-  const [categoryList, setCategoryList] = useState([]);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
     triggerOnce: true,
   });
-
+  const handleViewCompany = (company) => {
+    navigate("/companies-details", {
+      state: { companyId: company }, // 👈 send ID as prop-like data
+    });
+  };
   const stats = [
     { icon: "flaticon-bag", count: 15000, label: "Jobs Added", showPlus: true },
     { icon: "flaticon-office-building", count: 123842, label: "Companies" },
@@ -231,47 +304,42 @@ function Home() {
       { breakpoint: 480, settings: { slidesToShow: 1 } },
     ],
   };
-
-  const fetchCategory = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}getJobCategory`);
-      // console.log(response.data.jobCategories);
-      setCategoryList(response.data.jobCategories);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategory();
-  }, []);
-
   return (
     <>
       <div className="banner-area bg-f0f4fc">
         <div className="container-fluid">
           <div className="row align-items-center">
-            <div className="col-lg-6">
+            <div className="col-lg-7">
               <div className="banner-content">
                 <div className="banner-title">
-                  <span className="homespan">Looking For A Job!</span>
+                  <span className="homespan">{t("header.lookingForJob")}</span>
                   <h1>
-                    Find Your Career To{" "}
-                    <span className="oragneColor">Make A Better</span> Life
+                    {t("header.findYourCareerTo")}{" "}
+                    <span className="oragneColor">
+                      {t("header.makeABetter")}
+                    </span>{" "}
+                    {t("header.life")}
                   </h1>
                 </div>
                 <div className="serech-over">
-                  <span>Search Over 70,000 Jobs Today!</span>
+                  <span>{t("header.searchJobsToday")}</span>
                 </div>
                 <div className="banner-search-form">
-                  <form>
+                  <form onSubmit={handleSubmit}>
                     <div className="row g-0">
                       <div className="col-lg-3 col-sm-6">
                         <div className="form-group">
                           <input
                             className="form-control"
                             type="text"
-                            placeholder="Job Title"
+                            placeholder={t("header.jobTitle")}
+                            value={filters.keywords}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                keywords: e.target.value,
+                              })
+                            }
                           />
                           <i className="flaticon-portfolio" />
                         </div>
@@ -281,18 +349,34 @@ function Home() {
                           <input
                             className="form-control"
                             type="text"
-                            placeholder="Location"
+                            placeholder={t("header.location")}
+                            value={filters.location}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                location: e.target.value,
+                              })
+                            }
                           />
                           <i className="flaticon-location" />
                         </div>
                       </div>
                       <div className="col-lg-3 col-sm-6">
                         <div className="form-group style">
-                          <select className="form-select form-control">
-                            <option selected>Category</option>
-                            {categoryList.map((list) => (
-                              <option value={list.name} key={list._id}>
-                                {list.name}
+                          <select
+                            className="form-select form-control"
+                            value={filters.category}
+                            onChange={(e) =>
+                              setFilters({
+                                ...filters,
+                                category: e.target.value,
+                              })
+                            }
+                          >
+                            <option value=""> {t("header.category")}</option>
+                            {categories.map((cat) => (
+                              <option key={cat._id} value={cat._id}>
+                                {cat.name}
                               </option>
                             ))}
                           </select>
@@ -303,7 +387,7 @@ function Home() {
                         <div className="search-btn">
                           <button type="submit" className="default-btn btn">
                             <i className="flaticon-search" />
-                            Search Jobs
+                            {t("header.searchJobsBtn")}
                           </button>
                         </div>
                       </div>
@@ -313,7 +397,7 @@ function Home() {
                 <div className="trending-keywords">
                   <ul>
                     <li>
-                      <span>Trending Keywords:</span>
+                      <span>{t("header.trendingKeywords")}:</span>
                     </li>
                     <li>
                       <a href="/">Design</a>
@@ -343,7 +427,7 @@ function Home() {
                 </div>
               </div>
             </div>
-            <div className="col-lg-6">
+            <div className="col-lg-5">
               <div className="banner-image-content">
                 <div className="row aligns-item-center">
                   <div className="col-lg-6 col-sm-6 col-6">
@@ -418,24 +502,7 @@ function Home() {
                   <h3>50K+</h3>
                   <span>Assisted Candidate</span>
                 </div>
-                <div
-                  className="join-now"
-                  data-aos="fade-down-right"
-                  data-aos-duration={1500}
-                  data-aos-delay={800}
-                >
-                  <div className="sm-img">
-                    <img
-                      src="/jobPortal/assets/images/banner/banner-sm-1.png"
-                      alt="Image"
-                    />
-                  </div>
-                  <h3>Web Development Class</h3>
-                  <span>Today at 12.00 PM</span>
-                  <a href="#" className="default-btn btn">
-                    Join Now
-                  </a>
-                </div>
+
                 <div
                   className="creative-agency d-none"
                   data-aos="fade-down-left"
@@ -458,54 +525,82 @@ function Home() {
         <div className="container">
           <div className="section-title text-center">
             <h2>
-              Companies of <label className="oragneColor">the Week</label>
+              {t("header.companiesOf")}{" "}
+              <label className="oragneColor">{t("header.theWeek")}</label>
             </h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt.
-            </p>
           </div>
 
           <OwlCarousel className="owl-theme" {...options}>
-            {[...Array(6)].map((_, index) => (
-              <div className="item" key={index}>
-                <div className="companies-week-box-info">
-                  <div className="companies-week-logo">
-                    <img
-                      src="/jobPortal/assets/images/partner-logo/partner-logo-2.png"
-                      alt="logo"
-                    />
+            {companies?.companies?.length > 0 ? (
+              companies.companies.map((item) => {
+                const company = item?.companyId;
+                return (
+                  <div className="item" key={company?._id}>
+                    <div className="companies-week-box-info">
+                      {/* ✅ Company Logo */}
+                      <div className="companies-week-logo">
+                        <img
+                          crossOrigin="anonymous"
+                          src={
+                            company?.logo
+                              ? `${API_IMAGE_URL}${company.logo}`
+                              : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                          }
+                          alt={company?.brandName || "Company Logo"}
+                        />
+                      </div>
+
+                      {/* ✅ Company Background Image */}
+                      <div className="companies-week-img">
+                        <img
+                          crossOrigin="anonymous"
+                          src={
+                            company?.coverPhoto
+                              ? `${API_IMAGE_URL}${company.coverPhoto}`
+                              : "/jobPortal/assets/images/company/company-img-1.jpg"
+                          }
+                          alt={company?.brandName || "Company Cover"}
+                        />
+                      </div>
+
+                      {/* ✅ Company Details */}
+                      <div className="companies-week-content">
+                        <h4>{company?.brandName || "Unnamed Company"}</h4>
+                        <ul>
+                          <li>
+                            <i className="fa-solid fa-location-dot" />{" "}
+                            {company?.city || "Location not available"}
+                          </li>
+                          <li>
+                            <i className="fa-solid fa-user" />{" "}
+                            {company?.numberOfEmployees || "N/A"}
+                          </li>
+                          <li>
+                            <i className="fa-solid fa-globe" />{" "}
+                            {company?.industry?.name ||
+                              "Industry not specified"}
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* ✅ View Button */}
+                      <div className="available-company-btn">
+                        <button
+                          className="default-btn btn"
+                          onClick={() => handleViewCompany(company?._id)}
+                        >
+                          {t("header.viewCompany")}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="companies-week-img">
-                    <img
-                      src="/jobPortal/assets/images/company/company-img-1.jpg"
-                      alt="company"
-                    />
-                  </div>
-                  <div className="companies-week-content">
-                    <h4>Hauts De Seine Department</h4>
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-location-dot" />{" "}
-                        Levallois-Perret
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-user" /> 1000 - 20000
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-globe" /> Technicien support
-                        VIP Anglais
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="available-company-btn">
-                    <Link to="/companies-details" className="default-btn btn">
-                      View Company
-                    </Link>
-                  </div>
-                </div>
+                );
+              })
+            ) : (
+              <div className="item">
+                <p className="text-center mt-4">{t("header.noCompanies")}</p>
               </div>
-            ))}
+            )}
           </OwlCarousel>
         </div>
       </section>
@@ -514,67 +609,14 @@ function Home() {
         <div className="container">
           <div className="section-title">
             <h2>
-              Most Demanded Jobs{" "}
-              <label className="oragneColor">Categories</label>{" "}
+              {t("header.mostDemandedJobs")}{" "}
+              <label className="oragneColor">{t("header.categories")}</label>{" "}
             </h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt.
-            </p>
           </div>
-          {/* <div className="category-slider owl-carousel owl-theme">
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-web-development" />
-              </div>
-              <h3>Development (55)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-customer-support" />
-              </div>
-              <h3>Information IT (25)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-business" />
-              </div>
-              <h3>Corporate Job (47)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-business-1" />
-              </div>
-              <h3>Business Policy (69)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-web-development" />
-              </div>
-              <h3>Development (55)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-customer-support" />
-              </div>
-              <h3>Information IT (25)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-office-building" />
-              </div>
-              <h3>Corporate Job (47)</h3>
-            </div>
-            <div className="single-category-card">
-              <div className="icon">
-                <i className="flaticon-business" />
-              </div>
-              <h3>Business Policy (69)</h3>
-            </div>
-          </div>  */}
+
           <div className="category-slider-wrapper">
             <Slider {...settings3}>
-              {categories.map((cat, i) => (
+              {categories1?.map((cat, i) => (
                 <div key={i} className="category-slide">
                   <div className="single-category-card">
                     <div className="icon">
@@ -592,566 +634,107 @@ function Home() {
         <div className="container">
           <div className="section-title">
             <h2>
-              Find Your Best <label className="oragneColor">Jobs</label>
+              {t("header.findYourBest")}{" "}
+              <label className="oragneColor">{t("header.jobs")} </label>
             </h2>
-            <p>155 jobs live - 30 added today</p>
+            <p>
+              155 {t("header.jobsLive")} - 30 {t("header.addedToday")}
+            </p>
           </div>
-          <div className="shoting-btn">
-            <ul>
-              <li>
-                <button className="filter" data-filter="all">
-                  All Categories
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".design">
-                  Design
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".marketing">
-                  Marketing
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".service">
-                  Service
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".health-care">
-                  Health Care
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".writing">
-                  Writing
-                </button>
-              </li>
-              <li>
-                <button className="filter" data-filter=".business">
-                  Business
-                </button>
-              </li>
-            </ul>
-          </div>
+          <div className="shoting-btn"></div>
           <div
             id="Container"
             className="row justify-content-center"
             ref={containerRef}
           >
-            <div className="col-lg-4 col-md-6 mix marketing writing">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-1.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
+            {jobList.length > 0 ? (
+              jobList.map((job, index) => (
+                <div
+                  key={job._id || index}
+                  className="col-lg-4 col-md-6 mix design service writing"
+                >
+                  <div className="single-job-card">
+                    <div className="job-image">
+                      <Link to={`/job-details/${job._id}`}>
+                        <img
+                          crossorigin="anonymous"
+                          src={
+                            job?.JobCoverPhoto
+                              ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
+                              : "/jobPortal/assets/images/job/job-img-6.jpg"
+                          }
+                          alt={job.title}
+                        />
+                      </Link>
+                      {job.isUrgent && <span className="urgent">Urgent</span>}
                     </div>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      UI/UX Design Pattern For Successful Software Applications
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />3 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-2.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>Solit IT Solution</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 mix design health-care business">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-2.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
+
+                    <div className="job-content">
+                      <span className="time">
+                        {job.employmentType || "N/A"}
+                      </span>
+                      <h2>
+                        <Link to={`/job-details/${job._id}`}>
+                          {job.jobTitle}
+                        </Link>
+                      </h2>
+
+                      <div className="info">
+                        <ul>
+                          <li>
+                            <i className="flaticon-time" />
+                            {moment(job?.createdAt).fromNow()}
+                          </li>
+                          <li>
+                            <i className="flaticon-location" />
+                            {job?.city || "N/A"}{" "}
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="bottom-content">
+                        <ul className="d-flex justify-content-between">
+                          <li>
+                            <div className="left-content">
+                              <div className="icon">
+                                <img
+                                  crossorigin="anonymous"
+                                  src={
+                                    job?.logo
+                                      ? `${API_IMAGE_URL}${job.logo}`
+                                      : "/jobPortal/assets/images/icon/icon-7.png"
+                                  }
+                                  alt="Company Logo"
+                                />
+                              </div>
+                              <span>{job.brandName || "N/A"}</span>
+                            </div>
+                          </li>
+                          <li>
+                            <h3>
+                              ${job?.privatJobDetails?.minSalary}
+                              <span>/{t("header.month")}</span>
+                            </h3>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
-                  </a>
-                  <a href="#">
-                    <span className="urgent">Urgent</span>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      Basic Knowldge About Hodiernal Bharat In History
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />5 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-3.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>Constik Solution</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 mix service health-care business">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-3.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
-                    </div>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      Visual Effects For Games In Unity Beginner To Intermediate
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />8 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-4.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>Medizo Health Care</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 mix design marketing writing">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-4.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
-                    </div>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      The Complete Accounting &amp; Bank Financial Course 2024
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />4 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-5.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>INVA Business Solution</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 mix service health-care business">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-5.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
-                    </div>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      The Complete Business Plan Course Includes 40 Templates
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />8 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-6.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>Pufo Corporation</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 mix design service writing">
-              <div className="single-job-card">
-                <div className="job-image">
-                  <Link to="/job-details">
-                    <img
-                      src="/jobPortal/assets/images/job/job-img-6.jpg"
-                      alt="Image"
-                    />
-                  </Link>
-                  <a href="#">
-                    <div className="bookmark">
-                      <i className="flaticon-bookmark" />
-                    </div>
-                  </a>
-                  <a href="#">
-                    <span className="urgent">Urgent</span>
-                  </a>
-                </div>
-                <div className="job-content">
-                  <span className="time">Fulltime</span>
-                  <h2>
-                    <Link to="/job-details">
-                      Full Web Designing Course With 20 Web Template Designing
-                    </Link>
-                  </h2>
-                  <div className="info">
-                    <ul>
-                      <li>
-                        <i className="flaticon-time" />2 Days Left
-                      </li>
-                      <li>
-                        <i className="flaticon-location" />
-                        42, Malsh Street, USA
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="bottom-content">
-                    <ul className="d-flex justify-content-between">
-                      <li>
-                        <div className="left-content">
-                          <div className="icon">
-                            <img
-                              src="/jobPortal/assets/images/icon/icon-7.png"
-                              alt="Logo"
-                            />
-                          </div>
-                          <span>Abaz News Magazine</span>
-                        </div>
-                      </li>
-                      <li>
-                        <h3>
-                          $120 <span>/Month</span>
-                        </h3>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+              ))
+            ) : (
+              <p className="text-center">{t("header.noJobsAvailable")}</p>
+            )}
           </div>
+
           <div className="text-center">
             <Link to="/jobs" className="default-btn btn">
-              Browse All Jobs
+              {t("header.browseAllJobs")}
             </Link>
           </div>
         </div>
       </div>
-      <div className="reviews-area bg-f0f5f7 ptb-100">
-        <div className="container">
-          <div className="section-title">
-            <h2>
-              <label className="oragneColor">Review</label> Of The Users
-            </h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod
-            </p>
-          </div>
-          {/* <div className="reviews-slider owl-carousel owl-theme">
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Nikolas Brooten</h3>
-                <span>Digital Marketer</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Terry Ambady</h3>
-                <span>IT Specialist</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Camelia Renesa</h3>
-                <span>President Of Sale</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Nikolas Brooten</h3>
-                <span>Digital Marketer</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Terry Ambady</h3>
-                <span>IT Specialist</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-            <div className="single-reviews-card bu">
-              <div className="ratings">
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-                <i className="fa-solid fa-star" />
-              </div>
-              <p>
-                “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                justo, congue sit amet massa vel, porttitor semper magna. Orci
-                varius natoque penatibus et magnis dis parturient”
-              </p>
-              <div className="clien-info">
-                <h3>Camelia Renesa</h3>
-                <span>President Of Sale</span>
-              </div>
-              <div className="quote">
-                <i className="fa-solid fa-quote-left" />
-              </div>
-            </div>
-          </div> */}
-          <div className="reviews-slider-wrapper">
-            <Slider {...settings1}>
-              {reviews.map((item, idx) => (
-                <div key={idx} className="single-reviews-card">
-                  <div className="ratings">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="star" />
-                    ))}
-                  </div>
-                  <p>{item.text}</p>
-                  <div className="client-info">
-                    <h3>{item.name}</h3>
-                    <span>{item.role}</span>
-                  </div>
-                  <div className="quote-icon">
-                    <FaQuoteLeft />
-                  </div>
-                </div>
-              ))}
-            </Slider>
-          </div>
-        </div>
-      </div>
+
       <div className="counter-area" ref={ref}>
         <div className="container">
           <div className="counter-overly">
@@ -1211,20 +794,16 @@ function Home() {
                     </div>
                   </div>
                 </div>
-                <div className="inbox">
-                  <div className="icon">
-                    <i className="fa-regular fa-envelope" />
-                  </div>
-                  <h3>Inbox</h3>
-                  <span>Work With Us!</span>
-                </div>
               </div>
             </div>
             <div className="col-lg-6">
               <div className="cv-content pl-15">
                 <h2>
-                  Put Your CV In Front Of The Great For{" "}
-                  <label class="oragneColor">Employers To See</label>
+                  {t("header.putYourCVFront")}{" "}
+                  <label class="oragneColor">
+                    {" "}
+                    {t("header.employersToSee")}
+                  </label>
                 </h2>
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
@@ -1234,14 +813,7 @@ function Home() {
                 </p>
                 <div className="cv-btn">
                   <a href="#!" className="default-btn btn mr-20">
-                    Upload Your CV
-                  </a>
-                  <a
-                    className="popup-youtube video-btn"
-                    href="https://www.youtube.com/watch?v=6WQCJx_vEX4"
-                  >
-                    <i className="fa-solid fa-play" />
-                    CEO Message
+                    {t("header.uploadYourCV")}
                   </a>
                 </div>
               </div>
@@ -1253,7 +825,7 @@ function Home() {
         <div className="container">
           <div className="partner-title">
             <h3>
-              Top Hiring <label class="oragneColor">Company</label>
+              <label class="oragneColor"> {t("header.company")}</label>
             </h3>
           </div>
           <Slider {...settings4} className="partner-slider">
@@ -1271,92 +843,7 @@ function Home() {
           </Slider>
         </div>
       </div>
-      <div className="job-location bg-f0f5f7 ptb-100">
-        <div className="container">
-          <div className="section-title">
-            <h2>
-              Popular Job <label class="oragneColor">Location</label>
-            </h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod
-            </p>
-          </div>
-          {/* <div className="job-location-slider owl-carousel owl-theme">
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-7.jpg" alt="Image" />
-              <span>3 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Kabul, Afganistan</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-8.jpg" alt="Image" />
-              <span>6 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Austria, Vienna</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-9.jpg" alt="Image" />
-              <span>2 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Tirana, Albania</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-10.jpg" alt="Image" />
-              <span>8 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Cardiff, UK</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-7.jpg" alt="Image" />
-              <span>3 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Kabul, Afganistan</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-8.jpg" alt="Image" />
-              <span>6 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Austria, Vienna</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-9.jpg" alt="Image" />
-              <span>2 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Tirana, Albania</a>
-              </h3>
-            </div>
-            <div className="job-location-card">
-              <img src="/jobPortal/assets/images/job/job-img-10.jpg" alt="Image" />
-              <span>8 Open Job</span>
-              <h3>
-                <a href="job-listing.html">Cardiff, UK</a>
-              </h3>
-            </div>
-          </div> */}
-          <div className="job-location-slider-wrapper">
-            <Slider {...settings2}>
-              {jobs.map((job, index) => (
-                <div key={index} className="job-location-slide">
-                  <div className="job-location-card">
-                    <img src={job.image} alt={job.title} />
-                    <span className="job-count">{job.count}</span>
-                    <h3>
-                      <a href="#">{job.title}</a>
-                    </h3>
-                  </div>
-                </div>
-              ))}
-            </Slider>
-          </div>
-        </div>
-      </div>
+
       <div className="freelancer-area pt-100 pb-70">
         <div className="container">
           <div className="freelancer-top-content">
@@ -1364,17 +851,21 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                    Highest Rated <label class="oragneColor">Freelancers</label>
+                   {t("header.highestRated")} <label class="oragneColor">{t("header.freelancers")}</label>
                   </h2>
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod
-                  </p>
                 </div>
               </div>
               <div className="col-lg-4">
                 <div className="browse-btn">
-                  <a href="#">Browse All Candidates</a>
+                  <Link
+                    to={
+                      userRole === "Recruiter" || userRole === "Company"
+                        ? "/candidates-search"
+                        : "/employer-login"
+                    }
+                  >
+                    {t("header.browseAllCandidates")}
+                  </Link>
                 </div>
               </div>
             </div>
@@ -1390,19 +881,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-1.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-1.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Jequline Fenda</h3>
-                      </a>
+                      <h3>Jequline Fenda</h3>
+
                       <span>IT Developer</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1438,19 +926,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-2.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-2.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Thomas Abedin</h3>
-                      </a>
+                      <h3>Thomas Abedin</h3>
+
                       <span>Software Engineer</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1486,19 +971,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-3.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-3.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Jean Burke</h3>
-                      </a>
+                      <h3>Jean Burke</h3>
+
                       <span>Graphics Designer</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1534,19 +1016,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-4.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-4.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Robin William</h3>
-                      </a>
+                      <h3>Robin William</h3>
+
                       <span>Manager Support</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1582,19 +1061,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-5.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-5.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Tom Henry</h3>
-                      </a>
+                      <h3>Tom Henry</h3>
+
                       <span>Director At School</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1630,19 +1106,16 @@ function Home() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/freelancers/freelancers-img-6.jpg"
-                          alt="Image"
-                        />
-                      </a>
+                      <img
+                        src="/jobPortal/assets/images/freelancers/freelancers-img-6.jpg"
+                        alt="Image"
+                      />
                     </div>
                   </div>
                   <div className="col-lg-8">
                     <div className="freelancer-content">
-                      <a href="#">
-                        <h3>Jubra Ward</h3>
-                      </a>
+                      <h3>Jubra Ward</h3>
+
                       <span>CEO Founder</span>
                       <div className="ratings">
                         <i className="fa-solid fa-star" />
@@ -1735,34 +1208,38 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                    Read Our Article To{" "}
-                    <label class="oragneColor">Get Tricks</label>{" "}
+                  {t("header.readArticleTo")}{" "}
+                    <label class="oragneColor"> {t("header.getTricks")}</label>{" "}
                   </h2>
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod dolore magna
-                  </p>
                 </div>
               </div>
               <div className="col-lg-4">
                 <div className="browse-btn">
-                  <a href="#">Browse All Candidates</a>
+                  <Link
+                    to={
+                      userRole === "Recruiter" || userRole === "Company"
+                        ? "/candidates-search"
+                        : "/employer-login"
+                    }
+                  >
+                   {t("header.browseAllCandidates")}
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
           <div className="row">
-            <div className="col-lg-8">
+            <div className="col-lg-12">
               <div className="row">
                 <div
-                  className="col-lg-6 col-md-6"
+                  className="col-lg-4 col-md-6"
                   data-aos=""
                   data-aos-duration={1200}
                   data-aos-delay={200}
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="#">
+                      <a href="blog-details.html">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-1.jpg"
                           alt="Image"
@@ -1783,7 +1260,7 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="#">
+                        <a href="blog-details.html">
                           The Internet Is A Job Seeker Most Crucial Success
                         </a>
                       </h2>
@@ -1791,21 +1268,21 @@ function Home() {
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="#" className="read-more">
+                      <a href="blog-details.html" className="read-more">
                         Read More
                       </a>
                     </div>
                   </div>
                 </div>
                 <div
-                  className="col-lg-6 col-md-6"
+                  className="col-lg-4 col-md-6"
                   data-aos=""
                   data-aos-duration={1200}
                   data-aos-delay={400}
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="#">
+                      <a href="blog-details.html">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-2.jpg"
                           alt="Image"
@@ -1826,7 +1303,7 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="#">
+                        <a href="blog-details.html">
                           Today From Connecting With Potential Employers
                         </a>
                       </h2>
@@ -1834,144 +1311,52 @@ function Home() {
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="#" className="read-more">
+                      <a href="blog-details.html" className="read-more">
                         Read More
                       </a>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-lg-4">
-              <div className="row justify-content-center">
                 <div
-                  className="col-lg-12 col-md-6"
+                  className="col-lg-4 col-md-6"
                   data-aos=""
                   data-aos-duration={1200}
                   data-aos-delay={400}
                 >
-                  <div className="single-blog-card style2">
-                    <div className="row">
-                      <div className="col-lg-4 col-sm-4">
-                        <div className="blog-img">
-                          <a href="#">
-                            <img
-                              src="/jobPortal/assets/images/blog/blog-img-3.jpg"
-                              alt="Image"
-                            />
-                          </a>
-                        </div>
-                      </div>
-                      <div className="col-lg-8 col-sm-8">
-                        <div className="blog-content">
-                          <div className="info-list">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-user" />
-                                <a href="#">Espinoza Lara</a>
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-calendar-days" /> Feb
-                                12, 2024
-                              </li>
-                            </ul>
-                          </div>
-                          <h2>
-                            <a href="#">The Most Popular Job in The Country</a>
-                          </h2>
-                          <a href="#" className="read-more">
-                            Read More
-                          </a>
-                        </div>
-                      </div>
+                  <div className="single-blog-card">
+                    <div className="blog-img">
+                      <a href="blog-details.html">
+                        <img
+                          src="/jobPortal/assets/images/blog/blog-img-6.jpg"
+                          alt="Image"
+                        />
+                      </a>
                     </div>
-                  </div>
-                </div>
-                <div
-                  className="col-lg-12 col-md-6"
-                  data-aos=""
-                  data-aos-duration={1200}
-                  data-aos-delay={600}
-                >
-                  <div className="single-blog-card style2">
-                    <div className="row">
-                      <div className="col-lg-4 col-sm-4">
-                        <div className="blog-img">
-                          <a href="#">
-                            <img
-                              src="/jobPortal/assets/images/blog/blog-img-4.jpg"
-                              alt="Image"
-                            />
-                          </a>
-                        </div>
+                    <div className="blog-content">
+                      <div className="info-list">
+                        <ul>
+                          <li>
+                            <i className="fa-solid fa-user" />
+                            <a href="#">Andrew Lawson</a>
+                          </li>
+                          <li>
+                            <i className="fa-solid fa-calendar-days" /> Feb 12,
+                            2024
+                          </li>
+                        </ul>
                       </div>
-                      <div className="col-lg-8 col-sm-8">
-                        <div className="blog-content">
-                          <div className="info-list">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-user" />
-                                <a href="#">Runald Jhon</a>
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-calendar-days" /> Feb
-                                12, 2024
-                              </li>
-                            </ul>
-                          </div>
-                          <h2>
-                            <a href="#">We’ve Weeded Through a Job Hunting</a>
-                          </h2>
-                          <a href="#" className="read-more">
-                            Read More
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="col-lg-12 col-md-6"
-                  data-aos=""
-                  data-aos-duration={1200}
-                  data-aos-delay={800}
-                >
-                  <div className="single-blog-card style2">
-                    <div className="row">
-                      <div className="col-lg-4 col-sm-4">
-                        <div className="blog-img">
-                          <a href="#">
-                            <img
-                              src="/jobPortal/assets/images/blog/blog-img-5.jpg"
-                              alt="Image"
-                            />
-                          </a>
-                        </div>
-                      </div>
-                      <div className="col-lg-8 col-sm-8">
-                        <div className="blog-content">
-                          <div className="info-list">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-user" />
-                                <a href="#">Michel Adward </a>
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-calendar-days" /> Feb
-                                12, 2024
-                              </li>
-                            </ul>
-                          </div>
-                          <h2>
-                            <a href="#">
-                              Find Thousand Job If You Ready To Get
-                            </a>
-                          </h2>
-                          <a href="#" className="read-more">
-                            Read More
-                          </a>
-                        </div>
-                      </div>
+                      <h2>
+                        <a href="blog-details.html">
+                          Today From Connecting With Potential Employers
+                        </a>
+                      </h2>
+                      <p>
+                        Lorem ipsum dolor sit amet, constetur adipiscing elit,
+                        sed do eiusmod tempor incididunt.
+                      </p>
+                      <a href="blog-details.html" className="read-more">
+                        Read More
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1986,15 +1371,15 @@ function Home() {
             <div className="col-lg-8 col-md-9">
               <div className="contact-left-content">
                 <h2>
-                  Find Your Next Great{" "}
-                  <label class="oragneColor">Job Opportunity!</label>
+                 {t("header.findNextGreat")}{" "}
+                  <label class="oragneColor">{t("header.jobOpportunity")}</label>
                 </h2>
               </div>
             </div>
             <div className="col-lg-4 col-md-3">
               <div className="contact-btn">
                 <Link to="/contact-us" className="default-btn btn">
-                  Contact Us Now
+                  {t("header.contactUsNow")}{" "}
                 </Link>
               </div>
             </div>

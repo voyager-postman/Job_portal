@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function Footer() {
+  const userRole = localStorage.getItem("user_role");
+
   const handleScrollTop = () => {
     window.scrollTo({
       top: 0,
@@ -68,10 +70,18 @@ function Footer() {
                       <Link to="/employers">Browse Companies </Link>
                     </li>
                     <li>
-                      <Link to="/">Upload Your Resume </Link>
+                      <Link
+                        to={
+                          userRole === "JobSeeker"
+                            ? "/candidate-profile"
+                            : "/login"
+                        }
+                      >
+                        Upload Your Resume
+                      </Link>
                     </li>
                     <li>
-                      <Link to="/faq">FAQ Jobseeker </Link>
+                      <Link to="/faq">FAQ JobSeeker </Link>
                     </li>
                   </ul>
                 </div>
@@ -83,7 +93,7 @@ function Footer() {
                     <li>
                       <Link
                         to={
-                          localStorage.getItem("token")
+                          userRole === "Recruiter" || userRole === "Company"
                             ? "/your-job-posts"
                             : "/employer-login"
                         }
@@ -130,7 +140,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-envelope" />
                       <h4>
-                        Email:{" "}
+                         Email :{" "}
                         <a href="mailto:info@companyname.com">
                           info@companyname.com
                         </a>

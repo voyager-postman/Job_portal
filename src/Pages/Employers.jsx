@@ -1,38 +1,120 @@
-import React from "react";
-import { Link } from "react-router-dom";
-
-const companiesData = [
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  {
-    logo: "assets/images/partner-logo/partner-logo-2.png",
-    img: "assets/images/company/company-img-1.jpg",
-    name: "Hauts De Seine Department",
-    location: "Levallois-Perret",
-    size: "1000 - 20000",
-    role: "Technicien support VIP Anglais",
-    link: "companies-details.html",
-  },
-  // You can add more companies here
-];
+import React, { useEffect, useState, useRef } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import Stack from "@mui/material/Stack";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Pagination from "@mui/material/Pagination"; // MUI one
 
 const Employers = () => {
+  const navigate = useNavigate();
+  const wrapperRef = useRef(null);
+  const [companies, setCompanies] = useState([]);
+  const [showOptions, setShowOptions] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // For searching
+  const [options, setOptions] = useState([]); // All industries from API
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  // ✅ Fetch Company List (with pagination + filters)
+  const getCompanyList = async (
+    industryIds = [],
+    page = 1,
+    limit = pageSize
+  ) => {
+    try {
+      const params = {
+        page,
+        limit,
+      };
+
+      if (industryIds.length > 0) {
+        params.industry = industryIds.join(",");
+      }
+
+      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+        params,
+      });
+
+      if (res.data.success) {
+        setCompanies(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching company list:", error);
+    }
+  };
+
+  // ✅ Re-fetch when pagination or filters change
+  useEffect(() => {
+    const selectedIndustryIds = selected.map((i) => i._id);
+    getCompanyList(selectedIndustryIds, pageNumber, pageSize);
+  }, [pageNumber, pageSize, selected]);
+
+  const totalPages = companies?.totalPages;
+  useEffect(() => {
+    getCompanyList();
+  }, []);
+  const handleViewCompany = (company) => {
+    navigate("/companies-details", {
+      state: { companyId: company }, // 👈 send ID as prop-like data
+    });
+  };
+
+  const clearAll = () => {
+    setSelected([]);
+    setSearchTerm("");
+    getCompanyList(); // Fetch all companies
+  };
+  const removeTag = (_id) => {
+    const newSelected = selected?.filter((i) => i._id !== _id);
+    setSelected(newSelected);
+
+    // Refetch companies based on updated industries
+    const selectedIndustryIds = newSelected?.map((i) => i._id);
+    getCompanyList(selectedIndustryIds);
+  };
+  const filteredOptions = options.filter((industry) =>
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  useEffect(() => {
+    const fetchIndustries = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getIndustries`);
+        if (res.data.success && Array.isArray(res.data.industries)) {
+          setOptions(res.data.industries);
+        }
+      } catch (err) {
+        console.error("Error fetching industries:", err);
+      }
+    };
+    fetchIndustries();
+  }, []);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const toggleOption = (industry) => {
+    let newSelected = [];
+    if (selected.some((i) => i._id === industry._id)) {
+      newSelected = selected.filter((i) => i._id !== industry._id);
+    } else {
+      newSelected = [...selected, industry];
+    }
+
+    setSelected(newSelected);
+
+    // Refetch companies based on updated industries
+    const selectedIndustryIds = newSelected.map((i) => i._id);
+    getCompanyList(selectedIndustryIds);
+  };
+  console.log(selected);
   return (
     <>
       <section className="inner-banners-info-area">
@@ -84,30 +166,75 @@ const Employers = () => {
                 </div>
                 <div className="divder-line-info"></div>
 
-                <div className="job-filter-search-area">
+                <div className="job-filter-search-area" ref={wrapperRef}>
                   <div className="job-filter-heading-cancel">
                     <div className="job-filter-heading">
                       <h4>
-                        <i className="fas fa-building"></i> Industry Sector
+                        <i className="fas fa-building" /> Industry Sector
                       </h4>
                     </div>
-                    <div className="job-filter-cancel-heading">
+                    <div
+                      className="job-filter-cancel-heading"
+                      onClick={clearAll}
+                    >
                       <h4>Clear</h4>
                     </div>
                   </div>
+
                   <div className="job-filter-select-info">
-                    <select
-                      className="form-select form-control"
-                      aria-label="Default select example"
-                    >
-                      <option defaultValue="">Select Industry</option>
-                      <option value="1">Agriculture</option>
-                      <option value="2">Air Transport</option>
-                      <option value="3">Automotive</option>
-                      <option value="4">Biotechnology</option>
-                      <option value="5">Chemicals</option>
-                      <option value="6">Construction</option>
-                    </select>
+                    <div className="multi-select-container">
+                      <div
+                        className="selected-items"
+                        onClick={() => setShowOptions(true)}
+                      >
+                        {/* Show first 2 selected industries and +X more if any */}
+                        {selected?.map((industry) => (
+                          <span key={industry?._id} className="tag">
+                            {industry?.name}
+                            <i
+                              className="fa-solid fa-xmark"
+                              style={{
+                                cursor: "pointer",
+                                marginLeft: "6px",
+                              }}
+                              onClick={() => removeTag(industry._id)}
+                            />
+                          </span>
+                        ))}
+                        <input
+                          type="text"
+                          placeholder="Search industries..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onFocus={() => setShowOptions(true)}
+                        />
+                      </div>
+
+                      {showOptions && (
+                        <ul className="options-list">
+                          {filteredOptions.length > 0 ? (
+                            filteredOptions.map((industry) => (
+                              <li
+                                key={industry._id}
+                                onClick={() => toggleOption(industry)}
+                                className={
+                                  selected.some((i) => i._id === industry._id)
+                                    ? "selected"
+                                    : ""
+                                }
+                              >
+                                {industry?.name}
+                                {selected.some(
+                                  (i) => i._id === industry._id
+                                ) && <span className="checkmark">✔</span>}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="no-options">No industries found</li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -118,52 +245,140 @@ const Employers = () => {
               <div className="available-company-list-info">
                 <div className="available-company-heading">
                   <h4>
-                    <i className="fa-solid fa-building"></i>{" "}
-                    {companiesData.length} companies available
+                    <i className="fa-solid fa-building" />
+                    {companies?.totalCompanies} companies available
                   </h4>
-                </div>
-
-                <div className="available-company-list-area">
-                  <div className="row">
-                    {companiesData.map((company, index) => (
-                      <div className="col-lg-4 col-md-4" key={index}>
-                        <div className="available-company-box-info">
-                          <div className="available-company-logo">
-                            <img src={company.logo} alt={company.name} />
-                          </div>
-                          <div className="available-company-img">
-                            <img src={company.img} alt={company.name} />
-                          </div>
-                          <div className="available-company-content">
-                            <h4>{company.name}</h4>
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-location-dot"></i>
-                                {company.location}
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-user"></i>
-                                {company.size}
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-globe"></i>
-                                {company.role}
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="available-company-btn">
-                            <Link
-                              to={`/companies-details`}
-                              className="default-btn btn"
-                            >
-                              View Company
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="job-alert-tag-btn">
+                    <div className="filter-tag-info-area">
+                      {selected.length > 0 &&
+                        selected.map((industry) => (
+                          <span key={industry._id} className="filter-tag">
+                            {industry.name}
+                            <i
+                              className="fa-solid fa-xmark"
+                              style={{
+                                cursor: "pointer",
+                                marginLeft: "6px",
+                              }}
+                              onClick={() => removeTag(industry._id)}
+                            />
+                          </span>
+                        ))}
+                    </div>
+                    {/* ✅ Show buttons only if any filter is selected */}
                   </div>
                 </div>
+                <div className="available-company-list-area">
+                  <div className="row">
+                    {companies?.companies?.length > 0 ? (
+                      companies?.companies?.map((item) => {
+                        const company = item?.companyId;
+                        return (
+                          <div className="col-lg-4 col-md-4" key={company?._id}>
+                            <div className="available-company-box-info">
+                              {/* ✅ Company Logo */}
+                              <div className="available-company-logo">
+                                <img
+                                  src={
+                                    company?.logo
+                                      ? `${API_IMAGE_URL}${company?.logo}`
+                                      : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                                  }
+                                  crossorigin="anonymous"
+                                  alt={company?.brandName || "Company Logo"}
+                                />
+                              </div>
+
+                              {/* ✅ Background/cover image (optional placeholder) */}
+                              <div className="available-company-img">
+                                <img
+                                  crossorigin="anonymous"
+                                  src={
+                                    company?.coverPhoto
+                                      ? `${API_IMAGE_URL}${company?.coverPhoto}`
+                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                  }
+                                  alt={company?.brandName || "Company Cover"}
+                                />
+                              </div>
+
+                              {/* ✅ Company Info */}
+                              <div className="available-company-content">
+                                <h4>
+                                  {company?.brandName || "Unnamed Company"}
+                                </h4>
+                                <ul>
+                                  <li>
+                                    <i className="fa-solid fa-location-dot" />{" "}
+                                    {company?.city || "Location not available"}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-user" />{" "}
+                                    {company?.numberOfEmployees || "N/A"}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-globe" />{" "}
+                                    {company?.industry?.name ||
+                                      "Industry not specified"}
+                                  </li>
+                                </ul>
+                              </div>
+
+                              {/* ✅ View Button */}
+                              <div className="available-company-btn">
+                                <button
+                                  className="default-btn btn"
+                                  onClick={() =>
+                                    handleViewCompany(company?._id)
+                                  }
+                                >
+                                  View Company
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-center mt-4">
+                        No companies available.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  justifyContent="center"
+                  sx={{ mt: 3 }}
+                >
+                  <Pagination
+                    count={companies?.totalPages || 1}
+                    page={pageNumber}
+                    onChange={(e, value) => setPageNumber(value)}
+                    variant="outlined"
+                    shape="rounded"
+                    color="secondary"
+                    siblingCount={2}
+                    boundaryCount={1}
+                  />
+
+                  <Select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(e.target.value);
+                      setPageNumber(1); // reset to first page
+                    }}
+                    size="small"
+                  >
+                    <MenuItem value={15}>15 / page</MenuItem>
+                    <MenuItem value={25}>25 / page</MenuItem>
+                    <MenuItem value={50}>50 / page</MenuItem>
+                    <MenuItem value={100}>100 / page</MenuItem>
+                  </Select>
+                </Stack>
               </div>
             </div>
           </div>

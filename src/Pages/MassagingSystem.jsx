@@ -9,10 +9,12 @@ function MassagingSystem() {
             <h1>Messages</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
+              <Link to="/employer-dashboard">
                 <i className="fa-solid fa-angle-right" /> Dashboard
+              </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" />Messages
@@ -23,7 +25,7 @@ function MassagingSystem() {
           {/*Start messaging system start here*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Massage</h3>
+              <h3>Message</h3>
               <div className="profile-form">
                 <div className="row">
                   <div className="messaging-system-info-area">

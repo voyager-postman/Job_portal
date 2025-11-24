@@ -1,5 +1,42 @@
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from "../Url/Url";
+import { API_IMAGE_URL } from "../Url/Url";
+import moment from "moment";
+
 function AppliedJobList() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500); // waits 500ms after user stops typing
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+  const fetchJobs = async (search = "") => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}getCompanyActiveJobs`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { search }, // ✅ pass search as query parameter
+      });
+      setJobs(res.data.jobs || []);
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs(debouncedSearch);
+  }, [debouncedSearch]);
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -9,7 +46,10 @@ function AppliedJobList() {
             <h1>Applied jobs List</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="#">Home </a>
+                <Link to="/">Home </Link>
+              </li>
+              <li className="item">
+                <Link to="/employer-dashboard"><i className="fa-solid fa-angle-right" /> Dashboard </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Applied jobs List
@@ -33,280 +73,87 @@ function AppliedJobList() {
                       className="form-control"
                       type="text"
                       placeholder="Search By: Keywords, Job Title"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)} // ✅ update search term
                     />
                   </div>
                 </div>
                 <div className="employer-candidate-btn-area">
-                  <a href="#" className="default-btn btn">
+                  <button
+                    className="default-btn btn"
+                    onClick={() => fetchJobs(searchTerm)} // ✅ Manual search trigger
+                  >
                     Find
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
-            <div className="available-job-posts-box">
-              <div className="available-job-company-name-save-job">
-                <div className="available-job-company-name">
-                  <a href="comapny-details-info.html">
-                    <h4>
-                      <img src="assets/images/icon/icon-26.png" /> Alibaba Cloud
-                    </h4>
-                  </a>
-                </div>
-                <div className="available-job-save-job">
-                  <a href="https://www.linkedin.com/login" target="_blank">
-                    <i className="fa-brands fa-linkedin-in" />
-                  </a>
-                  <a href="https://www.facebook.com/" target="_blank">
-                    <i className="fa-brands fa-facebook-f" />
-                  </a>
-                  <a href="https://web.whatsapp.com/" target="_blank">
-                    <i className="fa-brands fa-whatsapp" />
-                  </a>
-                </div>
-              </div>
-              <Link to="/job-details">
-                <div className="available-job-type-details">
-                  <h5>
-                    Alibaba Cloud-Facility Operation Manager-Paris, France
-                  </h5>
-                  <ul>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 3 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> 5 Years
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-location-dot" /> Paris
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Information Systems /
-                      Networks
-                    </li>
-                  </ul>
-                </div>
-              </Link>
-              <div className="total-applicants-info">
-                <Link to="/application-management">
-                  <p>Applicants: 100</p>
+
+            {jobs.length === 0 ? (
+              <p>No jobs found.</p>
+            ) : (
+              jobs.map((job, index) => (
+                <Link
+                  key={job._id}
+                  to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                  className="job-link"
+                >
+                  <div className="available-job-posts-box">
+                    <div className="available-job-company-name-save-job">
+                      <div className="available-job-company-name">
+                        <h4>
+                          <img
+                            crossorigin="anonymous"
+                            src={
+                              job?.JobCoverPhoto
+                                ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
+                                : "assets/images/icon/icon-26.png"
+                            }
+                            alt="logo"
+                          />
+                          {job?.jobTitle}
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="available-job-type-details">
+                      <h5>
+                        <p>{job?.shortDescription}</p>
+                      </h5>
+                      <ul>
+                        <li>
+                          <i className="fa-regular fa-calendar" />{" "}
+                          {moment(job?.createdAt).fromNow()}
+                        </li>
+                        {/* <li>
+                            <i className="fa-regular fa-file" /> 5 Years
+                          </li> */}
+                        <li>
+                          <i className="fa-regular fa-user" />
+                          {job?.employmentType?.name}
+                        </li>
+                        <li>
+                          <i className="fa-solid fa-location-dot" /> {job?.city}
+                        </li>
+                        <li>
+                          <i className="fa-regular fa-file" />{" "}
+                          {job?.jobCategory?.name}{" "}
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="total-applicants-info">
+                      <Link
+                        to="/employer-candidates-list"
+                        state={{ jobId: job._id }}
+                      >
+                        <p>Applicants: {job?.applicantCount || 0} </p>
+                      </Link>
+                    </div>
+                  </div>
                 </Link>
-              </div>
-            </div>
-            <div className="available-job-posts-box">
-              <div className="available-job-company-name-save-job">
-                <div className="available-job-company-name">
-                  <a href="comapny-details-info.html">
-                    <h4>
-                      <img src="assets/images/icon/icon-1.png" />
-                      Cloud Alibaba
-                    </h4>
-                  </a>
-                </div>
-                <div className="available-job-save-job">
-                  <a href="https://www.linkedin.com/login" target="_blank">
-                    <i className="fa-brands fa-linkedin-in" />
-                  </a>
-                  <a href="https://www.facebook.com/" target="_blank">
-                    <i className="fa-brands fa-facebook-f" />
-                  </a>
-                  <a href="https://web.whatsapp.com/" target="_blank">
-                    <i className="fa-brands fa-whatsapp" />
-                  </a>
-                </div>
-              </div>
-              <Link to="/job-details">
-                <div className="available-job-type-details">
-                  <h5>
-                    Alibaba Cloud-Facility Operation Manager-Paris, France
-                  </h5>
-                  <ul>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 3 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> 5 Years
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-location-dot" /> Paris
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Information Systems /
-                      Networks
-                    </li>
-                  </ul>
-                </div>
-              </Link>
-              <div className="total-applicants-info">
-                <Link to="/application-management">
-                  <p>Applicants: 100</p>
-                </Link>
-              </div>
-            </div>
-            <div className="available-job-posts-box">
-              <div className="available-job-company-name-save-job">
-                <div className="available-job-company-name">
-                  <a href="comapny-details-info.html">
-                    <h4>
-                      <img src="assets/images/icon/icon-2.png" />
-                      Cloud Alibaba
-                    </h4>
-                  </a>
-                </div>
-                <div className="available-job-save-job">
-                  <a href="https://www.linkedin.com/login" target="_blank">
-                    <i className="fa-brands fa-linkedin-in" />
-                  </a>
-                  <a href="https://www.facebook.com/" target="_blank">
-                    <i className="fa-brands fa-facebook-f" />
-                  </a>
-                  <a href="https://web.whatsapp.com/" target="_blank">
-                    <i className="fa-brands fa-whatsapp" />
-                  </a>
-                </div>
-              </div>
-              <Link to="/job-details">
-                <div className="available-job-type-details">
-                  <h5>
-                    Alibaba Cloud-Facility Operation Manager-Paris, France
-                  </h5>
-                  <ul>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 3 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> 5 Years
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-location-dot" /> Paris
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Information Systems /
-                      Networks
-                    </li>
-                  </ul>
-                </div>
-              </Link>
-              <div className="total-applicants-info">
-                <Link to="/application-management">
-                  <p>Applicants: 100</p>
-                </Link>
-              </div>
-            </div>
-            <div className="available-job-posts-box">
-              <div className="available-job-company-name-save-job">
-                <div className="available-job-company-name">
-                  <a href="comapny-details-info.html">
-                    <h4>
-                      <img src="assets/images/icon/icon-4.png" />
-                      Cloud Alibaba
-                    </h4>
-                  </a>
-                </div>
-                <div className="available-job-save-job">
-                  <a href="https://www.linkedin.com/login" target="_blank">
-                    <i className="fa-brands fa-linkedin-in" />
-                  </a>
-                  <a href="https://www.facebook.com/" target="_blank">
-                    <i className="fa-brands fa-facebook-f" />
-                  </a>
-                  <a href="https://web.whatsapp.com/" target="_blank">
-                    <i className="fa-brands fa-whatsapp" />
-                  </a>
-                </div>
-              </div>
-              <Link to="/job-details">
-                <div className="available-job-type-details">
-                  <h5>
-                    Alibaba Cloud-Facility Operation Manager-Paris, France
-                  </h5>
-                  <ul>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 3 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> 5 Years
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-location-dot" /> Paris
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Information Systems /
-                      Networks
-                    </li>
-                  </ul>
-                </div>
-              </Link>
-              <div className="total-applicants-info">
-                <Link to="/application-management">
-                  <p>Applicants: 100</p>
-                </Link>
-              </div>
-            </div>
-            <div className="available-job-posts-box">
-              <div className="available-job-company-name-save-job">
-                <div className="available-job-company-name">
-                  <a href="comapny-details-info.html">
-                    <h4>
-                      <img src="assets/images/icon/icon-5.png" />
-                      Cloud Alibaba
-                    </h4>
-                  </a>
-                </div>
-                <div className="available-job-save-job">
-                  <a href="https://www.linkedin.com/login" target="_blank">
-                    <i className="fa-brands fa-linkedin-in" />
-                  </a>
-                  <a href="https://www.facebook.com/" target="_blank">
-                    <i className="fa-brands fa-facebook-f" />
-                  </a>
-                  <a href="https://web.whatsapp.com/" target="_blank">
-                    <i className="fa-brands fa-whatsapp" />
-                  </a>
-                </div>
-              </div>
-              <Link to="/job-details">
-                <div className="available-job-type-details">
-                  <h5>
-                    Alibaba Cloud-Facility Operation Manager-Paris, France
-                  </h5>
-                  <ul>
-                    <li>
-                      <i className="fa-regular fa-calendar" /> 3 hours ago
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> 5 Years
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" /> Full time
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-location-dot" /> Paris
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" /> Information Systems /
-                      Networks
-                    </li>
-                  </ul>
-                </div>
-              </Link>
-              <div className="total-applicants-info">
-                <Link to="/application-management">
-                  <p>Applicants: 100</p>
-                </Link>
-              </div>
-            </div>
+              ))
+            )}
           </section>
           {/* Applied jobs list end here */}
           <div className="copy-right-area bg-f0f4fc">

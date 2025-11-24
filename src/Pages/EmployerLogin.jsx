@@ -37,7 +37,9 @@ function EmployerLogin() {
     return true;
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -46,22 +48,40 @@ function EmployerLogin() {
       const response = await axios.post(`${API_BASE_URL}user/login`, {
         email: formData.email,
         password: formData.password,
+        role: "Recruiter",
       });
+
       console.log(response);
+
       if (response.status === 200 && response.data.success) {
         const { token, user } = response.data;
 
+        // Save login data correctly
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(token));
+        localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user.id);
         localStorage.setItem("user_email", user.email);
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("first_name", user.first_name);
         localStorage.setItem("last_name", user.last_name);
-        login();
+        localStorage.setItem("is_completed", user?.is_completed);
+
+        login(); // call auth context
         toast.success("Login successful!");
-        // if (user?.is_completed) {
-        navigate("/employer-dashboard");
+
+        if (user?.is_completed) {
+          if (user.role == "Recruiter" || user.role == "Company") {
+            navigate("/employer-dashboard");
+          } else {
+            navigate("/candidate-profile");
+          }
+        } else {
+          if (user.role == "Recruiter" || user.role == "Company") {
+            navigate("/employer-basic-info");
+          } else {
+            navigate("/profile-basic-info");
+          }
+        }
       } else {
         toast.error(response.data?.message || "Invalid credentials");
       }
@@ -69,10 +89,18 @@ function EmployerLogin() {
       console.error("Login error:", error);
 
       if (error.response?.status === 429) {
-        // Handle Too Many Requests
         toast.error(
           "Too many login attempts. Please wait a moment and try again."
         );
+      } else if (
+        error.response?.status === 403 &&
+        error.response?.data?.action === "resendVerificationEmail"
+      ) {
+        // Special case: Email not verified
+        toast.error(error.response.data.message);
+        navigate("/verification", {
+          state: { email: formData.email, showToast: true },
+        });
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
@@ -84,6 +112,7 @@ function EmployerLogin() {
       setLoading(false);
     }
   };
+
   return (
     <>
       <ToastContainer />
@@ -105,7 +134,7 @@ function EmployerLogin() {
                     <h3>Employer Log In</h3>
                     <form>
                       <div className="form-group">
-                        <label>Email Address</label>
+                        <label>Email Address*</label>
                         <input
                           type="email"
                           id="email"
@@ -116,7 +145,7 @@ function EmployerLogin() {
                         />
                       </div>
                       <div className="form-group eye-icon-postion">
-                        <label>Password</label>
+                        <label>Password*</label>
                         <div style={{ position: "relative" }}>
                           <input
                             type={showPassword ? "text" : "password"} // ✅ toggle here
@@ -182,7 +211,7 @@ function EmployerLogin() {
                         Are you a recruiter? Log in via our dedicated portal
                       </p>
                       <Link to="/employer-login">
-                        <i className="fa-solid fa-users" /> Recruiter Loging
+                        <i className="fa-solid fa-users" /> Recruiter Login
                       </Link>
                     </div>
                   </div>

@@ -61,12 +61,7 @@ function EmployerDashboard() {
         align: "center",
       },
       xaxis: {
-        categories: [
-          "View",
-          "Click",
-          "Application",
-          "Hired",
-        ],
+        categories: ["View", "Click", "Application", "Hired"],
       },
       legend: {
         show: false,
@@ -112,6 +107,7 @@ function EmployerDashboard() {
       colors: ["#2563eb", "#60a5fa"], // dark blue and light blue
     },
   });
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -121,10 +117,10 @@ function EmployerDashboard() {
             <h1>Dashboard</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="#">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+              <Link to="/employer-dashboard"> <i className="fa-solid fa-angle-right" /> Dashboard</Link>
               </li>
             </ol>
           </div>
@@ -135,70 +131,78 @@ function EmployerDashboard() {
               <h2>Recruiter Dashboard</h2>
             </div>
             <div className="employer-dashboard-box">
-            <Link to="/your-job-posts">
-                <div className="employer-dashboard-box-icon-content">
-                  <div className="employer-box-icon">
-                    <i className="fa-solid fa-briefcase" />
-                  </div>
-                  <div className="employer-box-content">
-                    <h4>Jobs Posted</h4>
-                    <h5>25</h5>
-                    <p>
-                      <i className="fa-solid fa-arrow-up" /> 12% this week
-                    </p>
-                  </div>
+              <div className="row">
+                <div className="col-md-3 mb-3">
+                  <Link to="/your-job-posts">
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-briefcase" />
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Jobs Posted</h4>
+                        <h5>25</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 12% this week
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-             </Link>
-            <Link to="/jobs">
-                <div className="employer-dashboard-box-icon-content">
-                  <div className="employer-box-icon">
-                    <i className="fa-solid fa-file" />
-                  </div>
-                  <div className="employer-box-content">
-                    <h4>Total Applicants</h4>
-                    <h5>932</h5>
-                    <p>
-                      <i className="fa-solid fa-arrow-up" /> 5% this week
-                    </p>
-                  </div>
+                <div className="col-md-3 mb-3">
+                  <Link to="/candidates-search">
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-file" />
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Total Applicants</h4>
+                        <h5>932</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 5% this week
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-             </Link>
-              <a
-                className="box-size"
-                href="employer-manage-job-application.html"
-              >
-                <div className="employer-dashboard-box-icon-content">
-                  <div className="employer-box-icon">
-                    <i className="fa-solid fa-envelope" />
-                  </div>
-                  <div className="employer-box-content">
-                    <h4>Interview Invitations Sent</h4>
-                    <h5>1000</h5>
-                    <p>
-                      <i className="fa-solid fa-arrow-up" /> 15% this week
-                    </p>
-                  </div>
+                <div className="col-md-3 mb-3">
+                  <Link to="/jobs">
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-envelope" />
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Interview Invitations </h4>
+                        <h5>1000</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 15% this week
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </a>
-              <a href="employer-manage-job-application.html">
-                <div className="employer-dashboard-box-icon-content">
-                  <div className="employer-box-icon">
-                    <i className="fa-solid fa-bookmark" />
-                  </div>
-                  <div className="employer-box-content">
-                    <h4>Shortlist</h4>
-                    <h5>40</h5>
-                    <p>
-                      <i className="fa-solid fa-arrow-up" /> 12% this week
-                    </p>
-                  </div>
+                <div className="col-md-3 mb-3">
+                  <Link to="/jobs">
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-bookmark" />
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Shortlist</h4>
+                        <h5>40</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 12% this week
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </a>
+              </div>
             </div>
           </section>
           {/* employer dashboard end here */}
           {/* Job performance analyticssection start here */}
           <section className="job-performance-analytics-info">
+          
             <div className="employer-dashboard-common-heading">
               <h2>Job performance analytics</h2>
             </div>
@@ -217,10 +221,7 @@ function EmployerDashboard() {
               {/* Funnel Chart */}
               <div className="chart-box funnel-container">
                 <div className="funnel-title">
-                  Views → Clicks →{" "}
-                  <span style={{ "font-weight": "normal", color: "#555" }}>
-                    Applications → Hires
-                  </span>
+                  Views → Clicks → Applications → Hires
                 </div>
                 <ReactApexChart
                   options={state.options}
@@ -289,7 +290,7 @@ function EmployerDashboard() {
               </div>
               {/* Right Panel */}
               <div className="right dashboard-bottom">
-                <h5>Candidate Engagement Ini sights</h5>
+                <h5>Candidate Engagement Insights</h5>
                 <ReactApexChart
                   options={chartData.options}
                   series={chartData.series}
@@ -304,7 +305,7 @@ function EmployerDashboard() {
             </div>
           </section>
           {/* response rate analytics section start here */}
-            <div className="copy-right-area bg-f0f4fc">
+          <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-left-content">

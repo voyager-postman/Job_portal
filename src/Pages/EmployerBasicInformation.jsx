@@ -1,14 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL } from "../Url/Url";
 import Select from "react-select";
+
 const EmployerBasicInformation = () => {
   const [formData, setFormData] = useState({
     brand_name: "",
-    // vat: "",
     industry: "",
     number_of_employees: "",
     phone_number: "",
@@ -22,8 +22,14 @@ const EmployerBasicInformation = () => {
   const [mapUrl, setMapUrl] = useState("");
 
   const [countries, setCountries] = useState([]);
+  // const [searchTerm, setSearchTerm] = useState("");
+  const [countryCode, setCountryCode] = useState("");
   const [citySuggestions, setCitySuggestions] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
   const [loading, setLoading] = useState(false);
+
   const handleCitySearch = async (e) => {
     const value = e.target.value;
     handleChange(e); // update formData.company_address
@@ -61,7 +67,7 @@ const EmployerBasicInformation = () => {
     setFormData((prev) => ({
       ...prev,
       company_address: `${city.name}, ${city.state_name}, ${city.country_name}`,
-      city: city.name,
+
       region: city.state_name,
       Country: city.country_name,
       latitude: city.latitude,
@@ -75,14 +81,29 @@ const EmployerBasicInformation = () => {
     setCitySuggestions([]);
   };
 
-
-
   useEffect(() => {
     const fetchCountries = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}get/countries`);
         if (res.data && Array.isArray(res.data.countries)) {
-          setCountries(res.data.countries);
+          let filtered = res.data.countries.filter(
+            (c) => c.name?.toLowerCase() !== "western sahara"
+          );
+
+          const morocco = filtered.find(
+            (c) =>
+              String(c.phonecode) === "212" ||
+              c.name?.toLowerCase() === "morocco"
+          );
+
+          if (morocco) {
+            filtered = [
+              morocco,
+              ...filtered.filter((c) => c._id !== morocco._id),
+            ];
+          }
+
+          setCountries(filtered);
         } else {
           console.error("Countries data is not an array", res.data);
           setCountries([]);
@@ -94,6 +115,56 @@ const EmployerBasicInformation = () => {
     };
     fetchCountries();
   }, []);
+
+  // close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // make sure we treat countryCode as string and handle empty case
+  const term = (countryCode || "").toString().toLowerCase();
+  const filteredCountries = countries.filter((c) => {
+    const name = (c.name || "").toLowerCase();
+    const phone = (c.phonecode || "").toString();
+    const iso2 = (c.iso2 || "").toLowerCase();
+
+    return name.includes(term) || phone.includes(term) || iso2.includes(term);
+  });
+
+  const handleSelect = (c) => {
+    const formatted = `${c.emoji.toUpperCase()} +${c.phonecode} ${c.name}`;
+    setCountryCode(formatted); // input shows exact format
+    setFormData((prev) => ({
+      ...prev,
+      country_code: String(c.phonecode),
+    }));
+    setOpen(false);
+  };
+
+  // useEffect(() => {
+  //   const fetchCountries = async () => {
+  //     try {
+  //       const res = await axios.get(`${API_BASE_URL}get/countries`);
+  //       if (res.data && Array.isArray(res.data.countries)) {
+  //         setCountries(res.data.countries);
+  //       } else {
+  //         console.error("Countries data is not an array", res.data);
+  //         setCountries([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching countries:", error);
+  //       setCountries([]);
+  //     }
+  //   };
+  //   fetchCountries();
+  // }, []);
+
   useEffect(() => {
     const fetchIndustries = async () => {
       try {
@@ -111,6 +182,7 @@ const EmployerBasicInformation = () => {
     };
     fetchIndustries();
   }, []);
+
   const options = countries.map((country) => ({
     value: country.phonecode,
     label: (
@@ -124,7 +196,19 @@ const EmployerBasicInformation = () => {
       </div>
     ),
   }));
+
   const validateRecruiterForm = () => {
+    const fieldLabels = {
+      brand_name: "Company name",
+      industry: "Industry",
+      number_of_employees: "Number of employees",
+      phone_number: "Phone number",
+      country_code: "Country code",
+      company_address: "Company address",
+      city: "City",
+      region: "Region",
+      Country: "Country",
+    };
     const requiredFields = [
       "brand_name",
       // "vat",
@@ -140,7 +224,8 @@ const EmployerBasicInformation = () => {
 
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].toString().trim() === "") {
-        toast.error(`${field.replace(/_/g, " ")} is required`);
+        const message = `${fieldLabels[field]} is required`;
+        toast.error(message);
         return false;
       }
     }
@@ -170,9 +255,14 @@ const EmployerBasicInformation = () => {
 
     try {
       const token = localStorage.getItem("token");
+      const updatedFormData = {
+        ...formData,
+        city: formData.company_address, // send company_address as city
+        company_address: formData.city, // send city as company_address
+      };
       const response = await axios.post(
         `${API_BASE_URL}company/profile`,
-        formData,
+        updatedFormData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -181,13 +271,20 @@ const EmployerBasicInformation = () => {
       );
 
       if (response.data.success) {
-        const { userDetails } = response.data;
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        const { userDetails, profile } = response.data;
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...userDetails,
+            companyId: profile?._id,
+          })
+        );
         localStorage.setItem("user_id", userDetails._id);
         localStorage.setItem("user_email", userDetails.email);
         localStorage.setItem("user_role", userDetails.role);
         localStorage.setItem("first_name", userDetails.first_name);
         localStorage.setItem("last_name", userDetails.last_name);
+        localStorage.setItem("is_completed", userDetails?.is_completed);
 
         toast.success("Recruiter profile created successfully!");
         // Navigate or reset form
@@ -262,19 +359,7 @@ const EmployerBasicInformation = () => {
           </div>
         </div>
       </section>
-      {/* <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Employer Basic Info</h1>
-            <ul>
-              <li>
-                <a href="index.html">Home</a>
-              </li>
-              <li>Employer Basic Info</li>
-            </ul>
-          </div>
-        </div>
-      </div> */}
+
       <section className="employer-profile-basic-info-area">
         <div className="employer-profile-basic-info-heading">
           <div className="section-title">
@@ -305,19 +390,7 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-                {/* <div className="col-lg-12 col-md-12">
-                  <div className="form-group">
-                    <label>VAT</label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="VAT"
-                      name="vat"
-                      value={formData.vat}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div> */}
+
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Industry</label>
@@ -353,8 +426,8 @@ const EmployerBasicInformation = () => {
                     </select>
                   </div>
                 </div>
-                {/* Country Code */}
-                <div className="col-lg-3 col-md-12">
+
+                {/* <div className="col-lg-3 col-md-12">
                   <div className="form-group">
                     <label>Country code</label>
                     <select
@@ -371,9 +444,52 @@ const EmployerBasicInformation = () => {
                       ))}
                     </select>
                   </div>
+                </div> */}
+
+                <div
+                  className="col-lg-6 col-md-12"
+                  ref={containerRef}
+                  style={{ position: "relative" }}
+                >
+                  <div className="form-group">
+                    <label>Country code</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search country code"
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      onFocus={() => setOpen(true)}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  {open && (
+                    <ul
+                      className="list-group"
+                      style={{
+                        position: "absolute",
+                        width: "100%",
+                        maxHeight: "250px",
+                        overflowY: "auto",
+                        zIndex: 9999,
+                      }}
+                    >
+                      {filteredCountries.map((c) => (
+                        <li
+                          key={c._id}
+                          className="list-group-item list-group-item-action d-flex align-items-center"
+                          onClick={() => handleSelect(c)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          {c.emoji?.toUpperCase()} +{c.phonecode} {c.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
-                <div className="col-lg-9 col-md-12">
+                <div className="col-lg-6 col-md-12">
                   <div className="form-group">
                     <label>Phone number</label>
                     <input
@@ -386,10 +502,10 @@ const EmployerBasicInformation = () => {
                     />
                   </div>
                 </div>
-              
-                <div className="col-lg-6 col-md-6">
+
+                <div className="col-lg-12 col-md-12">
                   <div className="form-group position-relative">
-                    <label>Street Address</label>
+                    <label>City</label>
                     <input
                       className="form-control"
                       type="text"
@@ -399,7 +515,6 @@ const EmployerBasicInformation = () => {
                       onChange={handleCitySearch}
                       autoComplete="off"
                     />
-
                     {/* Suggestions Dropdown */}
                     {loading && (
                       <div className="suggestion-box">Searching...</div>
@@ -427,48 +542,49 @@ const EmployerBasicInformation = () => {
                     )}
                   </div>
                 </div>
-                {/* City */}
-                <div className="col-lg-6 col-md-6">
-                  <div className="form-group">
-                    <label>City</label> (auto-generated from location):
-                    <input
-                      className="form-control"
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      readOnly
-                    />
-                  </div>
-                </div>
 
-                {/* State */}
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>State</label>  (auto-generated from location):
+                    <label>State</label> (auto-generated from location, or edit
+                    manually):
                     <input
                       className="form-control"
                       type="text"
                       name="region"
+                      placeholder="State"
                       value={formData.region}
-                      readOnly
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
 
-                {/* Country */}
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
-                    <label>Country</label>  (auto-generated from location):
+                    <label>Country</label> (auto-generated from location, or
+                    edit manually):
                     <input
                       className="form-control"
                       type="text"
                       name="Country"
+                      placeholder="Country"
                       value={formData.Country}
-                      readOnly
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
-
+                <div className="col-lg-12 col-md-12">
+                  <div className="form-group">
+                    <label>Street Address</label>
+                    <textarea
+                      className="form-control"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      rows={3} // optional: controls textarea height
+                      placeholder="Enter street address"
+                    ></textarea>
+                  </div>
+                </div>
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <label>Our Map Location</label>

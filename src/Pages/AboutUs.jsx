@@ -117,18 +117,7 @@ function AboutUs() {
                   src="/jobPortal/assets/images/cv/candidate-with-cv.png"
                   alt="Image"
                 />
-                <div className="candidate-content">
-                  <div className="candidate">
-                    <a href="candidates.html">Candidate</a>
-                  </div>
-                  <p>
-                    “Lorem ipsum dolor sit amet labore et dolore magna aliqua”
-                  </p>
-                  <div className="info">
-                    <h4>Dunald Milon</h4>
-                    <span>Web Designer</span>
-                  </div>
-                </div>
+               
               </div>
             </div>
             <div className="col-lg-6">
@@ -161,7 +150,7 @@ function AboutUs() {
       <div className="works-area pt-100 pb-70 bg-f0f5f7">
         <div className="container">
           <div className="section-title">
-            <h2>How Jaba Works For You</h2>
+            <h2>How Connect Work Works For You</h2>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor
@@ -248,13 +237,7 @@ function AboutUs() {
                     </div>
                   </div>
                 </div>
-                <div className="inbox">
-                  <div className="icon">
-                    <i className="fa-regular fa-envelope" />
-                  </div>
-                  <h3>Inbox</h3>
-                  <span>Work With Us!</span>
-                </div>
+               
               </div>
             </div>
             <div className="col-lg-6">
@@ -273,13 +256,7 @@ function AboutUs() {
                   >
                     Upload Your CV
                   </a>
-                  <a
-                    className="popup-youtube video-btn"
-                    href="https://www.youtube.com/watch?v=6WQCJx_vEX4"
-                  >
-                    <i className="fa-solid fa-play" />
-                    CEO Message
-                  </a>
+                 
                 </div>
               </div>
             </div>
@@ -299,12 +276,12 @@ function AboutUs() {
             <div className="col-lg-4 col-md-6">
               <div className="single-review-box style-2">
                 <div className="top-content">
-                  <div className="review-img">
+                  {/* <div className="review-img">
                     <img
                       src="/jobPortal/assets/images/review/review-img-1.png"
                       alt="Image"
                     />
-                  </div>
+                  </div> */}
                   <h3>Nikolas Brooten</h3>
                   <span>Digital Marketer</span>
                   <div className="ratings">
@@ -325,12 +302,12 @@ function AboutUs() {
             <div className="col-lg-4 col-md-6">
               <div className="single-review-box style-2">
                 <div className="top-content">
-                  <div className="review-img">
+                  {/* <div className="review-img">
                     <img
                       src="/jobPortal/assets/images/review/review-img-2.png"
                       alt="Image"
                     />
-                  </div>
+                  </div> */}
                   <h3>Jennifer Rose</h3>
                   <span>IT Specialist</span>
                   <div className="ratings">
@@ -351,12 +328,12 @@ function AboutUs() {
             <div className="col-lg-4 col-md-6">
               <div className="single-review-box style-2">
                 <div className="top-content">
-                  <div className="review-img">
+                  {/* <div className="review-img">
                     <img
                       src="/jobPortal/assets/images/review/review-img-3.png"
                       alt="Image"
                     />
-                  </div>
+                  </div> */}
                   <h3>Camelia Renesa</h3>
                   <span>Web Designer</span>
                   <div className="ratings">

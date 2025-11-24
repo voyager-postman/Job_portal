@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import React, { useEffect } from "react";
+import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 function EmployerShortListCandinate() {
@@ -16,10 +17,12 @@ function EmployerShortListCandinate() {
             <h1>Employer shortlist candidates</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/employer-dashboard">Home </Link>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Employer shortlist
@@ -82,12 +85,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-profile-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-1.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -119,7 +122,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -135,12 +140,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-profile-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-2.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -172,7 +177,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -189,12 +196,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-3.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -226,7 +233,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -243,12 +252,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-4.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -280,7 +289,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -297,12 +308,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-6.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -334,7 +345,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -351,12 +364,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-5.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -388,7 +401,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -405,12 +420,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-15.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -442,7 +457,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -459,12 +476,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-16.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -496,7 +513,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -513,12 +532,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-17.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -550,7 +569,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>
@@ -567,12 +588,12 @@ function EmployerShortListCandinate() {
                 <div className="row align-items-center">
                   <div className="col-lg-4">
                     <div className="freelancer-img">
-                      <a href="candidates-details.html">
+                      <Link to="/candidates-profile-details">
                         <img
                           src="assets/images/freelancers/freelancers-img-18.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-lg-8">
@@ -604,7 +625,9 @@ function EmployerShortListCandinate() {
                         </ul>
                       </div>
                       <div className="candidate-list-shortlist-candidates">
-                        <i className="fa-solid fa-heart" />
+                        <i>
+                          <FaBookmark />
+                        </i>
                       </div>
                     </div>
                   </div>

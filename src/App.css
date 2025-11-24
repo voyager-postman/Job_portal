@@ -216,25 +216,19 @@
 }
 /*Company Details page css start here*/
 
-.company-detail-info-area {
-  /* margin: 80px 0px 80px 0px; */
+/* .company-detail-info-area {
+margin: 80px 0px 80px 0px; 
   padding: 0px 0px 0px 0px;
-}
+} */
 
 .company-img-short-detail {
-  padding: 20px 0px;
-  /* background: #f0f5f7; */
+  padding: 20px 20px;
+  background: #f0f5f7;
 }
 
 .company-img-info {
   background: #fff;
   padding: 15px 15px;
-}
-
-.company-img-info img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .company-detail-tab-description-info {
@@ -476,160 +470,77 @@
 
 /*Company Details page css end here*/
 
-
 /*Job Alerts page css start here*/
 .set-job-alert-btn {
-margin: 20px 0px;
-text-align:center;
+  margin: 20px 0px;
+  text-align: center;
 }
 
 .set-job-alert-btn .default-btn {
-font-size:17px;
-font-weight: 400;
-padding: 10px 30px;
-border-radius: 5px !important;
+  font-size: 17px;
+  font-weight: 400;
+  padding: 10px 30px;
+  border-radius: 5px !important;
 }
 
 .tag-box {
-gap: 5px;
-padding: 8px;
-display: flex;
-min-height: 40px;
-flex-wrap: wrap;
-align-items: center;
-border: 1px solid #ccc;
-}
- 
-.tag-box input {
-flex: 1;
-border: none;
-padding: 5px;
-outline: none;
-font-size: 14px;
-}
- 
-.tag {
-color:#fff;
-display: flex;
-font-size: 14px;
-padding: 5px 10px;
-border-radius: 3px;
-align-items: center;
-background-color:#0066cc;
-}
- 
-.tag .remove {
-margin-left: 8px;
-cursor: pointer;
-font-weight: bold;
-}
- 
-.frequency-radio-btn label {
-margin-right: 10px;
-padding-bottom: 10px; 
+  gap: 5px;
+  padding: 8px;
+  display: flex;
+  min-height: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid #ccc;
 }
 
-.application_modal .modal-footer{
+.tag-box input {
+  flex: 1;
+  border: none;
+  padding: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.tag {
+  color: #fff;
+  display: flex;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  align-items: center;
+  background-color: #0066cc;
+}
+
+.tag .remove {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.frequency-radio-btn label {
+  margin-right: 10px;
+  padding-bottom: 10px;
+}
+
+.application_modal .modal-footer {
   justify-content: center !important;
 }
-.application_modal .modal-footer button.default-btn.btn{
+.application_modal .modal-footer button.default-btn.btn {
   padding: 8px 25px !important;
 }
 /*Job Alerts page css end here*/
-
-/* Varify Email */
-.verify-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+/* custom by neha css */
+.single-team-card
+  .team-content
+  .social-content
+  .social-control
+  .social-icon
+  ul {
+  padding-left: 0;
+  margin-bottom: 35px;
 }
-
-.verify-card {
-  background: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  text-align: center;
-  width: 400px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-}
-
-.icon-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #d6e8f3;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 20px;
-}
-
-.mail-icon {
-  font-size: 28px;
-  color: #0066cc;
-  text-align: center;
-  align-items: center;
-}
-
-.email {
-  font-weight: bold;
-  color: #333;
-}
-
-.verified-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.verified-card {
-  background: #fff;
-  padding: 30px 25px;
-  border-radius: 12px;
-  text-align: center;
-  width: 400px;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
-}
-
-.icon-wrapper {
-  background: #e6ffee;
-  border-radius: 50%;
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-.icon-wrapper2 {
-background: #ffe6e6;
-  border-radius: 50%;
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.check-icon {
-  font-size: 32px;
-  color: #25ebb0; 
-}
-.cross-icon{
-  font-size: 20px;
-  color: rgb(247, 44, 44);
-}
-
-.username {
-  font-weight: bold;
-  color: #111827;
-}
-
-.message {
-  margin: 15px 0 25px;
-  font-size: 14px;
-  color: #444;
+.ck-editor__editable_inline {
+  min-height: 150px;
+  resize: both !important;
+  overflow: auto !important;
 }
