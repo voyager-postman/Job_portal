@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance"; // path based on your folder structure
 import "react-toastify/dist/ReactToastify.css";
@@ -18,7 +18,7 @@ function EmployerRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, login: authLogin } = useAuth();
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
       toast.error("Please fill in all required fields");
@@ -91,7 +91,99 @@ function EmployerRegister() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
 
+    const success = queryParams.get("success");
+    const token = queryParams.get("token");
+    const message = queryParams.get("message"); // backend error message
+    const provider = queryParams.get("provider"); // optional (github/linkedin)
+
+    // ❌ Backend error handling
+    if (success === "false") {
+      toast.error(message || "Login failed!");
+      console.error(`Login failed from ${provider}:`, message);
+
+      // clean URL
+      window.history.replaceState({}, document.title, "/jobPortal");
+      return;
+    }
+
+    // No login → ignore
+    if (!success || !token) return;
+
+    // ✔ SUCCESS CASE BELOW
+
+    const email = queryParams.get("email");
+    const name = queryParams.get("name");
+    const avatar = queryParams.get("avatar");
+    const role = queryParams.get("role");
+    const isVerified = queryParams.get("isVerified");
+
+    // Split GitHub or LinkedIn name
+    const [first_name = "", last_name = ""] = name?.split(" ") || [];
+
+    const user = {
+      email,
+      role,
+      first_name,
+      last_name,
+      profileImage: avatar,
+      is_completed: isVerified === "true",
+    };
+
+    // 👉 Save login data
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user_email", email);
+    localStorage.setItem("user_role", role);
+    localStorage.setItem("first_name", first_name);
+    localStorage.setItem("last_name", last_name);
+    localStorage.setItem("user_profile", avatar);
+    localStorage.setItem("user_name", `${first_name} ${last_name}`);
+    localStorage.setItem("is_completed", user.is_completed);
+
+    toast.success("Login Successful!");
+
+    // Close modal
+    const loginModal = document.getElementById("exampleModalLogin");
+    const registerModal = document.getElementById("exampleModalRegister");
+
+    if (loginModal?.classList.contains("show")) {
+      const modalInstance = window.bootstrap.Modal.getInstance(loginModal);
+      modalInstance?.hide();
+    }
+
+    if (registerModal?.classList.contains("show")) {
+      const modalInstance = window.bootstrap.Modal.getInstance(registerModal);
+      modalInstance?.hide();
+    }
+
+    authLogin();
+
+    // 👉 Redirect based on role & completion
+    if (user.is_completed) {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-dashboard");
+      } else {
+        navigate("/candidate-profile");
+      }
+    } else {
+      if (role === "Recruiter" || role === "Company") {
+        navigate("/employer-basic-info");
+      } else {
+        navigate("/profile-basic-info");
+      }
+    }
+
+    // Clean URL
+    window.history.replaceState({}, document.title, "/jobPortal");
+  }, []);
+
+  const handleLinkedinLogin = () => {
+    const role = "Recruiter";
+    window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
+  };
   return (
     <>
       <ToastContainer />
@@ -215,6 +307,15 @@ function EmployerRegister() {
                               Sign in
                             </Link>
                           </p>
+                        </div>
+                        <div className="linkeding-login-register-btn-info">
+                          <button
+                            className="linkeding-login-btn default-btn btn"
+                            onClick={handleLinkedinLogin}
+                          >
+                            <img src="assets/images/icon/linkedin-icon.png" />
+                            Linkedin Register
+                          </button>
                         </div>
                       </div>
                     </div>

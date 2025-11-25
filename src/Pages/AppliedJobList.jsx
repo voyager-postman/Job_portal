@@ -49,7 +49,9 @@ function AppliedJobList() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <Link to="/employer-dashboard"><i className="fa-solid fa-angle-right" /> Dashboard </Link>
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard{" "}
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Applied jobs List
@@ -93,74 +95,71 @@ function AppliedJobList() {
               <p>No jobs found.</p>
             ) : (
               jobs.map((job, index) => (
-                <Link
-                  key={job._id}
-                  to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                  className="job-link"
-                >
-                  <div className="available-job-posts-box">
-                    <div className="available-job-company-name-save-job">
-                      <div className="available-job-company-name">
-                        <h4>
-                          <img
-                            crossorigin="anonymous"
-                            src={
-                              job?.JobCoverPhoto
-                                ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
-                                : "assets/images/icon/icon-26.png"
-                            }
-                            alt="logo"
-                          />
-                          {job?.jobTitle}
-                        </h4>
-                      </div>
-                    </div>
-
-                    <div className="available-job-type-details">
-                      <h5>
-                        <p>{job?.shortDescription}</p>
-                      </h5>
-                      <ul>
-                        <li>
-                          <i className="fa-regular fa-calendar" />{" "}
-                          {moment(job?.createdAt).fromNow()}
-                        </li>
-                        {/* <li>
-                            <i className="fa-regular fa-file" /> 5 Years
-                          </li> */}
-                        <li>
-                          <i className="fa-regular fa-user" />
-                          {job?.employmentType?.name}
-                        </li>
-                        <li>
-                          <i className="fa-solid fa-location-dot" /> {job?.city}
-                        </li>
-                        <li>
-                          <i className="fa-regular fa-file" />{" "}
-                          {job?.jobCategory?.name}{" "}
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div
-                      className="total-applicants-info"
-                      style={{
-                        pointerEvents:
-                          job?.applicantCount === 0 ? "none" : "auto",
-                        opacity: job?.applicantCount === 0 ? 0.5 : 1,
-                        cursor:
-                          job?.applicantCount === 0 ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      <Link
-                        to="/employer-candidates-list"
-                        state={{ jobId: job._id }}
-                      >
-                        <p>Applicants: {job?.applicantCount || 0}</p>
-                      </Link>
+                <div className="available-job-posts-box">
+                  <div className="available-job-company-name-save-job">
+                    <div className="available-job-company-name">
+                      <h4>
+                        <img
+                          crossorigin="anonymous"
+                          src={
+                            job?.JobCoverPhoto
+                              ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
+                              : "assets/images/icon/icon-26.png"
+                          }
+                          alt="logo"
+                        />
+                        {job?.jobTitle}
+                      </h4>
                     </div>
                   </div>
-                </Link>
+
+                  <div className="available-job-type-details">
+                    <h5>
+                      <p>{job?.shortDescription}</p>
+                    </h5>
+                    <ul>
+                      <li>
+                        <i className="fa-regular fa-calendar" />{" "}
+                        {moment(job?.createdAt).fromNow()}
+                      </li>
+                      {/* <li>
+                            <i className="fa-regular fa-file" /> 5 Years
+                          </li> */}
+                      <li>
+                        <i className="fa-regular fa-user" />
+                        {job?.employmentType?.name}
+                      </li>
+                      <li>
+                        <i className="fa-solid fa-location-dot" /> {job?.city}
+                      </li>
+                      <li>
+                        <i className="fa-regular fa-file" />{" "}
+                        {job?.jobCategory?.name}{" "}
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div
+                    className="total-applicants-info"
+                    style={{
+                      pointerEvents:
+                        job?.applicantCount === 0 ? "none" : "auto",
+                      opacity: job?.applicantCount === 0 ? 0.5 : 1,
+                      cursor:
+                        job?.applicantCount === 0 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <Link
+                      to="/employer-candidates-list"
+                      state={{
+                        jobId: job._id,
+                        tags: job.tags, // 👈 passing tags also
+                      }}
+                    >
+                      <p>Applicants: {job?.applicantCount || 0}</p>
+                    </Link>
+                  </div>
+                </div>
               ))
             )}
           </section>

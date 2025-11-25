@@ -4,9 +4,31 @@ import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
-import { API_BASE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 function EmployerShortListCandinate() {
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(6); // show 6 candidates per page
+  // Calculate index range
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  // Current page items
+  const currentItems = bookmarkedCandidates.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  // Total pages
+  const totalPages = Math.ceil(bookmarkedCandidates.length / itemsPerPage);
+
+  // Page change handler
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" }); // optional
+    }
+  };
 
   const token = localStorage.getItem("token");
 
@@ -16,13 +38,13 @@ function EmployerShortListCandinate() {
   }, []);
   const fetchBookmarkedCandidates = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getBookmarkedCandidates`, {
+      const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       console.log(res);
-      setBookmarkedCandidates(res.data.candidates || []);
+      setBookmarkedCandidates(res.data.bookmarks || []);
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
     }
@@ -55,7 +77,7 @@ function EmployerShortListCandinate() {
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-5">
                 <div className="employer-shortlist-candidates-heading">
-                  <h4>15 Employer shortlist candidates</h4>
+                  <h4>15 Shortlist Candidates</h4>
                 </div>
               </div>
               <div className="col-lg-4 col-md-7">
@@ -95,143 +117,103 @@ function EmployerShortListCandinate() {
             </div>
           </div>
           <div className="row">
-            <div
-              className="col-lg-6 col-sm-6"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              <div className="candidate-list-info single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <Link to="/candidates-profile-details">
-                        <img
-                          src="assets/images/freelancers/freelancers-img-1.jpg"
-                          alt="Image"
-                        />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <a href="candidates-profile-details.html">
-                        <h3>Jequline Fenda</h3>
-                      </a>
-                      <span>IT Developer</span>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-file" /> 5 Years
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-money-bill" />$ 2000
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-location-dot" />
-                            Washington DC, US
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-graduation-cap" />
-                            Master’s Degree
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-gear" />
-                            <span className="candidate-active">Active</span>
-                          </li>
-                        </ul>
+            {bookmarkedCandidates.length === 0 && (
+              <p>No bookmarked candidates found.</p>
+            )}
+
+            {bookmarkedCandidates.map((item, index) => {
+              const candidate = item.candidateId;
+
+              return (
+                <div
+                  className="col-lg-6 col-sm-6"
+                  data-aos="fade-up"
+                  data-aos-delay={index * 100}
+                  key={item._id}
+                >
+                  <div className="candidate-list-info single-freelancer-card">
+                    <Link to={`/candidates-profile-details`}>
+                      <div className="row align-items-center">
+                        <div className="col-lg-4">
+                          <div className="freelancer-img">
+                            <img
+                              crossorigin="anonymous"
+                              src={
+                                candidate?.profileImage
+                                  ? `${API_IMAGE_URL}${candidate.profileImage}`
+                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                              }
+                              alt="Profile"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="col-lg-8">
+                          <div className="freelancer-content">
+                            <h3>
+                              {candidate.first_name} {candidate.last_name}
+                            </h3>
+                            <span>{candidate?.candidateProfile?.career_goals?.DesiredJobTitle||"N/A"}</span>
+
+                            <div className="info">
+                              <ul>
+                                <li>
+                                  <i className="fa-solid fa-location-dot" />{" "}
+                                  {candidate.city}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-envelope" />{" "}
+                                  {candidate.email}
+                                </li>
+                              </ul>
+                            </div>
+
+                            <div className="candidate-list-shortlist-candidates">
+                              <i>
+                                <FaBookmark />
+                              </i>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="candidate-list-shortlist-candidates">
-                        <i>
-                          <FaBookmark />
-                        </i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="col-lg-6 col-sm-6 aos-init"
-              data-aos="fade-up"
-              data-aos-duration={1200}
-              data-aos-delay={600}
-            >
-              <div className="candidate-list-info single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <Link to="/candidates-profile-details">
-                        <img
-                          src="assets/images/freelancers/freelancers-img-18.jpg"
-                          alt="Image"
-                        />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <a href="candidates-details.html">
-                        <h3>Jequline Fenda</h3>
-                      </a>
-                      <span>IT Developer</span>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-file" /> 5 Years
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-money-bill" />$ 2000
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-location-dot" />
-                            Washington DC, US
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-graduation-cap" />
-                            Master’s Degree
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-gear" />
-                            <span className="candidate-inactive">inactive</span>
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="candidate-list-shortlist-candidates">
-                        <i>
-                          <FaBookmark />
-                        </i>
-                      </div>
-                    </div>
+                    </Link>
                   </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+          {totalPages > 1 && (
+            <div className="paginations style2 mb-30">
+              <ul>
+                {/* Prev Button */}
+                <li onClick={() => handlePageChange(currentPage - 1)}>
+                  <a style={{ cursor: "pointer" }}>
+                    <i className="fa-solid fa-angle-left" />
+                  </a>
+                </li>
+
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <li key={i} onClick={() => handlePageChange(i + 1)}>
+                    <a
+                      className={currentPage === i + 1 ? "active" : ""}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {i + 1}
+                    </a>
+                  </li>
+                ))}
+
+                {/* Next Button */}
+                <li onClick={() => handlePageChange(currentPage + 1)}>
+                  <a style={{ cursor: "pointer" }}>
+                    <i className="fa-solid fa-angle-right" />
+                  </a>
+                </li>
+              </ul>
             </div>
-          </div>
-          <div className="paginations style2 mb-30">
-            <ul>
-              <li>
-                <a href="#">
-                  <i className="fa-solid fa-angle-left" />
-                </a>
-              </li>
-              <li>
-                <a className="active" href="applied-jobs.html">
-                  1
-                </a>
-              </li>
-              <li>
-                <a href="#">2</a>
-              </li>
-              <li>
-                <a href="#">3</a>
-              </li>
-              <li>
-                <a href="#">
-                  <i className="fa-solid fa-angle-right" />
-                </a>
-              </li>
-            </ul>
-          </div>
+          )}
+
           {/*End Bookmark Jobs Area*/}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">

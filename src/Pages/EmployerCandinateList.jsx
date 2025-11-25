@@ -10,6 +10,7 @@ function EmployerCandinateList() {
   const location = useLocation();
   const token = localStorage.getItem("token");
   const jobId = location.state?.jobId;
+  const jobTags = location.state?.tags || [];
   const [candidateList, setCandidateList] = useState([]);
   const [candidateListSummary, setCandidateListSummary] = useState({});
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -22,6 +23,7 @@ function EmployerCandinateList() {
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [newApplicationStatus, setNewApplicationStatus] = useState("");
+
   const [filters, setFilters] = useState({
     search: "",
     location: "",
@@ -48,10 +50,13 @@ function EmployerCandinateList() {
 
     setCandidateList(data.applicants || []);
     setCandidateListSummary(data.summary || {});
-    // Fix: keep selected record
 
     if (data.applicants?.length > 0) {
+      // Load first candidate
       fetchApplicantDetails(data.applicants[0]._id);
+    } else {
+      // 🔥 RESET selected candidate when list is empty
+      setSelectedCandidate(null);
     }
   };
 
@@ -199,6 +204,10 @@ function EmployerCandinateList() {
       fetchCandidates(selectedStatus); // load with current filter
     }
   }, [jobId]);
+  useEffect(() => {
+    fetchCandidates(selectedStatus); // if you have status filter
+  }, [filters]);
+
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -284,28 +293,35 @@ function EmployerCandinateList() {
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
+
                   <form>
                     <div className="form-group">
                       <select
                         className="form-select form-control"
-                        aria-label="Default select example"
+                        aria-label="Select Skill"
+                        value={filters.skills}
+                        onChange={(e) =>
+                          setFilters({ ...filters, skills: e.target.value })
+                        }
                       >
-                        <option selected>Choose A Skills</option>
-                        <option value={1}>Digital</option>
-                        <option value={2}>Design</option>
-                        <option value={3}>Developer</option>
-                        <option value={4}>Front End</option>
-                        <option value={5}>Microsoft Excel</option>
-                        <option value={6}>Telemarketing</option>
-                        <option value={7}>Account</option>
-                        <option value={8}>Finance</option>
-                        <option value={9}>Marketing</option>
+                        <option value="">Choose A Skill</option>
+
+                        {jobTags.length > 0 ? (
+                          jobTags.map((skill, index) => (
+                            <option key={index} value={skill}>
+                              {skill}
+                            </option>
+                          ))
+                        ) : (
+                          <option disabled>No skills found</option>
+                        )}
                       </select>
                     </div>
                   </form>
                 </div>
               </div>
             </div>
+
             {/* <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
@@ -398,29 +414,6 @@ function EmployerCandinateList() {
               </div>
             </div>
 
-            {/* <div className="col-lg-2 col-sm-6">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Salary Range</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option value="">Choose Salary Range</option>
-
-                        {salaryRanges?.map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.range}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div> */}
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
                 <div className="employer-candidate-number">
@@ -429,9 +422,7 @@ function EmployerCandinateList() {
                 <div className="employer-candidate-profile-count">
                   <ul>
                     <li>({candidateListSummary?.New}) New Candidate</li>
-                    <li>
-                      ({candidateListSummary?.Reviewed}) Reviewed Candidate
-                    </li>
+
                     <li>
                       ({candidateListSummary?.Interviewed}) Shortlisted
                       Candidate
@@ -501,28 +492,28 @@ function EmployerCandinateList() {
                       <div className="row align-items-center">
                         <div className="col-lg-4">
                           <div className="freelancer-img">
-                            <Link to="/candidates-profile-details">
-                              <img
-                                crossorigin="anonymous"
-                                src={
-                                  candidate?.userId?.profileImage
-                                    ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}`
-                                    : "assets/images/freelancers/freelancers-img-1.jpg"
-                                }
-                                alt="Image"
-                              />
-                            </Link>
+                            <img
+                              crossOrigin="anonymous"
+                              src={
+                                candidate?.userId?.profileImage
+                                  ? candidate.userId.profileImage.startsWith(
+                                      "http"
+                                    )
+                                    ? candidate.userId.profileImage // external URL → use directly
+                                    : `${API_IMAGE_URL}${candidate.userId.profileImage}` // local uploads
+                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                              }
+                              alt="Image"
+                            />
                           </div>
                         </div>
 
                         <div className="col-lg-8">
                           <div className="freelancer-content">
-                            <Link to="/candidates-profile-details">
-                              <h3>
-                                {candidate?.userId?.first_name}{" "}
-                                {candidate?.userId?.last_name}
-                              </h3>
-                            </Link>
+                            <h3>
+                              {candidate?.userId?.first_name}{" "}
+                              {candidate?.userId?.last_name}
+                            </h3>
 
                             <span>
                               {" "}
@@ -663,10 +654,14 @@ function EmployerCandinateList() {
                     <div className="employer-candidate-img-content-info">
                       <div className="employer-candidate-img-info">
                         <img
-                          crossorigin="anonymous"
+                          crossOrigin="anonymous"
                           src={
                             selectedCandidate?.userInfo?.profileImage
-                              ? `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}`
+                              ? selectedCandidate.userInfo.profileImage.startsWith(
+                                  "http"
+                                )
+                                ? selectedCandidate.userInfo.profileImage // external URL → use directly
+                                : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
                               : "assets/images/default-user.png"
                           }
                           alt="Image"
@@ -803,9 +798,7 @@ function EmployerCandinateList() {
                           value={newApplicationStatus}
                           onChange={handleStatusUpdate}
                         >
-                          <option value="">Relevance</option>
                           <option value="Applied">New</option>
-                          <option value="Reviewed">Reviewed</option>
                           <option value="Shortlisted">Shortlisted</option>
                           <option value="Rejected">Rejected</option>
                           <option value="Hired">Hired</option>

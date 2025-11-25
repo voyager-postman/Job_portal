@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
-import { FaToolbox, FaListCheck,FaUsersGear } from "react-icons/fa6";
-import { IoBookmark,IoSearchSharp  } from "react-icons/io5";
+import { FaToolbox, FaListCheck, FaUsersGear } from "react-icons/fa6";
+import { IoBookmark, IoSearchSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 
@@ -30,10 +30,9 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-1.svg"
-                    alt="Dashboard"
-                  />
+                  <i>
+                    <MdDashboard />
+                  </i>
                 </span>
                 <span className="menu-title">Dashboard</span>
               </NavLink>
@@ -47,10 +46,9 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                  <i>
+                    <IoSearchSharp />
+                  </i>
                 </span>
                 <span className="menu-title">Job Search</span>
               </NavLink>
@@ -63,10 +61,9 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-8.svg"
-                    alt="My Profile"
-                  />
+                  <i>
+                    <FaToolbox />
+                  </i>
                 </span>
                 <span className="menu-title">Skill Assessments & Tests</span>
               </NavLink>
@@ -79,10 +76,9 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-2.svg"
-                    alt="Job Search"
-                  />
+                  <i>
+                    <AiFillMessage />
+                  </i>
                 </span>
                 <span className="menu-title">Messages</span>
               </NavLink>
@@ -95,34 +91,13 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-8.svg"
-                    alt="My Profile"
-                  />
+                  <i>
+                    <FaUserTie />
+                  </i>
                 </span>
                 <span className="menu-title">My Profile</span>
               </NavLink>
             </li>
-
-            {/* <li className="nav-item">
-              <NavLink
-                to="/job-alert"
-                end
-                className={({ isActive }) =>
-                  "nav-link" + (isActive ? " active" : "")
-                }
-              >
-                <span className="icon">
-                  <img
-                    src="assets/images/svg-icon/icon-1.svg"
-                    alt="Job Alert"
-                  />
-                </span>
-                <span className="menu-title">Set Job Alert</span>
-              </NavLink>
-            </li> */}
-
-            {/* Repeat for other links as needed */}
           </ul>
         )}
         {(userRole === "Recruiter" || userRole === "Company") && (
@@ -141,7 +116,9 @@ function Sidebar() {
               >
                 <span className="icon">
                   {/* <i className="fa-solid fa-chart-line" /> */}
-                  <i><MdDashboard/></i>
+                  <i>
+                    <MdDashboard />
+                  </i>
                 </span>
                 <span className="menu-title">Dashboard</span>
               </NavLink>
@@ -155,8 +132,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                 {/* <i className="fa-solid fa-briefcase" /> */}
-                 <i><FaToolbox/></i>
+                  {/* <i className="fa-solid fa-briefcase" /> */}
+                  <i>
+                    <FaToolbox />
+                  </i>
                 </span>
                 <span className="menu-title">Job Posts</span>
               </NavLink>
@@ -169,8 +148,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                 {/* <i className="fa-solid fa-list-check" /> */}
-                 <i><FaListCheck/></i>
+                  {/* <i className="fa-solid fa-list-check" /> */}
+                  <i>
+                    <FaListCheck />
+                  </i>
                 </span>
                 <span className="menu-title">Application Management</span>
               </NavLink>
@@ -183,8 +164,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                   {/* <i className="fa-solid fa-bookmark" /> */}
-                   <i><IoBookmark/></i>
+                  {/* <i className="fa-solid fa-bookmark" /> */}
+                  <i>
+                    <IoBookmark />
+                  </i>
                 </span>
                 <span className="menu-title">Bookmark Resumes</span>
               </NavLink>
@@ -198,8 +181,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                   {/* <i className="fa-solid fa-magnifying-glass" /> */}
-                   <i><IoSearchSharp /></i>
+                  {/* <i className="fa-solid fa-magnifying-glass" /> */}
+                  <i>
+                    <IoSearchSharp />
+                  </i>
                 </span>
                 <span className="menu-title">Candidate Search</span>
               </NavLink>
@@ -212,8 +197,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                 {/* <i className="fa-solid fa-user-tie" /> */}
-                 <i><FaUserTie/></i>
+                  {/* <i className="fa-solid fa-user-tie" /> */}
+                  <i>
+                    <FaUserTie />
+                  </i>
                 </span>
                 <span className="menu-title">Employer Profile</span>
               </NavLink>
@@ -227,7 +214,9 @@ function Sidebar() {
               >
                 <span className="icon">
                   {/* <i className="fa-solid fa-users-gear" /> */}
-                  <i><FaUsersGear/></i>
+                  <i>
+                    <FaUsersGear />
+                  </i>
                 </span>
                 <span className="menu-title">Manage Recruiters</span>
               </NavLink>
@@ -240,8 +229,10 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                   {/* <i className="fa-solid fa-message" /> */}
-                   <i><AiFillMessage/></i>
+                  {/* <i className="fa-solid fa-message" /> */}
+                  <i>
+                    <AiFillMessage />
+                  </i>
                 </span>
                 <span className="menu-title">Messages</span>
               </NavLink>

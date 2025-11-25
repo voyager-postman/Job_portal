@@ -2033,6 +2033,23 @@ function CandidateProfile() {
       toast.error("Failed to delete skill", { theme: "colored" });
     }
   };
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // If URL wrongly contains "/uploads/https"
+    if (url.includes("uploads/https")) {
+      // Extract only the "https://..." part
+      const httpsPart = url.substring(url.indexOf("https"));
+      return httpsPart;
+    }
+
+    // External URL (starts with http)
+    if (url.startsWith("http")) return url;
+
+    // Local upload → prepend API base URL
+    return `${API_IMAGE_URL}${url}`;
+  };
+
   console.log(image);
   return (
     <>
@@ -2063,7 +2080,11 @@ function CandidateProfile() {
                 <div className="candidates-img-detail-info">
                   <div className="candidates-img-info">
                     {/* Candidate Image */}
-                    <img src={image} alt="Candidate" crossorigin="anonymous" />
+                    <img
+                      src={cleanImageUrl(image)}
+                      alt="Candidate"
+                      crossorigin="anonymous"
+                    />
 
                     {/* Hidden file input */}
                     <input
