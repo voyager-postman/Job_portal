@@ -4,6 +4,8 @@ import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 function EmployerShortListCandinate() {
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
@@ -47,6 +49,28 @@ function EmployerShortListCandinate() {
       setBookmarkedCandidates(res.data.bookmarks || []);
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
+    }
+  };
+  const handleBookmark = async (candidateId, jobId) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}bookmark/candidate`,
+        { candidateId, jobId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Show message from backend
+      toast.success(res.data.message);
+      fetchBookmarkedCandidates(); // load bookmark list
+    } catch (err) {
+      console.error("Error bookmarking candidate:", err);
+
+      // If backend sends error message
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Failed to bookmark candidate!");
+      }
     }
   };
   return (
@@ -123,6 +147,7 @@ function EmployerShortListCandinate() {
 
             {bookmarkedCandidates.map((item, index) => {
               const candidate = item.candidateId;
+              const jobId = item.jobId;
 
               return (
                 <div
@@ -132,7 +157,10 @@ function EmployerShortListCandinate() {
                   key={item._id}
                 >
                   <div className="candidate-list-info single-freelancer-card">
-                    <Link to={`/candidates-profile-details`}>
+                    <Link
+                      to={`/candidates-profile-details`}
+                      state={{ userId: jobId._id }}
+                    >
                       <div className="row align-items-center">
                         <div className="col-lg-4">
                           <div className="freelancer-img">
@@ -153,7 +181,10 @@ function EmployerShortListCandinate() {
                             <h3>
                               {candidate.first_name} {candidate.last_name}
                             </h3>
-                            <span>{candidate?.candidateProfile?.career_goals?.DesiredJobTitle||"N/A"}</span>
+                            <span>
+                              {candidate?.candidateProfile?.career_goals
+                                ?.DesiredJobTitle || "N/A"}
+                            </span>
 
                             <div className="info">
                               <ul>
@@ -169,9 +200,32 @@ function EmployerShortListCandinate() {
                             </div>
 
                             <div className="candidate-list-shortlist-candidates">
-                              <i>
-                                <FaBookmark />
-                              </i>
+                              <div
+                                className="candidate-list-bookmark"
+                                onClick={(e) => {
+                                  e.preventDefault(); // ⬅ stop page reload
+                                  e.stopPropagation(); // ⬅ stop parent card click
+                                  handleBookmark(
+                                    candidate?._id,
+                                    candidate.jobId
+                                  );
+                                }}
+                                style={{ cursor: "pointer" }}
+                              >
+                                <i
+                                  className={
+                                    candidate.isBookmarked
+                                      ? "fa-solid fa-bookmark"
+                                      : "fa-regular fa-bookmark"
+                                  }
+                                  style={{
+                                    cursor: "pointer",
+                                    color: candidate.isBookmarked
+                                      ? "#f06024"
+                                      : "#888",
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>

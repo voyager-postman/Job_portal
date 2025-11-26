@@ -433,7 +433,10 @@ function CandidateDashboard() {
                 </div>
               </div>
               <div className="candidate-complete-percent-btn">
-                <h4>Profile strength:{profileData?.strength ? profileData.strength : 0}%</h4>
+                <h4>
+                  Profile strength:
+                  {profileData?.strength ? profileData.strength : 0}%
+                </h4>
                 <Link to="/candidate-profile" className="default-btn btn">
                   Complete Profile
                 </Link>
@@ -628,147 +631,225 @@ function CandidateDashboard() {
                                         aria-label="Close"
                                       />
                                     </div>
-                                    <div class="modal-body">
+                                    {/* NOTE: use className, not class */}
+                                    <div className="modal-body">
                                       <div className="job-apply-defult-resume-custom-resume">
-                                        <div className="job-apply-custom-resume-info-area">
-                                          {resumeList.map((resume) => {
-                                            const fileName = getFileName(
-                                              resume.url
-                                            );
+                                        {/* RESUME LIST - inline hide */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{
+                                            display:
+                                              Array.isArray(resumeList) &&
+                                              resumeList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          {Array.isArray(resumeList) &&
+                                            resumeList.map((resume) => {
+                                              const fileName = getFileName(
+                                                resume.url
+                                              );
+                                              return (
+                                                <div
+                                                  key={resume._id}
+                                                  className={
+                                                    "job-apply-custom-resume-info " +
+                                                    (selectedType ===
+                                                      "resume" &&
+                                                    selectedId === resume.url
+                                                      ? "active"
+                                                      : "")
+                                                  }
+                                                  onClick={() =>
+                                                    handleSelect(
+                                                      "resume",
+                                                      resume.url
+                                                    )
+                                                  }
+                                                  style={{ cursor: "pointer" }}
+                                                >
+                                                  <span className="file-name-text">
+                                                    <i className="fa-solid fa-file" />{" "}
+                                                    {fileName}
+                                                  </span>
 
-                                            return (
-                                              <div
-                                                key={resume._id}
-                                                className={
-                                                  "job-apply-custom-resume-info " +
-                                                  (selectedType === "resume" &&
-                                                  selectedId === resume._id
-                                                    ? "active"
-                                                    : "")
-                                                }
-                                                onClick={() =>
-                                                  handleSelect(
-                                                    "resume",
-                                                    resume._id
-                                                  )
-                                                }
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                {/* Left side: file icon + filename */}
-                                                <span className="file-name-text">
-                                                  <i className="fa-solid fa-file"></i>
-                                                  {fileName}
-                                                </span>
-
-                                                {/* Right side: check icon */}
-                                                {selectedType === "resume" &&
-                                                  selectedId === resume._id && (
-                                                    <i className="fa-solid fa-circle-check selected-check-icon"></i>
-                                                  )}
-                                              </div>
-                                            );
-                                          })}
+                                                  {selectedType === "resume" &&
+                                                    selectedId ===
+                                                      resume.url && (
+                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                    )}
+                                                </div>
+                                              );
+                                            })}
                                         </div>
 
-                                        <div className="defult-resume-custom-resume-divder-line">
+                                        {/* OR DIVIDER for resume - inline hide */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder-line"
+                                          style={{
+                                            display:
+                                              Array.isArray(resumeList) &&
+                                              resumeList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
                                           <h4>or</h4>
                                         </div>
 
-                                        <div className="job-apply-custom-resume-info-area">
-                                          {coverLetterList.map((cover) => {
-                                            const fileName = getFileName(
-                                              cover.url
-                                            );
+                                        {/* COVER LETTER LIST - inline hide */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{
+                                            display:
+                                              Array.isArray(coverLetterList) &&
+                                              coverLetterList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          {Array.isArray(coverLetterList) &&
+                                            coverLetterList.map((cover) => {
+                                              const fileName = getFileName(
+                                                cover.url
+                                              );
+                                              return (
+                                                <div
+                                                  key={cover._id}
+                                                  className={
+                                                    "job-apply-custom-resume-info " +
+                                                    (selectedType === "cover" &&
+                                                    selectedId === cover.url
+                                                      ? "active"
+                                                      : "")
+                                                  }
+                                                  onClick={() =>
+                                                    handleSelect(
+                                                      "cover",
+                                                      cover.url
+                                                    )
+                                                  }
+                                                  style={{ cursor: "pointer" }}
+                                                >
+                                                  <span className="file-name-text">
+                                                    <i className="fa-solid fa-file" />{" "}
+                                                    {fileName}
+                                                  </span>
 
-                                            return (
-                                              <div
-                                                key={cover._id}
-                                                className={
-                                                  "job-apply-custom-resume-info " +
-                                                  (selectedType === "cover" &&
-                                                  selectedId === cover._id
-                                                    ? "active"
-                                                    : "")
-                                                }
-                                                onClick={() =>
-                                                  handleSelect(
-                                                    "cover",
-                                                    cover._id
-                                                  )
-                                                }
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                <span className="file-name-text">
-                                                  <i className="fa-solid fa-file"></i>
-                                                  {fileName}
-                                                </span>
-
-                                                {selectedType === "cover" &&
-                                                  selectedId === cover._id && (
-                                                    <i className="fa-solid fa-circle-check selected-check-icon"></i>
-                                                  )}
-                                              </div>
-                                            );
-                                          })}
+                                                  {selectedType === "cover" &&
+                                                    selectedId ===
+                                                      cover.url && (
+                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                    )}
+                                                </div>
+                                              );
+                                            })}
                                         </div>
 
-                                        <div className="defult-resume-custom-resume-divder-line">
+                                        {/* OR DIVIDER for cover - inline hide */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder-line"
+                                          style={{
+                                            display:
+                                              Array.isArray(coverLetterList) &&
+                                              coverLetterList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
                                           <h4>or</h4>
                                         </div>
 
-                                        <div className="job-apply-custom-resume-info-area">
-                                          <div className="job-apply-custom-resume-info-area">
-                                            {selectedCustomFile && (
-                                              <div
-                                                className={
-                                                  "job-apply-custom-resume-info " +
-                                                  (selectedType === "custom"
-                                                    ? "active"
-                                                    : "")
-                                                }
-                                                onClick={() =>
-                                                  selectedCustomFile &&
-                                                  handleSelect("custom")
-                                                }
-                                              >
-                                                <span className="file-name-text">
-                                                  <i className="fa-solid fa-file"></i>
-                                                  {selectedCustomFile.name}
-                                                </span>
+                                        {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{ display: "block" }}
+                                        >
+                                          {/* Show selected custom file if exists */}
+                                          <div
+                                            style={{
+                                              display: selectedCustomFile
+                                                ? "block"
+                                                : "none",
+                                            }}
+                                          >
+                                            <div
+                                              className={
+                                                "job-apply-custom-resume-info " +
+                                                (selectedType === "custom"
+                                                  ? "active"
+                                                  : "")
+                                              }
+                                              onClick={() =>
+                                                selectedCustomFile &&
+                                                handleSelect("custom")
+                                              }
+                                              style={{
+                                                cursor: selectedCustomFile
+                                                  ? "pointer"
+                                                  : "default",
+                                              }}
+                                            >
+                                              <span className="file-name-text">
+                                                <i className="fa-solid fa-file" />{" "}
+                                                {selectedCustomFile
+                                                  ? selectedCustomFile.name
+                                                  : ""}
+                                              </span>
 
-                                                {selectedType === "custom" && (
-                                                  <i className="fa-solid fa-circle-check selected-check-icon"></i>
-                                                )}
-                                              </div>
-                                            )}
-
-                                            <div className="job-apply-custom-resume-cover-letter-btn">
-                                              <a
-                                                href="#"
-                                                className="default-btn btn"
-                                                onClick={handleLinkClick}
-                                              >
-                                                Custom resume with cover letter
-                                              </a>
-
-                                              <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept=".pdf,.doc,.docx"
-                                                onChange={handleFileUpload}
-                                                style={{ display: "none" }}
-                                              />
+                                              {selectedType === "custom" && (
+                                                <i className="fa-solid fa-circle-check selected-check-icon" />
+                                              )}
                                             </div>
+                                          </div>
+
+                                          {/* Upload Button — prevent default and open file input */}
+                                          <div
+                                            className="job-apply-custom-resume-cover-letter-btn"
+                                            style={{ marginTop: 12 }}
+                                          >
+                                            <a
+                                              href="#"
+                                              className="default-btn btn"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                // ensure fileInputRef.current exists
+                                                if (
+                                                  fileInputRef &&
+                                                  fileInputRef.current
+                                                )
+                                                  fileInputRef.current.click();
+                                              }}
+                                            >
+                                              Custom resume with cover letter
+                                            </a>
+
+                                            <input
+                                              ref={fileInputRef}
+                                              type="file"
+                                              accept=".pdf,.doc,.docx"
+                                              onChange={handleFileUpload}
+                                              style={{ display: "none" }}
+                                            />
                                           </div>
                                         </div>
 
-                                        <div className="defult-resume-custom-resume-divder"></div>
+                                        {/* Divider before apply button (always keep in DOM) */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder"
+                                          style={{ marginTop: 16 }}
+                                        />
 
-                                        <div className="job-apply-defult-resume-btn">
+                                        {/* APPLY BUTTON - always present */}
+                                        <div
+                                          className="job-apply-defult-resume-btn"
+                                          style={{ marginTop: 12 }}
+                                        >
                                           <button
                                             className="default-btn btn w-100"
                                             onClick={handleApplyJob}
-                                            disabled={isApplying} // 🔥 Disable during API call
+                                            disabled={isApplying}
                                           >
                                             {isApplying ? (
                                               <>
@@ -785,7 +866,8 @@ function CandidateDashboard() {
                                           </button>
                                         </div>
                                       </div>
-                                    </div>
+                                    </div>{" "}
+                                    {/* .modal-body */}
                                   </div>
                                 </div>
                               </div>

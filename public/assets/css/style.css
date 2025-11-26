@@ -8602,14 +8602,10 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   line-height: 0px;
   cursor: pointer;
   padding: 3px 3px;
-  background: #0066cc;
   border-radius: 5px;
   position: absolute;
 }
 
-.candidate-list-info .candidate-list-bookmark:hover {
-  background: #ff6600;
-}
 
 .search-job-top-content .shorting-content .form-control {
   background-color: #fff;

@@ -6,7 +6,7 @@ import { API_IMAGE_URL } from "../Url/Url";
 function CandinateProfileDetails() {
   const location = useLocation();
   const { userId } = location.state || {};
-
+  console.log(userId);
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(false);
 

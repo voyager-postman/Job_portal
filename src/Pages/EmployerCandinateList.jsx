@@ -574,7 +574,7 @@ function EmployerCandinateList() {
                                 style={{
                                   cursor: "pointer",
                                   color: candidate.isBookmarked
-                                    ? "red"
+                                    ? "#1868ca"
                                     : "#888",
                                 }}
                               />
