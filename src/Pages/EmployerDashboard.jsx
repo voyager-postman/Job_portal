@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
+import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
 function EmployerDashboard() {
+  const [stats, setStats] = useState("");
   const [chartData] = useState({
     series: [44, 55],
     options: {
@@ -68,6 +71,7 @@ function EmployerDashboard() {
       },
     },
   });
+
   const [lineChartConfig] = useState({
     series: [
       {
@@ -108,6 +112,25 @@ function EmployerDashboard() {
     },
   });
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${API_BASE_URL}recruiter/dashboardStats`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("Dashboard Stats:", response.data);
+        setStats(response.data.stats);
+      } catch (err) {
+        console.error("Error Fetching Dashboard Stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -120,7 +143,10 @@ function EmployerDashboard() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-              <Link to="/employer-dashboard"> <i className="fa-solid fa-angle-right" /> Dashboard</Link>
+                <Link to="/employer-dashboard">
+                  {" "}
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
             </ol>
           </div>
@@ -140,9 +166,9 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Jobs Posted</h4>
-                        <h5>25</h5>
+                        <h5>{stats.totalJobs || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> 12% this week
+                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.jobsPosted?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -156,9 +182,9 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Total Applicants</h4>
-                        <h5>932</h5>
+                        <h5>{stats.totalApplicants || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> 5% this week
+                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.applicants?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -188,9 +214,9 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Shortlist</h4>
-                        <h5>40</h5>
+                        <h5>{stats.totalShortlisted || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> 12% this week
+                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.shortlisted?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -202,7 +228,6 @@ function EmployerDashboard() {
           {/* employer dashboard end here */}
           {/* Job performance analyticssection start here */}
           <section className="job-performance-analytics-info">
-          
             <div className="employer-dashboard-common-heading">
               <h2>Job performance analytics</h2>
             </div>

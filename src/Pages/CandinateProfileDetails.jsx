@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
 function CandinateProfileDetails() {
   const location = useLocation();
-  const { userId } = location.state || {}; // get userId from Link state
+  const { userId } = location.state || {};
 
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ function CandinateProfileDetails() {
       const token = localStorage.getItem("token");
       const res = await axios.post(
         `${API_BASE_URL}getCandidateDetails/${id}`,
-        {}, // body can be empty if your API only needs user_id in URL
+        {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -35,6 +35,7 @@ function CandinateProfileDetails() {
       setLoading(false);
     }
   };
+
   return (
     <>
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
@@ -47,7 +48,7 @@ function CandinateProfileDetails() {
                     crossorigin="anonymous"
                     src={
                       candidate?.userId?.profileImage
-                        ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}` // Replace API_IMAGE_URL with your base URL
+                        ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}`
                         : "assets/images/candidate-img/candidate1.jpg" // default image
                     }
                     alt="Image"
@@ -56,22 +57,40 @@ function CandinateProfileDetails() {
                 <div className="candidates-content">
                   <div className="candidate-profile-details-info">
                     <h3>
-                      <strong>Name:</strong> {candidate?.userId?.first_name}{" "}
-                      {candidate?.userId?.last_name}
+                      <strong>Name:</strong>{" "}
+                      <span>
+                        {candidate?.userId?.first_name
+                          ?.toLowerCase()
+                          .replace(/^\w/, (c) => c.toUpperCase()) ||
+                          "Not Provided"}{" "}
+                        {candidate?.userId?.last_name
+                          ?.toLowerCase()
+                          .replace(/^\w/, (c) => c.toUpperCase())}
+                      </span>
                     </h3>
                     <h3>
-                      <strong>Position:</strong>
-                      {candidate?.userId?.position}
+                      <strong>Position:</strong>{" "}
+                      <span>
+                        {candidate?.aboutRole?.jobTitle
+                          ?.toLowerCase()
+                          .replace(/^\w/, (c) => c.toUpperCase()) ||
+                          "Not Provided"}{" "}
+                      </span>
                     </h3>
                     <h3>
-                      <strong>Email:</strong> {candidate?.userId?.email}
+                      <strong>Email:</strong>{" "}
+                      {candidate?.userId?.email || "Not Provided"}
                     </h3>
                     <h3>
-                      <strong>Contact:</strong> {candidate?.userId?.phone}
+                      <strong>Contact:</strong>{" "}
+                      {candidate?.userId?.phone || "Not Provided"}
                     </h3>
                     <h3>
-                      <strong>Address:</strong>
-                      {candidate?.userId?.city}
+                      <strong>Address:</strong>{" "}
+                      {candidate?.userId?.city
+                        ?.toLowerCase()
+                        .replace(/^\w/, (c) => c.toUpperCase()) ||
+                        "Not Provided"}{" "}
                     </h3>
                   </div>
                 </div>
@@ -87,20 +106,17 @@ function CandinateProfileDetails() {
                 <h4>Social Media</h4>
                 <ul>
                   <li>
-                    <a
-                      href="https://itdevelopmentservices.com/jobPortal/"
-                      target="_blank"
-                    >
+                    <a href={candidate?.userId?.googleId} target="_blank">
                       <i className="fa-solid fa-globe" />
                     </a>
                   </li>
                   <li>
-                    <a href="https://github.com/" target="_blank">
+                    <a href={candidate?.userId?.githubId} target="_blank">
                       <i className="fa-brands fa-github" />
                     </a>
                   </li>
                   <li>
-                    <a href="https://in.linkedin.com/" target="_blank">
+                    <a href={candidate?.userId?.linkedinId} target="_blank">
                       <i className="fa-brands fa-linkedin-in" />
                     </a>
                   </li>
@@ -123,28 +139,44 @@ function CandinateProfileDetails() {
                 <div className="candidate-profile-detail-info candidate-profile-summary">
                   <h3>Career Goals</h3>
                   <h5>Desired Job Title</h5>
-                  <p>{candidate?.career_goals?.DesiredJobTitle}</p>
+                  <p>
+                    {candidate?.career_goals?.DesiredJobTitle?.toLowerCase().replace(
+                      /^\w/,
+                      (c) => c.toUpperCase()
+                    ) || "Not Provided"}{" "}
+                  </p>
                   <h5>Desired Employment Type</h5>
-                  <p>{candidate?.career_goals?.DesiredEmploymentType}</p>
+                  <p>
+                    {candidate?.career_goals?.DesiredEmploymentType?.toLowerCase().replace(
+                      /^\w/,
+                      (c) => c.toUpperCase()
+                    ) || "Not Provided"}{" "}
+                  </p>
                   <h5>Desired Occupation Type</h5>
-                  <p>{candidate?.career_goals?.DesiredOccupationType}</p>
+                  <p>
+                    {candidate?.career_goals?.DesiredOccupationType?.toLowerCase().replace(
+                      /^\w/,
+                      (c) => c.toUpperCase()
+                    ) || "Not Provided"}{" "}
+                  </p>
                   <div className="candidate-profile-divider-line" />
                   <h3>Other Preferences</h3>
                   {candidate?.career_goals ? (
                     <>
                       <h5>Eligible to work in</h5>
                       <p>
-                        {candidate.career_goals.DesiredOccupationType ||
-                          "Not specified"}
+                        {candidate.career_goals.DesiredOccupationType?.toLowerCase().replace(
+                          /^\w/,
+                          (c) => c.toUpperCase()
+                        ) || "Not Provided"}{" "}
                       </p>
 
                       <h5>Minimum Desired Salary (Gross)</h5>
                       {candidate.career_goals.MinimumDesiredSalary ? (
                         <p>
-                          {candidate.career_goals.MinimumDesiredSalary.currency}
-                          {
-                            candidate.career_goals.MinimumDesiredSalary.amount
-                          } / {candidate.career_goals.MinimumDesiredSalary.type}
+                          {candidate.career_goals.MinimumDesiredSalary.currency}{" "}
+                          {candidate.career_goals.MinimumDesiredSalary.amount} /{" "}
+                          {candidate.career_goals.MinimumDesiredSalary.type}
                         </p>
                       ) : (
                         <p>Not specified</p>
@@ -164,11 +196,21 @@ function CandinateProfileDetails() {
                 <div className="candidate-profile-detail-info candidate-profile-summary">
                   <h3>About your role</h3>
                   <h5>Job Title</h5>
-                  <p>{candidate?.aboutRole?.jobTitle}</p>
+                  <p>
+                    {candidate?.aboutRole?.jobTitle
+                      ?.toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase()) ||
+                      "Not Provided"}{" "}
+                  </p>
                   <h5>Years of experience</h5>
                   <p>{candidate?.aboutRole?.yearOfExperience} Years</p>
                   <h5>Job category</h5>
-                  <p>{candidate?.aboutRole?.jobCategory}</p>
+                  <p>
+                    {candidate?.aboutRole?.jobCategory
+                      ?.toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase()) ||
+                      "Not Provided"}{" "}
+                  </p>
                 </div>
                 <div className="candidate-profile-divider-line" />
                 {/* <div className="works-experience candidate-profile-summary">
@@ -197,7 +239,6 @@ function CandinateProfileDetails() {
                 </div> */}
                 <div className="works-experience candidate-profile-summary">
                   <h3>Experience</h3>
-
                   {candidate?.workHistory &&
                   candidate.workHistory.length > 0 ? (
                     candidate.workHistory.map((work) => {
@@ -205,11 +246,15 @@ function CandinateProfileDetails() {
                       const endDate = work.currentlyWorkingHere
                         ? "Until now"
                         : new Date(work.endDate);
-
                       return (
                         <div key={work._id} className="work-history-item">
                           {/* Job Title */}
-                          <h5>{work.jobTitle || "Not specified"}</h5>
+                          <h5>
+                            {work.jobTitle
+                              ?.toLowerCase()
+                              .replace(/^\w/, (c) => c.toUpperCase()) ||
+                              "Not Provided"}{" "}
+                          </h5>
 
                           {/* Duration */}
                           <p>
@@ -268,14 +313,75 @@ function CandinateProfileDetails() {
                 <div className="candidate-profile-divider-line" />
                 <div className="education candidate-profile-summary">
                   <h3>Education</h3>
-                  <h5>Degree</h5>
+                  {candidate?.education && candidate.education.length > 0 ? (
+                    candidate.education.map((work, index) => {
+                      const startDate = new Date(work.startDate);
+                      const endDateObj = work.currentlyStudyingHere
+                        ? null
+                        : new Date(work.endDate);
+
+                      return (
+                        <div key={work._id}>
+                          <div className="work-history-item">
+                            <h5>Degree</h5>
+                            <p>
+                              {work.degree
+                                ?.toLowerCase()
+                                .replace(/^\w/, (c) => c.toUpperCase()) ||
+                                "Not Provided"}
+                            </p>
+
+                            <h5>University</h5>
+                            <p>
+                              {work.University?.toLowerCase().replace(
+                                /^\w/,
+                                (c) => c.toUpperCase()
+                              ) || "Not Provided"}
+                            </p>
+
+                            <h5>Start Date</h5>
+                            <p>
+                              {startDate.toLocaleString("default", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </p>
+
+                            <h5>End Date</h5>
+                            <p>
+                              {work.currentlyStudyingHere ? (
+                                "Until now"
+                              ) : (
+                                <>
+                                  {endDateObj.toLocaleString("default", {
+                                    month: "short",
+                                  })}{" "}
+                                  {endDateObj.getFullYear()}
+                                </>
+                              )}
+                            </p>
+                          </div>
+
+                          {/* Divider only between items, not after the last */}
+                          {index !== candidate.education.length - 1 && (
+                            <div className="candidate-profile-divider-line" />
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p>No education information available</p>
+                  )}
+
+                  {/* <h5>Degree</h5>
                   <p>B.Tech</p>
                   <h5>University</h5>
                   <p>IGNU</p>
                   <h5>Start Date</h5>
                   <p>05 / 2020</p>
                   <h5>End Date</h5>
-                  <p>Until now</p>
+                  <p>Until now</p> */}
                 </div>
                 <div className="skill-content candidate-profile-summary">
                   <h3>Skills</h3>
@@ -312,7 +418,12 @@ function CandinateProfileDetails() {
                   candidate.certificates.length > 0 ? (
                     candidate.certificates.map((cert) => (
                       <div key={cert._id}>
-                        <h5>{cert.title}</h5>
+                        <h5>
+                          {cert.title
+                            .toLowerCase()
+                            .replace(/^\w/, (c) => c.toUpperCase()) ||
+                            "Not Provided"}
+                        </h5>
                         <p>
                           Issue Date: {new Date(cert.issueDate).getFullYear()}
                         </p>
@@ -415,28 +526,51 @@ function CandinateProfileDetails() {
                   <h3>Candidate Informations</h3>
                   <ul>
                     <li>
-                      <span>Experience :</span>3 Years
+                      <span>Experience :</span>
+                      {candidate?.aboutRole?.yearOfExperience || 0} Years
                     </li>
                     <li>
-                      <span>Current salary :</span>$2000
+                      {/* <span>Current salary :</span>$2000 */}
+                      <span>Phone No.:</span>
+                      {candidate?.userId?.phone || "Not Provided"}
                     </li>
                     <li>
-                      <span>Education level :</span>Master Degree
+                      <span>Education level :</span>
+                      {candidate?.education[0]?.degree
+                        .toLowerCase()
+                        .replace(/^\w/, (c) => c.toUpperCase()) ||
+                        "Not Provided"}{" "}
                     </li>
                     <li>
-                      <span>Year of birth : </span>2000
+                      <span>Year of birth : </span>
+                      {candidate?.userId?.date_of_birth
+                        ? new Date(
+                            candidate.userId.date_of_birth
+                          ).toLocaleDateString("en-GB")
+                        : "Not Provided"}
                     </li>
                     <li>
-                      <span>Job Location :</span>New York, USA
+                      <span>Location :</span>
+                      {candidate?.userId?.city
+                        .toLowerCase()
+                        .replace(/^\w/, (c) => c.toUpperCase()) ||
+                        "Not Provided"}{" "}
                     </li>
                     <li>
-                      <span>Job category :</span>Software engineering
+                      <span>Job category :</span>
+                      {candidate?.aboutRole?.jobCategory || "Not Provided"}
                     </li>
                     <li>
-                      <span>Gender :</span>Male
+                      <span>Gender :</span>
+                      {candidate?.userId?.gender || "Not Provided"}
                     </li>
                     <li>
-                      <span>Language :</span>English, German
+                      <span>Language :</span>
+                      {candidate?.languages?.length > 0
+                        ? candidate.languages
+                            .map((lang) => lang.language)
+                            .join(", ")
+                        : "Not Provided"}
                     </li>
                   </ul>
                 </div>

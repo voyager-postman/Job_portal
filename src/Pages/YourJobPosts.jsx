@@ -18,6 +18,7 @@ function YourJobPosts() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewData, setViewData] = useState("");
   const [viewOpen, setViewOpen] = useState(false);
+  const [countryList, setCountryList] = useState([]);
 
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
@@ -94,6 +95,18 @@ function YourJobPosts() {
       console.error(error);
     }
   };
+
+  const fetchCountryList = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}get/countries`);
+      setCountryList(response.data.countries || []);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
+  useEffect(() => {
+    fetchCountryList();
+  }, []);
 
   // Fetch jobs based on status
   const fetchJobs = async (status) => {
@@ -219,7 +232,7 @@ function YourJobPosts() {
       })
       .then((response) => {
         setViewData(response.data.data);
-        // console.log(response.data.data);
+        console.log(response.data.data);
         handleViewOpen();
         setMenuOpen(false);
       })
@@ -373,17 +386,17 @@ function YourJobPosts() {
                         <div className="modal-footer text-center">
                           <button
                             type="button"
-                            onClick={handleCreate}
-                            className="default-btn btn"
-                          >
-                            Create
-                          </button>
-                          <button
-                            type="button"
                             className="default-btn btn"
                             data-bs-dismiss="modal"
                           >
                             Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCreate}
+                            className="default-btn btn"
+                          >
+                            Create
                           </button>
                         </div>
                       </div>
@@ -460,9 +473,7 @@ function YourJobPosts() {
                     {loading ? (
                       <p>Loading jobs...</p>
                     ) : jobs.length === 0 ? (
-                      <div
-                        className="job-post-info-heading text-center"
-                      >
+                      <div className="job-post-info-heading text-center">
                         <h2
                           style={{
                             alignItems: "center",
@@ -478,16 +489,16 @@ function YourJobPosts() {
                             <div className="job-short-detail-heading">
                               <h4>{job.jobTitle}</h4>
                             </div>
-                            <div className="job-short-detail-crud-info">
-                              <i
-                                className="fa-solid fa-ellipsis-vertical menu-icon"
-                                style={{ cursor: "pointer" }}
-                                onClick={() =>
-                                  setMenuOpen((prev) =>
-                                    prev === job._id ? null : job._id
-                                  )
-                                }
-                              ></i>
+                            <div
+                              className="job-short-detail-crud-info"
+                              onClick={() =>
+                                setMenuOpen((prev) =>
+                                  prev === job._id ? null : job._id
+                                )
+                              }
+                              style={{ cursor: "pointer" }}
+                            >
+                              <i className="fa-solid fa-ellipsis-vertical menu-icon"></i>
                             </div>
                             {menuOpen === job._id && (
                               <div className="job-short-detail-crud-menu">
@@ -509,17 +520,6 @@ function YourJobPosts() {
                                       )
                                     }
                                   >
-                                    {/* <button
-                                      onClick={() =>
-                                        copyDraft(
-                                          job._id,
-                                          job.jobTitle,
-                                          job.jobCategory
-                                        )
-                                      }
-                                    >
-                                      Copy as Draft
-                                    </button> */}
                                     <i
                                       className="fa-solid fa-file cursor-pointer"
                                       title="Copy as draft"
@@ -539,7 +539,7 @@ function YourJobPosts() {
                             <ul>
                               <li>
                                 <i className="fa-solid fa-location-dot"></i>{" "}
-                                {job.city || "null"}
+                                {job.city?.join(", ") || "Not provided"}
                               </li>
                               <li>
                                 <i className="fa-solid fa-calendar-days"></i>{" "}
@@ -547,11 +547,11 @@ function YourJobPosts() {
                               </li>
                               <li>
                                 <i className="fa-solid fa-file-invoice"></i>{" "}
-                                {job.employmentType?.name || "null"}
+                                {job.employmentType?.name || "Not provided"}
                               </li>
                               <li>
                                 <i className="fa-solid fa-user-plus"></i>{" "}
-                                {job.remote || "null"}
+                                {job.remote || "Not provided"}
                               </li>
                             </ul>
                           </div>
@@ -665,9 +665,9 @@ function YourJobPosts() {
             </Typography>
             <Typography>
               <strong>City:</strong>
-              {viewData?.jobDetails?.city == null
-                ? viewData?.jobDetails?.companyId?.city
-                : viewData.jobDetails.city || "null"}
+              {viewData?.jobDetails?.city?.join(",") == null
+                ? viewData?.jobDetails?.companyId?.city?.join(",")
+                : viewData.jobDetails.city?.join(", ") || "null"}
             </Typography>
             <Typography>
               <strong>Region:</strong>
@@ -676,10 +676,16 @@ function YourJobPosts() {
                 : viewData.jobDetails.region || "null"}
             </Typography>
             <Typography>
-              <strong>Country:</strong>{" "}
-              {viewData?.jobDetails?.country == null
-                ? viewData?.jobDetails?.companyId?.Country
-                : viewData.jobDetails.country || "null"}
+              <p>
+                <strong>Country:</strong>{" "}
+                {countryList.find(
+                  (country) => country._id === viewData?.jobDetails?.country
+                )?.name || "Not provided"}
+              </p>
+
+              {/* {viewData?.jobDetails?.country == null
+                ? viewData?.jobDetails?.companyId?.country
+                : viewData.jobDetails.country || "null"} */}
             </Typography>
             <Typography>
               <strong>Status:</strong> {viewData?.jobDetails?.status || "null"}

@@ -49,6 +49,45 @@ function MyProfile() {
   const [file, setFile] = useState(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [isActive, setIsActive] = useState(false);
+  const [category, setCategory] = useState([]);
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}get/countries`);
+        console.log("Countries API Response:", response.data);
+
+        if (response.status === 200) {
+          // check if response contains "countries" key
+          if (Array.isArray(response.data)) {
+            setCountries(response.data);
+          } else if (Array.isArray(response.data.countries)) {
+            setCountries(response.data.countries);
+          } else {
+            console.error("Unexpected countries API format", response.data);
+            setCountries([]); // fallback empty
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    const fetchJobCategory = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}getJobCategory`);
+        // console.log(response.data.jobCategories);
+        setCategory(response.data.jobCategories)
+      } catch (error) {
+        console.error("Fetching Job Category List:", error);
+      }
+    };
+    fetchJobCategory();
+  },[]);
 
   const handleToggle = () => {
     setIsActive((prev) => !prev);
@@ -87,7 +126,7 @@ function MyProfile() {
     setActiveIndex(index);
     setFormData((prev) => ({
       ...prev,
-      selectedCategory: categories[index],
+      selectedCategory: category[index],
     }));
   };
 
@@ -97,30 +136,7 @@ function MyProfile() {
       eligibleInFrance: value,
     }));
   };
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}get/countries`);
-        console.log("Countries API Response:", response.data);
 
-        if (response.status === 200) {
-          // check if response contains "countries" key
-          if (Array.isArray(response.data)) {
-            setCountries(response.data);
-          } else if (Array.isArray(response.data.countries)) {
-            setCountries(response.data.countries);
-          } else {
-            console.error("Unexpected countries API format", response.data);
-            setCountries([]); // fallback empty
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-
-    fetchCountries();
-  }, []);
   const validate = () => {
     // if (!formData.attachment) {
     //   toast.error("Resume file is required.");
@@ -397,7 +413,6 @@ function MyProfile() {
               Please Fill in your Basic &nbsp;
               <label className="oragneColor">Profile Information</label>{" "}
             </h2>
-          
           </div>
         </div>
         <div className="profile-basic-info-form">
@@ -735,7 +750,7 @@ function MyProfile() {
                 </h3>
                 <div className="job-category-tags">
                   <ul id="JobCategory">
-                    {categories.map((category, index) => (
+                    {category.map((cate, index) => (
                       <li
                         key={index}
                         className={
@@ -743,7 +758,7 @@ function MyProfile() {
                         }
                         onClick={() => handleCategoryClick(index)}
                       >
-                        {category}
+                        {cate.name}
                       </li>
                     ))}
                   </ul>

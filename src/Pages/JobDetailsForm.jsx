@@ -9,13 +9,14 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import Chip from "@mui/material/Chip";
+// import Box from "@mui/material/Box";
+// import OutlinedInput from "@mui/material/OutlinedInput";
+// import InputLabel from "@mui/material/InputLabel";
+// import MenuItem from "@mui/material/MenuItem";
+// import FormControl from "@mui/material/FormControl";
+// import Select from "@mui/material/Select";
+// import Chip from "@mui/material/Chip";
+
 function JobDetailsForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -41,12 +42,13 @@ function JobDetailsForm() {
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
     jobCategory: jobFromState.jobCategory || "",
-    minimumLevel: jobFromState.minimumLevel || "",
-    employmentType: jobFromState.employmentType || "",
+    minimumLevel: jobFromState.minimumLevel?._id || "",
+    employmentType: jobFromState.employmentType?._id || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
     cities: [], // 👈 this holds multiple cities    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
+    city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
     region: jobFromState.region || "",
     Country: jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
@@ -100,10 +102,12 @@ function JobDetailsForm() {
             maxSalary: job?.privatJobDetails?.maxSalary || "",
             coverPhoto: null,
           }));
+          console.log("Job Details Data:", res.data.data);
         })
         .catch((err) => console.error("Failed to fetch job:", err));
     }
   }, [id, jobFromState._id]);
+
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -144,6 +148,23 @@ function JobDetailsForm() {
       fetchCitiesByCountry(countryId);
     }
   };
+
+  const handleSeniorityChange = (e) => {
+    const id = e.target.value;
+
+    setFormData((prev) => {
+      const updated = { ...prev, minimumLevel: id };
+
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updated, false);
+      }, 500);
+
+      return updated;
+    });
+
+  };
+
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState("");
 
@@ -162,13 +183,10 @@ function JobDetailsForm() {
       }
 
       // update formData and autosave
-      const updatedForm = { ...formData, cities: updated };
-      setFormData(updatedForm);
-
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updatedForm, false);
-      }, 500);
+      setFormData((prevForm) => ({
+        ...prevForm,
+        city: updated, // FIXED here
+      }));
 
       return updated;
     });
@@ -178,12 +196,10 @@ function JobDetailsForm() {
   const handleRemoveCity = (cityName) => {
     const updated = selectedCities.filter((c) => c !== cityName);
     setSelectedCities(updated);
-    setFormData((prev) => ({ ...prev, cities: updated }));
-
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      handlePublishJob({ ...formData, cities: updated }, false);
-    }, 500);
+    setFormData((prev) => ({
+      ...prev,
+      city: updated, // FIXED here
+    }));
   };
 
   // Close dropdown when clicked outside
@@ -302,7 +318,6 @@ function JobDetailsForm() {
 
   const handleChange = async (e) => {
     const { name, value, type, checked, files } = e.target;
-
     setFormData((prev) => {
       let updated = { ...prev };
 
@@ -481,6 +496,7 @@ function JobDetailsForm() {
     }
   };
   // Add new city to list
+
   return (
     <>
       <ToastContainer />
@@ -588,37 +604,29 @@ function JobDetailsForm() {
                               className="form-select form-control"
                               name="minimumLevel"
                               value={formData.minimumLevel}
-                              onChange={handleChange}
-                              required
+                              onChange={handleSeniorityChange}
                             >
                               <option value="" disabled>
                                 Select minimum level
                               </option>
 
-                              {seniorityLevels.length > 0 ? (
-                                seniorityLevels.map((level) => (
-                                  <option key={level._id} value={level._id}>
-                                    {level.name}
-                                  </option>
-                                ))
-                              ) : (
-                                <option disabled>Loading levels...</option>
-                              )}
+                              {seniorityLevels.map((level) => (
+                                <option key={level._id} value={level._id}>
+                                  {level.name}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>
-                              Employment Type{" "}
-                            </label>
+                            <label>Employment Type </label>
 
                             <select
                               className="form-select form-control"
                               name="employmentType"
                               value={formData.employmentType}
                               onChange={handleChange}
-                              required
                             >
                               <option value="" disabled>
                                 Select employment type
@@ -649,7 +657,6 @@ function JobDetailsForm() {
                               name="remote"
                               value={formData.remote}
                               onChange={handleChange}
-                              required
                             >
                               <option value="" disabled>
                                 Select remote type
@@ -1119,9 +1126,7 @@ function JobDetailsForm() {
                 </div>
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
-                    <label>
-                      Number of Available Jobs{" "}
-                    </label>
+                    <label>Number of Available Jobs </label>
                   </div>
 
                   <div className="job-option-branding-input-box">
@@ -1395,24 +1400,36 @@ function JobDetailsForm() {
                       <div className="job-post-address-info">
                         <h4>Job post address</h4>
                         <p>
-                          {formData.city || "Not provided"}
+                          {formData.city?.join(", ") || "Not provided"}
                           <br />
-                          {formData.region || "Not provided"},{" "}
-                          {formData.Country || "Not provided"}
+                          {/* {formData.region || "Not provided"},{" "} */}
+                          {countryList.find(
+                            (country) => country._id === formData.Country
+                          )?.name || "Not provided"}
                         </p>
                       </div>
                       <div className="job-post-other-info">
                         <div className="minimum-level-remote">
                           <h4>Minimum level</h4>
-                          <p>{formData.minimumLevel?.name || "Not provided"}</p>
+                          <p>
+                            {seniorityLevels.find(
+                              (level) => level._id === formData.minimumLevel
+                            )?.name || "Not provided"}
+                          </p>
                           <div className="divder-space-line" />
                           <h4>Location</h4>
-                          <p>{formData.city || "Not provided"}</p>
+                          <p>
+                            {countryList.find(
+                              (country) => country._id === formData.Country
+                            )?.name || "Not provided"}
+                          </p>
                         </div>
                         <div className="employment-type-job-category">
                           <h4>Employment type</h4>
                           <p>
-                            {formData.employmentType?.name || "Not provided"}
+                            {jobTypes.find(
+                              (type) => type._id === formData.employmentType
+                            )?.name || "Not provided"}
                           </p>
                           <div className="divder-space-line" />
                           <h4>Job category</h4>

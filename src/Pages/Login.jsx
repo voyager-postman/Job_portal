@@ -296,7 +296,7 @@ function Login() {
                         Are you a recruiter? Log in via our dedicated portal
                       </p>
                       <Link to="/employer-login">
-                        <i className="fa-solid fa-users" /> Recruiter Loging
+                        <i className="fa-solid fa-users" /> Recruiter Login
                       </Link>
                     </div>
                   </div>

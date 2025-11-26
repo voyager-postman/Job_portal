@@ -26,6 +26,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
 
 function CandidateDashboard() {
+  const [count, setCount] = useState("");
   const [jobList, setJobList] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -41,6 +42,7 @@ function CandidateDashboard() {
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -66,6 +68,41 @@ function CandidateDashboard() {
 
   useEffect(() => {
     fetchCompaniesSlider();
+  }, []);
+
+  useEffect(() => {
+    const fetchDashboardAnalytics = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${API_BASE_URL}getDashboardAnalytics`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        // console.log("Dashboard Count Data:", response.data.counts);
+        setCount(response.data.counts);
+      } catch (err) {
+        console.error("Error Fetching Dashboard Count:", err);
+      }
+    };
+    fetchDashboardAnalytics();
+  }, []);
+
+  useEffect(() => {
+    const fetchStrength = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}profile/strength`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Dashboard Profile Strength", response.data);
+        setProfileData(response.data);
+      } catch (err) {
+        console.error("Error Fetching Profile Strength:", err);
+      }
+    };
+    fetchStrength();
   }, []);
 
   const fetchCompaniesSlider = async () => {
@@ -280,7 +317,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>Applications</h4>
-                          <h5>100</h5>
+                          <h5>{count.totalApplications || 0}</h5>
                         </div>
                       </div>
                     </Link>
@@ -293,7 +330,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>Saved Jobs</h4>
-                          <h5>10</h5>
+                          <h5>{count.totalSavedJobs || 0}</h5>
                         </div>
                       </div>
                     </Link>
@@ -306,7 +343,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>Job Alerts</h4>
-                          <h5>5</h5>
+                          <h5>{count.totalJobAlerts || 0}</h5>
                         </div>
                       </div>
                     </Link>
@@ -363,32 +400,32 @@ function CandidateDashboard() {
                 <h4>Complete your profile and get better matches</h4>
                 <div className="candidate-complete-progress-bar">
                   <ul>
-                    <li className="active" />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
-                    <li />
+                    {[...Array(profileData?.totalSections || 0)].map(
+                      (_, index) => (
+                        <li
+                          key={index}
+                          className={
+                            index < profileData.completedSections
+                              ? "active"
+                              : ""
+                          }
+                        />
+                      )
+                    )}
                   </ul>
                   <div className="candidate-complete-progress-circle-main-area">
                     <div className="candidate-complete-progress-circle">
-                      <div className="candidate-complete-circel-icon">
-                        <i className="fa-solid fa-check" />
-                      </div>
-                      <div className="candidate-complete-circel-icon">
-                        <i className="fa-solid fa-check" />
-                      </div>
-                      <div className="candidate-complete-circel-icon">
-                        <i className="fa-solid fa-check" />
-                      </div>
+                      {[...Array(profileData?.completedSections || 0)].map(
+                        (_, index) => (
+                          <div className="candidate-complete-circel-icon">
+                            <i className="fa-solid fa-check" />
+                          </div>
+                        )
+                      )}
                       {/* <div className="candidate-complete-circel-icon">
+                        <i className="fa-solid fa-check" />
+                      </div>
+                      <div className="candidate-complete-circel-icon">
                         <i className="fa-solid fa-check" />
                       </div> */}
                     </div>
@@ -396,7 +433,7 @@ function CandidateDashboard() {
                 </div>
               </div>
               <div className="candidate-complete-percent-btn">
-                <h4>Profile strength: 0%</h4>
+                <h4>Profile strength:{profileData?.strength ? profileData.strength : 0}%</h4>
                 <Link to="/candidate-profile" className="default-btn btn">
                   Complete Profile
                 </Link>

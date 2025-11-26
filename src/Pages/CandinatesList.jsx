@@ -10,6 +10,7 @@ function CandinatesList() {
   const [totalPages, setTotalPages] = useState(1);
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
+  
   const fetchCandidates = async (page = 1) => {
     try {
       setLoading(true);
