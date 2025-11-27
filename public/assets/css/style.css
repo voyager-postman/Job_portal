@@ -8293,7 +8293,7 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .employer-personal-info-area {
-  width: 70%;
+  /* width: 70%; */
   margin: auto;
 }
 
@@ -10277,4 +10277,9 @@ width: 100%;
 color: #fff;
 padding: 7px 40px;
 font-size: 16px;
+}
+
+.ck.ck-editor__main {
+    max-height: 50vh;
+    overflow-y: scroll;
 }
