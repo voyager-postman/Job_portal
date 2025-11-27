@@ -73,6 +73,23 @@ function EmployerShortListCandinate() {
       }
     }
   };
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // Case: wrong URL like "/uploads/https://"
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // External image URL
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Local uploads
+    return `${API_IMAGE_URL}${url}`;
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -159,17 +176,16 @@ function EmployerShortListCandinate() {
                   <div className="candidate-list-info single-freelancer-card">
                     <Link
                       to={`/candidates-profile-details`}
-                      state={{ userId: jobId._id }}
+                      // state={{ userId: jobId._id }}
                     >
                       <div className="row align-items-center">
                         <div className="col-lg-4">
                           <div className="freelancer-img">
                             <img
-                              crossorigin="anonymous"
+                              crossOrigin="anonymous"
                               src={
-                                candidate?.profileImage
-                                  ? `${API_IMAGE_URL}${candidate.profileImage}`
-                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                                cleanImageUrl(candidate?.profileImage) ||
+                                "assets/images/freelancers/freelancers-img-1.jpg"
                               }
                               alt="Profile"
                             />

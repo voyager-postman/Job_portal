@@ -13,6 +13,11 @@ function EmployerCandinateList() {
   const jobTags = location.state?.tags || [];
   const [candidateList, setCandidateList] = useState([]);
   const [candidateListSummary, setCandidateListSummary] = useState({});
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10); // you can change to 20, 50 etc.
+
+  const [totalPages, setTotalPages] = useState(1);
+
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [salaryRanges, setSalaryRanges] = useState([]);
@@ -33,12 +38,16 @@ function EmployerCandinateList() {
   const fetchCandidates = async (status = "") => {
     let query = [];
 
+    query.push(`page=${page}`);
+    query.push(`limit=${limit}`);
+
     if (status) query.push(`status=${status}`);
     if (filters.search.trim()) query.push(`search=${filters.search}`);
     if (filters.location.trim()) query.push(`location=${filters.location}`);
     if (filters.skills.trim()) query.push(`skills=${filters.skills}`);
 
-    const queryString = query.length ? `?${query.join("&")}` : "";
+    const queryString = `?${query.join("&")}`;
+
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
       {
@@ -50,12 +59,11 @@ function EmployerCandinateList() {
 
     setCandidateList(data.applicants || []);
     setCandidateListSummary(data.summary || {});
+    setTotalPages(data.totalPages || 1);
 
     if (data.applicants?.length > 0) {
-      // Load first candidate
       fetchApplicantDetails(data.applicants[0]._id);
     } else {
-      // 🔥 RESET selected candidate when list is empty
       setSelectedCandidate(null);
     }
   };
@@ -77,6 +85,9 @@ function EmployerCandinateList() {
   useEffect(() => {
     fetchExperienceLevels();
   }, []);
+  useEffect(() => {
+    fetchCandidates(selectedStatus);
+  }, [page, selectedStatus]);
 
   const fetchExperienceLevels = async () => {
     try {
@@ -455,11 +466,6 @@ function EmployerCandinateList() {
                       Sort by: New Candidate ({candidateListSummary?.New})
                     </option>
 
-                    <option value="Reviewed">
-                      Sort by: Reviewed Candidate (
-                      {candidateListSummary?.Reviewed})
-                    </option>
-
                     <option value="Interviewed">
                       Sort by: Shortlisted Candidate (
                       {candidateListSummary?.Interviewed})
@@ -588,58 +594,44 @@ function EmployerCandinateList() {
               </div>
 
               <div className="employer-candidate-pagination-info">
-                <nav aria-label="Page navigation example">
+                <nav aria-label="Pagination">
                   <ul className="pagination">
-                    <li className="page-item">
-                      <a className="page-link" href="#" aria-label="Previous">
-                        <span aria-hidden="true">
-                          <i className="fa-solid fa-angle-left" />
-                        </span>
-                        <span className="sr-only">Previous</span>
-                      </a>
+                    {/* Previous */}
+                    <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => page > 1 && setPage(page - 1)}
+                      >
+                        <i className="fa-solid fa-angle-left"></i>
+                      </button>
                     </li>
-                    <li className="page-item">
-                      <a className="page-link active" href="#">
-                        1
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        2
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        3
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        4
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        5
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        ...
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#">
-                        3369825
-                      </a>
-                    </li>
-                    <li className="page-item">
-                      <a className="page-link" href="#" aria-label="Next">
-                        <span aria-hidden="true">
-                          <i className="fa-solid fa-angle-right" />
-                        </span>
-                        <span className="sr-only">Next</span>
-                      </a>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <li key={i} className="page-item">
+                        <button
+                          className={`page-link ${
+                            page === i + 1 ? "active" : ""
+                          }`}
+                          onClick={() => setPage(i + 1)}
+                        >
+                          {i + 1}
+                        </button>
+                      </li>
+                    ))}
+
+                    {/* Next */}
+                    <li
+                      className={`page-item ${
+                        page === totalPages ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => page < totalPages && setPage(page + 1)}
+                      >
+                        <i className="fa-solid fa-angle-right"></i>
+                      </button>
                     </li>
                   </ul>
                 </nav>
