@@ -533,9 +533,10 @@ function ManagesJobApplication() {
                               <div className="job-applied-details">
                                 <h5>
                                   <i className="fa-solid fa-square-check" />{" "}
-                                  {app?.status === "Withdrawn"
+                                  {/* {app?.status === "Withdrawn"
                                     ? "Withdrawn"
-                                    : "Applied"}
+                                    : "Applied"} */}
+                                    {app?.status}
                                 </h5>
                               </div>
 

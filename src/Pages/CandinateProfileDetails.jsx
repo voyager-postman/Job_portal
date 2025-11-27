@@ -6,7 +6,7 @@ import { API_IMAGE_URL } from "../Url/Url";
 function CandinateProfileDetails() {
   const location = useLocation();
   const { userId } = location.state || {};
-
+  console.log(userId);
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -213,30 +213,6 @@ function CandinateProfileDetails() {
                   </p>
                 </div>
                 <div className="candidate-profile-divider-line" />
-                {/* <div className="works-experience candidate-profile-summary">
-                  <h3>Experience</h3>
-                  <h5>Website Designer</h5>
-                  <p>Feb 2020 - Until now</p>
-                  <h5>Agriculture PVT LTD</h5>
-                  <p>United States, TN, Cordova, Frence Creek Cv S Full-time</p>
-                  <h5>Description</h5>
-                  <p>
-                    We are a dynamic agricultural products, farming, and service
-                    company committed to meeting the diverse needs of farmers,
-                    wholesale markets, traders, exportersWe are a dynamic
-                    agricultural products, farming, and service company
-                    committed to meeting the diverse needs of farmers, wholesale
-                    markets, traders, exportersWe are a dynamic agricultural
-                    products, farming, and service company committed to meeting
-                    the diverse needs of farmers, wholesale markets, traders,
-                    exporters
-                  </p>
-                  <h3>Position Salary(Gross)</h3>
-                  <h5>Salary</h5>
-                  <p>2000 $</p>
-                  <h5>Payroll frequency</h5>
-                  <p>Monthly</p>
-                </div> */}
                 <div className="works-experience candidate-profile-summary">
                   <h3>Experience</h3>
                   {candidate?.workHistory &&
@@ -373,15 +349,6 @@ function CandinateProfileDetails() {
                   ) : (
                     <p>No education information available</p>
                   )}
-
-                  {/* <h5>Degree</h5>
-                  <p>B.Tech</p>
-                  <h5>University</h5>
-                  <p>IGNU</p>
-                  <h5>Start Date</h5>
-                  <p>05 / 2020</p>
-                  <h5>End Date</h5>
-                  <p>Until now</p> */}
                 </div>
                 <div className="skill-content candidate-profile-summary">
                   <h3>Skills</h3>

@@ -7,24 +7,13 @@ import Switch from "@mui/material/Switch";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 
-// import { Modal } from "bootstrap";
-const categories = [
-  "Information systems / Networks",
-  "Software Engineering / Web Development",
-  "DevOps / Cloud",
-  "Project / Product Management",
-  "Data / Big data",
-  "Cyber security / IT Security",
-  "Quality Assurance",
-  "UI / UX Design",
-  "IT Consulting",
-  "Information Technology Management",
-];
-
 const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
   const { login } = useAuth();
   const [showModal, setShowModal] = useState(false);
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [jobTypes, setJobTypes] = useState([]);
+  const [occupationTypes, setOccupationTypes] = useState([]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -75,19 +64,60 @@ function MyProfile() {
 
     fetchCountries();
   }, []);
+  const fetchIndustries = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getIndustries`);
+      if (res.data.success && Array.isArray(res.data.industries)) {
+        setOccupationTypes(res.data.industries);
+      } else {
+        setOccupationTypes([]);
+      }
+    } catch (err) {
+      console.error("Error fetching industries:", err);
+    }
+  };
+  useEffect(() => {
+    fetchIndustries();
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}getActiveSalaryRangeList`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSalaryRanges(data.data);
+        }
+      })
+      .catch((err) => console.log("Error:", err));
+  }, []);
+  const fetchJobTypes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      if (res.data.success && Array.isArray(res.data.jobTypes)) {
+        setJobTypes(res.data.jobTypes);
+      } else {
+        setJobTypes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
+  useEffect(() => {
+    fetchJobTypes();
+  }, []);
 
   useEffect(() => {
     const fetchJobCategory = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}getJobCategory`);
         // console.log(response.data.jobCategories);
-        setCategory(response.data.jobCategories)
+        setCategory(response.data.jobCategories);
       } catch (error) {
         console.error("Fetching Job Category List:", error);
       }
     };
     fetchJobCategory();
-  },[]);
+  }, []);
 
   const handleToggle = () => {
     setIsActive((prev) => !prev);
@@ -121,21 +151,16 @@ function MyProfile() {
       }));
     }
   };
-
   const handleCategoryClick = (index) => {
     setActiveIndex(index);
+
     setFormData((prev) => ({
       ...prev,
-      selectedCategory: category[index],
+      selectedCategory: category[index].name, // 👈 pass name to API
     }));
   };
 
-  const handleEligibilityClick = (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      eligibleInFrance: value,
-    }));
-  };
+
 
   const validate = () => {
     // if (!formData.attachment) {
@@ -623,22 +648,6 @@ function MyProfile() {
                       />
                     </div>
                   </div>
-                  {/* <div className="col-lg-12 col-md-12">
-                    <div className="form-group">
-                      <label>City</label>
-                      <select
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="form-control"
-                      >
-                        <option value="">Select City</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Agra">Agra</option>
-                        <option value="Noida">Noida</option>
-                      </select>
-                    </div>
-                  </div> */}
 
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group position-relative">
@@ -770,30 +779,30 @@ function MyProfile() {
                     <label>
                       Desired Employment Type <span>(optional)</span>
                     </label>
+
                     <select
                       name="employmentType"
                       value={formData.employmentType}
                       onChange={handleChange}
                       className="form-control"
                     >
-                      <option value="Permanent contract">
-                        Permanent contract
-                      </option>
-                      <option value="Fixed term contract">
-                        Fixed term contract
-                      </option>
-                      <option value="Interim">Interim</option>
-                      <option value="Internship">Internship</option>
-                      <option value="Freelance">Freelance</option>
-                      <option value="Apprenticeship">Apprenticeship</option>
+                      <option value="">Select Employment Type</option>
+
+                      {jobTypes.map((job) => (
+                        <option key={job._id} value={job.name}>
+                          {job.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
+
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
                     <label>
                       Desired Occupation Type <span>(optional)</span>
                     </label>
+
                     <select
                       name="occupationType"
                       value={formData.occupationType}
@@ -801,11 +810,16 @@ function MyProfile() {
                       className="form-control"
                     >
                       <option value="">Select Occupation Type</option>
-                      <option value="Full Time">Full Time</option>
-                      <option value="Part Time">Part Time</option>
+
+                      {occupationTypes.map((item) => (
+                        <option key={item._id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
+
                 <div className="col-lg-12 col-md-12">
                   <div className="form-group">
                     <p>
@@ -853,24 +867,13 @@ function MyProfile() {
                   </div>
                 </div>
               </div>
-              {/* <div className="col-lg-12 col-md-12">
-                <div className="form-group">
-                  <label>Please Enter Your Desired Salary</label>
-                  <input
-                    type="text"
-                    name="salaryAmount"
-                    value={formData.salaryAmount}
-                    onChange={handleChange}
-                    placeholder="Enter Desired Salary"
-                    className="form-control"
-                  />
-                </div>
-              </div> */}
+
               <div className="col-lg-12 col-md-12">
                 <div className="form-group">
                   <label>
                     Please Select Your Desired Salary <span>(optional)</span>
                   </label>
+
                   <select
                     name="salaryAmount"
                     value={formData.salaryAmount}
@@ -878,38 +881,16 @@ function MyProfile() {
                     className="form-control"
                   >
                     <option value="">Select Desired Salary</option>
-                    <option value="0-100">$0 - $100</option>
-                    <option value="101-200">$101 - $200</option>
-                    <option value="201-300">$201 - $300</option>
-                    <option value="301-400">$301 - $400</option>
-                    <option value="401-500">$401 - $500</option>
-                    <option value="500+">$500+</option>
+
+                    {salaryRanges.map((item) => (
+                      <option key={item._id} value={item.range}>
+                        {item.range}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
 
-              {/* <div className="personal-info-area">
-                <h3 className="heading-bottom-line">
-                  I Am Eligible To Work In France
-                </h3>
-                <div className="location-select-option">
-                  <ul id="LocationSelect">
-                    {["Yes", "No"].map((option) => (
-                      <li
-                        key={option}
-                        className={
-                          formData.eligibleInFrance === option
-                            ? "active"
-                            : "inactive"
-                        }
-                        onClick={() => handleEligibilityClick(option)}
-                      >
-                        {option}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div> */}
               <div className="personal-info-btn">
                 <a className="default-btn btn" onClick={candidateLogin}>
                   Submit

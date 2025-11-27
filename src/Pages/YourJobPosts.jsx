@@ -641,40 +641,40 @@ function YourJobPosts() {
             <Divider sx={{ mb: 2 }} />
             <Typography>
               <strong>Job Title:</strong>{" "}
-              {viewData?.jobDetails?.jobTitle || "null"}
+              {viewData?.jobDetails?.jobTitle || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Job Category:</strong>{" "}
-              {viewData?.jobDetails?.jobCategory?.name || "null"}
+              {viewData?.jobDetails?.jobCategory?.name || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Employment Type:</strong>{" "}
-              {viewData?.jobDetails?.employmentType || "null"}
+              {viewData?.jobDetails?.employmentType || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Minimum Level:</strong>{" "}
-              {viewData?.jobDetails?.minimumLevel || "null"}
+              {viewData?.jobDetails?.minimumLevel || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Remote Type:</strong>{" "}
-              {viewData?.jobDetails?.remote || "null"}
+              {viewData?.jobDetails?.remote || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Reference Id:</strong>{" "}
-              {viewData?.jobDetails?.referenceId || "null"}
+              {viewData?.jobDetails?.referenceId || "Not Provided"}
             </Typography>
             <Typography>
               <strong>City:</strong>
               {viewData?.jobDetails?.city?.join(",") == null
                 ? viewData?.jobDetails?.companyId?.city?.join(",")
-                : viewData.jobDetails.city?.join(", ") || "null"}
+                : viewData.jobDetails.city?.join(", ") || "Not Provided"}
             </Typography>
-            <Typography>
+            {/* <Typography>
               <strong>Region:</strong>
               {viewData?.jobDetails?.region == null
                 ? viewData?.jobDetails?.companyId?.region
                 : viewData.jobDetails.region || "null"}
-            </Typography>
+            </Typography> */}
             <Typography>
               <p>
                 <strong>Country:</strong>{" "}
@@ -688,16 +688,19 @@ function YourJobPosts() {
                 : viewData.jobDetails.country || "null"} */}
             </Typography>
             <Typography>
-              <strong>Status:</strong> {viewData?.jobDetails?.status || "null"}
+              <strong>Status:</strong>{" "}
+              {viewData?.jobDetails?.status || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Enable External Apply:</strong>{" "}
               {viewData?.jobDetails?.enableExternalApply ? "Yes" : "No"}
             </Typography>
-            <Typography>
-              <strong>External Apply Link:</strong>{" "}
-              {viewData?.jobDetails?.ExternalApplyLink || "null"}
-            </Typography>
+            {viewData?.jobDetails?.enableExternalApply && (
+              <Typography>
+                <strong>External Apply Link:</strong>{" "}
+                {viewData?.jobDetails?.ExternalApplyLink || "Not Provided"}
+              </Typography>
+            )}
             <Typography>
               <strong>Confidential JobPost:</strong>{" "}
               {viewData?.jobDetails?.confidentialJobPost ? "Yes" : "No"}
