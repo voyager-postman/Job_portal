@@ -24,7 +24,7 @@ import { ToastContainer, toast } from "react-toastify";
 const JobList = () => {
   const location = useLocation();
   const { alert } = location.state || {};
-  
+
   console.log("Received Alert Data:", alert);
   const userRole = localStorage.getItem("role");
   // or from context:  user?.role
@@ -1938,7 +1938,9 @@ const JobList = () => {
                                           } fa-heart`}
                                           style={{
                                             cursor: "pointer",
-                                            color: job.isSaved ? "red" : "#888",
+                                            color: job.isSaved
+                                              ? "#fb761a"
+                                              : "#fff",
                                           }}
                                           onClick={(e) => {
                                             e.preventDefault();
@@ -2022,9 +2024,9 @@ const JobList = () => {
                                         </li>
                                         <li>
                                           <i className="fa-solid fa-location-dot" />{" "}
-                                          {job?.city ||
-                                            job?.company_city ||
-                                            "N/A"}
+                                          {job?.city && job?.city.length > 0
+                                            ? job.city
+                                            : job?.company_city || "N/A"}
                                         </li>
 
                                         <li>

@@ -160,8 +160,6 @@ function MyProfile() {
     }));
   };
 
-
-
   const validate = () => {
     // if (!formData.attachment) {
     //   toast.error("Resume file is required.");
@@ -355,20 +353,41 @@ function MyProfile() {
     try {
       const res = await axios.post(`${API_BASE_URL}extractResume`, data);
 
-      if (res.data.success && res.data.data) {
-        setShowModal(false);
+      if (res.data.success && res.data.jobId) {
         toast.success("Resume uploaded successfully!");
 
-        const extracted = res.data.data;
+        const jobId = res.data.jobId;
 
-        // Map API response to form fields
+        // Now call second API to get extracted result
+        fetchExtractedData(jobId);
+      } else {
+        toast.error("Upload succeeded but jobId missing.");
+      }
+    } catch (err) {
+      console.error("Error:", err.response?.data || err.message);
+      toast.error("Failed to upload resume. Try again.");
+    }
+  };
+  const fetchExtractedData = async (jobId) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
+
+      // Correct structure
+      if (
+        res.data.success &&
+        res.data.result &&
+        res.data.result.success &&
+        res.data.result.data
+      ) {
+        const extracted = res.data.result.data;
+
         setFormData((prev) => ({
           ...prev,
           firstName: extracted.firstName || "",
           lastName: extracted.lastName || "",
           city: extracted.city || "",
           jobTitle: extracted.jobTitle || "",
-          experience: extracted.experience || "",
+          experience: extracted.totalExperience || "",
           employmentType: extracted.employmentType || "",
           occupationType: extracted.occupationType || "",
           salaryType: extracted.desiredSalaryType || "",
@@ -377,19 +396,58 @@ function MyProfile() {
           selectedCategory: extracted.jobCategory || "",
         }));
 
-        // Close modal
-        // const modalElement = document.getElementById("exampleModal");
-        // const modalInstance =
-        //   Modal.getInstance(modalElement) || new Modal(modalElement);
-        // modalInstance.hide();
+        // toast.success("Resume extracted successfully!");
       } else {
-        toast.error("Upload succeeded but data extraction failed.");
+        toast.error("Extraction failed — no data found yet.");
       }
     } catch (err) {
-      console.error("Error:", err.response?.data || err.message);
-      toast.error("Failed to upload resume. Try again.");
+      console.log("Extraction Error:", err.response?.data || err.message);
+      toast.error("Error fetching extracted resume data.");
     }
   };
+
+  // const uploadResume = async () => {
+  //   const data = new FormData();
+  //   data.append("resume", formData.attachment);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+
+  //     if (res.data.success && res.data.data) {
+  //       setShowModal(false);
+  //       toast.success("Resume uploaded successfully!");
+
+  //       const extracted = res.data.data;
+
+  //       // Map API response to form fields
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         firstName: extracted.firstName || "",
+  //         lastName: extracted.lastName || "",
+  //         city: extracted.city || "",
+  //         jobTitle: extracted.jobTitle || "",
+  //         experience: extracted.experience || "",
+  //         employmentType: extracted.employmentType || "",
+  //         occupationType: extracted.occupationType || "",
+  //         salaryType: extracted.desiredSalaryType || "",
+  //         salaryAmount: extracted.desiredSalaryAmount || "",
+  //         eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
+  //         selectedCategory: extracted.jobCategory || "",
+  //       }));
+
+  //       // Close modal
+  //       // const modalElement = document.getElementById("exampleModal");
+  //       // const modalInstance =
+  //       //   Modal.getInstance(modalElement) || new Modal(modalElement);
+  //       // modalInstance.hide();
+  //     } else {
+  //       toast.error("Upload succeeded but data extraction failed.");
+  //     }
+  //   } catch (err) {
+  //     console.error("Error:", err.response?.data || err.message);
+  //     toast.error("Failed to upload resume. Try again.");
+  //   }
+  // };
   return (
     <>
       <ToastContainer />

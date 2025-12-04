@@ -6,6 +6,9 @@ import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 function EmployerCandinateList() {
   const location = useLocation();
   const token = localStorage.getItem("token");
@@ -15,7 +18,8 @@ function EmployerCandinateList() {
   const [candidateListSummary, setCandidateListSummary] = useState({});
   const [page, setPage] = useState(1);
   const [limit] = useState(10); // you can change to 20, 50 etc.
-
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
   const [totalPages, setTotalPages] = useState(1);
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -300,7 +304,7 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div> */}
-            <div className="col-lg-6 col-sm-12">
+            <div className="col-lg-3 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
@@ -326,6 +330,97 @@ function EmployerCandinateList() {
                         ) : (
                           <option disabled>No skills found</option>
                         )}
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-3 col-sm-12">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword ">
+                  <h3>Date</h3>
+                  <div className="form-group position-relative date_flex_area text-center">
+                    <DatePicker
+                      selectsRange
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={(update) => setDateRange(update)}
+                      monthsShown={2}
+                      dateFormat="dd-MM-yyyy"
+                      placeholderText="dd-mm-yyyy to dd-mm-yyyy"
+                      className="form-control Date_Input"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-sm-12">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Location</h3>
+                  <div className="form-group position-relative">
+                    {/* Input field with selected city */}
+                    <input
+                      className="form-control"
+                      type="search"
+                      placeholder="Search Location"
+                      value={locationSearchTerm}
+                      onChange={handleLocationSearch}
+                    />
+
+                    {/* Loading */}
+                    {isLocationLoading && (
+                      <div className="suggestion-box">Searching...</div>
+                    )}
+
+                    {/* Suggestions */}
+                    {!isLocationLoading && locationSuggestions.length > 0 && (
+                      <ul
+                        className="list-group position-absolute w-100"
+                        style={{
+                          zIndex: 1000,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {locationSuggestions.map((city) => (
+                          <li
+                            key={city._id}
+                            className="list-group-item list-group-item-action"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleSelectLocation(city)}
+                          >
+                            {city.name}, {city.state_name}, {city.country_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-sm-12">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Score</h3>
+
+                  <form>
+                    <div className="form-group">
+                      <select
+                        className="form-select form-control"
+                        aria-label="Select Skill"
+                        // value={filters.skills}
+                        // onChange={(e) =>
+                        //   setFilters({ ...filters, skills: e.target.value })
+                        // }
+                      >
+                        <option value="">Choose A Score</option>
+                        <option value="one"> One</option>
+                        <option value="two">Two</option>
+                        <option value="three">Three</option>
                       </select>
                     </div>
                   </form>
@@ -379,51 +474,6 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div> */}
-            <div className="col-lg-6 col-sm-12">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Location</h3>
-                  <div className="form-group position-relative">
-                    {/* Input field with selected city */}
-                    <input
-                      className="form-control"
-                      type="search"
-                      placeholder="Search Location"
-                      value={locationSearchTerm}
-                      onChange={handleLocationSearch}
-                    />
-
-                    {/* Loading */}
-                    {isLocationLoading && (
-                      <div className="suggestion-box">Searching...</div>
-                    )}
-
-                    {/* Suggestions */}
-                    {!isLocationLoading && locationSuggestions.length > 0 && (
-                      <ul
-                        className="list-group position-absolute w-100"
-                        style={{
-                          zIndex: 1000,
-                          maxHeight: "200px",
-                          overflowY: "auto",
-                        }}
-                      >
-                        {locationSuggestions.map((city) => (
-                          <li
-                            key={city._id}
-                            className="list-group-item list-group-item-action"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleSelectLocation(city)}
-                          >
-                            {city.name}, {city.state_name}, {city.country_name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
@@ -435,7 +485,7 @@ function EmployerCandinateList() {
                     <li>({candidateListSummary?.New}) New Candidate</li>
 
                     <li>
-                      ({candidateListSummary?.Interviewed}) Shortlisted
+                      ({candidateListSummary?.Shortlisted}) Shortlisted
                       Candidate
                     </li>
                     <li>
@@ -466,9 +516,9 @@ function EmployerCandinateList() {
                       Sort by: New Candidate ({candidateListSummary?.New})
                     </option>
 
-                    <option value="Interviewed">
+                    <option value="Shortlisted">
                       Sort by: Shortlisted Candidate (
-                      {candidateListSummary?.Interviewed})
+                      {candidateListSummary?.Shortlisted})
                     </option>
 
                     <option value="Rejected">
@@ -807,19 +857,21 @@ function EmployerCandinateList() {
 
                     <div className="employer-candidate-cv-details">
                       <h5>Job Title</h5>
-                      <p>{selectedCandidate?.profile?.aboutRole?.jobTitle}</p>
+                      <p>
+                        {selectedCandidate?.profile?.aboutRole?.jobTitle ||
+                          "NA"}
+                      </p>
 
                       <h5>Years of experience</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.aboutRole
-                            ?.yearOfExperience
-                        }
+                        {selectedCandidate?.profile?.aboutRole
+                          ?.yearOfExperience || "NA"}
                       </p>
 
                       <h5>Job category</h5>
                       <p>
-                        {selectedCandidate?.profile?.aboutRole?.jobCategory}
+                        {selectedCandidate?.profile?.aboutRole?.jobCategory ||
+                          "NA"}
                       </p>
                     </div>
 
@@ -833,51 +885,37 @@ function EmployerCandinateList() {
                     <div className="employer-candidate-cv-details">
                       <h5>Desired Job Title</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.DesiredJobTitle
-                        }
+                        {selectedCandidate?.profile?.career_goals
+                          ?.DesiredJobTitle || "NA"}
                       </p>
 
                       <h5>Desired Employment Type</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.DesiredEmploymentType
-                        }
+                        {selectedCandidate?.profile?.career_goals
+                          ?.DesiredEmploymentType || "NA"}
                       </p>
 
                       <h5>Desired Occupation Type</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.DesiredOccupationType
-                        }
+                        {selectedCandidate?.profile?.career_goals
+                          ?.DesiredOccupationType || "NA"}
                       </p>
 
                       <h5>Minimum Desired Salary</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.MinimumDesiredSalary?.amount
-                        }{" "}
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.MinimumDesiredSalary?.currency
-                        }{" "}
+                        {selectedCandidate?.profile?.career_goals
+                          ?.MinimumDesiredSalary?.amount || "NA"}{" "}
+                        {selectedCandidate?.profile?.career_goals
+                          ?.MinimumDesiredSalary?.currency || "NA"}{" "}
                         /{" "}
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.MinimumDesiredSalary?.type
-                        }
+                        {selectedCandidate?.profile?.career_goals
+                          ?.MinimumDesiredSalary?.type || "NA"}
                       </p>
 
                       <h5>Job Search Status</h5>
                       <p>
-                        {
-                          selectedCandidate?.profile?.career_goals
-                            ?.jobSearchStatus
-                        }
+                        {selectedCandidate?.profile?.career_goals
+                          ?.jobSearchStatus || "NA"}
                       </p>
                     </div>
 
@@ -907,10 +945,10 @@ function EmployerCandinateList() {
                         className="employer-candidate-cv-details"
                       >
                         <h5>Degree</h5>
-                        <p>{edu.degree}</p>
+                        <p>{edu.degree || "NA"}</p>
 
                         <h5>University</h5>
-                        <p>{edu.University}</p>
+                        <p>{edu.University || "NA"}</p>
 
                         <h5>Start Date</h5>
                         <p>{new Date(edu.startDate).toLocaleDateString()}</p>
@@ -936,7 +974,7 @@ function EmployerCandinateList() {
                         key={work._id}
                         className="employer-candidate-cv-details"
                       >
-                        <h5>{work.jobTitle}</h5>
+                        <h5>{work.jobTitle || "NA"}</h5>
                         <p>
                           {new Date(work.startDate).toLocaleDateString()} -{" "}
                           {work.currentlyWorkingHere
@@ -944,8 +982,8 @@ function EmployerCandinateList() {
                             : new Date(work.endDate).toLocaleDateString()}
                         </p>
 
-                        <h5>{work.companyName}</h5>
-                        <p>{work.workLocation}</p>
+                        <h5>{work.companyName || "NA"}</h5>
+                        <p>{work.workLocation || "NA"}</p>
 
                         <h5>Salary</h5>
                         <p>
@@ -953,7 +991,7 @@ function EmployerCandinateList() {
                           {work.currentSalary?.currency}
                         </p>
                         <h5>Payroll frequency</h5>
-                        <p>{work.currentSalary?.payrollFrequency}</p>
+                        <p>{work.currentSalary?.payrollFrequency || "NA"}</p>
 
                         <div className="candidate-profile-divider-line" />
                       </div>
@@ -969,8 +1007,8 @@ function EmployerCandinateList() {
                         key={lang._id}
                         className="employer-candidate-cv-details"
                       >
-                        <h5>{lang.language}</h5>
-                        <p>{lang.proficiency}</p>
+                        <h5>{lang.language || "NA"}</h5>
+                        <p>{lang.proficiency || "NA"}</p>
                       </div>
                     ))}
 
@@ -986,7 +1024,7 @@ function EmployerCandinateList() {
                         key={cer._id}
                         className="employer-candidate-cv-details"
                       >
-                        <h5>{cer.title}</h5>
+                        <h5>{cer.title || "NA"}</h5>
                         <p>
                           Issue Date:{" "}
                           {new Date(cer.issueDate).toLocaleDateString()}

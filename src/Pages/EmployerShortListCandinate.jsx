@@ -96,7 +96,7 @@ function EmployerShortListCandinate() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Employer shortlist candidates</h1>
+            <h1>Employer BookMark candidates</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -107,7 +107,7 @@ function EmployerShortListCandinate() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Employer shortlist
+                <i className="fa-solid fa-angle-right" /> Employer BookMark
                 candidates
               </li>
             </ol>
@@ -118,7 +118,7 @@ function EmployerShortListCandinate() {
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-5">
                 <div className="employer-shortlist-candidates-heading">
-                  <h4>15 Shortlist Candidates</h4>
+                  <h4>15 BookMark Candidates</h4>
                 </div>
               </div>
               <div className="col-lg-4 col-md-7">
@@ -164,8 +164,6 @@ function EmployerShortListCandinate() {
 
             {bookmarkedCandidates.map((item, index) => {
               const candidate = item.candidateId;
-              const jobId = item.jobId;
-
               return (
                 <div
                   className="col-lg-6 col-sm-6"
@@ -176,7 +174,7 @@ function EmployerShortListCandinate() {
                   <div className="candidate-list-info single-freelancer-card">
                     <Link
                       to={`/candidates-profile-details`}
-                      // state={{ userId: jobId._id }}
+                      state={{ userId: candidate._id }}
                     >
                       <div className="row align-items-center">
                         <div className="col-lg-4">

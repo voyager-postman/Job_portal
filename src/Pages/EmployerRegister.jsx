@@ -119,7 +119,7 @@ function EmployerRegister() {
     const avatar = queryParams.get("avatar");
     const role = queryParams.get("role");
     const isVerified = queryParams.get("isVerified");
-
+    const companyId = queryParams.get("companyId");
     // Split GitHub or LinkedIn name
     const [first_name = "", last_name = ""] = name?.split(" ") || [];
 
@@ -128,6 +128,7 @@ function EmployerRegister() {
       role,
       first_name,
       last_name,
+      companyId,
       profileImage: avatar,
       is_completed: isVerified === "true",
     };
@@ -181,7 +182,7 @@ function EmployerRegister() {
   }, []);
 
   const handleLinkedinLogin = () => {
-    const role = "Recruiter";
+    const role = "Company";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
   return (

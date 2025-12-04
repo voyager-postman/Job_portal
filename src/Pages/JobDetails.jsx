@@ -409,7 +409,9 @@ function JobDetails() {
                           } fa-heart`}
                           style={{
                             cursor: "pointer",
-                            color: job?.jobDetails?.isSaved ? "red" : "#888",
+                            color: job?.jobDetails?.isSaved
+                              ? "#fb761a"
+                              : "#fff",
                           }}
                           onClick={(e) => {
                             e.preventDefault();
@@ -999,7 +1001,7 @@ function JobDetails() {
                               } fa-heart`}
                               style={{
                                 cursor: "pointer",
-                                color: item.isSaved ? "red" : "#888",
+                                color: item.isSaved ? "#fb761a" : "#fff",
                               }}
                               onClick={(e) => {
                                 e.preventDefault();

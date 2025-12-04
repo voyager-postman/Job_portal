@@ -265,54 +265,141 @@ function YourJobPosts() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+          {/* employer dashboard  start here */}
+          <section className="employer-dashboard-info-area">
+            <div className="employer-dashboard-common-heading">
+              <h2>Job Post Dashboard</h2>
+            </div>
+            <div className="employer-dashboard-box">
+              <div className="row">
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${activeStatus === "all" ? "active" : ""}`}
+                    onClick={() => setActiveStatus("all")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fas fa-tasks"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>All Jobs Posted</h4>
+                        <h5>30</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 60% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${
+                      activeStatus === "published" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveStatus("published")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-upload"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Published Jobs</h4>
+                        <h5>5</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 50% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${activeStatus === "draft" ? "active" : ""}`}
+                    onClick={() => setActiveStatus("draft")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-pencil"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Draft Job </h4>
+                        <h5>1000</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 15% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${activeStatus === "archived" ? "active" : ""}`}
+                    onClick={() => setActiveStatus("archived")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fas fa-archive"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Archived Job</h4>
+                        <h5>0</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 10% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${
+                      activeStatus === "unpublished" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveStatus("unpublished")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fas fa-file-word"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Unpublished Job</h4>
+                        <h5>0</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 10% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <div className="col-md-4 mb-3">
+                  <a
+                    className={`${activeStatus === "expired" ? "active" : ""}`}
+                    onClick={() => setActiveStatus("expired")}
+                  >
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fas fa-calendar-alt"></i>
+                      </div>
+                      <div className="employer-box-content">
+                        <h4>Expired Job</h4>
+                        <h5>0</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" /> 10% this week
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+          {/* employer dashboard end here */}
           {/* Your Job Posts Info*/}
           <div className="your-job-post-main-info">
             <div className="row">
               <div className="col-lg-3 col-sm-3">
                 <div className="your-job-post-side-menu">
                   <div className="your-job-post-side-heading">
-                    {/* <h4>
-                      <i className="fa-regular fa-file" /> Create job{" "}
-                      <span
-                        className="create-job-icon"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
-                      >
-                        <i
-                          className="fa-solid fa-plus"
-                          style={{ cursor: "pointer" }}
-                        ></i>
-                      </span>
-                    </h4> */}
-                    {/* <h4
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <i className="fa-regular fa-file" /> 
-                      Create job
-                      <button
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
-                        style={{
-                          border: "1px solid #ccc",
-                          background: "#fff",
-                          width: "28px",
-                          height: "28px",
-                          borderRadius: "5px",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          cursor: "pointer",
-                        }}
-
-                      >
-                        <i className="fa-solid fa-plus"></i>
-                      </button>
-                    </h4> */}
                     <ul className="nav nav-tabs" role="tablist">
                       <li
                         className="nav-item"
@@ -489,17 +576,22 @@ function YourJobPosts() {
                             <div className="job-short-detail-heading">
                               <h4>{job.jobTitle}</h4>
                             </div>
-                            <div
-                              className="job-short-detail-crud-info"
+                            <span
+                              style={{
+                                padding: "5px 10px",
+                                backgroundColor: "#f0f5f7",
+                                cursor: "pointer",
+                              }}
                               onClick={() =>
                                 setMenuOpen((prev) =>
                                   prev === job._id ? null : job._id
                                 )
                               }
-                              style={{ cursor: "pointer" }}
+                              className="job-short-detail-crud-info"
                             >
-                              <i className="fa-solid fa-ellipsis-vertical menu-icon"></i>
-                            </div>
+                              <i className=" fa-solid fa-ellipsis-vertical menu-icon "></i>
+                            </span>
+
                             {menuOpen === job._id && (
                               <div className="job-short-detail-crud-menu">
                                 <ul>

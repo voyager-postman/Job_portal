@@ -60,6 +60,7 @@ import BlogDetails from "./Pages/BlogDetails";
 import Setting from "./Pages/Setting";
 
 // "build 04-09-2025"
+console.log("Date:-04-12-2025,time:-10:29");
 function LayoutWrapper() {
   const location = useLocation();
 
@@ -98,7 +99,6 @@ function LayoutWrapper() {
   );
 
   const bgColor = showSidebar ? "#fff" : "#f0f5f7";
-
   const showFooter = !showSidebar;
 
   return (

@@ -1358,7 +1358,7 @@ function EmployerProfile() {
                                       accept="image/*"
                                       multiple
                                       onChange={handleFileChangeMultiple}
-                                      style={{ display: "none" }} // keep hidden if using custom button
+                                      style={{ display: "none" }} 
                                     />
                                   </div>
                                   <div className="upload-company-file-name">

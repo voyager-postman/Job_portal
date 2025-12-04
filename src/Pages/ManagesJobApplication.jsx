@@ -6,7 +6,6 @@ import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import moment from "moment";
 import Stack from "@mui/material/Stack";
-
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
@@ -536,11 +535,12 @@ function ManagesJobApplication() {
                                   {/* {app?.status === "Withdrawn"
                                     ? "Withdrawn"
                                     : "Applied"} */}
-                                    {app?.status}
+                                  {app?.status}
                                 </h5>
                               </div>
 
-                              {app?.status !== "Withdrawn" && (
+                              {/* Show Withdraw ONLY if status is Applied */}
+                              {app?.status === "Applied" && (
                                 <div className="job-withdraw-details">
                                   <a
                                     href="#"
@@ -568,7 +568,7 @@ function ManagesJobApplication() {
                                 </li>
                                 <li>
                                   <i className="fa-regular fa-user" />{" "}
-                                  {job?.employmentType}
+                                  {job?.employmentType?.name}{" "}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-location-dot" />{" "}
@@ -919,16 +919,16 @@ function ManagesJobApplication() {
                                     <div className="available-job-company-name-save-job">
                                       <div className="available-job-company-name">
                                         <h4>
-                                          <Link
+                                          {/* <Link
                                             to="/job-search"
                                             state={{ alert }}
                                             style={{
                                               textDecoration: "none",
                                               color: "inherit",
                                             }}
-                                          >
-                                            {alert?.alertName || "N/A"}
-                                          </Link>
+                                          > */}
+                                          {alert?.alertName || "N/A"}
+                                          {/* </Link> */}
                                         </h4>
                                       </div>
                                     </div>

@@ -26,7 +26,59 @@ function Header({ bgColor }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
+  // Fetch notifications from API
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_BASE_URL}get/notifications`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data && response.data.notifications) {
+        const list = response.data.notifications.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setNotifications(list);
+        setUnreadCount(response.data.unreadCount);
+      }
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_BASE_URL}markAllRead`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setUnreadCount(0);
+
+      // Update local state so UI instantly updates
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error("Error marking read:", err);
+    }
+  };
+
+  // Fetch notifications on initial load
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
   const isEmployerPage =
     location.pathname === "/employer-home" ||
     location.pathname === "/employer-login" ||
@@ -55,7 +107,6 @@ function Header({ bgColor }) {
     const token = queryParams.get("token");
     const message = queryParams.get("message"); // backend error message
     const provider = queryParams.get("provider"); // optional (github/linkedin)
-
     // ❌ Backend error handling
     if (success === "false") {
       toast.error(message || "Login failed!");
@@ -76,6 +127,7 @@ function Header({ bgColor }) {
     const avatar = queryParams.get("avatar");
     const role = queryParams.get("role");
     const isVerified = queryParams.get("isVerified");
+    const companyId = queryParams.get("companyId");
 
     // Split GitHub or LinkedIn name
     const [first_name = "", last_name = ""] = name?.split(" ") || [];
@@ -85,6 +137,7 @@ function Header({ bgColor }) {
       role,
       first_name,
       last_name,
+      companyId,
       profileImage: avatar,
       is_completed: isVerified === "true",
     };
@@ -538,112 +591,183 @@ function Header({ bgColor }) {
                     </NavLink>
                   </li>
                 </ul>
-
                 <div className="others-options">
                   {emailName ? (
-                    <div className="option-item">
-                      <div className="dropdown profile-nav-item">
-                        <a
-                          href="#"
-                          className="dropdown-bs-toggle"
-                          role="button"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false"
-                        >
-                          <div className="menu-profile">
-                            <img
-                              crossorigin="anonymous"
-                              src={cleanImageUrl(profileImage)}
-                              className="rounded-circle"
-                              alt="Profile"
-                            />
-                            <span className="name">
-                              {t("header.myAccount")}
-                              <i className="fa-solid fa-angle-down" />
-                            </span>
-                          </div>
-                        </a>
-                        <div className="dropdown-menu">
-                          <div className="dropdown-header d-flex flex-column align-items-center">
-                            <div className="figure mb-3">
+                    <>
+                      <div className="option-item notification-item">
+                        <div className="dropdown notification-dropdown">
+                          <button
+                            className="btn notification-btn"
+                            type="button"
+                            id="notificationDropdown"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            onClick={markAllRead} // Mark all read on click
+                          >
+                            <i className="fa-regular fa-bell"></i>
+                            {unreadCount > 0 && (
+                              <span className="badge bg-danger">
+                                {unreadCount}
+                              </span>
+                            )}
+                          </button>
+                          <ul
+                            className="dropdown-menu dropdown-menu-end"
+                            aria-labelledby="notificationDropdown"
+                            style={{
+                              width: "320px",
+                              maxHeight: "350px",
+                              overflowY: "auto",
+                            }}
+                          >
+                            <li className="dropdown-header fw-bold">
+                              Notifications
+                            </li>
+
+                            {notifications.length > 0 ? (
+                              notifications.map((note) => (
+                                <li key={note._id}>
+                                  <a
+                                    className={`dropdown-item ${
+                                      note.isRead ? "" : "fw-bold"
+                                    }`}
+                                    href={note.actionUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <div>{note.title}</div>
+                                    <small className="text-muted">
+                                      {note.message}
+                                    </small>
+                                  </a>
+                                </li>
+                              ))
+                            ) : (
+                              <li className="dropdown-item text-center">
+                                No notifications
+                              </li>
+                            )}
+
+                            <li>
+                              <hr className="dropdown-divider" />
+                            </li>
+
+                            <li>
+                              <a
+                                className="dropdown-item text-center"
+                                // href="/notifications"
+                              >
+                                View All Notifications
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="option-item">
+                        <div className="dropdown profile-nav-item">
+                          <a
+                            href="#"
+                            className="dropdown-bs-toggle"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                          >
+                            <div className="menu-profile">
                               <img
                                 crossorigin="anonymous"
                                 src={cleanImageUrl(profileImage)}
                                 className="rounded-circle"
                                 alt="Profile"
                               />
+                              <span className="name">
+                                {t("header.myAccount")}
+                                <i className="fa-solid fa-angle-down" />
+                              </span>
                             </div>
-                            <div className="info text-center">
-                              {(() => {
-                                const hasValidName =
-                                  (firstName &&
-                                    firstName !== "null" &&
-                                    firstName !== "undefined") ||
-                                  (lastName &&
-                                    lastName !== "null" &&
-                                    lastName !== "undefined");
-
-                                return (
-                                  hasValidName && (
-                                    <span className="name">
-                                      {firstName &&
+                          </a>
+                          <div className="dropdown-menu">
+                            <div className="dropdown-header d-flex flex-column align-items-center">
+                              <div className="figure mb-3">
+                                <img
+                                  crossorigin="anonymous"
+                                  src={cleanImageUrl(profileImage)}
+                                  className="rounded-circle"
+                                  alt="Profile"
+                                />
+                              </div>
+                              <div className="info text-center">
+                                {(() => {
+                                  const hasValidName =
+                                    (firstName &&
                                       firstName !== "null" &&
-                                      firstName !== "undefined"
-                                        ? firstName
-                                        : ""}{" "}
-                                      {lastName &&
+                                      firstName !== "undefined") ||
+                                    (lastName &&
                                       lastName !== "null" &&
-                                      lastName !== "undefined"
-                                        ? lastName
-                                        : ""}
-                                    </span>
-                                  )
-                                );
-                              })()}
+                                      lastName !== "undefined");
 
-                              {localStorage.getItem("user_email") && (
-                                <p className="mb-3 email">
-                                  <a
-                                    href={`mailto:${localStorage.getItem(
-                                      "user_email"
-                                    )}`}
-                                    className="__cf_email__"
-                                  >
-                                    {localStorage.getItem("user_email")}
-                                  </a>
-                                </p>
-                              )}
-                            </div>
-                          </div>
+                                  return (
+                                    hasValidName && (
+                                      <span className="name">
+                                        {firstName &&
+                                        firstName !== "null" &&
+                                        firstName !== "undefined"
+                                          ? firstName
+                                          : ""}{" "}
+                                        {lastName &&
+                                        lastName !== "null" &&
+                                        lastName !== "undefined"
+                                          ? lastName
+                                          : ""}
+                                      </span>
+                                    )
+                                  );
+                                })()}
 
-                          {localStorage.getItem("is_completed") === "true" && (
-                            <div className="dropdown-body">
-                              <ul className="profile-nav p-0 pt-3">
-                                <li className="nav-item active">
-                                  <Link
-                                    to={
-                                      userRole === "JobSeeker"
-                                        ? "/candidate-dashboard"
-                                        : "/employer-dashboard"
-                                    }
-                                    className="nav-link"
-                                  >
-                                    <span className="icon">
-                                      <img
-                                        src="/jobPortal/assets/images/svg-icon/icon-1.svg"
-                                        alt="Dashboard"
-                                      />
-                                    </span>
-                                    <span className="menu-title">
-                                      {t("header.dashboard")}
-                                    </span>
-                                  </Link>
-                                </li>
-                              </ul>
+                                {localStorage.getItem("user_email") && (
+                                  <p className="mb-3 email">
+                                    <a
+                                      href={`mailto:${localStorage.getItem(
+                                        "user_email"
+                                      )}`}
+                                      className="__cf_email__"
+                                    >
+                                      {localStorage.getItem("user_email")}
+                                    </a>
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          )}
-                          {/* {userRole !== "JobSeeker" && (
+
+                            {localStorage.getItem("is_completed") ===
+                              "true" && (
+                              <div className="dropdown-body">
+                                <ul className="profile-nav p-0 pt-3">
+                                  <li className="nav-item active">
+                                    <Link
+                                      to={
+                                        userRole === "JobSeeker"
+                                          ? "/candidate-dashboard"
+                                          : "/employer-dashboard"
+                                      }
+                                      className="nav-link"
+                                    >
+                                      <span className="icon">
+                                        <img
+                                          src="/jobPortal/assets/images/svg-icon/icon-1.svg"
+                                          alt="Dashboard"
+                                        />
+                                      </span>
+                                      <span className="menu-title">
+                                        {t("header.dashboard")}
+                                      </span>
+                                    </Link>
+                                  </li>
+                                </ul>
+                              </div>
+                            )}
+                            {/* {userRole !== "JobSeeker" && (
                             <div className="dropdown-body">
                               <ul className="profile-nav p-0 pt-3">
                                 <li className="nav-item active">
@@ -660,29 +784,30 @@ function Header({ bgColor }) {
                               </ul>
                             </div>
                           )} */}
-                          <div className="dropdown-footer">
-                            <ul className="profile-nav">
-                              <li className="nav-item">
-                                <button
-                                  onClick={handleLogout}
-                                  className="nav-link"
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                  }}
-                                >
-                                  <img
-                                    src="/jobPortal/assets/images/svg-icon/icon-11.svg"
-                                    alt="Image"
-                                  />
-                                  <span>{t("header.logout")}</span>
-                                </button>
-                              </li>
-                            </ul>
+                            <div className="dropdown-footer">
+                              <ul className="profile-nav">
+                                <li className="nav-item">
+                                  <button
+                                    onClick={handleLogout}
+                                    className="nav-link"
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                    }}
+                                  >
+                                    <img
+                                      src="/jobPortal/assets/images/svg-icon/icon-11.svg"
+                                      alt="Image"
+                                    />
+                                    <span>{t("header.logout")}</span>
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   ) : isEmployerPage ? (
                     <>
                       <div className="option-item">

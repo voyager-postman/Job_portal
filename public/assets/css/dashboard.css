@@ -4344,17 +4344,20 @@ background:#0066CC;
 }
 
 .job-details-form-tabs .nav {
-  border: 0px;
+  border: none;
+  /* margin-top: 30px; */
+  padding: 0px 0px;
+  justify-content: space-between;
+  background-color: #f0f5f7;
 }
 
 .job-details-form-tabs .nav-link {
   border: 0px;
-  color: #fff;
+  color: #0066cc;
   font-size: 16px;
-  margin-right: 50px;
-  border-radius: 5px;
-  background: #0066cc;
-  padding: 10px 40px;
+  padding: 15px 40px;
+  border-radius: 0px !important;
+  font-weight: 600;
 }
 
 .job-details-form-tabs .nav-link.active {
@@ -6247,7 +6250,7 @@ width:100%;
 /*Activity timeline page css end here*/
 
 /*Employer profile page css start here*/
-.company-profile-management-tab{
+.company-profile-management-tab {
   margin: 30px;
 }
 
@@ -6406,7 +6409,7 @@ width:100%;
 .office-photos-info-area .preview-container {
   display: flex;
   align-items: center;
-  background: #f0f5f7
+  background: #f0f5f7;
 }
 
 .office-photos-info-area .image-wrapper {

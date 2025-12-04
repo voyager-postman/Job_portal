@@ -130,7 +130,10 @@ function AppliedJobList() {
                         {job?.employmentType?.name}
                       </li>
                       <li>
-                        <i className="fa-solid fa-location-dot" /> {job?.city}
+                        <i className="fa-solid fa-location-dot" />{" "}
+                        {job?.city && job?.city.length > 0
+                          ? job.city
+                          : job?.company_city || "N/A"}
                       </li>
                       <li>
                         <i className="fa-regular fa-file" />{" "}

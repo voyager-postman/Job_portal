@@ -880,7 +880,7 @@ function CompanyDetailsPage() {
                                     } fa-heart`}
                                     style={{
                                       cursor: "pointer",
-                                      color: job.isSaved ? "red" : "#888",
+                                      color: job.isSaved ? "#fb761a" : "#fff",
                                     }}
                                     onClick={(e) => {
                                       e.preventDefault();

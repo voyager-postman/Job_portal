@@ -8877,7 +8877,19 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   font-size: 14px;
   padding-left: 5px;
 }
-
+/* input.form-control .Date_Input {
+    min-width: 300px;
+} */
+.react-datepicker {
+  display: flex !important;
+}
+.react-datepicker__month-container {
+  width: 50% !important;
+}
+.date_flex_area {
+  display: flex;
+  justify-content: space-between;
+}
 .employer-candidate-number-counting {
   display: flex;
   padding: 0px 10px;

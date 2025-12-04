@@ -35,6 +35,22 @@ function CandinateProfileDetails() {
       setLoading(false);
     }
   };
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // Case: wrong URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // Case: full external URL
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Case: local upload (relative path)
+    return `${API_IMAGE_URL}${url}`;
+  };
 
   return (
     <>
@@ -45,11 +61,10 @@ function CandinateProfileDetails() {
               <div className="candidates-details-left-content">
                 <div className="candidates-img">
                   <img
-                    crossorigin="anonymous"
+                    crossOrigin="anonymous"
                     src={
-                      candidate?.userId?.profileImage
-                        ? `${API_IMAGE_URL}${candidate?.userId?.profileImage}`
-                        : "assets/images/candidate-img/candidate1.jpg" // default image
+                      cleanImageUrl(candidate?.userId?.profileImage) ||
+                      "assets/images/candidate-img/candidate1.jpg"
                     }
                     alt="Image"
                   />

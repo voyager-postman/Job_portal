@@ -9,13 +9,6 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
-// import Box from "@mui/material/Box";
-// import OutlinedInput from "@mui/material/OutlinedInput";
-// import InputLabel from "@mui/material/InputLabel";
-// import MenuItem from "@mui/material/MenuItem";
-// import FormControl from "@mui/material/FormControl";
-// import Select from "@mui/material/Select";
-// import Chip from "@mui/material/Chip";
 
 function JobDetailsForm() {
   const navigate = useNavigate();
@@ -47,8 +40,9 @@ function JobDetailsForm() {
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
-    cities: [], // 👈 this holds multiple cities    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
+    //cities: [], // 👈 this holds multiple cities    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
     city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
+    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // single source of truth
     region: jobFromState.region || "",
     Country: jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
@@ -162,7 +156,6 @@ function JobDetailsForm() {
 
       return updated;
     });
-
   };
 
   const [showCityOptions, setShowCityOptions] = useState(false);
@@ -175,17 +168,13 @@ function JobDetailsForm() {
   // Toggle select/unselect
   const toggleCity = (cityName) => {
     setSelectedCities((prev) => {
-      let updated;
-      if (prev.includes(cityName)) {
-        updated = prev.filter((c) => c !== cityName);
-      } else {
-        updated = [...prev, cityName];
-      }
+      const updated = prev.includes(cityName)
+        ? prev.filter((c) => c !== cityName)
+        : [...prev, cityName];
 
-      // update formData and autosave
       setFormData((prevForm) => ({
         ...prevForm,
-        city: updated, // FIXED here
+        cities: updated, // unified key
       }));
 
       return updated;
@@ -281,6 +270,7 @@ function JobDetailsForm() {
       console.error(error);
     }
   };
+
   const fetchCountryList = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}get/countries`);
@@ -289,10 +279,12 @@ function JobDetailsForm() {
       console.error("Error fetching countries:", error);
     }
   };
+
   useEffect(() => {
     fetchCategoryList();
     fetchCountryList();
   }, []);
+
   const [tagInput, setTagInput] = useState("");
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -361,8 +353,8 @@ function JobDetailsForm() {
       setCityList(cities);
 
       // ✅ If editing, keep previously selected cities (if they still exist in the list)
-      if (jobFromState?.city?.length) {
-        const validCities = jobFromState.city.filter((cityName) =>
+      if (jobFromState?.cities?.length) {
+        const validCities = jobFromState.cities.filter((cityName) =>
           cities.some((c) => c.name === cityName)
         );
         setSelectedCities(validCities);
@@ -442,8 +434,8 @@ function JobDetailsForm() {
       formDataToSend.append("employmentType", data.employmentType || "");
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
+      // formDataToSend.append("cities", JSON.stringify(data.cities || []));
       formDataToSend.append("city", JSON.stringify(data.cities || []));
-
       formDataToSend.append("region", data.region || "");
       formDataToSend.append("country", data.Country || "");
       formDataToSend.append("shortDescription", data.shortDescription || "");
@@ -541,7 +533,7 @@ function JobDetailsForm() {
                 </li>
                 <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu3">
-                    Job Branding
+                    Job Promotion
                   </a>
                 </li>
                 <li className="nav-item">
@@ -1228,16 +1220,15 @@ function JobDetailsForm() {
               </div>
 
               <div id="menu3" className="tab-pane fade">
-                <div className="job-option-branding-input-area">
+                {/* <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>
-                      Brand your job post
-                      {/* <span className="text-danger">*</span> */}
+                      Job Promotion
                     </h3>
 
                     <span className="heading-small-description">
-                      Branded job post are more attractive to job seekers. Add a
-                      cover photo for just +€ 250.
+                      Job Promotion post are more attractive to job seekers. Add
+                      a cover photo for just +€ 250.
                     </span>
                   </div>
 
@@ -1247,7 +1238,7 @@ function JobDetailsForm() {
                         className="custom-file-upload"
                         onClick={() =>
                           document.getElementById("file-upload").click()
-                        } // ✅ Click entire area
+                        } 
                         style={{
                           cursor: "pointer",
                           border: "2px dashed #007bff",
@@ -1257,7 +1248,6 @@ function JobDetailsForm() {
                           background: "#f8fcff",
                         }}
                       >
-                        {/* Hidden input */}
                         <input
                           type="file"
                           id="file-upload"
@@ -1267,7 +1257,6 @@ function JobDetailsForm() {
                           style={{ display: "none" }}
                         />
 
-                        {/* If file uploaded, show preview */}
                         {formData.coverPhoto ? (
                           <div className="file-preview mt-2">
                             {formData.coverPhoto ? (
@@ -1276,7 +1265,7 @@ function JobDetailsForm() {
                                   "image/"
                                 ) ? (
                                   <img
-                                    src={formData.coverPhotoPreview} // ✅ now works
+                                    src={formData.coverPhotoPreview} 
                                     alt="Preview"
                                     style={{
                                       width: "200px",
@@ -1323,12 +1312,10 @@ function JobDetailsForm() {
 
                   <div className="job-option-branding-disclaimer">
                     <h5>Disclaimer</h5>
-
                     <p>
                       Please review our best practices before you upload a cover
                       photo.
                     </p>
-
                     <p>
                       Find them on our FAQ page:
                       <a href="https://itdevelopmentservices.com/design_website/jobPortal/">
@@ -1336,21 +1323,79 @@ function JobDetailsForm() {
                       </a>
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
-                    <h3>Remove similar job posts</h3>
+                    <h3>Featured Job</h3>
 
                     <span className="heading-small-description">
-                      Remove similar job posts from other companies so that we
-                      only present job posts from your company with +€ 360
+                      Priority placement — this job will appear at the top of
+                      the job list. +€ 220
                     </span>
                   </div>
 
                   <div className="job-option-branding-content-switch">
                     <div className="job-option-branding-content">
-                      <p>Enable removal of relevant jobs</p>
+                      <p>Enable Featured Job</p>
+                    </div>
+
+                    <div className="job-option-branding-switch">
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          name="isFeatured"
+                          checked={formData.isFeatured}
+                          onChange={handleChange}
+                        />
+                        <span className="slider round" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="job-option-branding-input-area">
+                  <div className="job-option-branding-heading">
+                    <h3>Highlighted Job</h3>
+
+                    <span className="heading-small-description">
+                      Visual emphasis with a colored background or badge to
+                      attract more attention. +€ 150
+                    </span>
+                  </div>
+
+                  <div className="job-option-branding-content-switch">
+                    <div className="job-option-branding-content">
+                      <p>Enable Highlighted Job</p>
+                    </div>
+
+                    <div className="job-option-branding-switch">
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          name="isHighlighted"
+                          checked={formData.isHighlighted}
+                          onChange={handleChange}
+                        />
+                        <span className="slider round" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="job-option-branding-input-area">
+                  <div className="job-option-branding-heading">
+                    <h3>Home Page visibility</h3>
+
+                    <span className="heading-small-description">
+                      Job posts from other companies so that we only present job
+                      posts from your company with +€ 360
+                    </span>
+                  </div>
+
+                  <div className="job-option-branding-content-switch">
+                    <div className="job-option-branding-content">
+                      <p>Enable Home Page Visibility jobs</p>
                     </div>
 
                     <div className="job-option-branding-switch">
