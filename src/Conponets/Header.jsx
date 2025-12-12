@@ -10,6 +10,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import Swal from "sweetalert2";
+
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
   const {
@@ -28,6 +30,39 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  localStorage.setItem("verifiedByAdmin", "true");
+
+  useEffect(() => {
+    const adminVerified = localStorage.getItem("adminVerified");
+    if (adminVerified === "true") {
+      localStorage.setItem("verifiedByAdmin", "true");
+    }
+  }, []);
+
+  const fetchCompanyProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const companyId = localStorage.getItem("companyId");
+      const response = await axios.get(
+        `${API_BASE_URL}GetCompanyDetails/${companyId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const updatedUser = response.data.company;
+      // Update localStorage with latest status
+      localStorage.setItem(
+        "verifiedByAdmin",
+        updatedUser.verifiedByAdmin ? "true" : "false"
+      );
+      return updatedUser;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    fetchCompanyProfile();
+  }, []);
 
   // Fetch notifications from API
   const fetchNotifications = async () => {
@@ -335,6 +370,7 @@ function Header({ bgColor }) {
 
   //   flow: "implicit",
   // });
+
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -782,13 +818,36 @@ function Header({ bgColor }) {
                               <div className="dropdown-body">
                                 <ul className="profile-nav p-0 pt-3">
                                   <li className="nav-item active">
-                                    <Link
-                                      to={
-                                        userRole === "JobSeeker"
-                                          ? "/candidate-dashboard"
-                                          : "/employer-dashboard"
-                                      }
+                                    <button
                                       className="nav-link"
+                                      onClick={async () => {
+                                        const role =
+                                          localStorage.getItem("user_role");
+                                        const updatedUser =
+                                          await fetchCompanyProfile();
+                                        const verified =
+                                          updatedUser?.verifiedByAdmin;
+                                        // If employer is not verified → show popup & block access
+                                        if (
+                                          (role === "Recruiter" ||
+                                            role === "Company") &&
+                                          !verified
+                                        ) {
+                                          Swal.fire({
+                                            title: "Company Not Verified",
+                                            text: "Your company is not verified by the admin. Please complete verification to access the employer section.",
+                                            icon: "warning",
+                                            confirmButtonText: "OK",
+                                          });
+                                          return;
+                                        }
+
+                                        if (role === "JobSeeker") {
+                                          navigate("/candidate-dashboard");
+                                        } else {
+                                          navigate("/employer-dashboard");
+                                        }
+                                      }}
                                     >
                                       <span className="icon">
                                         <img
@@ -799,11 +858,12 @@ function Header({ bgColor }) {
                                       <span className="menu-title">
                                         {t("header.dashboard")}
                                       </span>
-                                    </Link>
+                                    </button>
                                   </li>
                                 </ul>
                               </div>
                             )}
+
                             {/* {userRole !== "JobSeeker" && (
                             <div className="dropdown-body">
                               <ul className="profile-nav p-0 pt-3">

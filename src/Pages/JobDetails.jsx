@@ -798,8 +798,8 @@ function JobDetails() {
                 <h5>About the role</h5>
                 <p>{job?.jobDetails?.shortDescription}</p>
 
-                <h5>Company Description</h5>
-                <div dangerouslySetInnerHTML={{ __html: decodedHtml1 }} />
+                {/* <h5>Company Description</h5>
+                <div dangerouslySetInnerHTML={{ __html: decodedHtml1 }} /> */}
               </div>
               <div className="job-details-job-description">
                 <h5>Job Description</h5>

@@ -63,7 +63,6 @@ function EmployerLogin() {
             icon: "error",
             confirmButtonText: "OK",
           });
-          return; // Stop entire login flow
         }
         // Save login data correctly
         localStorage.setItem("token", token);
@@ -74,11 +73,15 @@ function EmployerLogin() {
         localStorage.setItem("first_name", user.first_name);
         localStorage.setItem("last_name", user.last_name);
         localStorage.setItem("is_completed", user?.is_completed);
-
+        localStorage.setItem("companyId",user?.companyId);
+        localStorage.setItem("verifiedByAdmin", user?.verifiedByAdmin);
         login(); // call auth context
+        if (!user.verifiedByAdmin) {
+          navigate("/"); // Stop entire login flow
+          return;
+        }
 
         toast.success("Login successful!");
-
         if (user?.is_completed) {
           if (user.role == "Recruiter" || user.role == "Company") {
             navigate("/employer-dashboard");
@@ -122,6 +125,7 @@ function EmployerLogin() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -175,7 +179,6 @@ function EmployerLogin() {
     localStorage.setItem("user_profile", avatar);
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
-
     toast.success("Login Successful!");
 
     // Close modal
@@ -312,10 +315,10 @@ function EmployerLogin() {
                     </form>
                     <div className="recruiter-login-content-area">
                       <p>
-                        Are you a recruiter? Log in via our dedicated portal
+                        Are you a Job seeker ? Log in via our dedicated portal
                       </p>
-                      <Link to="/employer-login">
-                        <i className="fa-solid fa-users" /> Recruiter Login
+                      <Link to="/login">
+                        <i className="fa-solid fa-users" /> Seeker Login
                       </Link>
                     </div>
                     <div className="linkeding-login-register-btn-info">

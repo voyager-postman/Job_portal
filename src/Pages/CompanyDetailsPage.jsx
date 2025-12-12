@@ -42,6 +42,7 @@ function CompanyDetailsPage() {
   useEffect(() => {
     if (companyId) getCompanyDetails();
   }, [companyId]);
+  
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -468,11 +469,11 @@ function CompanyDetailsPage() {
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-signal" />
-                                  {job.minimumLevel || "N/A"}
+                                  {job.minimumLevel?.name || "N/A"}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-user" />
-                                  {job.employmentType || "N/A"}
+                                  {job.employmentType?.name || "N/A"}
                                 </li>
                               </ul>
                             </div>

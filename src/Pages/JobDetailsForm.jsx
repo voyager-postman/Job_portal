@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { json, Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
@@ -452,6 +452,7 @@ function JobDetailsForm() {
       formDataToSend.append("jobAddress", data.jobAddress || "");
       // formDataToSend.append("cities", JSON.stringify(data.cities || []));
       formDataToSend.append("city", JSON.stringify(data.cities || []));
+      formDataToSend.append("cities", JSON.stringify(data.cities || []));
       formDataToSend.append("region", data.region || "");
       formDataToSend.append("country", data.Country || "");
       formDataToSend.append("shortDescription", data.shortDescription || "");

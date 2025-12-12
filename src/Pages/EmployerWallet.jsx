@@ -1,7 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../Url/Url";
+import axios from "axios";
 
 const EmployerWallet = () => {
+  const [credits, setCredits] = useState("");
+
+  useEffect(() => {
+    const fetchcreditStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}credit-status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // console.log(response.data.data);
+        setCredits(response.data.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchcreditStatus();
+  }, []);
+
   return (
     <>
       {/* <!-- Start Main Dashboard Content Wrapper Area --> */}
@@ -40,10 +60,12 @@ const EmployerWallet = () => {
               <div className="user-wallet-credit-button">
                 <div className="user-wallet-credit">
                   <h4>
-                    Total Job posting credits: <span>10</span>
+                    Total Job posting credits:{" "}
+                    <span>{credits.totalJobPostingCredits}</span>
                   </h4>
                   <h4>
-                    Total profile viewing credits: <span>20</span>
+                    Total profile viewing credits:{" "}
+                    <span>{credits.totalProfileViewingCredits}</span>
                   </h4>
                 </div>
                 <div className="user-wallet-credit-buy-button">
@@ -130,19 +152,25 @@ const EmployerWallet = () => {
           <section className="user-wallet-credit-limit-info">
             <div className="user-wallet-credit-limit">
               <div className="user-wallet-credit-box">
-                <h3>1/2</h3>
+                <h3>
+                  {credits.todayJobPostingUsed || 0}/
+                  {credits.todayJobPostingRemaining || 0}
+                </h3>
                 <h4>jobs created today</h4>
-                <h4>Max 2 postings/day</h4>
+                <h4>Max {credits.dailyJobPostingLimit} postings/day</h4>
                 <p>Daily limits reset automatically at midnight</p>
               </div>
               <div className="user-wallet-credit-box">
-                <h3>3/5</h3>
+                <h3>
+                  {credits.todayProfileViewingUsed || 0}/
+                  {credits.todayProfileViewingRemaining || 0}
+                </h3>
                 <h4>profiles vieweds</h4>
-                <h4>Max 20 views/day</h4>
+                <h4>Max {credits.dailyViewingLimit || 0} views/day</h4>
                 <p>Daily limits reset automatically at midnight</p>
               </div>
               <div className="user-wallet-credit-box">
-                <h3>3 Months</h3>
+                <h3>{credits.daysLeft || 0} days</h3>
                 <h4>Validity Period</h4>
                 <h4>From account verification date</h4>
               </div>

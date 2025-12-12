@@ -56,7 +56,7 @@ function YourJobPosts() {
       });
     } catch (error) {
       console.error("Error creating job:", error);
-      toast.error("Failed to create job");
+      toast.error(error.response?.data?.message);
     }
   };
 
