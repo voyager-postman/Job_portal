@@ -198,9 +198,9 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Interview Invitations </h4>
-                        <h5>1000</h5>
+                        <h5>0</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> 15% this week
+                          <i className="fa-solid fa-arrow-up" /> 0% this week
                         </p>
                       </div>
                     </div>

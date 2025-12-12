@@ -1,226 +1,89 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
+import { API_BASE_URL } from "../Url/Url";
+import axios from "axios";
+
 function ActivityTimeline() {
+  const [activity, setActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchActivity = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_BASE_URL}jobseeker/activity?page=${page}&limit=${limit}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Activity Timeline data:-", response.data.data);
+      setActivity(response.data.data);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivity();
+  }, [page, limit]);
+
   const columns = [
     {
       accessorKey: "id",
       header: "S.No",
-      cell: ({ row }) => row.index + 1, // auto index
+      cell: ({ row }) => (page - 1) * limit + row.index + 1,
     },
     {
-      accessorKey: "loginDate",
-      header: "Login Date",
-      
+      accessorKey: "activityType",
+      header: "Activity Type",
+      accessorFn: (row) => (row.activityType || "").toLowerCase(),
+      cell: ({ row }) => row.original.activityType || "Not Provided",
     },
     {
-      accessorKey: "loginTime",
-      header: "Login Time",
+      accessorKey: "message",
+      header: "Message",
+      accessorFn: (row) => (row.message || "").toLowerCase(),
+      cell: ({ row }) => row.original.message || "Not Provided",
     },
     {
-      accessorKey: "pageName",
-      header: "Page Name",
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const value = row.original.updatedAt;
+        if (!value) return "Not Provided";
+
+        const date = new Date(value);
+        return date.toLocaleDateString("en-IN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+      },
     },
     {
-      accessorKey: "eventName",
-      header: "Event Name",
+      accessorKey: "time",
+      header: "Time",
+      cell: ({ row }) => {
+        const value = row.original.updatedAt;
+        if (!value) return "Not Provided";
+
+        const date = new Date(value);
+        return date.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      },
     },
-    {
-      accessorKey: "logoutDate",
-      header: "Logout Date",
-    },
-    {
-      accessorKey: "logoutTime",
-      header: "Logout Time",
-     
-    },
-  
   ];
-
-  // ✅ Static Data
-const data = [
-  {
-    id: 1,
-    loginDate: "21-8-2025",
-    loginTime: "08:00 AM",
-    pageName: "Dashboard",
-    eventName: "Login",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:00 AM",
-  },
-  {
-    id: 2,
-    loginDate: "21-8-2025",
-    loginTime: "08:10 AM",
-    pageName: "Reports",
-    eventName: "Viewed Report",
-    logoutDate: "21-8-2025",
-    logoutTime: "08:50 AM",
-  },
-  {
-    id: 3,
-    loginDate: "21-8-2025",
-    loginTime: "08:20 AM",
-    pageName: "Settings",
-    eventName: "Updated Profile",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:10 AM",
-  },
-  {
-    id: 4,
-    loginDate: "21-8-2025",
-    loginTime: "08:30 AM",
-    pageName: "Home",
-    eventName: "Login",
-    logoutDate: "21-8-2025",
-    logoutTime: "08:45 AM",
-  },
-  {
-    id: 5,
-    loginDate: "21-8-2025",
-    loginTime: "08:40 AM",
-    pageName: "Analytics",
-    eventName: "Viewed Graph",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:30 AM",
-  },
-  {
-    id: 6,
-    loginDate: "21-8-2025",
-    loginTime: "08:50 AM",
-    pageName: "Profile",
-    eventName: "Changed Password",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:45 AM",
-  },
-  {
-    id: 7,
-    loginDate: "21-8-2025",
-    loginTime: "09:00 AM",
-    pageName: "Login",
-    eventName: "Login",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:50 AM",
-  },
-  {
-    id: 8,
-    loginDate: "21-8-2025",
-    loginTime: "09:10 AM",
-    pageName: "Dashboard",
-    eventName: "Viewed Notifications",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:00 AM",
-  },
-  {
-    id: 9,
-    loginDate: "21-8-2025",
-    loginTime: "09:20 AM",
-    pageName: "Reports",
-    eventName: "Downloaded PDF",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:55 AM",
-  },
-  {
-    id: 10,
-    loginDate: "21-8-2025",
-    loginTime: "09:30 AM",
-    pageName: "Logout",
-    eventName: "Logout",
-    logoutDate: "21-8-2025",
-    logoutTime: "09:30 AM",
-  },
-  {
-    id: 11,
-    loginDate: "21-8-2025",
-    loginTime: "09:40 AM",
-    pageName: "Settings",
-    eventName: "Changed Email",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:10 AM",
-  },
-  {
-    id: 12,
-    loginDate: "21-8-2025",
-    loginTime: "09:50 AM",
-    pageName: "Home",
-    eventName: "Login",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:30 AM",
-  },
-  {
-    id: 13,
-    loginDate: "21-8-2025",
-    loginTime: "10:00 AM",
-    pageName: "Analytics",
-    eventName: "Viewed Chart",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:40 AM",
-  },
-  {
-    id: 14,
-    loginDate: "21-8-2025",
-    loginTime: "10:10 AM",
-    pageName: "Profile",
-    eventName: "Uploaded Photo",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:50 AM",
-  },
-  {
-    id: 15,
-    loginDate: "21-8-2025",
-    loginTime: "10:20 AM",
-    pageName: "Reports",
-    eventName: "Viewed Report",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:55 AM",
-  },
-  {
-    id: 16,
-    loginDate: "21-8-2025",
-    loginTime: "10:30 AM",
-    pageName: "Dashboard",
-    eventName: "Clicked Widget",
-    logoutDate: "21-8-2025",
-    logoutTime: "11:00 AM",
-  },
-  {
-    id: 17,
-    loginDate: "21-8-2025",
-    loginTime: "10:40 AM",
-    pageName: "Logout",
-    eventName: "Logout",
-    logoutDate: "21-8-2025",
-    logoutTime: "10:40 AM",
-  },
-  {
-    id: 18,
-    loginDate: "21-8-2025",
-    loginTime: "10:50 AM",
-    pageName: "Home",
-    eventName: "Login",
-    logoutDate: "21-8-2025",
-    logoutTime: "11:20 AM",
-  },
-  {
-    id: 19,
-    loginDate: "21-8-2025",
-    loginTime: "11:00 AM",
-    pageName: "Profile",
-    eventName: "Updated Address",
-    logoutDate: "21-8-2025",
-    logoutTime: "11:30 AM",
-  },
-  {
-    id: 20,
-    loginDate: "21-8-2025",
-    loginTime: "11:10 AM",
-    pageName: "Analytics",
-    eventName: "Viewed Report",
-    logoutDate: "21-8-2025",
-    logoutTime: "11:40 AM",
-  },
-];
-
 
   return (
     <>
@@ -237,7 +100,7 @@ const data = [
                 <i className="fa-solid fa-angle-right" /> Dashboard
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />  Activity timeline
+                <i className="fa-solid fa-angle-right" /> Activity timeline
               </li>
             </ol>
           </div>
@@ -246,11 +109,59 @@ const data = [
           <div className="my-profile-area">
             <div className="profile-form-content add-recruiters-btn-postion">
               <h3>Andy Smith log view</h3>
-             
+
               <div className="profile-form">
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
-                    <TableView columns={columns} data={data} />
+                    {loading ? (
+                      <div className="d-flex justify-content-center py-5">
+                        <div className="spinner-border text-primary"></div>
+                      </div>
+                    ) : (
+                      <>
+                        <TableView
+                          columns={columns}
+                          data={activity}
+                          limit={limit}
+                          setLimit={(value) => {
+                            setLimit(value);
+                            setPage(1);
+                          }}
+                        />
+                        {/* PAGINATION BUTTONS */}
+                        <div className="d-flex justify-content-center mt-3">
+                          <button
+                            className="btn btn-sm btn-primary mx-1"
+                            disabled={page === 1}
+                            onClick={() => setPage(page - 1)}
+                          >
+                            Prev
+                          </button>
+
+                          {[...Array(totalPages)].map((_, index) => (
+                            <button
+                              key={index}
+                              className={`btn btn-sm mx-1 ${
+                                page === index + 1
+                                  ? "btn-primary"
+                                  : "btn-outline-primary"
+                              }`}
+                              onClick={() => setPage(index + 1)}
+                            >
+                              {index + 1}
+                            </button>
+                          ))}
+
+                          <button
+                            className="btn btn-sm btn-primary mx-1"
+                            disabled={page === totalPages}
+                            onClick={() => setPage(page + 1)}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

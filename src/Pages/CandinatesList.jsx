@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
+
 function CandinatesList() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);

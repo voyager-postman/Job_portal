@@ -18,6 +18,8 @@ function JobDetailsForm() {
   console.log("job from state:", job);
   const theme = useTheme();
   const [personName, setPersonName] = React.useState([]);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [showScheduleDate, setShowScheduleDate] = useState(false);
   const Title = job?.jobTitle;
   const Category = job?.jobCategory;
   console.log("Job Title:-", Title);
@@ -31,6 +33,7 @@ function JobDetailsForm() {
   // ✅ Job data passed from previous page
   const jobFromState = location.state?.jobData || {};
   console.log(jobFromState);
+
   // ---- Initialize once with either state job or empty
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
@@ -52,6 +55,10 @@ function JobDetailsForm() {
     confidentialJobPost: jobFromState.confidentialJobPost || false,
     referenceId: jobFromState.referenceId || "",
     enableEmailNotification: jobFromState.enableEmailNotification || false,
+    enableHighlightedJob: jobFromState.enableHighlightedJob || false,
+    enableHomePageVisibility: jobFromState.enableHomePageVisibility || false,
+    enableFeaturedJob: jobFromState.enableFeaturedJob || false,
+    enableRemovalRelevantJobs: jobFromState.enableRemovalRelevantJobs || false,
     ExternalApplyLink: jobFromState.ExternalApplyLink || "",
     minSalary: jobFromState?.privatJobDetails?.minSalary || "",
     maxSalary: jobFromState?.privatJobDetails?.maxSalary || "",
@@ -89,6 +96,10 @@ function JobDetailsForm() {
             jobDescription: job.jobDescription || "",
             enableExternalApply: job.enableExternalApply || false,
             confidentialJobPost: job.confidentialJobPost || false,
+            enableRemovalRelevantJobs: job.enableRemovalRelevantJobs || false,
+            enableFeaturedJob: job.enableFeaturedJob || false,
+            enableHighlightedJob: job.enableHighlightedJob || false,
+            enableHomePageVisibility: job.enableHomePageVisibility || false,
             referenceId: job.referenceId || "",
             enableEmailNotification: job.enableEmailNotification || false,
             ExternalApplyLink: job.ExternalApplyLink || "",
@@ -418,7 +429,12 @@ function JobDetailsForm() {
     setIsEditing(false);
   };
 
-  const handlePublishJob = async (data = formData, isPublish = false) => {
+  const handlePublishJob = async (
+    data = formData,
+    // isPublish = false,
+    statusType = "draft",
+    scheduleDate = null
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -444,6 +460,16 @@ function JobDetailsForm() {
       formDataToSend.append("enableExternalApply", data.enableExternalApply);
       formDataToSend.append("ExternalApplyLink", data.ExternalApplyLink || "");
       formDataToSend.append("confidentialJobPost", data.confidentialJobPost);
+      formDataToSend.append(
+        "enableRemovalRelevantJobs",
+        data.enableRemovalRelevantJobs
+      );
+      formDataToSend.append("enableHighlightedJob", data.enableHighlightedJob);
+      formDataToSend.append(
+        "enableHomePageVisibility",
+        data.enableHomePageVisibility
+      );
+      formDataToSend.append("enableFeaturedJob", data.enableFeaturedJob);
       formDataToSend.append("referenceId", data.referenceId || "");
       formDataToSend.append(
         "enableEmailNotification",
@@ -453,8 +479,16 @@ function JobDetailsForm() {
       formDataToSend.append("minSalary", data.minSalary || "");
       formDataToSend.append("maxSalary", data.maxSalary || "");
 
-      // ✅ Add "status" key ONLY when Publish button is clicked
-      if (isPublish) formDataToSend.append("status", "published");
+      // **Core Logic**
+      if (statusType === "published") {
+        formDataToSend.append("status", "published");
+      } else if (statusType === "scheduled") {
+        formDataToSend.append("status", "scheduled");
+        formDataToSend.append("scheduleDate", scheduleDate); // REQUIRED BY API
+      } else {
+        formDataToSend.append("status", "draft");
+      }
+      // if (isPublish) formDataToSend.append("status", "published");
 
       if (data.coverPhoto) {
         formDataToSend.append("jobCoverPhoto", data.coverPhoto);
@@ -475,7 +509,7 @@ function JobDetailsForm() {
 
       console.log("✅ Job Updated:", response.data);
       // ✅ If published, navigate to "your-job-posts"
-      if (isPublish) {
+      if (statusType === "published" || statusType === "scheduled") {
         navigate("/your-job-posts", {
           state: {
             jobTitle: data.jobTitle,
@@ -488,6 +522,14 @@ function JobDetailsForm() {
     }
   };
   // Add new city to list
+
+  // const openScheduleModal = () => {
+  //   const d = prompt("Enter schedule date (YYYY-MM-DD)");
+  //   if (d) {
+  //     setScheduleDate(d);
+  //     handlePublishJob(formData, "scheduled", d);
+  //   }
+  // };
 
   return (
     <>
@@ -1033,7 +1075,6 @@ function JobDetailsForm() {
                     <div className="job-option-branding-content">
                       <p>Enable external apply</p>
                     </div>
-
                     <div className="job-option-branding-switch">
                       <label className="switch">
                         <input
@@ -1067,7 +1108,6 @@ function JobDetailsForm() {
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>Confidential job post</h3>
-
                     <span className="heading-small-description">
                       Enable this option to hide your company details from the
                       job post. (Anonymous Company)
@@ -1344,8 +1384,8 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="isFeatured"
-                          checked={formData.isFeatured}
+                          name="enableFeaturedJob"
+                          checked={formData.enableFeaturedJob}
                           onChange={handleChange}
                         />
                         <span className="slider round" />
@@ -1373,8 +1413,8 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="isHighlighted"
-                          checked={formData.isHighlighted}
+                          name="enableHighlightedJob"
+                          checked={formData.enableHighlightedJob}
                           onChange={handleChange}
                         />
                         <span className="slider round" />
@@ -1402,8 +1442,8 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="removeSimilarJobs"
-                          checked={formData.removeSimilarJobs}
+                          name="enableHomePageVisibility"
+                          checked={formData.enableHomePageVisibility}
                           onChange={handleChange}
                         />
                         <span className="slider round" />
@@ -1436,7 +1476,6 @@ function JobDetailsForm() {
                         publish it.
                       </h4>
                     </div>
-
                     <div className="job-detail-in-cart-info">
                       <div className="input-info-edit-area cart-job-detail-edit">
                         <h3>Job post review</h3>
@@ -1503,19 +1542,117 @@ function JobDetailsForm() {
                             // onClick={handlePublishJob}
                             className="default-btn btn"
                           >
-                            Pay & Publish Now
+                            Save Draft
                           </button>
                         </div>
                         <div className="job-create-form-back-next-btn">
                           <button
-                            onClick={() => handlePublishJob(formData, true)}
+                            onClick={() =>
+                              handlePublishJob(formData, "published")
+                            }
                             className="default-btn btn"
                           >
                             Publish Job
                           </button>
                         </div>
+                        <div className="job-create-form-back-next-btn">
+                          <button
+                            // onClick={() => handlePublishJob(formData, "published")}
+                            onClick={() => setShowScheduleDate(true)}
+                            className="default-btn btn"
+                          >
+                            Schedule Job
+                          </button>
+                        </div>
                       </div>
                     </div>
+
+                    {showScheduleDate && (
+                      <div className="schedule-modal-overlay">
+                        <div className="schedule-modal">
+                          <h3>Schedule Job Publishing</h3>
+                          <label className="mt-3">Select Schedule Date</label>
+                          <input
+                            type="date"
+                            className="form-control mt-1"
+                            value={scheduleDate}
+                            onChange={(e) => setScheduleDate(e.target.value)}
+                          />
+
+                          <div className="modal-button-group mt-4">
+                            <button
+                              className="default-btn btn"
+                              onClick={() =>
+                                handlePublishJob(
+                                  formData,
+                                  "scheduled",
+                                  scheduleDate
+                                )
+                              }
+                            >
+                              Confirm Schedule
+                            </button>
+
+                            <button
+                              className="default-btn btn btn-light"
+                              onClick={() => setShowScheduleDate(false)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="job-payment-detail-box-info">
+                    <div className="job-payment-detail-info">
+                      <h4>Payment details</h4>
+                    </div>
+                    <div className="job-payment-text-price">
+                      <div className="job-payment-text">
+                        <h5>Standard post</h5>
+                      </div>
+                      <div className="job-payment-price">
+                        <h5>5 Credits</h5>
+                      </div>
+                    </div>
+                    <div className="job-payment-text-price">
+                      <div className="job-payment-text">
+                        <h5>Featured Jobs</h5>
+                      </div>
+                      <div className="job-payment-price">
+                        <h5>3 Credits</h5>
+                      </div>
+                    </div>
+                    <div className="job-payment-text-price">
+                      <div className="job-payment-text">
+                        <h5>Simple Job Post</h5>
+                      </div>
+                      <div className="job-payment-price">
+                        <h5>2 Credits</h5>
+                      </div>
+                    </div>
+
+                    <div className="job-payment-divider"></div>
+                    <div className="job-payment-text-price">
+                      <div className="job-payment-text">
+                        <h2>Total </h2>
+                      </div>
+                      <div className="job-payment-price">
+                        <h2>10 Credits</h2>
+                      </div>
+                    </div>
+                    <div className="job-payment-divider"></div>
+                    <div className="job-payment-text-price">
+                      <div className="job-payment-text">
+                        <h2>Grand Total</h2>
+                      </div>
+                      <div className="job-payment-price">
+                        <h2>10 Credits</h2>
+                      </div>
+                    </div>
+                    <div className="job-payment-divider"></div>
                   </div>
                 </div>
               </div>

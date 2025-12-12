@@ -21,7 +21,7 @@ function CandinateProfileDetails() {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `${API_BASE_URL}getCandidateDetails/${id}`,
+        `${API_BASE_URL}viewCandidate/${id}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

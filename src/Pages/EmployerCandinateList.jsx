@@ -485,8 +485,7 @@ function EmployerCandinateList() {
                     <li>({candidateListSummary?.New}) New Candidate</li>
 
                     <li>
-                      ({candidateListSummary?.Shortlisted}) Shortlisted
-                      Candidate
+                      ({candidateListSummary?.Shortlisted}) Shortlisted Candidate
                     </li>
                     <li>
                       ({candidateListSummary?.Rejected}) Rejected Candidate

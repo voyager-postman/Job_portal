@@ -4537,7 +4537,6 @@ background:#0066CC;
 /*Your job posts option tab form css end here*/
 
 /*Your job posts pulish tab form css start here*/
-
 .publish-job-payment-details {
   display: flex;
   margin-top: 30px;
@@ -4565,6 +4564,9 @@ width:65%;
 .job-post-address-info h4 {
   font-size: 16px;
   margin: 0px 0px 5px 0px;
+}
+.job-detail-cart-info {
+  width: 65%;
 }
 
 .job-detail-in-cart-info {
@@ -7197,3 +7199,82 @@ width:100%;
   border: 2px solid #fe6600;
 }
 /*Amrjeet Dashboard Css End here*/
+
+
+/*Plan price page css start here*/
+ 
+ 
+.plan-price-info-area {
+margin:0px 0px 0px 0px; 
+padding:60px 0px 60px 0px;  
+}
+ 
+ 
+.plan-price-box-info-area {
+border-radius: 10px;
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+ 
+.card-header-orange {
+background:#ff6600 !important;  
+}
+ 
+.card-header-green {
+background:#008000 !important;  
+}
+ 
+.plan-price-heaing-info {
+color: #fff;
+padding: 10px 0px;
+text-align: center;
+background: #0066cc;
+margin-bottom: 10px;
+border-radius: 10px 10px 0px 0px;
+}
+ 
+.plan-price-heaing-info h4 {
+color: #fff;
+font-size: 20px;
+text-transform: capitalize;
+}
+ 
+.plan-price-heaing-info h5 {
+color: #fff;
+text-transform: capitalize;
+}
+ 
+.plan-price-detail-info ul {
+width:90%;
+margin: auto;
+text-align: center;
+padding: 0px 0px 0px 0px;
+}
+ 
+.plan-price-detail-info ul li {
+list-style: none;
+font-weight: 500;
+font-size: 16px;
+padding: 15px 20px;
+text-transform: capitalize;
+border-bottom:1px solid #d7d7d7cf;
+}
+ 
+.plan-price-btn-info {
+padding:20px 0px;  
+text-align:center;
+}
+ 
+.cv-view-plan-price-info-area {
+border-radius: 10px;
+background: #f0f4fc;
+padding: 50px 0px 60px 0px;
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+ 
+.cv-view-plan-price-info-area .plan-price-box-info-area {
+background: #fff;
+border-radius: 10px;
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+ 
+/*Plan price page css end here*/

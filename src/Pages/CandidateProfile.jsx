@@ -2292,16 +2292,6 @@ function CandidateProfile() {
                       </div>
                     </div>
 
-                    <div className="candidate-personal-info-upload-content-linkedin">
-                      <a
-                        href="https://www.linkedin.com/login"
-                        target="_blank"
-                        className="default-btn btn"
-                      >
-                        <i className="fa-brands fa-linkedin-in" />
-                        LinkedIn
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>

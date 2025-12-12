@@ -58,6 +58,8 @@ import TearmCondition from "./Pages/TearmCondition";
 import Blog from "./Pages/Blog";
 import BlogDetails from "./Pages/BlogDetails";
 import Setting from "./Pages/Setting";
+import EmployerWallet from "./Pages/EmployerWallet";
+import AddPlan from "./Pages/AddPlan";
 
 // "build 04-09-2025"
 console.log("Date:-04-12-2025,time:-10:29");
@@ -72,6 +74,7 @@ function LayoutWrapper() {
     "/companies-list",
     "/companies-list",
     "/your-job-posts",
+    "/employer-wallet",
     "/employer-dashboard",
     "/manage-applicants",
     "/shortlist-candidates",
@@ -146,6 +149,7 @@ function LayoutWrapper() {
           element={<CustomResumeCoverLatter />}
         />
         <Route path="/company-details" element={<CompanyDetailsInfo />} />
+        <Route path="/add-plan" element={<AddPlan />} />
         {/* Protected Routes */}
         <Route
           path="/job-details-form/:id"
@@ -260,6 +264,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <YourJobPosts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/employer-wallet"
+          element={
+            <PrivateRoute>
+              <EmployerWallet />
             </PrivateRoute>
           }
         />

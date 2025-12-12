@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
-import { FaToolbox, FaListCheck, FaUsersGear } from "react-icons/fa6";
-import { IoBookmark, IoSearchSharp } from "react-icons/io5";
+import { FaToolbox, FaListCheck, FaUsersGear,FaGoogleWallet } from "react-icons/fa6";
+import { IoBookmark, IoSearchSharp, IoWalletSharp  } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 
@@ -140,6 +140,24 @@ function Sidebar() {
                 <span className="menu-title">Job Posts</span>
               </NavLink>
             </li>
+
+            <li className="nav-item">
+              <NavLink
+                to="/employer-wallet"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  {/* <i className="fa-solid fa-briefcase" /> */}
+                  <i>
+                    <IoWalletSharp  />
+                  </i>
+                </span>
+                <span className="menu-title">Employer Wallet</span>
+              </NavLink>
+            </li>
+
             <li className="nav-item">
               <NavLink
                 to="/applied-jobs-list"
@@ -148,7 +166,7 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-list-check" /> */}
+                  {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
                     <FaListCheck />
                   </i>
@@ -172,7 +190,6 @@ function Sidebar() {
                 <span className="menu-title">Bookmark Resumes</span>
               </NavLink>
             </li>
-
             <li className="nav-item">
               <NavLink
                 to="/candidates-search"

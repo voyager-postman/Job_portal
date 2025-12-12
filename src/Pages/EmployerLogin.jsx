@@ -4,9 +4,9 @@ import axios from "../utils/axiosInstance";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
-
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
+import Swal from "sweetalert2";
 
 function EmployerLogin() {
   const navigate = useNavigate();
@@ -56,7 +56,15 @@ function EmployerLogin() {
 
       if (response.status === 200 && response.data.success) {
         const { token, user } = response.data;
-
+        if (!user.verifiedByAdmin) {
+          await Swal.fire({
+            title: "Account Not Verified",
+            text: "Your account is not verified by the admin. Please contact support.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return; // Stop entire login flow
+        }
         // Save login data correctly
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -68,6 +76,7 @@ function EmployerLogin() {
         localStorage.setItem("is_completed", user?.is_completed);
 
         login(); // call auth context
+
         toast.success("Login successful!");
 
         if (user?.is_completed) {

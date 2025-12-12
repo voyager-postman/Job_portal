@@ -55,10 +55,10 @@ function Header({ bgColor }) {
     }
   };
 
-  // Mark all notifications as read
   const markAllRead = async () => {
     try {
       const token = localStorage.getItem("token");
+
       await axios.post(
         `${API_BASE_URL}markAllRead`,
         {},
@@ -66,10 +66,13 @@ function Header({ bgColor }) {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setUnreadCount(0);
 
-      // Update local state so UI instantly updates
+      // Instantly update UI
+      setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+
+      // 🔥 Fetch updated notifications list from backend
+      fetchNotifications();
     } catch (err) {
       console.error("Error marking read:", err);
     }
@@ -152,9 +155,7 @@ function Header({ bgColor }) {
     localStorage.setItem("user_profile", avatar);
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
-
     toast.success("Login Successful!");
-
     // Close modal
     const loginModal = document.getElementById("exampleModalLogin");
     const registerModal = document.getElementById("exampleModalRegister");
@@ -189,6 +190,21 @@ function Header({ bgColor }) {
     // Clean URL
     window.history.replaceState({}, document.title, "/jobPortal");
   }, []);
+  const cleanImageUrl1 = (url) => {
+    if (!url) return "";
+
+    // Case 1: URL mistakenly contains "/uploads/https..."
+    if (url.includes("uploads/https")) {
+      const httpsPart = url.substring(url.indexOf("https"));
+      return httpsPart;
+    }
+
+    // Case 2: External URL — starts with http or https
+    if (url.startsWith("http")) return url;
+
+    // Case 3: Local server file — prepend base URL
+    return `${API_IMAGE_URL}${url}`;
+  };
 
   const handleLinkedinLogin = () => {
     const role = "JobSeeker";
@@ -599,6 +615,7 @@ function Header({ bgColor }) {
                           <button
                             className="btn notification-btn"
                             type="button"
+                            style={{ border: "none" }}
                             id="notificationDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
@@ -611,6 +628,7 @@ function Header({ bgColor }) {
                               </span>
                             )}
                           </button>
+
                           <ul
                             className="dropdown-menu dropdown-menu-end"
                             aria-labelledby="notificationDropdown"
@@ -628,17 +646,39 @@ function Header({ bgColor }) {
                               notifications.map((note) => (
                                 <li key={note._id}>
                                   <a
-                                    className={`dropdown-item ${
+                                    className={`dropdown-item d-flex gap-2 align-items-start ${
                                       note.isRead ? "" : "fw-bold"
                                     }`}
                                     href={note.actionUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    style={{ whiteSpace: "normal" }}
                                   >
-                                    <div>{note.title}</div>
-                                    <small className="text-muted">
-                                      {note.message}
-                                    </small>
+                                    {/* -------- IMAGE -------- */}
+                                    <img
+                                      crossOrigin="anonymous"
+                                      src={
+                                        note.logo
+                                          ? cleanImageUrl1(note.logo)
+                                          : "assets/images/dashboard/images1.png"
+                                      }
+                                      alt="Notification"
+                                      className="rounded"
+                                      style={{
+                                        width: "40px",
+                                        height: "40px",
+                                        objectFit: "cover",
+                                        border: "1px solid #e5e5e5",
+                                      }}
+                                    />
+
+                                    {/* -------- TEXT -------- */}
+                                    <div className="flex-grow-1">
+                                      <div>{note.title}</div>
+                                      <small className="text-muted d-block">
+                                        {note.message}
+                                      </small>
+                                    </div>
                                   </a>
                                 </li>
                               ))
@@ -653,10 +693,7 @@ function Header({ bgColor }) {
                             </li>
 
                             <li>
-                              <a
-                                className="dropdown-item text-center"
-                                // href="/notifications"
-                              >
+                              <a className="dropdown-item text-center">
                                 View All Notifications
                               </a>
                             </li>

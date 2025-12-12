@@ -215,7 +215,6 @@ function MyProfile() {
 
   const candidateLogin = async () => {
     if (!validate()) return;
-
     const data = new FormData();
     data.append("firstname", formData.firstName);
     data.append("lastname", formData.lastName);
@@ -377,9 +376,9 @@ function MyProfile() {
         res.data.success &&
         res.data.result &&
         res.data.result.success &&
-        res.data.result.data
+        res.data.result.parsed
       ) {
-        const extracted = res.data.result.data;
+        const extracted = res.data.result.parsed;
 
         setFormData((prev) => ({
           ...prev,
@@ -387,7 +386,9 @@ function MyProfile() {
           lastName: extracted.lastName || "",
           city: extracted.city || "",
           jobTitle: extracted.jobTitle || "",
-          experience: extracted.totalExperience || "",
+          experience: extracted.totalExperience
+            ? extracted.totalExperience.split(" ")[0]
+            : "",
           employmentType: extracted.employmentType || "",
           occupationType: extracted.occupationType || "",
           salaryType: extracted.desiredSalaryType || "",
@@ -395,7 +396,7 @@ function MyProfile() {
           eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
           selectedCategory: extracted.jobCategory || "",
         }));
-
+        setShowModal(false);
         // toast.success("Resume extracted successfully!");
       } else {
         toast.error("Extraction failed — no data found yet.");

@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL } from "../Url/Url";
 import Select from "react-select";
-
+import Swal from "sweetalert2";
 const EmployerBasicInformation = () => {
   const [formData, setFormData] = useState({
     brand_name: "",
@@ -267,26 +267,18 @@ const EmployerBasicInformation = () => {
           },
         }
       );
-
       if (response.data.success) {
-        const { userDetails, profile } = response.data;
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            ...userDetails,
-            companyId: profile?._id,
-          })
-        );
-        localStorage.setItem("user_id", userDetails._id);
-        localStorage.setItem("user_email", userDetails.email);
-        localStorage.setItem("user_role", userDetails.role);
-        localStorage.setItem("first_name", userDetails.first_name);
-        localStorage.setItem("last_name", userDetails.last_name);
-        localStorage.setItem("is_completed", userDetails?.is_completed);
+        // ⭐ CLEAN & PROPER SWEETALERT MESSAGE
+        await Swal.fire({
+          title: "Registration Successful!",
+          text: "Your approval request has been submitted to the admin. You will be notified once approved.",
+          icon: "success",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#3085d6",
+        });
 
-        toast.success("Recruiter profile created successfully!");
-        // Navigate or reset form
-        navigate("/employer-dashboard");
+        navigate("/");
+        return;
       } else {
         toast.error(response.data?.message || "Failed to create profile");
       }
