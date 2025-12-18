@@ -353,32 +353,64 @@ function MyProfile() {
       const res = await axios.post(`${API_BASE_URL}extractResume`, data);
 
       if (res.data.success && res.data.jobId) {
-        toast.success("Resume uploaded successfully!");
-
-        const jobId = res.data.jobId;
-
-        // Now call second API to get extracted result
-        fetchExtractedData(jobId);
+        fetchExtractedData(res.data.jobId); // start polling
       } else {
         toast.error("Upload succeeded but jobId missing.");
       }
     } catch (err) {
-      console.error("Error:", err.response?.data || err.message);
-      toast.error("Failed to upload resume. Try again.");
+      toast.error("Failed to upload resume.");
     }
   };
-  const fetchExtractedData = async (jobId) => {
+
+  // const uploadResume = async () => {
+  //   const data = new FormData();
+  //   data.append("resume", formData.attachment);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+
+  //     if (res.data.success && res.data.jobId) {
+  //       toast.success("Resume uploaded successfully!");
+
+  //       const jobId = res.data.jobId;
+
+  //       // Now call second API to get extracted result
+  //       fetchExtractedData(jobId);
+  //     } else {
+  //       toast.error("Upload succeeded but jobId missing.");
+  //     }
+  //   } catch (err) {
+  //     console.error("Error:", err.response?.data || err.message);
+  //     toast.error("Failed to upload resume. Try again.");
+  //   }
+  // };
+  const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
 
-      // Correct structure
-      if (
-        res.data.success &&
-        res.data.result &&
-        res.data.result.success &&
-        res.data.result.parsed
-      ) {
-        const extracted = res.data.result.parsed;
+      const { state, result } = res.data;
+
+      // ⏳ Still processing → retry
+      if (state === "active") {
+        if (attempt < 10) {
+          setTimeout(() => {
+            fetchExtractedData(jobId, attempt + 1);
+          }, 2000); // retry every 2 sec
+        } else {
+          toast.error("Resume extraction taking too long.");
+        }
+        return;
+      }
+
+      // ❌ Completed but failed
+      if (state === "completed" && !result?.success) {
+        toast.error("Resume extraction failed.");
+        return;
+      }
+
+      // ✅ Success
+      if (state === "completed" && result?.parsed) {
+        const extracted = result.parsed;
 
         setFormData((prev) => ({
           ...prev,
@@ -396,16 +428,55 @@ function MyProfile() {
           eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
           selectedCategory: extracted.jobCategory || "",
         }));
+
         setShowModal(false);
-        // toast.success("Resume extracted successfully!");
-      } else {
-        toast.error("Extraction failed — no data found yet.");
+        toast.success("Resume extracted successfully!");
       }
     } catch (err) {
-      console.log("Extraction Error:", err.response?.data || err.message);
-      toast.error("Error fetching extracted resume data.");
+      console.error("Extraction Error:", err.response?.data || err.message);
+      toast.error("Error fetching resume data.");
     }
   };
+
+  // const fetchExtractedData = async (jobId) => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
+
+  //     // Correct structure
+  //     if (
+  //       res.data.success &&
+  //       res.data.result &&
+  //       res.data.result.success &&
+  //       res.data.result.parsed
+  //     ) {
+  //       const extracted = res.data.result.parsed;
+
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         firstName: extracted.firstName || "",
+  //         lastName: extracted.lastName || "",
+  //         city: extracted.city || "",
+  //         jobTitle: extracted.jobTitle || "",
+  //         experience: extracted.totalExperience
+  //           ? extracted.totalExperience.split(" ")[0]
+  //           : "",
+  //         employmentType: extracted.employmentType || "",
+  //         occupationType: extracted.occupationType || "",
+  //         salaryType: extracted.desiredSalaryType || "",
+  //         salaryAmount: extracted.desiredSalaryAmount || "",
+  //         eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
+  //         selectedCategory: extracted.jobCategory || "",
+  //       }));
+  //       setShowModal(false);
+  //       // toast.success("Resume extracted successfully!");
+  //     } else {
+  //       toast.error("Extraction failed — no data found yet.");
+  //     }
+  //   } catch (err) {
+  //     console.log("Extraction Error:", err.response?.data || err.message);
+  //     toast.error("Error fetching extracted resume data.");
+  //   }
+  // };
 
   // const uploadResume = async () => {
   //   const data = new FormData();
@@ -449,6 +520,39 @@ function MyProfile() {
   //     toast.error("Failed to upload resume. Try again.");
   //   }
   // };
+  const importFromLinkedIn = async () => {
+    try {
+      // const userId = localStorage.getItem("user_id");
+
+      // if (!userId) {
+      //   toast.error("User not logged in");
+      //   return;
+      // }
+
+      const res = await axios.get(`${API_BASE_URL}linkedin/parse`);
+
+      if (res.data.success) {
+        const profile = res.data.data;
+
+        // Example: map LinkedIn data to your form
+        setFormData((prev) => ({
+          ...prev,
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          jobTitle: profile.headline || "",
+          city: profile.location || "",
+          experience: profile.experience || "",
+        }));
+
+        toast.success("LinkedIn profile imported successfully!");
+      } else {
+        toast.error("Failed to import LinkedIn profile");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("LinkedIn import failed");
+    }
+  };
   return (
     <>
       <ToastContainer />
@@ -643,14 +747,14 @@ function MyProfile() {
                         )}
                       </div>
                       <div className="personal-info-upload-content-linkedin">
-                        <a
-                          href="https://www.linkedin.com/login"
-                          target="_blank"
+                        <button
+                          type="button"
                           className="default-btn btn"
+                          onClick={importFromLinkedIn}
                         >
-                          <i className="fa-brands fa-linkedin-in" />
+                          <i className="fa-brands fa-linkedin-in" /> &nbsp;
                           Import from LinkedIn
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>

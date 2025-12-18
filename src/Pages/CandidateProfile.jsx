@@ -27,7 +27,7 @@ function CandidateProfile() {
     proficiency: "",
   });
   const [image, setImage] = useState(DEFAULT_IMAGE);
-
+  console.log(image);
   const [storedImage, setStoredImage] = useState(null); // server stored image
 
   const fileInputRef = useRef(null);
@@ -97,7 +97,7 @@ function CandidateProfile() {
 
       const profileImg = res.data?.profileImage;
       if (res.data?.success && profileImg && profileImg.trim() !== "") {
-        const fullUrl = API_IMAGE_URL + profileImg;
+        const fullUrl = profileImg;
         setImage(fullUrl);
         updateProfileImage(fullUrl); // ✅ update header image instantly
         toast.success(res.data.message || "Profile updated successfully!");
@@ -224,7 +224,7 @@ function CandidateProfile() {
 
       const profileImg = res.data?.profile?.profileImage;
       if (profileImg && profileImg.trim() !== "") {
-        setImage(API_IMAGE_URL + profileImg); // stored image
+        setImage(profileImg); // stored image
       } else {
         setImage(DEFAULT_IMAGE); // fallback
       }
@@ -2034,23 +2034,42 @@ function CandidateProfile() {
     }
   };
   const cleanImageUrl = (url) => {
+    console.log(url);
     if (!url) return "";
 
-    // If URL wrongly contains "/uploads/https"
-    if (url.includes("uploads/https")) {
-      // Extract only the "https://..." part
-      const httpsPart = url.substring(url.indexOf("https"));
-      return httpsPart;
+    // ✅ If local dashboard asset → return as-is (NO API_IMAGE_URL)
+    if (url.startsWith("assets/images/dashboard/")) {
+      return url;
     }
 
-    // External URL (starts with http)
-    if (url.startsWith("http")) return url;
+    // ✅ If URL wrongly contains "/uploads/https"
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
 
-    // Local upload → prepend API base URL
+    // ✅ External URL (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image → prepend API base URL
     return `${API_IMAGE_URL}${url}`;
   };
 
   console.log(image);
+  const formatEmail = (email, maxLength = 22) => {
+    if (!email) return "N/A";
+
+    if (email.length <= maxLength) return email;
+
+    const atIndex = email.indexOf("@");
+    if (atIndex === -1) {
+      return email.slice(0, maxLength) + "...";
+    }
+
+    return email.slice(0, atIndex + 1) + "...";
+  };
+
   return (
     <>
       <ToastContainer />
@@ -2113,8 +2132,9 @@ function CandidateProfile() {
                       <strong>Position:</strong> {profileData.position}
                     </h3>
                     <h3>
-                      <strong>Email:</strong> {profileData.email}
+                      <strong>Email:</strong> {formatEmail(profileData.email)}
                     </h3>
+
                     <h3>
                       <strong>Contact:</strong> {profileData.phone}
                     </h3>
@@ -2291,7 +2311,6 @@ function CandidateProfile() {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>

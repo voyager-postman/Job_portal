@@ -135,7 +135,7 @@ function Login() {
           const profileData = profileRes.data?.profile;
 
           if (profileImg && profileImg.trim() !== "") {
-            const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+            const fullUrl = `${profileImg}`;
             localStorage.setItem("profileImage", fullUrl);
 
             // ✅ Update AuthContext instantly

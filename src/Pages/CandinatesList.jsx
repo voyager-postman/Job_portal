@@ -3,15 +3,17 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
+import { ToastContainer, toast } from "react-toastify";
 
 function CandinatesList() {
+  const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
-  
+
   const fetchCandidates = async (page = 1) => {
     try {
       setLoading(true);
@@ -45,9 +47,32 @@ function CandinatesList() {
       setCurrentPage(page);
     }
   };
+  const handleBookmark = async (candidateId, jobId) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}bookmark/candidate`,
+        { candidateId, jobId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
+      // Show message from backend
+      toast.success(res.data.message);
+
+      fetchCandidates();
+    } catch (err) {
+      console.error("Error bookmarking candidate:", err);
+
+      // If backend sends error message
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Failed to bookmark candidate!");
+      }
+    }
+  };
   return (
     <>
+      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -416,8 +441,32 @@ function CandinatesList() {
                                           </li>
                                         </ul>
                                       </div>
-                                      <div className="candidate-list-bookmark">
-                                        <i className="fa-regular fa-heart" />
+
+                                      <div
+                                        className="candidate-list-bookmark"
+                                        onClick={(e) => {
+                                          e.preventDefault(); // 🔥 stop form submit
+                                          e.stopPropagation(); // 🔥 stop parent navigation
+                                          handleBookmark(
+                                            user?._id,
+                                            candidate.jobId
+                                          );
+                                        }}
+                                        style={{ cursor: "pointer" }}
+                                      >
+                                        <i
+                                          className={
+                                            candidate.isBookmarked
+                                              ? "fa-solid fa-bookmark"
+                                              : "fa-regular fa-bookmark"
+                                          }
+                                          style={{
+                                            cursor: "pointer",
+                                            color: candidate.isBookmarked
+                                              ? "#1868ca"
+                                              : "#888",
+                                          }}
+                                        />
                                       </div>
                                     </div>
                                   </div>
@@ -521,8 +570,8 @@ function CandinatesList() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma  </span> All Rights
-                    Reserved
+                    <span className="template-name"> Connect Work.ma </span> All
+                    Rights Reserved
                   </p>
                 </div>
               </div>

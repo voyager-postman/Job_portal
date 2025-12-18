@@ -9,10 +9,11 @@ import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 function EmployerShortListCandinate() {
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
-  const [bookmarkCount, setBookMarkCount] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  // const [bookmarkCount, setBookMarkCount] = useState("");
   const [itemsPerPage] = useState(6); // show 6 candidates per page
   // Calculate index range
+  const [totalCount, setTotalCount] = useState(0);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
@@ -24,6 +25,7 @@ function EmployerShortListCandinate() {
 
   // Total pages
   const totalPages = Math.ceil(bookmarkedCandidates.length / itemsPerPage);
+
   // Page change handler
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -33,11 +35,11 @@ function EmployerShortListCandinate() {
   };
 
   const token = localStorage.getItem("token");
+
   useEffect(() => {
     AOS.init({ duration: 1200 });
     fetchBookmarkedCandidates(); // load bookmark list
   }, []);
-
   const fetchBookmarkedCandidates = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
@@ -47,12 +49,11 @@ function EmployerShortListCandinate() {
       });
       console.log(res);
       setBookmarkedCandidates(res.data.bookmarks || []);
-      setBookMarkCount(res.data);
+      setTotalCount(res.data.totalCount || 0); // <-- ADD THIS
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
     }
   };
-
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -60,11 +61,13 @@ function EmployerShortListCandinate() {
         { candidateId, jobId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       // Show message from backend
       toast.success(res.data.message);
       fetchBookmarkedCandidates(); // load bookmark list
     } catch (err) {
       console.error("Error bookmarking candidate:", err);
+
       // If backend sends error message
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
@@ -73,17 +76,19 @@ function EmployerShortListCandinate() {
       }
     }
   };
-
   const cleanImageUrl = (url) => {
     if (!url) return "";
+
     // Case: wrong URL like "/uploads/https://"
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
+
     // External image URL
     if (url.startsWith("http")) {
       return url;
     }
+
     // Local uploads
     return `${API_IMAGE_URL}${url}`;
   };
@@ -116,7 +121,7 @@ function EmployerShortListCandinate() {
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-5">
                 <div className="employer-shortlist-candidates-heading">
-                  <h4>{bookmarkCount.totalCount} BookMark Candidates</h4>
+                  <h4>{totalCount} BookMark Candidates</h4>
                 </div>
               </div>
               <div className="col-lg-4 col-md-7">
@@ -225,16 +230,10 @@ function EmployerShortListCandinate() {
                                 style={{ cursor: "pointer" }}
                               >
                                 <i
-                                  className={
-                                    candidate.isBookmarked
-                                      ? "fa-solid fa-bookmark"
-                                      : "fa-regular fa-bookmark"
-                                  }
+                                  className={"fa-solid fa-bookmark"}
                                   style={{
                                     cursor: "pointer",
-                                    color: candidate.isBookmarked
-                                      ? "#f06024"
-                                      : "#888",
+                                    color: "#1868ca",
                                   }}
                                 />
                               </div>

@@ -3,13 +3,19 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
+import { ToastContainer, toast } from "react-toastify";
+
 function CandinateProfileDetails() {
   const location = useLocation();
   const { userId } = location.state || {};
   console.log(userId);
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const [showModal, setShowModal] = useState(false);
+  const [rating, setRating] = useState(0); // selected rating
+  const [hover, setHover] = useState(0); // star hover effect
+  const [review, setReview] = useState("");
+  const [reviews, setReviews] = useState([]);
   useEffect(() => {
     if (userId) {
       fetchCandidateDetails(userId);
@@ -21,7 +27,7 @@ function CandinateProfileDetails() {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `${API_BASE_URL}viewCandidate/${id}`,
+        `${API_BASE_URL}getCandidateDetails/${id}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -52,8 +58,45 @@ function CandinateProfileDetails() {
     return `${API_IMAGE_URL}${url}`;
   };
 
+  const getReviewsByUser = async (userId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${API_BASE_URL}getReviews/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setReviews(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+  };
+  useEffect(() => {
+    if (userId) {
+      getReviewsByUser(userId);
+    }
+  }, [userId]);
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <i
+          key={i}
+          className={i <= rating ? "fa-solid fa-star" : "fa-regular fa-star"}
+        ></i>
+      );
+    }
+    return stars;
+  };
+  const truncateText = (text, limit = 100) => {
+    if (!text) return "";
+    return text.length > limit ? text.substring(0, limit) + "..." : text;
+  };
+
   return (
     <>
+      <ToastContainer />
+
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">
@@ -228,6 +271,30 @@ function CandinateProfileDetails() {
                   </p>
                 </div>
                 <div className="candidate-profile-divider-line" />
+                {/* <div className="works-experience candidate-profile-summary">
+                  <h3>Experience</h3>
+                  <h5>Website Designer</h5>
+                  <p>Feb 2020 - Until now</p>
+                  <h5>Agriculture PVT LTD</h5>
+                  <p>United States, TN, Cordova, Frence Creek Cv S Full-time</p>
+                  <h5>Description</h5>
+                  <p>
+                    We are a dynamic agricultural products, farming, and service
+                    company committed to meeting the diverse needs of farmers,
+                    wholesale markets, traders, exportersWe are a dynamic
+                    agricultural products, farming, and service company
+                    committed to meeting the diverse needs of farmers, wholesale
+                    markets, traders, exportersWe are a dynamic agricultural
+                    products, farming, and service company committed to meeting
+                    the diverse needs of farmers, wholesale markets, traders,
+                    exporters
+                  </p>
+                  <h3>Position Salary(Gross)</h3>
+                  <h5>Salary</h5>
+                  <p>2000 $</p>
+                  <h5>Payroll frequency</h5>
+                  <p>Monthly</p>
+                </div> */}
                 <div className="works-experience candidate-profile-summary">
                   <h3>Experience</h3>
                   {candidate?.workHistory &&
@@ -364,6 +431,15 @@ function CandinateProfileDetails() {
                   ) : (
                     <p>No education information available</p>
                   )}
+
+                  {/* <h5>Degree</h5>
+                  <p>B.Tech</p>
+                  <h5>University</h5>
+                  <p>IGNU</p>
+                  <h5>Start Date</h5>
+                  <p>05 / 2020</p>
+                  <h5>End Date</h5>
+                  <p>Until now</p> */}
                 </div>
                 <div className="skill-content candidate-profile-summary">
                   <h3>Skills</h3>
@@ -419,68 +495,62 @@ function CandinateProfileDetails() {
                 <div className="candidate-profile-review-heading">
                   <h3>Reviews</h3>
                 </div>
-                <div className="comment-detail-main-area">
-                  <div className="user-img-main-area">
-                    <img
-                      src="assets/images/candidate-img/comment.png"
-                      alt="user img"
-                    />
-                  </div>
-                  <div className="user-content-main-area">
-                    <h5>John Deo</h5>
-                    <h6>July 18, 2020 at 12:25 PM</h6>
-                    <p>
-                      Businesses and individuals across India with tools to
-                      participate in the huge digital supply chain opportunity
-                      of the future. Over 5000 businesses have already partnered
-                      with Delhivery and have access to our infrastructure and
-                      technology.
-                    </p>
-                  </div>
-                </div>
-                <div className="comment-detail-main-area">
-                  <div className="user-img-main-area">
-                    <img
-                      src="assets/images/candidate-img/comment.png"
-                      alt="user img"
-                    />
-                  </div>
-                  <div className="user-content-main-area">
-                    <h5>John Deo</h5>
-                    <h6>July 18, 2020 at 12:25 PM</h6>
-                    <p>
-                      Businesses and individuals across India with tools to
-                      participate in the huge digital supply chain opportunity
-                      of the future. Over 5000 businesses have already partnered
-                      with Delhivery and have access to our infrastructure and
-                      technology.
-                    </p>
-                  </div>
-                </div>
-                <div className="candidate-profile-divider-line" />
-                <div className="add-review">
+
+                {reviews.length > 0 ? (
+                  reviews.map((item, index) => {
+                    const name =
+                      item?.senderCompany?.brandName ||
+                      item?.sender?.first_name ||
+                      "Anonymous";
+
+                    const profileImage = item?.senderCompany?.logo
+                      ? `${API_IMAGE_URL}${item.senderCompany.logo}`
+                      : "/jobPortal/assets/images/dashboard/images1.png";
+
+                    return (
+                      <div className="comment-detail-main-area" key={index}>
+                        {/* USER IMAGE */}
+                        <div className="user-img-main-area">
+                          <img
+                            crossOrigin="anonymous"
+                            src={profileImage}
+                            alt="user"
+                            onError={(e) =>
+                              (e.target.src =
+                                "/jobPortal/assets/images/dashboard/images1.png")
+                            }
+                          />
+                        </div>
+
+                        {/* CONTENT */}
+                        <div className="user-content-main-area">
+                          {/* Reviewer Name */}
+                          <h5>{name}</h5>
+
+                          {/* ⭐ STAR RATING */}
+                          <div className="star-rating">
+                            {renderStars(item?.rating)}
+                          </div>
+
+                          {/* Date */}
+                          <h6>{new Date(item?.createdAt).toLocaleString()}</h6>
+
+                          {/* Message */}
+                          <p>{truncateText(item?.message, 100)}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p>No reviews found.</p>
+                )}
+
+                {/* <div className="candidate-profile-divider-line" /> */}
+                {/* <div className="add-review">
                   <h3>Add Review</h3>
                   <div className="review-form">
                     <form>
                       <div className="row">
-                        <div className="col-lg-6 col-md-6">
-                          <div className="form-group">
-                            <input
-                              className="form-control"
-                              type="text"
-                              placeholder="Name"
-                            />
-                          </div>
-                        </div>
-                        <div className="col-lg-6 col-md-6">
-                          <div className="form-group">
-                            <input
-                              className="form-control"
-                              type="email"
-                              placeholder="Email"
-                            />
-                          </div>
-                        </div>
                         <div className="col-lg-12">
                           <div className="form-group">
                             <textarea
@@ -499,7 +569,7 @@ function CandinateProfileDetails() {
                       </div>
                     </form>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
             <div className="col-lg-4">
@@ -562,70 +632,98 @@ function CandinateProfileDetails() {
                   </a>
                 </div>
               </div>
-              <div className="candidate-profile-summary contact-candidate-info">
-                <h3>Contact Candidate</h3>
-                <div className="contact-candidate-form">
-                  <form>
-                    <div className="row">
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="Name"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="email"
-                            placeholder="Email"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="number"
-                            placeholder="Phone Number"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="subject"
-                            placeholder="Subject"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-12 col-md-12">
-                        <div className="form-group">
-                          <textarea
-                            className="form-control"
-                            placeholder="Write Message"
-                            rows={3}
-                            defaultValue={""}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="candidate-profile-submit-btn">
-                      <button type="submit" className="default-btn btn">
-                        Send Message
-                      </button>
-                    </div>
-                  </form>
+
+              <div className="contact-candidate-form">
+                <div className="candidate-profile-submit-btn">
+                  <button
+                    type="button"
+                    className="default-btn btn"
+                    onClick={() => setShowModal(true)}
+                  >
+                    Rating
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <div className="modal-header">
+              <h5>Add Review</h5>
+              <span className="modal-close" onClick={() => setShowModal(false)}>
+                &times;
+              </span>
+            </div>
+
+            {/* ⭐ Star Rating */}
+            <div className="star-rating-modal">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <i
+                  key={star}
+                  className={
+                    star <= (hover || rating)
+                      ? "fa-solid fa-star"
+                      : "fa-regular fa-star"
+                  }
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                />
+              ))}
+            </div>
+
+            {/* Review Textarea */}
+            <textarea
+              className="form-control"
+              placeholder="Write Message"
+              rows={6}
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+            />
+
+            {/* Submit */}
+            <button
+              className="default-btn btn w-100 mt-3"
+              onClick={async () => {
+                if (!rating) return toast.error("Please select a rating!");
+                if (!review.trim())
+                  return toast.error("Review cannot be empty!");
+
+                const token = localStorage.getItem("token");
+
+                try {
+                  const res = await axios.post(
+                    `${API_BASE_URL}addReview`,
+                    {
+                      receiver: candidate?.userId, // 👉 Receiver = candidate userId
+                      message: review,
+                      rating: rating,
+                    },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    }
+                  );
+                  getReviewsByUser(userId);
+                  toast.success("Review submitted successfully!");
+                  setShowModal(false);
+                  setReview("");
+                  setRating(0);
+                } catch (error) {
+                  console.error("Error submitting review:", error);
+                  toast.error("Failed to submit review");
+                }
+              }}
+            >
+              Submit Review
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

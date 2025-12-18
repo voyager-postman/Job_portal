@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { json, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
@@ -44,8 +44,8 @@ function JobDetailsForm() {
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
     //cities: [], // 👈 this holds multiple cities    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
+    // city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
     city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
-    cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // single source of truth
     region: jobFromState.region || "",
     Country: jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
@@ -66,6 +66,7 @@ function JobDetailsForm() {
     coverPhotoPreview: null,
     availableJobs: "",
   }));
+
   const [selectedCities, setSelectedCities] = useState(
     Array.isArray(jobFromState.city) ? jobFromState.city : []
   );
@@ -88,7 +89,8 @@ function JobDetailsForm() {
             employmentType: job.employmentType || "",
             remote: job.remote || "",
             jobAddress: job.jobAddress || "",
-            city: job.city || "",
+            // city: job.cities || "",
+            city: Array.isArray(job.city) ? job.city : [],
             region: job.region || "",
             Country: job.country || "",
             shortDescription: job.shortDescription || "",
@@ -108,6 +110,7 @@ function JobDetailsForm() {
             coverPhoto: null,
           }));
           console.log("Job Details Data:", res.data.data);
+          setSelectedCities(Array.isArray(job.cities) ? job.cities : []);
         })
         .catch((err) => console.error("Failed to fetch job:", err));
     }
@@ -176,31 +179,57 @@ function JobDetailsForm() {
     city.name.toLowerCase().includes(citySearchTerm.toLowerCase())
   );
 
-  // Toggle select/unselect
-  const toggleCity = (cityName) => {
-    setSelectedCities((prev) => {
-      const updated = prev.includes(cityName)
-        ? prev.filter((c) => c !== cityName)
-        : [...prev, cityName];
+  const updateCities = (updatedCities) => {
+    setSelectedCities(updatedCities);
 
-      setFormData((prevForm) => ({
-        ...prevForm,
-        cities: updated, // unified key
-      }));
-
-      return updated;
+    setFormData((prev) => {
+      const updatedForm = { ...prev, city: updatedCities };
+       if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      handlePublishJob(updatedForm, false);
+    }, 800);
+      return updatedForm;
     });
   };
 
-  // Remove individual tag
-  const handleRemoveCity = (cityName) => {
-    const updated = selectedCities.filter((c) => c !== cityName);
-    setSelectedCities(updated);
-    setFormData((prev) => ({
-      ...prev,
-      city: updated, // FIXED here
-    }));
+  const toggleCity = (cityName) => {
+    updateCities(
+      selectedCities.includes(cityName)
+        ? selectedCities.filter((c) => c !== cityName)
+        : [...selectedCities, cityName]
+    );
   };
+
+  const handleRemoveCity = (cityName) => {
+    updateCities(selectedCities.filter((c) => c !== cityName));
+  };
+
+  // Toggle select/unselect
+  // const toggleCity = (cityName) => {
+  //   setSelectedCities((prev) => {
+  //     const updated = prev.includes(cityName)
+  //       ? prev.filter((c) => c !== cityName)
+  //       : [...prev, cityName];
+
+  //     setFormData((prevForm) => ({
+  //       ...prevForm,
+  //       cities: updated, // unified key
+  //     }));
+  //     handlePublishJob(updated, false);
+  //     return updated;
+  //   });
+  // };
+
+  // Remove individual tag
+  // const handleRemoveCity = (cityName) => {
+  //   const updated = selectedCities.filter((c) => c !== cityName);
+  //   setSelectedCities(updated);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     city: updated, // FIXED here
+  //   }));
+  //    handlePublishJob(updated, false);
+  // };
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -296,6 +325,12 @@ function JobDetailsForm() {
     fetchCountryList();
   }, []);
 
+  useEffect(() => {
+  if (Array.isArray(formData.city)) {
+    setSelectedCities(formData.city);
+  }
+}, [formData.city]);
+
   const [tagInput, setTagInput] = useState("");
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -364,18 +399,18 @@ function JobDetailsForm() {
       setCityList(cities);
 
       // ✅ If editing, keep previously selected cities (if they still exist in the list)
-      if (jobFromState?.cities?.length) {
-        const validCities = jobFromState.cities.filter((cityName) =>
+      if (formData.city?.length) {
+        const validCities = formData.city.filter((cityName) =>
           cities.some((c) => c.name === cityName)
         );
         setSelectedCities(validCities);
-        setFormData((prev) => ({ ...prev, cities: validCities }));
       }
     } catch (error) {
       console.error("❌ Error fetching cities:", error);
       setCityList([]);
     }
   };
+
   const fetchJobTypes = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
@@ -451,8 +486,8 @@ function JobDetailsForm() {
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
       // formDataToSend.append("cities", JSON.stringify(data.cities || []));
-      formDataToSend.append("city", JSON.stringify(data.cities || []));
-      formDataToSend.append("cities", JSON.stringify(data.cities || []));
+      formDataToSend.append("city", JSON.stringify(data.city || []));
+      // formDataToSend.append("cities", JSON.stringify(data.cities || []));
       formDataToSend.append("region", data.region || "");
       formDataToSend.append("country", data.Country || "");
       formDataToSend.append("shortDescription", data.shortDescription || "");
@@ -1485,7 +1520,9 @@ function JobDetailsForm() {
                       <div className="job-post-address-info">
                         <h4>Job post address</h4>
                         <p>
-                          {formData.city?.join(", ") || "Not provided"}
+                          {selectedCities.length > 0
+                            ? selectedCities.join(", ")
+                            : "Not provided"}
                           <br />
                           {/* {formData.region || "Not provided"},{" "} */}
                           {countryList.find(

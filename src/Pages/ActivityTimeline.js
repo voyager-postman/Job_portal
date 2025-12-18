@@ -108,7 +108,7 @@ function ActivityTimeline() {
           {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content add-recruiters-btn-postion">
-              <h3>Andy Smith log view</h3>
+              {/* <h3>Andy Smith log view</h3> */}
 
               <div className="profile-form">
                 <div className="row">

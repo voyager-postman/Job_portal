@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (isLoggedIn) {
       const storedImage = localStorage.getItem("profileImage");
+      console.log(storedImage);
       if (storedImage) setProfileImage(storedImage);
 
       const storedFirst = localStorage.getItem("first_name");
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     setFirstName(localStorage.getItem("first_name") || "");
     setLastName(localStorage.getItem("last_name") || "");
   };
-
+  console.log(profileImage);
   // 🔥 Logout function
   const logout = () => {
     localStorage.removeItem("isLoggedIn");

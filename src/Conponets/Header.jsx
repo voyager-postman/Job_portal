@@ -240,7 +240,6 @@ function Header({ bgColor }) {
     // Case 3: Local server file — prepend base URL
     return `${API_IMAGE_URL}${url}`;
   };
-
   const handleLinkedinLogin = () => {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;

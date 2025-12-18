@@ -36,6 +36,18 @@ function AppliedJobList() {
   useEffect(() => {
     fetchJobs(debouncedSearch);
   }, [debouncedSearch]);
+  const getImageUrl = (url) => {
+    if (!url) return "assets/images/icon/icon-26.png";
+
+    // full external url
+    if (url.startsWith("http")) return url;
+
+    // local assets
+    if (url.startsWith("assets/")) return url;
+
+    // backend upload
+    return `${API_IMAGE_URL}${url}`;
+  };
 
   return (
     <>
@@ -100,13 +112,12 @@ function AppliedJobList() {
                     <div className="available-job-company-name">
                       <h4>
                         <img
-                          crossorigin="anonymous"
-                          src={
-                            job?.JobCoverPhoto
-                              ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
-                              : "assets/images/icon/icon-26.png"
-                          }
+                          crossOrigin="anonymous"
+                          src={getImageUrl(job?.JobCoverPhoto)}
                           alt="logo"
+                          onError={(e) => {
+                            e.target.src = "assets/images/icon/icon-26.png";
+                          }}
                         />
                         {job?.jobTitle}
                       </h4>
