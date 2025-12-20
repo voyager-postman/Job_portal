@@ -296,7 +296,7 @@ function CandidateDashboard() {
             <h1>Dashboard</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="#">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard

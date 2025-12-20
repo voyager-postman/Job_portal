@@ -10,7 +10,6 @@ function CandidateProfile() {
   const navigate = useNavigate();
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
-
   const [activeLevel, setActiveLevel] = useState(null);
 
   const PROFICIENCY_LEVELS = [
@@ -2083,7 +2082,9 @@ function CandidateProfile() {
                 <Link to="/"> Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> My Profile

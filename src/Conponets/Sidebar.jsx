@@ -1,7 +1,12 @@
 import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
-import { FaToolbox, FaListCheck, FaUsersGear,FaGoogleWallet } from "react-icons/fa6";
-import { IoBookmark, IoSearchSharp, IoWalletSharp  } from "react-icons/io5";
+import {
+  FaToolbox,
+  FaListCheck,
+  FaUsersGear,
+  FaGoogleWallet,
+} from "react-icons/fa6";
+import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 
@@ -98,6 +103,21 @@ function Sidebar() {
                 <span className="menu-title">My Profile</span>
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink
+                to="/resume-builder"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <i>
+                    <FaUserTie />
+                  </i>
+                </span>
+                <span className="menu-title">Resume Builder</span>
+              </NavLink>
+            </li>
           </ul>
         )}
         {(userRole === "Recruiter" || userRole === "Company") && (
@@ -151,7 +171,7 @@ function Sidebar() {
                 <span className="icon">
                   {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
-                    <IoWalletSharp  />
+                    <IoWalletSharp />
                   </i>
                 </span>
                 <span className="menu-title">Employer Wallet</span>

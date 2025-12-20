@@ -1045,7 +1045,9 @@ function JobSearch() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Search Job List

@@ -93,10 +93,12 @@ function SkillAssementTestPage() {
             <h1>Skill Assessments &amp; Tests</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Skill Assessments

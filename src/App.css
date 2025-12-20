@@ -544,3 +544,414 @@ margin: 80px 0px 80px 0px;
   resize: both !important;
   overflow: auto !important;
 }
+
+/*First resume templte css start here*/
+ 
+.first-resume-template-area {
+margin:0px 0px 0px 0px;
+padding:60px 0px 60px 0px;  
+}
+ 
+.resume-template-content-area {
+gap: 20px;
+display:flex;
+justify-content:space-between; 
+}
+ 
+ 
+.resume-template-left-side {
+width:35%; 
+padding:15px 20px;
+background:#0066CC;  
+}
+ 
+.resume-candidate-short-details h4 {
+color: #fff;
+font-size: 20px;
+margin-bottom: 10px;
+}
+ 
+.resume-candidate-short-details h4 i {
+font-size:17px;
+margin-right: 5px;
+}
+ 
+.resume-candidate-short-details p {
+color: #fff;
+margin-bottom: 5px;
+}
+ 
+.resume-candidate-short-details p i {
+font-size:15px;
+margin-right: 5px;
+}
+ 
+ 
+.resume-template-left-tag {
+margin-top:30px;  
+}
+ 
+.resume-template-left-tag h4 {
+color: #fff;
+font-size: 18px;
+margin-bottom: 5px;
+}
+ 
+.resume-template-left-line {
+padding-bottom: 10px;
+border-top: 1px solid #fff;  
+}
+ 
+ 
+.resume-template-right-side {
+background: #cdcdcd4f;
+padding: 10px 20px 10px 20px;
+}
+ 
+.resume-template-details {
+margin-top:10px;
+}
+ 
+.resume-template-details h4 {
+font-size:18px;
+margin-bottom: 5px; 
+}
+ 
+.resume-template-line {
+padding-bottom: 10px;
+border-top: 1px solid #f65e00;
+}
+ 
+.resume-template-career-goals {
+margin-bottom:5px;
+}
+ 
+.resume-template-career-goals h5 {
+font-size:15px;
+margin-bottom: 0px;
+}
+ 
+ 
+.resume-template-other-line {
+margin-top: 10px;
+padding-bottom: 15px;
+border-top: 1px solid #f65e00;  
+}
+ 
+ 
+.resume-template-details h5 {
+font-size: 15px;
+margin-bottom: 0px; 
+}
+ 
+.resume-template-details p {
+margin-bottom:5px;   
+}
+ 
+.resume-template-left-tag ul {
+margin:0px 0px 0px 0px;
+padding:0px 0px 0px 0px;  
+}
+ 
+.resume-template-left-tag ul li {
+color: #fff;
+list-style: none;
+margin-bottom:10px;
+}
+ 
+/*First resume templte css end here*/
+ 
+ 
+ 
+/*First resume templte css changes start here*/
+ 
+.second-resume-template-left-side {
+width: 35%;
+padding: 15px 0px;
+background: #f66b15;
+/* background: #cdcdcd4f; */
+}
+ 
+.resume-template-user-Img {
+width: 150px;
+height: 150px;
+margin: auto;
+overflow: hidden;
+border-radius: 100px;
+}
+ 
+.second-resume-candidate-short-details {
+margin-top: 15px;
+text-align: center;
+}
+ 
+.second-resume-candidate-short-details h4 {
+color: #fff;
+font-size: 20px;
+margin-bottom: 0px;
+}
+ 
+.second-resume-candidate-contact h4 {
+color: #fff;
+font-size:17px;
+padding: 2px 20px;
+background: #0066cc;
+margin-top: 15px;
+}
+ 
+.second-resume-candidate-contact p {
+color: #fff;
+margin-bottom: 5px;
+padding: 0px 20px;
+margin-top: 10px;
+}
+ 
+.second-resume-candidate-contact p i {
+font-size: 15px;
+margin-right: 5px;
+}
+ 
+.second-resume-template-right-side {
+background: #cdcdcd4f;
+padding: 10px 20px 10px 20px;  
+}
+ 
+ 
+.second-resume-template-right-side .resume-template-details h4 {
+color: #fff;
+font-size: 15px;
+margin-bottom: 5px;
+background: #0066cc;
+padding: 4px 0px 4px 10px;
+}
+ 
+.second-resume-template-line {
+padding-bottom: 5px; 
+}
+ 
+/*First resume templte changes css  here*/
+
+SecondResumeTemplateDesign
+ 
+/*Second resume templte css start here*/
+ 
+.second-resume-template-area {
+padding:60px 0px;  
+}
+ 
+ 
+.second-resume-all-content-details {
+background: #cdcdcd4f;
+padding: 20px 20px; 
+}
+ 
+.second-resume-top-Img {
+padding: 10px;
+background: #fff;
+}
+ 
+.second-resume-info-details h4 {
+font-size: 17px;
+margin-bottom: 5px;
+}
+ 
+.second-resume-info-details p i {
+color:#f66b15;
+font-size: 15px;
+}
+ 
+ 
+.second-resume-contact-info p {
+margin-bottom: 5px;
+padding: 0px 20px;
+margin-top: 10px;
+}
+ 
+ 
+.second-resume-contact-info p i {
+color:#ff6600;
+font-size: 15px;
+margin-right: 5px;
+}
+ 
+.second-resume-profesionl-summary-area {
+margin-top: 30px;
+display: flex;
+}
+ 
+.second-resume-all-summary-area {
+width: 60%;
+background: #3988d70f;
+padding: 15px 15px 0px 15px; 
+}
+ 
+.second-resume-profesionl-summary {
+margin-bottom: 15px;  
+}
+ 
+.second-resume-profesionl-summary h4 {
+font-size:18px;
+margin-bottom: 5px;
+}
+ 
+.second-resume-profesionl-summary h4 i {
+color: #ff6600;
+font-size: 18px;
+margin-right: 5px;
+}
+ 
+.second-resume-profesionl-summary-content {
+padding-left: 15px;
+border-left: 2px solid #ff6600;
+}
+ 
+.second-resume-summary-other {
+margin-top:5px;  
+}
+ 
+.second-resume-summary-other h5 {
+font-size: 15px;
+margin-bottom: 0px  
+}
+ 
+.second-resume-summary-other p {
+margin-bottom:5px;  
+}
+ 
+.second-resume-summary-other strong {
+color:#202124; 
+}
+ 
+.second-resume-skill-other-summary {
+width: 40%; 
+background: #f7f9fb;
+padding: 15px 0px 0px 30px; 
+}
+ 
+/*Second resume templte css end  here*/
+ 
+/*Third resume templte css start here*/
+ 
+.third-resume-template-main-area {
+margin:0px 0px 0px 0px;
+padding:60px 0px 60px 0px; 
+}
+ 
+ 
+.third-resume-template-top-area {
+gap: 20px;
+display: flex;
+position: relative;
+padding: 35px 0px 50px 20px;
+align-items: center;
+background:#121212;
+}
+ 
+.third-resume-template-Img img {
+padding: 5px;
+height: 150px;
+width: 150px;
+background: #f66004;
+border-radius: 20px;
+}
+ 
+.third-resume-template-text h4 {
+font-size: 20px;
+margin-bottom: 5px;
+color: #fff;
+}
+ 
+.third-resume-template-top-area:after {
+content: '';
+left: 0;
+bottom: -40px;
+width: 100%;
+height: 80px;
+background:#ff6600;
+position: absolute;
+transform: skewY(-4deg);
+}
+ 
+ 
+.third-resume-all-summary-area {
+gap: 20px;
+display: flex;
+background: #f0f0f0;
+padding: 100px 20px 30px 30px;
+}
+ 
+.third-resume-summary-info-area {
+width:65%;  
+}
+ 
+.third-resume-summary-content h4 {
+font-size: 18px;
+position:relative;
+margin-bottom: 5px;  
+}
+ 
+.third-resume-summary-content h4:after {
+top: 2px;
+width: 5px;
+left: -10px;
+content: '';
+height: 18px;
+position: absolute;
+background: #ff6600;
+border-radius: 10px;
+}
+ 
+.third-resume-summary-content {
+margin-bottom: 15px; 
+}
+ 
+.third-resume-summary-other {
+margin-top: 5px;  
+}
+ 
+ 
+.third-resume-summary-other h5 {
+font-size: 15px;
+margin-bottom: 0px;
+}
+ 
+.third-resume-summary-other p {
+margin:0px;  
+}
+ 
+.third-resume-summary-other strong {
+color:#202124;
+}
+ 
+.third-resume-other-summary {
+color: #fff;
+padding: 30px; 
+background: #111827;
+}
+ 
+.third-resume-summary-contact p {
+margin-bottom:2px;
+margin-top:0px; 
+}
+ 
+.third-resume-summary-contact p i {
+color: #ff6600;
+font-size: 15px;
+margin-right: 5px;
+}
+ 
+.third-resume-box-card-main-bg {
+width: 35%;
+background:#ff6600;
+border-radius: 10px;
+padding: 0px 20px 20px 20px;
+}
+ 
+.third-resume-box-card-bg {
+background: #fff;
+padding: 15px 25px;
+margin-top: 20px;
+border-radius: 10px;
+}
+ 
+/*Third resume templte css end  here*/

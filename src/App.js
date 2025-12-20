@@ -60,6 +60,7 @@ import BlogDetails from "./Pages/BlogDetails";
 import Setting from "./Pages/Setting";
 import EmployerWallet from "./Pages/EmployerWallet";
 import AddPlan from "./Pages/AddPlan";
+import ResumeBuilder from "./Pages/ResumeBuilder";
 
 // "build 04-09-2025"
 console.log("Date:-18-12-2025,time:-12:11");
@@ -85,6 +86,7 @@ function LayoutWrapper() {
     "/employer-profile",
     "/job-details-form",
     "/job-details-list",
+    "/resume-builder",
     // "/job-details",
 
     "/candidate-dashboard",
@@ -164,6 +166,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <MyProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/resume-builder"
+          element={
+            <PrivateRoute>
+              <ResumeBuilder />
             </PrivateRoute>
           }
         />
