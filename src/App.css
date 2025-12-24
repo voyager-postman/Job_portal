@@ -1,0 +1,942 @@
+.category-slider-wrapper {
+  position: relative;
+  padding-bottom: 60px;
+}
+
+.single-category-card {
+  background-color: #f2f6f9;
+  border-radius: 12px;
+  padding: 25px 10px;
+  margin: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.single-category-card .icon {
+  margin-bottom: 15px;
+  font-size: 36px;
+  color: #ff6600;
+}
+
+.single-category-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  text-align: start;
+}
+
+.custom-arrow {
+  position: absolute;
+  bottom: 0;
+  transform: translateY(50%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+
+.prev-arrow {
+  left: 46%;
+}
+
+.next-arrow {
+  right: 46%;
+}
+
+.slick-dots {
+  bottom: -30px;
+}
+
+.slick-dots li button:before {
+  font-size: 10px;
+  color: #007bff;
+}
+
+.slick-dots li.slick-active button:before {
+  color: #007bff;
+}
+/* Wrap each slide with padding for spacing */
+.category-slider .slick-slide > div {
+  padding: 0 5px; /* Half of 10px on left/right = 10px total between */
+  box-sizing: border-box;
+}
+
+/* Optional: Make card fill available space */
+.single-category-card {
+  height: 180px;
+  background-color: #f2f6f9;
+  border-radius: 12px;
+  padding: 25px 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.custom-arrow {
+  position: absolute;
+  bottom: -20px; /* ⬅️ moves it further down from the cards */
+  transform: translateY(0%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+
+/* Keep left/right spacing as is */
+.prev-arrow {
+  left: 46%;
+}
+
+.next-arrow {
+  right: 46%;
+}
+.reviews-slider-wrapper {
+  padding: 60px 20px;
+  position: relative;
+  background-color: #f2f6f9;
+}
+
+/* Space between slides */
+.reviews-slider-wrapper .slick-slide > div {
+  padding: 0 5px; /* 10px space between cards */
+  box-sizing: border-box;
+}
+
+.single-reviews-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  position: relative;
+  min-height: 250px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.ratings {
+  color: #ffc107;
+  margin-bottom: 15px;
+}
+
+.ratings .star {
+  margin-right: 4px;
+}
+
+.single-reviews-card p {
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.client-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.client-info span {
+  font-size: 14px;
+  color: #666;
+}
+
+.quote-icon {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 30px;
+  color: #e6f0fb;
+}
+
+.custom-arrow {
+  position: absolute;
+  bottom: -35px;
+  transform: translateY(0%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  background: #e6f0fb;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  cursor: pointer;
+}
+.job-location-slider-wrapper .slick-slide > div {
+  padding: 0 5px; /* 5px on each side = 10px total between slides */
+  box-sizing: border-box;
+}
+
+.job-location-card {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.desktop-nav .navbar .navbar-brand img {
+  height: 50px;
+}
+.single-footer-widget.logo-content .footer-logo a img {
+  width: 60%;
+}
+.oragneColor {
+  color: #ff6600;
+}
+.nav-link.active {
+  color: #1967d2;
+  background-color: #f0f5f7;
+  font-weight: 600;
+}
+.employer-login-register-button:hover a {
+  color: white;
+}
+/*Company Details page css start here*/
+
+/* .company-detail-info-area {
+margin: 80px 0px 80px 0px; 
+  padding: 0px 0px 0px 0px;
+} */
+
+.company-img-short-detail {
+  padding: 20px 20px;
+  background: #f0f5f7;
+}
+
+.company-img-info {
+  background: #fff;
+  padding: 15px 15px;
+}
+
+.company-detail-tab-description-info {
+  background-color: #f0f5f7;
+  padding: 20px 20px;
+}
+
+.company-short-detail-info {
+  display: flex;
+  background: #fff;
+  padding: 20px 20px;
+  align-items: center;
+}
+
+.company-short-detail-img {
+  width: 150px;
+  height: 100px;
+  background: #eee;
+  padding: 0px 10px;
+  margin-right: 20px;
+}
+
+.company-short-detail-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-about-short-detail h4 {
+  font-size: 20px;
+}
+
+.subscribe-best-employer-btn {
+  display: flex;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.subscribe-btn.default-btn {
+  font-size: 14px;
+  padding: 5px 10px;
+  margin-right: 30px;
+}
+
+.best-employer-btn {
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 10px;
+  position: relative;
+  background: #0066cc;
+  border-radius: 0px 5px 5px 0px;
+}
+
+.best-employer-btn:before {
+  content: "";
+  top: 0px;
+  left: -10px;
+  width: 50vmin;
+  height: 50vmin;
+  background: #0066cc;
+  position: absolute;
+  -webkit-clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+  clip-path: path(
+    "M 1.00161 0H9.99919V20H1.00161C0.100206 20 -0.341058 18.9011 0.310003 18.2777L8.95484 10L0.310003 1.72228C-0.341058 1.09886 0.100205 0 1.00161 0Z"
+  );
+}
+
+.company-about-short-detail ul {
+  display: flex;
+  list-style: none;
+  margin: 10px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-about-short-detail ul li {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-about-short-detail ul li i {
+  color: #0066cc;
+  margin-bottom: 10px;
+  padding-right: 5px;
+}
+
+.company-detail-tab-description {
+  background: #fff;
+  margin-top: 30px;
+  padding: 20px 15px 15px 15px;
+}
+
+.company-detail-job-box {
+  margin-bottom: 30px;
+  background: #f0f5f7;
+  border: 2px solid #eee;
+  padding: 10px 10px 20px 10px;
+}
+
+.company-detail-card {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eeee;
+}
+
+.company-detail-card h4 {
+  font-size: 20px;
+}
+
+.company-detail-card ul {
+  display: flex;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-card ul li {
+  color: #666666;
+  list-style: none;
+  font-size: 14px;
+  margin: 5px 0px 0px 0px;
+  padding: 0px 20px 0px 0px;
+}
+
+.company-detail-card ul li i {
+  font-size: 13px;
+  color: #0066cc;
+  margin-right: 5px;
+}
+
+.company-detail-apply-link-save-btn {
+  display: flex;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.company-detail-link-save-icon ul {
+  display: flex;
+  list-style: none;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.company-detail-link-save-icon ul li {
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #0066cc;
+  border-radius: 5px;
+  margin-left: 20px;
+  border-right: 1px solid #eeee;
+}
+
+.company-detail-link-save-icon ul li i {
+  color: #fff;
+  font-size: 20px;
+}
+
+.company-detail-link-save-icon ul li:hover {
+  background: #ff6600;
+}
+
+.company-detail-show-upload {
+  display: flex;
+  padding: 15px 20px;
+  align-items: center;
+  border: 2px solid #eeee;
+  justify-content: space-between;
+}
+
+.company-detail-doc-tyep h4 {
+  font-size: 17px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+.company-detail-doc-tyep h4 i {
+  color: #0066cc;
+  margin-right: 10px;
+}
+
+.company-detail-download-edit {
+  position: relative;
+}
+
+.company-detail-download-edit .fa-ellipsis-vertical {
+  font-size: 25px;
+  color: #0066cc;
+}
+
+.company-detail-download-edit ul {
+  top: 25px;
+  right: 0px;
+  z-index: 9;
+  width: 140px;
+  background: #fff;
+  padding: 0px 20px;
+  position: absolute;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.company-detail-download-edit ul li {
+  list-style: none;
+  margin-top: 15px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.company-detail-download-edit ul li i {
+  padding-right: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up .optional-inputfile {
+  opacity: 0;
+  z-index: -1;
+  overflow: hidden;
+  position: absolute;
+}
+
+.company-detail-attechment-info .control-label-file-up {
+  width: 26%;
+  margin: auto;
+  cursor: pointer;
+  font-size: 16px;
+  color: #0066cc;
+  padding: 5px 10px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.company-detail-attechment-info .control-label-file-up:hover {
+  color: #fff;
+  background: #ff6600;
+}
+
+.company-detail.modal-footer {
+  display: block;
+  text-align: center;
+}
+
+/*Company Details page css end here*/
+
+/*Job Alerts page css start here*/
+.set-job-alert-btn {
+  margin: 20px 0px;
+  text-align: center;
+}
+
+.set-job-alert-btn .default-btn {
+  font-size: 17px;
+  font-weight: 400;
+  padding: 10px 30px;
+  border-radius: 5px !important;
+}
+
+.tag-box {
+  gap: 5px;
+  padding: 8px;
+  display: flex;
+  min-height: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid #ccc;
+}
+
+.tag-box input {
+  flex: 1;
+  border: none;
+  padding: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.tag {
+  color: #fff;
+  display: flex;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  align-items: center;
+  background-color: #0066cc;
+}
+
+.tag .remove {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.frequency-radio-btn label {
+  margin-right: 10px;
+  padding-bottom: 10px;
+}
+
+.application_modal .modal-footer {
+  justify-content: center !important;
+}
+.application_modal .modal-footer button.default-btn.btn {
+  padding: 8px 25px !important;
+}
+/*Job Alerts page css end here*/
+/* custom by neha css */
+.single-team-card
+  .team-content
+  .social-content
+  .social-control
+  .social-icon
+  ul {
+  padding-left: 0;
+  margin-bottom: 35px;
+}
+.ck-editor__editable_inline {
+  min-height: 150px;
+  resize: both !important;
+  overflow: auto !important;
+}
+/*First resume templte css start here*/
+
+.first-resume-template-area {
+  margin: 0px 0px 0px 0px;
+  padding: 60px 0px 60px 0px;
+}
+
+.resume-template-content-area {
+  gap: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.resume-template-left-side {
+  width: 35%;
+  padding: 15px 20px;
+  background: #0066cc;
+}
+
+.resume-candidate-short-details h4 {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.resume-candidate-short-details h4 i {
+  font-size: 17px;
+  margin-right: 5px;
+}
+
+.resume-candidate-short-details p {
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.resume-candidate-short-details p i {
+  font-size: 15px;
+  margin-right: 5px;
+}
+
+.resume-template-left-tag {
+  margin-top: 30px;
+}
+
+.resume-template-left-tag h4 {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.resume-template-left-line {
+  padding-bottom: 10px;
+  border-top: 1px solid #fff;
+}
+
+.resume-template-right-side {
+  background: #cdcdcd4f;
+  padding: 10px 20px 10px 20px;
+}
+
+.resume-template-details {
+  margin-top: 10px;
+}
+
+.resume-template-details h4 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.resume-template-line {
+  padding-bottom: 10px;
+  border-top: 1px solid #f65e00;
+}
+
+.resume-template-career-goals {
+  margin-bottom: 5px;
+}
+
+.resume-template-career-goals h5 {
+  font-size: 15px;
+  margin-bottom: 0px;
+}
+
+.resume-template-other-line {
+  margin-top: 10px;
+  padding-bottom: 15px;
+  border-top: 1px solid #f65e00;
+}
+
+.resume-template-details h5 {
+  font-size: 15px;
+  margin-bottom: 0px;
+}
+
+.resume-template-details p {
+  margin-bottom: 5px;
+}
+
+.resume-template-left-tag ul {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
+.resume-template-left-tag ul li {
+  color: #fff;
+  list-style: none;
+  margin-bottom: 10px;
+}
+
+/*First resume templte css end here*/
+
+/*First resume templte css changes start here*/
+
+.second-resume-template-left-side {
+  width: 35%;
+  padding: 15px 0px;
+  background: #f66b15;
+  /* background: #cdcdcd4f; */
+}
+
+.resume-template-user-Img {
+  width: 150px;
+  height: 150px;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 100px;
+}
+
+.second-resume-candidate-short-details {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.second-resume-candidate-short-details h4 {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 0px;
+}
+
+.second-resume-candidate-contact h4 {
+  color: #fff;
+  font-size: 17px;
+  padding: 2px 20px;
+  background: #0066cc;
+  margin-top: 15px;
+}
+
+.second-resume-candidate-contact p {
+  color: #fff;
+  margin-bottom: 5px;
+  padding: 0px 20px;
+  margin-top: 10px;
+}
+
+.second-resume-candidate-contact p i {
+  font-size: 15px;
+  margin-right: 5px;
+}
+
+.second-resume-template-right-side {
+  background: #cdcdcd4f;
+  padding: 10px 20px 10px 20px;
+}
+
+.second-resume-template-right-side .resume-template-details h4 {
+  color: #fff;
+  font-size: 15px;
+  margin-bottom: 5px;
+  background: #0066cc;
+  padding: 4px 0px 4px 10px;
+}
+
+.second-resume-template-line {
+  padding-bottom: 5px;
+}
+
+/*First resume templte changes css  here*/
+
+SecondResumeTemplateDesign
+ 
+/*Second resume templte css start here*/
+ 
+.second-resume-template-area {
+  padding: 60px 0px;
+}
+
+.second-resume-all-content-details {
+  background: #cdcdcd4f;
+  padding: 20px 20px;
+}
+
+.second-resume-top-Img {
+  padding: 10px;
+  background: #fff;
+}
+
+.second-resume-info-details h4 {
+  font-size: 17px;
+  margin-bottom: 5px;
+}
+
+.second-resume-info-details p i {
+  color: #f66b15;
+  font-size: 15px;
+}
+
+.second-resume-contact-info p {
+  margin-bottom: 5px;
+  padding: 0px 20px;
+  margin-top: 10px;
+}
+
+.second-resume-contact-info p i {
+  color: #ff6600;
+  font-size: 15px;
+  margin-right: 5px;
+}
+
+.second-resume-profesionl-summary-area {
+  margin-top: 30px;
+  display: flex;
+}
+
+.second-resume-all-summary-area {
+  width: 60%;
+  background: #3988d70f;
+  padding: 15px 15px 0px 15px;
+}
+
+.second-resume-profesionl-summary {
+  margin-bottom: 15px;
+}
+
+.second-resume-profesionl-summary h4 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.second-resume-profesionl-summary h4 i {
+  color: #ff6600;
+  font-size: 18px;
+  margin-right: 5px;
+}
+
+.second-resume-profesionl-summary-content {
+  padding-left: 15px;
+  border-left: 2px solid #ff6600;
+}
+
+.second-resume-summary-other {
+  margin-top: 5px;
+}
+
+.second-resume-summary-other h5 {
+  font-size: 15px;
+  margin-bottom: 0px;
+}
+
+.second-resume-summary-other p {
+  margin-bottom: 5px;
+}
+
+.second-resume-summary-other strong {
+  color: #202124;
+}
+
+.second-resume-skill-other-summary {
+  width: 40%;
+  background: #f7f9fb;
+  padding: 15px 0px 0px 30px;
+}
+
+/*Second resume templte css end  here*/
+
+/*Third resume templte css start here*/
+
+.third-resume-template-main-area {
+  margin: 0px 0px 0px 0px;
+  padding: 60px 0px 60px 0px;
+}
+
+.third-resume-template-top-area {
+  gap: 20px;
+  display: flex;
+  position: relative;
+  padding: 35px 0px 50px 20px;
+  align-items: center;
+  background: #121212;
+}
+
+.third-resume-template-Img img {
+  padding: 5px;
+  height: 150px;
+  width: 150px;
+  background: #f66004;
+  border-radius: 20px;
+}
+
+.third-resume-template-text h4 {
+  font-size: 20px;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.third-resume-template-top-area:after {
+  content: "";
+  left: 0;
+  bottom: -40px;
+  width: 100%;
+  height: 80px;
+  background: #ff6600;
+  position: absolute;
+  transform: skewY(-4deg);
+}
+
+.third-resume-all-summary-area {
+  gap: 20px;
+  display: flex;
+  background: #f0f0f0;
+  padding: 100px 20px 30px 30px;
+}
+
+.third-resume-summary-info-area {
+  width: 65%;
+}
+
+.third-resume-summary-content h4 {
+  font-size: 18px;
+  position: relative;
+  margin-bottom: 5px;
+}
+
+.third-resume-summary-content h4:after {
+  top: 2px;
+  width: 5px;
+  left: -10px;
+  content: "";
+  height: 18px;
+  position: absolute;
+  background: #ff6600;
+  border-radius: 10px;
+}
+
+.third-resume-summary-content {
+  margin-bottom: 15px;
+}
+
+.third-resume-summary-other {
+  margin-top: 5px;
+}
+
+.third-resume-summary-other h5 {
+  font-size: 15px;
+  margin-bottom: 0px;
+}
+
+.third-resume-summary-other p {
+  margin: 0px;
+}
+
+.third-resume-summary-other strong {
+  color: #202124;
+}
+
+.third-resume-other-summary {
+  color: #fff;
+  padding: 30px;
+  background: #111827;
+}
+
+.third-resume-summary-contact p {
+  margin-bottom: 2px;
+  margin-top: 0px;
+}
+
+.third-resume-summary-contact p i {
+  color: #ff6600;
+  font-size: 15px;
+  margin-right: 5px;
+}
+
+.third-resume-box-card-main-bg {
+  width: 35%;
+  background: #ff6600;
+  border-radius: 10px;
+  padding: 0px 20px 20px 20px;
+}
+
+.third-resume-box-card-bg {
+  background: #fff;
+  padding: 15px 25px;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+
+/*Third resume templte css end  here*/
