@@ -508,6 +508,7 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
+  
   const cleanImageUrl = (url) => {
     if (!url) return "";
 

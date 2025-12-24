@@ -287,7 +287,9 @@ const TemplateThird = ({ data }) => {
                         <i className="fa-solid fa-phone"></i>{" "}
                         {personal.phone || " +91 9885252855"}
                       </p>
-                      <p>
+                      <p style={{
+                            wordWrap: "break-word",
+                          }}>
                         <i className="fa-solid fa-envelope"></i>
                         {personal.email}
                       </p>

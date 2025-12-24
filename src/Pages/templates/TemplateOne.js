@@ -10,6 +10,7 @@ const TemplateOne = ({ data }) => {
   // const skills = data.skills || [];
   const languages = data.languages || [];
   const certificates = data.certificates || [];
+
   return (
     <>
       {/* <!-- Second Resume Template Design start here --> */}
@@ -88,17 +89,29 @@ const TemplateOne = ({ data }) => {
 
                 <div className="second-resume-candidate-contact">
                   <h4>LinkedIn / Portfolio</h4>
-                  <p>
+                  <p
+                    style={{
+                      wordWrap: "break-word",
+                    }}
+                  >
                     <i className="fa-brands fa-linkedin"></i>
-                    {personal?.links?.linkedin}
+                    <span>{personal?.links?.linkedin}</span>
                   </p>
-                  <p>
+                  <p
+                    style={{
+                      wordWrap: "break-word",
+                    }}
+                  >
                     <i className="fa-brands fa-github"></i>{" "}
-                    {personal?.links?.github}
+                    <span>{personal?.links?.github}</span>
                   </p>
-                  <p>
+                  <p
+                    style={{
+                      wordWrap: "break-word",
+                    }}
+                  >
                     <i className="fa-solid fa-globe"></i>{" "}
-                    {personal?.links?.portfolio}
+                    <span>{personal?.links?.portfolio}</span>
                   </p>
                 </div>
               </div>
@@ -111,16 +124,6 @@ const TemplateOne = ({ data }) => {
                   <div className="second-resume-template-line"></div>
                   <p>{personal.professionalSummary}</p>
                 </div>
-
-                {/* <!-- COVER LETTER --> */}
-                {/* <div className="resume-template-details">
-                  <h4>Cover Letter</h4>
-                  <div className="second-resume-template-line"></div>
-                  <p>
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry.
-                  </p>
-                </div> */}
 
                 {/* <!-- CAREER GOALS --> */}
                 <div className="resume-template-details">
@@ -216,9 +219,7 @@ const TemplateOne = ({ data }) => {
                       </p> */}
 
                       <h5>Achievements</h5>
-                      <p>
-                       {exp?.Description}
-                      </p>
+                      <p>{exp?.Description}</p>
                     </div>
                   ))}
                 </div>
