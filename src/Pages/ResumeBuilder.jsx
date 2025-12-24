@@ -135,7 +135,6 @@ const ResumeBuilder = () => {
               </div>
             </div>
           </div>
-          
         </div>
       </div>
     </>

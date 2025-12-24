@@ -259,7 +259,7 @@ function EmployerProfile() {
         // ✅ Map backend fields → frontend formData
         setFormData({
           brand_name: data?.brandName || "",
-          industry: data?.industry || "",
+          industry: data?.industry_id || "",
           number_of_employees: data?.numberOfEmployees || "",
           phone_number: data?.phone?.number || "",
           country_code: data?.phone?.countryCode || "",

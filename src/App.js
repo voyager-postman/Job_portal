@@ -63,7 +63,7 @@ import AddPlan from "./Pages/AddPlan";
 import ResumeBuilder from "./Pages/ResumeBuilder";
 
 // "build 04-09-2025"
-console.log("Date:-18-12-2025,time:-12:11");
+console.log("Date:-04-12-2025,time:-10:29");
 function LayoutWrapper() {
   const location = useLocation();
 
@@ -170,18 +170,18 @@ function LayoutWrapper() {
           }
         />
         <Route
-          path="/resume-builder"
-          element={
-            <PrivateRoute>
-              <ResumeBuilder />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/candidate-profile"
           element={
             <PrivateRoute>
               <CandidateProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/resume-builder"
+          element={
+            <PrivateRoute>
+              <ResumeBuilder />
             </PrivateRoute>
           }
         />

@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 function CandinateProfileDetails() {
   const location = useLocation();
@@ -95,8 +95,6 @@ function CandinateProfileDetails() {
 
   return (
     <>
-      <ToastContainer />
-
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">

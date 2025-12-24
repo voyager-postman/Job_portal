@@ -21,6 +21,44 @@ const EmployerWallet = () => {
     };
     fetchcreditStatus();
   }, []);
+  if (!credits) return null;
+
+  const {
+    hasWelcomePack,
+    hasPurchasedPack,
+    welcomePack,
+    purchasedPack,
+    usageToday,
+    remainingToday,
+  } = credits;
+
+  // Daily limits (sum only if pack exists)
+  const dailyJobLimit =
+    (hasWelcomePack ? welcomePack?.dailyJobLimit || 0 : 0) +
+    (hasPurchasedPack ? purchasedPack?.dailyJobLimit || 0 : 0);
+
+  const dailyProfileLimit =
+    (hasWelcomePack ? welcomePack?.dailyProfileLimit || 0 : 0) +
+    (hasPurchasedPack ? purchasedPack?.dailyProfileLimit || 0 : 0);
+
+  // Validity → take the latest active one
+
+  const activePack = hasPurchasedPack
+    ? purchasedPack
+    : hasWelcomePack
+    ? welcomePack
+    : null;
+
+  const daysLeft = activePack?.daysLeft || 0;
+  const planName = hasPurchasedPack ? purchasedPack.packName : "Welcome Pack";
+
+  const expiryDate = activePack?.expiresAt
+    ? new Date(activePack.expiresAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "N/A";
 
   return (
     <>
@@ -61,11 +99,11 @@ const EmployerWallet = () => {
                 <div className="user-wallet-credit">
                   <h4>
                     Total Job posting credits:{" "}
-                    <span>{credits.totalJobPostingCredits}</span>
+                    <span>{credits.fullCredit?.totalJobCredits}</span>
                   </h4>
                   <h4>
                     Total profile viewing credits:{" "}
-                    <span>{credits.totalProfileViewingCredits}</span>
+                    <span>{credits.fullCredit?.totalProfileCredits}</span>
                   </h4>
                 </div>
                 <div className="user-wallet-credit-buy-button">
@@ -82,7 +120,6 @@ const EmployerWallet = () => {
                   </Link>
                 </div>
               </div>
-              <p>Last Updated: 10-Nov-2025</p>
             </div>
 
             <div className="add-credits-modal-info">
@@ -149,7 +186,7 @@ const EmployerWallet = () => {
             </div>
           </section>
 
-          <section className="user-wallet-credit-limit-info">
+          {/* <section className="user-wallet-credit-limit-info">
             <div className="user-wallet-credit-limit">
               <div className="user-wallet-credit-box">
                 <h3>
@@ -174,6 +211,60 @@ const EmployerWallet = () => {
                 <h4>Validity Period</h4>
                 <h4>From account verification date</h4>
               </div>
+            </div>
+          </section> */}
+          <section className="user-wallet-credit-limit-info">
+            <div className="user-wallet-credit-limit">
+              {/* ❌ No active pack */}
+              {!hasWelcomePack && !hasPurchasedPack && (
+                <div className="user-wallet-credit-box">
+                  <h3>0/0</h3>
+                  <h4>No Active Plan</h4>
+                  <p>Please purchase a plan to continue</p>
+                </div>
+              )}
+
+              {/* ✅ Job Posting */}
+              {(hasWelcomePack || hasPurchasedPack) && (
+                <div className="user-wallet-credit-box">
+                  <h3>
+                    {usageToday?.jobPostingUsed || 0}/
+                    {remainingToday?.jobPostingRemaining || 0}
+                  </h3>
+                  <h4>jobs created today</h4>
+                  <h4>Max {dailyJobLimit} postings/day</h4>
+                  <p>Daily limits reset automatically at midnight</p>
+                </div>
+              )}
+
+              {/* ✅ Profile Viewing */}
+              {(hasWelcomePack || hasPurchasedPack) && (
+                <div className="user-wallet-credit-box">
+                  <h3>
+                    {usageToday?.profileViewingUsed || 0}/
+                    {remainingToday?.profileViewingRemaining || 0}
+                  </h3>
+                  <h4>profiles viewed</h4>
+                  <h4>Max {dailyProfileLimit} views/day</h4>
+                  <p>Daily limits reset automatically at midnight</p>
+                </div>
+              )}
+
+              {/* ✅ Validity */}
+              {/* ✅ Validity */}
+              {activePack && (
+                <div className="user-wallet-credit-box">
+                  <h3 style={{ color: "#ff6a00", fontWeight: "700" }}>
+                    {daysLeft} days
+                  </h3>
+
+                  <h4>Validity Period</h4>
+
+                  <h4>{planName}</h4>
+
+                  <p>Expiry Date: {expiryDate}</p>
+                </div>
+              )}
             </div>
           </section>
 

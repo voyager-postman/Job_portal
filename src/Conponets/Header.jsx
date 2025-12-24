@@ -508,21 +508,25 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
-    // If URL wrongly contains "/uploads/https"
-    if (url.includes("uploads/https")) {
-      // Extract only the "https://..." part
-      const httpsPart = url.substring(url.indexOf("https"));
-      return httpsPart;
+    // ✅ If default local dashboard image → return as-is
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+      return url;
     }
 
-    // External URL (starts with http)
-    if (url.startsWith("http")) return url;
+    // ✅ If URL wrongly contains "/uploads/https"
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
 
-    // Local upload → prepend API base URL
+    // ✅ External URL (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image → prepend API_IMAGE_URL
     return `${API_IMAGE_URL}${url}`;
   };
 
@@ -864,23 +868,6 @@ function Header({ bgColor }) {
                               </div>
                             )}
 
-                            {/* {userRole !== "JobSeeker" && (
-                            <div className="dropdown-body">
-                              <ul className="profile-nav p-0 pt-3">
-                                <li className="nav-item active">
-                                  <Link to="/setting" className="nav-link">
-                                    <span className="icon">
-                                      <img
-                                        src="/jobPortal/assets/images/svg-icon/icon-9.svg"
-                                        alt="Dashboard"
-                                      />
-                                    </span>
-                                    <span className="menu-title">Setting</span>
-                                  </Link>
-                                </li>
-                              </ul>
-                            </div>
-                          )} */}
                             <div className="dropdown-footer">
                               <ul className="profile-nav">
                                 <li className="nav-item">

@@ -9,7 +9,7 @@ import {
 import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
-
+import { SiReaddotcv } from "react-icons/si";
 function Sidebar() {
   const userRole = localStorage.getItem("user_role");
   return (
@@ -112,7 +112,7 @@ function Sidebar() {
               >
                 <span className="icon">
                   <i>
-                    <FaUserTie />
+                    <SiReaddotcv />
                   </i>
                 </span>
                 <span className="menu-title">Resume Builder</span>

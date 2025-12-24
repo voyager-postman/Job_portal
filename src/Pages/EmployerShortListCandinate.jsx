@@ -92,9 +92,10 @@ function EmployerShortListCandinate() {
     // Local uploads
     return `${API_IMAGE_URL}${url}`;
   };
-
+  console.log(totalCount);
   return (
     <>
+    
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}

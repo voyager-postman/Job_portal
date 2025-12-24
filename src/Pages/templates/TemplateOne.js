@@ -10,7 +10,6 @@ const TemplateOne = ({ data }) => {
   // const skills = data.skills || [];
   const languages = data.languages || [];
   const certificates = data.certificates || [];
-
   return (
     <>
       {/* <!-- Second Resume Template Design start here --> */}

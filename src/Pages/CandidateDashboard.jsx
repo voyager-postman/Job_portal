@@ -422,12 +422,6 @@ function CandidateDashboard() {
                           </div>
                         )
                       )}
-                      {/* <div className="candidate-complete-circel-icon">
-                        <i className="fa-solid fa-check" />
-                      </div>
-                      <div className="candidate-complete-circel-icon">
-                        <i className="fa-solid fa-check" />
-                      </div> */}
                     </div>
                   </div>
                 </div>
@@ -474,9 +468,9 @@ function CandidateDashboard() {
                                             <img
                                               crossorigin="anonymous"
                                               src={
-                                                job?.logo
-                                                  ? `${API_IMAGE_URL}${job.logo}`
-                                                  : "assets/images/dashboard/images1.png"
+                                                job?.companyId?.logo
+                                                  ? `${API_IMAGE_URL}${job.companyId.logo}`
+                                                  : "/jobPortal/assets/images/dashboard/images1.png"
                                               }
                                               alt="logo"
                                             />

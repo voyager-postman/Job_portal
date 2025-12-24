@@ -99,7 +99,10 @@ function CandidateProfile() {
         const fullUrl = profileImg;
         setImage(fullUrl);
         updateProfileImage(fullUrl); // ✅ update header image instantly
-        toast.success(res.data.message || "Profile updated successfully!");
+        // toast.dismiss();
+        // toast.success("Profile updated successfully!", {
+        //   toastId: "profile-update",
+        // });
       } else {
         setImage(DEFAULT_IMAGE);
         toast.error(res.data.message || "Something went wrong!");

@@ -344,7 +344,6 @@ function ManagesJobApplication() {
   return (
     <>
       <ToastContainer />
-
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -519,7 +518,7 @@ function ManagesJobApplication() {
                                     src={
                                       company?.logo
                                         ? `${API_IMAGE_URL}${company.logo}`
-                                        : "assets/images/icon/icon-26.png"
+                                        : "assets/images/dashboard/images1.png"
                                     }
                                     alt={company?.brandName || "Company Logo"}
                                   />{" "}
@@ -558,8 +557,7 @@ function ManagesJobApplication() {
                           <Link to={`/job-details/${job?._id}`}>
                             <div className="available-job-type-details">
                               <h5>
-                                {company?.brandName} - {job?.jobTitle} -{" "}
-                                {job?.region}, {job?.country}
+                                {company?.brandName} - {job?.jobTitle}
                               </h5>
                               <ul>
                                 <li>

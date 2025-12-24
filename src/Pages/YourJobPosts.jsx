@@ -440,7 +440,7 @@ function YourJobPosts() {
                           />
                         </div>
                         <div className="modal-body">
-                          <div className="post-job-form-info">
+                          <div >
                             <div className="form-group">
                               <label>Job Title</label>
                               <span className="text-danger">*</span>
