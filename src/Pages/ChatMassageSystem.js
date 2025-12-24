@@ -1,10 +1,84 @@
 import axios from "axios";
-import React, { useEffect } from "react";
+import React from "react";
 import { API_BASE_URL } from "../Url/Url";
-import { useState } from "react";
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
 function ChatMassageSystem() {
+  const socketRef = useRef(null);
+  // Replace with real logged-in user
+  const CURRENT_USER_ID = 1;
+  // const RECEIVER_ID = 2; // selected chat user
+  const [users, setUsers] = useState([
+    { id: 2, name: "User Two" },
+    { id: 3, name: "User Three" },
+  ]);
+  const [activeUser, setActiveUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [chatStore, setChatStore] = useState({});
+
+  // ---------------- CONNECT SOCKET ----------------
+  useEffect(() => {
+    const ws = new WebSocket("ws://192.168.1.88:8000/ws/chat/");
+    socketRef.current = ws;
+    ws.onopen = () => console.log("WebSocket Connected");
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (!data.message) return;
+
+      const otherUser = data.from === CURRENT_USER_ID ? data.to : data.from;
+
+      setChatStore((prev) => ({
+        ...prev,
+        [otherUser]: [...(prev[otherUser] || []), data],
+      }));
+
+      // If currently chatting with this user → update UI
+      if (activeUser && otherUser === activeUser.id) {
+        setMessages((prev) => [...prev, data]);
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket Closed");
+    return () => ws.close();
+  }, []);
+
+  // ---------------- LOAD CHAT HISTORY ----------------
+  const loadChat = async (user) => {
+    setActiveUser(user);
+
+    try {
+      const res = await axios.get(
+        `http://192.168.1.88:8000/chat/history/${CURRENT_USER_ID}/${user.id}/`
+      );
+
+      setChatStore((prev) => ({
+        ...prev,
+        [user.id]: res.data.messages,
+      }));
+
+      setMessages(res.data.messages);
+    } catch (err) {
+      console.log("History Load Failed", err);
+    }
+  };
+
+  // ---------------- SEND MESSAGE ----------------
+  const sendMessage = () => {
+    if (!text.trim() || !activeUser) return;
+
+    const payload = {
+      type: "chat",
+      from: CURRENT_USER_ID,
+      to: activeUser.id,
+      message: text,
+    };
+    socketRef.current.send(JSON.stringify(payload));
+    setMessages((prev) => [...prev, payload]); // instantly show in UI
+    setText("");
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -27,6 +101,7 @@ function ChatMassageSystem() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+
           {/* Chat Messaging System Section Start Area */}
           <section className="chat-messaging-system-info">
             <div className="chat-messaging-system-heading">
@@ -46,7 +121,7 @@ function ChatMassageSystem() {
                     <img src="assets/images/candidate-img/candidate1.jpg" />
                   </div>
                   <div className="user-name-status">
-                    <h6>John Doe</h6>
+                    <h6>{activeUser ? activeUser.name : "Select User"}</h6>
                     <span>Online</span>
                   </div>
                 </div>
@@ -59,746 +134,112 @@ function ChatMassageSystem() {
               </div>
             </div>
             <div className="user-message-list-massage-detail">
+              {/* ---------------- USER LIST ---------------- */}
               <div className="user-message-list">
                 <ul className="nav nav-tabs" role="tablist">
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link active"
-                      data-bs-toggle="tab"
-                      href="#menu1"
-                      aria-selected="false"
-                      role="tab"
+                  {users.map((u) => (
+                    <li
+                      className="nav-item"
+                      role="presentation"
+                      key={u.id}
+                      onClick={(e) => loadChat(u)}
                     >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
+                      <a
+                        className="nav-link"
+                        data-bs-toggle="tab"
+                        // href="#menu1"
+                        // aria-selected="false"
+                        // role="tab"
+                        // onClick={() => loadChat(u)}
+                      >
+                        <div className="user-img-name-chat-count-time-massage">
+                          <div className="user-img-chat-count">
+                            <img src="assets/images/candidate-img/candidate1.jpg" />
+                            <span className="chat-count">1</span>
                           </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu2"
-                      aria-selected="true"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
+                          <div className="user-name-chat-time-massage">
+                            <div className="user-name-time-info">
+                              <h6>{u.name}</h6>
+                              <p>Tap to chat</p>
+                            </div>
+                            <div className="user-short-massage">
+                              <p>Lorem Ipsum is not simply random</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu3"
-                      aria-selected="false"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu4"
-                      aria-selected="false"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu5"
-                      aria-selected="false"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu6"
-                      aria-selected="false"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu7"
-                      aria-selected="false"
-                      role="tab"
-                    >
-                      <div className="user-img-name-chat-count-time-massage">
-                        <div className="user-img-chat-count">
-                          <img
-                            src="assets/images/dashboard/dashboard-img-1.png"
-                            className="rounded-circle"
-                            alt="image"
-                          />
-                          <span className="chat-count">1</span>
-                        </div>
-                        <div className="user-name-chat-time-massage">
-                          <div className="user-name-time-info">
-                            <h6>John Doe</h6>
-                            <p>7 hours ago</p>
-                          </div>
-                          <div className="user-short-massage">
-                            <p>Lorem Ipsum is not simply random</p>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
+
+              {/* ---------------- CHAT MESSAGES ---------------- */}
               <div className="job-seeker-employer-message-detail">
                 {/* Tab Panes */}
                 <div className="tab-content">
                   <div
                     className="tab-pane fade show active"
-                    id="menu1"
-                    role="tabpanel"
+                    // id="menu1"
+                    // role="tabpanel"
                   >
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
+                    {(chatStore[activeUser?.id] || []).map((msg, index) =>
+                      msg.from === CURRENT_USER_ID ? (
+                        // RIGHT SIDE - ME
+                        <div
+                          key={index}
+                          className="user-message-chat-details employer-info-main-area"
+                        >
+                          <div className="job-seeker-message-detail-text">
+                            <p>{msg.message}</p>
+                            <div className="job-seeker-message-time">
+                              <p>
+                                {new Date(msg.created_at).toLocaleTimeString(
+                                  [],
+                                  { hour: "2-digit", minute: "2-digit" }
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="job-seeker-message-name-img-time">
+                            <div className="job-seeker-message-img">
+                              <img src="assets/images/candidate-img/candidate1.jpg" />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
+                      ) : (
+                        <div key={index} className="user-message-chat-details">
+                          <div className="job-seeker-message-name-img-time">
+                            <div className="job-seeker-message-img">
+                              <img src="assets/images/candidate-img/candidate1.jpg" />
+                            </div>
+                          </div>
+                          <div className="job-seeker-message-detail-text">
+                            <div className="job-seeker-message-time">
+                              <h6>User</h6>
+                              {/* <p>7:45 AM</p> */}
+                            </div>
+                            <p>{msg.message}</p>
+                          </div>
                         </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu2" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu3" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu4" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu5" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu6" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tab-pane fade" id="menu7" role="tabpanel">
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details">
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="user-message-chat-details employer-info-main-area">
-                      <div className="job-seeker-message-detail-text">
-                        <div className="job-seeker-message-time">
-                          <h6>John Doe</h6>
-                          <p>7:45 AM</p>
-                        </div>
-                        <p>
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Donec rutrum congue leo eget malesuada. Vivamus
-                          suscipit tortor eget felis porttitor.
-                        </p>
-                      </div>
-                      <div className="job-seeker-message-name-img-time">
-                        <div className="job-seeker-message-img">
-                          <img src="assets/images/candidate-img/candidate1.jpg" />
-                        </div>
-                      </div>
-                    </div>
+                      )
+                    )}
                   </div>
                 </div>
+
+                {/* ---------------- INPUT ---------------- */}
                 <div className="chat-messaging-typeing-function-btn">
                   <div className="chat-messaging-typeing-box">
                     <textarea
                       className="form-control"
-                      placeholder="Write Brief Bio Or Introduction"
+                      placeholder="Type message..."
                       rows={1}
-                      defaultValue={""}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                     />
                   </div>
                   <div className="chat-messaging-typeing-function">
-                    <div className="chat-messaging-emoji">
+                    {/* <div className="chat-messaging-emoji">
                       <i className="fa-solid fa-face-smile" />
                     </div>
                     <div className="chat-messaging-upload-img">
@@ -806,8 +247,11 @@ function ChatMassageSystem() {
                     </div>
                     <div className="chat-messaging-upload-file">
                       <i className="fa-solid fa-paperclip" />
-                    </div>
-                    <div className="chat-messaging-send-btn">
+                    </div> */}
+                    <div
+                      className="chat-messaging-send-btn"
+                      onClick={sendMessage}
+                    >
                       <i className="fa-solid fa-paper-plane" />
                     </div>
                   </div>

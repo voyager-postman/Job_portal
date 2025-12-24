@@ -6093,6 +6093,10 @@ width:100%;
   display: flex;
 }
 
+.job-seeker-message-time p{
+  font-size: 12px;
+}
+
 .job-seeker-message-time h6 {
   color: #fff;
   margin-right: 10px;
@@ -6107,6 +6111,8 @@ width:100%;
 
 .job-seeker-message-detail-text p {
   color: #fff;
+  margin-bottom: 0px;
+  font-size: 14px;
 }
 
 .user-message-chat-details.employer-info-main-area {
