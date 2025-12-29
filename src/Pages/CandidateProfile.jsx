@@ -11,6 +11,7 @@ function CandidateProfile() {
   const navigate = useNavigate();
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
   const [activeLevel, setActiveLevel] = useState(null);
 
@@ -84,6 +85,7 @@ function CandidateProfile() {
     formData.append("profile", file);
 
     try {
+      setIsLoadingJobs(true); // 🔵 START LOADER
       const token = localStorage.getItem("token");
       const res = await axios.post(
         `${API_BASE_URL}updateProfileImage`,
@@ -113,8 +115,17 @@ function CandidateProfile() {
       console.error("Upload failed:", err);
       setImage(DEFAULT_IMAGE);
       toast.error("Upload failed. Please try again.");
+    } finally {
+      setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading Image, please wait...</p>
+    </div>
+  );
+
   const token = localStorage.getItem("token");
   const [cvFiles, setCvFiles] = useState([]); // List of uploaded CVs
   const [menuOpenId, setMenuOpenId] = useState(null); // Track which CV menu is open
@@ -217,6 +228,7 @@ function CandidateProfile() {
       });
 
       console.log("Profile data:", res.data);
+      setProfileVisible(res.data.profile?.profileVisible);
       setProfileData(res.data.profile); // ✅ set API response into state
       setCheckStatus(res.data.sectionStatus);
       if (res.data.profile?.skills) {
@@ -1818,6 +1830,7 @@ function CandidateProfile() {
         );
         setVisibilityMessage(response.data.message); // ✅ set backend msg
       }
+      fetchProfile();
     } catch (error) {
       console.error("Error updating profile visibility:", error);
       toast.error("Failed to update profile visibility", {
@@ -2087,7 +2100,9 @@ function CandidateProfile() {
                 <Link to="/"> Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>{" "}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> My Profile
@@ -2103,12 +2118,15 @@ function CandidateProfile() {
                 <div className="candidates-img-detail-info">
                   <div className="candidates-img-info">
                     {/* Candidate Image */}
-                    <img
-                      src={cleanImageUrl(image)}
-                      alt="Candidate"
-                      crossorigin="anonymous"
-                    />
-
+                    {isLoadingJobs ? (
+                      <JobListLoader />
+                    ) : (
+                      <img
+                        src={cleanImageUrl(image)}
+                        alt="Candidate"
+                        crossorigin="anonymous"
+                      />
+                    )}
                     {/* Hidden file input */}
                     <input
                       type="file"

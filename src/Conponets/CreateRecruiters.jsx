@@ -14,17 +14,13 @@ function CreateRecruiters() {
   });
   const [loading, setLoading] = useState(false);
 
-  // handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // form submit
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       !formData.first_name ||
       !formData.last_name ||
@@ -34,9 +30,7 @@ function CreateRecruiters() {
       toast.error("All fields are required!");
       return;
     }
-
     setLoading(true);
-
     try {
       const token = localStorage.getItem("token");
 

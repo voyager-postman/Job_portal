@@ -51,7 +51,11 @@ function EmployerLogin() {
       console.log(response);
       if (response.status === 200 && response.data.success) {
         const { token, user } = response.data;
-        if (!user.verifiedByAdmin && user?.is_completed) {
+        const shouldShowAdminVerifyMsg =
+          user.role === "Company" &&
+          user.is_completed &&
+          user.verifiedByAdmin === false;
+        if (shouldShowAdminVerifyMsg) {
           await Swal.fire({
             title: "Account Not Verified",
             text: "Your account is not verified by the admin. Please contact support.",
@@ -86,7 +90,7 @@ function EmployerLogin() {
             navigate("/profile-basic-info");
           }
         }
-        if (!user.verifiedByAdmin && user?.is_completed) {
+        if (shouldShowAdminVerifyMsg) {
           navigate("/");
           return;
         }

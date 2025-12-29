@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { useState } from "react";
-
+import { Link } from "react-router-dom";
 function ChatMassageSystem() {
   return (
     <>
@@ -13,7 +13,12 @@ function ChatMassageSystem() {
             <h1>Messages</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="#">Home </a>
+                <Link to="/">Home </Link>
+              </li>
+              <li className="item">
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>{" "}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Messages

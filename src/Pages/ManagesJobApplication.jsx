@@ -1146,7 +1146,7 @@ function ManagesJobApplication() {
               {activeTab === "companies" && (
                 <div>
                   <div className="my-applications-heading-info">
-                    <h2>Companies List</h2>
+                    <h2>Company List</h2>
                   </div>
                   <div className="mannage-job-notification-companies-list">
                     <div className="row">

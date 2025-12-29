@@ -6,10 +6,11 @@ import axios from "axios";
 import Switch from "@mui/material/Switch";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
-
+import { useLocation } from "react-router-dom";
 const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
   const { login } = useAuth();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
@@ -520,39 +521,96 @@ function MyProfile() {
   //     toast.error("Failed to upload resume. Try again.");
   //   }
   // };
-  const importFromLinkedIn = async () => {
+  // const importFromLinkedIn = async () => {
+  //   try {
+  //     // const userId = localStorage.getItem("user_id");
+
+  //     // if (!userId) {
+  //     //   toast.error("User not logged in");
+  //     //   return;
+  //     // }
+
+  //     const res = await axios.get(`${API_BASE_URL}linkedin/parse`);
+
+  //     if (res.data.success) {
+  //       const profile = res.data.data;
+
+  //       // Example: map LinkedIn data to your form
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         firstName: profile.firstName || "",
+  //         lastName: profile.lastName || "",
+  //         jobTitle: profile.headline || "",
+  //         city: profile.location || "",
+  //         experience: profile.experience || "",
+  //       }));
+
+  //       toast.success("LinkedIn profile imported successfully!");
+  //     } else {
+  //       toast.error("Failed to import LinkedIn profile");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("LinkedIn import failed");
+  //   }
+  // };
+
+  const importFromLinkedIn = () => {
     try {
-      // const userId = localStorage.getItem("user_id");
+      // Redirect user to backend LinkedIn OAuth/parse URL
+      window.location.assign(
+        "https://sisccltd.com/job_portal/api/linkedin/parse"
+      );
 
-      // if (!userId) {
-      //   toast.error("User not logged in");
-      //   return;
-      // }
-
-      const res = await axios.get(`${API_BASE_URL}linkedin/parse`);
-
-      if (res.data.success) {
-        const profile = res.data.data;
-
-        // Example: map LinkedIn data to your form
-        setFormData((prev) => ({
-          ...prev,
-          firstName: profile.firstName || "",
-          lastName: profile.lastName || "",
-          jobTitle: profile.headline || "",
-          city: profile.location || "",
-          experience: profile.experience || "",
-        }));
-
-        toast.success("LinkedIn profile imported successfully!");
-      } else {
-        toast.error("Failed to import LinkedIn profile");
-      }
+      // OR (both are equivalent)
+      // window.location.href =
+      //   "https://sisccltd.com/job_portal/api/linkedin/parse";
     } catch (err) {
       console.error(err);
-      toast.error("LinkedIn import failed");
+      toast.error("LinkedIn redirect failed");
     }
   };
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+
+    const success = params.get("success");
+    const message = params.get("message");
+
+    // ✅ SUCCESS CASE
+    if (success === "true") {
+      const extracted = {
+        email: params.get("email"),
+        firstName: params.get("first_name"),
+        lastName: params.get("last_name"),
+        name: params.get("name"),
+        country: params.get("country"),
+        avatar: params.get("avatar"),
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        firstName: extracted.firstName || "",
+        lastName: extracted.lastName || "",
+        city: extracted.country || "",
+        jobTitle: "",
+        experience: "",
+        employmentType: "",
+        occupationType: "",
+        salaryType: "",
+        salaryAmount: "",
+        eligibleInFrance: "No",
+        selectedCategory: "",
+      }));
+
+      toast.success("LinkedIn profile imported successfully!");
+    }
+
+    // ❌ FAILURE CASE
+    if (success === "false") {
+      toast.error(message || "LinkedIn profile fetch failed");
+    }
+  }, [location.search]);
+
   return (
     <>
       <ToastContainer />

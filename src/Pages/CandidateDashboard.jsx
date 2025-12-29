@@ -142,6 +142,7 @@ function CandidateDashboard() {
           { autoClose: 2000, theme: "colored" }
         );
         setVisibilityMessage(response.data.message); // ✅ set backend msg
+        fetchResume();
       }
     } catch (error) {
       console.error("Error updating profile visibility:", error);
@@ -157,24 +158,29 @@ function CandidateDashboard() {
     e.preventDefault(); // prevent navigation
     fileInputRef.current.click(); // open file dialog
   };
+
+  const fetchResume = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Resume Data:-", res.data.profile);
+      const profile = res.data.profile;
+      setProfileVisible(profile?.profileVisible);
+
+      setResumeList(profile.resumeUrls || []);
+      setCoverLetterList(profile.coverLetter || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
-    const fetchResume = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Resume Data:-", res.data.profile);
-        const profile = res.data.profile;
-        setResumeList(profile.resumeUrls || []);
-        setCoverLetterList(profile.coverLetter || []);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     fetchResume();
   }, []);
+
   const handleSelect = (type, id = null) => {
     setSelectedType(type);
     setSelectedId(id);
@@ -296,7 +302,7 @@ function CandidateDashboard() {
             <h1>Dashboard</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="#">Home </a>
+                <Link to="/">Home</Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Dashboard

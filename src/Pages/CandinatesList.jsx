@@ -38,6 +38,12 @@ function CandinatesList() {
       setLoading(false);
     }
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading Candidates Listing, please wait...</p>
+    </div>
+  );
 
   useEffect(() => {
     fetchCandidates(currentPage);
@@ -360,7 +366,9 @@ function CandinatesList() {
                   
                   </div> */}
                   <div className="row">
-                    {candidates.length > 0 ? (
+                    {loading ? (
+                      <JobListLoader />
+                    ) : candidates.length > 0 ? (
                       candidates.map((candidate, index) => {
                         // ✅ Declare variables here (not inside JSX)
                         const user = candidate?.userId || {};
