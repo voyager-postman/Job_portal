@@ -28,7 +28,7 @@ const JobList = () => {
   console.log("Received Alert Data:", alert);
   const userRole = localStorage.getItem("role");
   // or from context:  user?.role
-
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
@@ -37,7 +37,6 @@ const JobList = () => {
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
-
   const [showAlertOptions, setShowAlertOptions] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
@@ -670,6 +669,7 @@ const JobList = () => {
     salaryRangesAPI = []
   ) => {
     try {
+      setIsLoadingJobs(true); // 🔵 START LOADER
       const params = {
         limit,
         page,
@@ -696,6 +696,8 @@ const JobList = () => {
       setTotalJobData(res.data);
     } catch (error) {
       console.error("Error fetching jobs:", error);
+    } finally {
+      setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
   };
   useEffect(() => {
@@ -1031,6 +1033,13 @@ const JobList = () => {
       state: { companyId: company }, // 👈 send ID as prop-like data
     });
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading jobs, please wait...</p>
+    </div>
+  );
+
   return (
     <>
       <ToastContainer />
@@ -1901,7 +1910,9 @@ const JobList = () => {
                           {/* ✅ Show buttons only if any filter is selected */}
                         </div>
                       </div>
-                      {jobList.length > 0 ? (
+                      {isLoadingJobs ? (
+                        <JobListLoader />
+                      ) : jobList.length > 0 ? (
                         <>
                           {jobChunks.map((chunk, chunkIndex) => (
                             <React.Fragment key={chunkIndex}>

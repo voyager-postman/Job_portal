@@ -1,18 +1,21 @@
 import axios from "axios";
-import React from "react";
 import { API_BASE_URL } from "../Url/Url";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
 
 function ChatMassageSystem() {
   const socketRef = useRef(null);
-  // Replace with real logged-in user
-  const CURRENT_USER_ID = 1;
+  const bottomRef = useRef(null);
+
+  // Job Seeker (YOU)
+  const CURRENT_USER_ID = 2;
+
   // const RECEIVER_ID = 2; // selected chat user
   const [users, setUsers] = useState([
-    { id: 2, name: "User Two" },
-    { id: 3, name: "User Three" },
+    { id: 1, name: "Recruiters One" },
+    { id: 3, name: "Recruiters  Two" },
   ]);
+
   const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -44,6 +47,10 @@ function ChatMassageSystem() {
     return () => ws.close();
   }, []);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   // ---------------- LOAD CHAT HISTORY ----------------
   const loadChat = async (user) => {
     setActiveUser(user);
@@ -68,13 +75,25 @@ function ChatMassageSystem() {
   const sendMessage = () => {
     if (!text.trim() || !activeUser) return;
 
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      console.log("Socket not connected");
+      return;
+    }
+
     const payload = {
       type: "chat",
       from: CURRENT_USER_ID,
       to: activeUser.id,
       message: text,
+      created_at: new Date().toISOString(),
     };
     socketRef.current.send(JSON.stringify(payload));
+
+    // setChatStore((prev) => ({
+    //   ...prev,
+    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
+    // }));
+
     setMessages((prev) => [...prev, payload]); // instantly show in UI
     setText("");
   };
@@ -91,9 +110,9 @@ function ChatMassageSystem() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <Link to="/candidate-dashboard">
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
                   <i className="fa-solid fa-angle-right" /> Dashboard
-                </Link>
+                </Link>{" "}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Messages
@@ -118,7 +137,10 @@ function ChatMassageSystem() {
               <div className="user-name-message-dlt-info">
                 <div className="user-img-name-status-info">
                   <div className="user-message-img">
-                    <img src="assets/images/candidate-img/candidate1.jpg" />
+                    <img
+                      src="assets/images/candidate-img/candidate2.jpg"
+                      alt="image"
+                    />
                   </div>
                   <div className="user-name-status">
                     <h6>{activeUser ? activeUser.name : "Select User"}</h6>
@@ -150,11 +172,13 @@ function ChatMassageSystem() {
                         // href="#menu1"
                         // aria-selected="false"
                         // role="tab"
-                        // onClick={() => loadChat(u)}
                       >
                         <div className="user-img-name-chat-count-time-massage">
                           <div className="user-img-chat-count">
-                            <img src="assets/images/candidate-img/candidate1.jpg" />
+                            <img
+                              src="assets/images/candidate-img/candidate2.jpg"
+                              alt="image"
+                            />
                             <span className="chat-count">1</span>
                           </div>
                           <div className="user-name-chat-time-massage">
@@ -177,14 +201,10 @@ function ChatMassageSystem() {
               <div className="job-seeker-employer-message-detail">
                 {/* Tab Panes */}
                 <div className="tab-content">
-                  <div
-                    className="tab-pane fade show active"
-                    // id="menu1"
-                    // role="tabpanel"
-                  >
+                  <div className="tab-pane fade show active">
                     {(chatStore[activeUser?.id] || []).map((msg, index) =>
                       msg.from === CURRENT_USER_ID ? (
-                        // RIGHT SIDE - ME
+                        // RIGHT SIDE (JOB SEEKER - YOU)
                         <div
                           key={index}
                           className="user-message-chat-details employer-info-main-area"
@@ -195,34 +215,54 @@ function ChatMassageSystem() {
                               <p>
                                 {new Date(msg.created_at).toLocaleTimeString(
                                   [],
-                                  { hour: "2-digit", minute: "2-digit" }
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
                                 )}
                               </p>
                             </div>
                           </div>
+
                           <div className="job-seeker-message-name-img-time">
                             <div className="job-seeker-message-img">
-                              <img src="assets/images/candidate-img/candidate1.jpg" />
+                              <img
+                                src="assets/images/candidate-img/candidate1.jpg"
+                                alt="rectruiter"
+                              />
                             </div>
                           </div>
                         </div>
                       ) : (
+                        // LEFT SIDE (RECRUITER)
                         <div key={index} className="user-message-chat-details">
                           <div className="job-seeker-message-name-img-time">
                             <div className="job-seeker-message-img">
-                              <img src="assets/images/candidate-img/candidate1.jpg" />
+                              <img
+                                src="assets/images/candidate-img/candidate2.jpg"
+                                alt="image"
+                              />
                             </div>
                           </div>
+
                           <div className="job-seeker-message-detail-text">
-                            <div className="job-seeker-message-time">
-                              <h6>User</h6>
-                              {/* <p>7:45 AM</p> */}
-                            </div>
                             <p>{msg.message}</p>
+                            <div className="job-seeker-message-time">
+                              <p>
+                                {new Date(msg.created_at).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       )
                     )}
+                    <div ref={bottomRef}></div>
                   </div>
                 </div>
 
@@ -238,6 +278,12 @@ function ChatMassageSystem() {
                       onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                     />
                   </div>
+                  <div
+                    className="chat-messaging-send-btn"
+                    onClick={sendMessage}
+                  >
+                    <i className="fa-solid fa-paper-plane" />
+                  </div>
                   <div className="chat-messaging-typeing-function">
                     {/* <div className="chat-messaging-emoji">
                       <i className="fa-solid fa-face-smile" />
@@ -248,17 +294,12 @@ function ChatMassageSystem() {
                     <div className="chat-messaging-upload-file">
                       <i className="fa-solid fa-paperclip" />
                     </div> */}
-                    <div
-                      className="chat-messaging-send-btn"
-                      onClick={sendMessage}
-                    >
-                      <i className="fa-solid fa-paper-plane" />
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
+
           {/* Chat Messaging System Section End Area */}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">

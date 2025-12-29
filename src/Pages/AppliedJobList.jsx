@@ -48,6 +48,12 @@ function AppliedJobList() {
     // backend upload
     return `${API_IMAGE_URL}${url}`;
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading Application jobs, please wait...</p>
+    </div>
+  );
 
   return (
     <>
@@ -103,8 +109,10 @@ function AppliedJobList() {
               </div>
             </div>
 
-            {jobs.length === 0 ? (
-              <p>No jobs found.</p>
+            {loading ? (
+              <JobListLoader />
+            ) : jobs.length === 0 ? (
+              <p className="text-center mt-3">No jobs found.</p>
             ) : (
               jobs.map((job, index) => (
                 <div className="available-job-posts-box">

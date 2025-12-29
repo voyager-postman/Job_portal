@@ -451,7 +451,9 @@ function CompanyDetailsPage() {
                               <ul>
                                 <li>
                                   <i className="fa-solid fa-location-dot" />
-                                  {job.city || "N/A"}
+                                  {job.city?.length
+                                    ? job.city.join(", ")
+                                    : "N/A"}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-calendar-days" />

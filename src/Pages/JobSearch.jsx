@@ -29,6 +29,7 @@ function JobSearch() {
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   console.log("Received Alert Data:", alert);
   const [resumeList, setResumeList] = useState([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [showAlertOptions, setShowAlertOptions] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
@@ -715,6 +716,7 @@ function JobSearch() {
     salaryRangesAPI = []
   ) => {
     try {
+      setIsLoadingJobs(true); // 🔵 START LOADER
       const params = {
         limit,
         page,
@@ -741,6 +743,8 @@ function JobSearch() {
       setTotalJobData(res.data);
     } catch (error) {
       console.error("Error fetching jobs:", error);
+    } finally {
+      setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
   };
   useEffect(() => {
@@ -1031,6 +1035,12 @@ function JobSearch() {
       state: { companyId: company }, // 👈 send ID as prop-like data
     });
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading jobs, please wait...</p>
+    </div>
+  );
 
   return (
     <>
@@ -1045,9 +1055,9 @@ function JobSearch() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <Link to="/candidate-dashboard">
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
                   <i className="fa-solid fa-angle-right" /> Dashboard
-                </Link>
+                </Link>{" "}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Search Job List
@@ -2185,7 +2195,9 @@ function JobSearch() {
                         {/* ✅ Show buttons only if any filter is selected */}
                       </div>
                     </div>
-                    {jobList.length > 0 ? (
+                    {isLoadingJobs ? (
+                      <JobListLoader />
+                    ) : jobList.length > 0 ? (
                       <>
                         {jobChunks.map((chunk, chunkIndex) => (
                           <React.Fragment key={chunkIndex}>

@@ -1,5 +1,101 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+
 function MassagingSystem() {
+  const socketRef = useRef(null);
+  const bottomRef = useRef(null);
+
+  // Job Seeker (YOU)
+  const CURRENT_USER_ID = 1;
+  // const RECEIVER_ID = 2; // selected chat user
+  const [users, setUsers] = useState([
+    { id: 2, name: "User One" },
+    { id: 4, name: "User Two" },
+  ]);
+
+  const [activeUser, setActiveUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [chatStore, setChatStore] = useState({});
+
+  // ---------------- CONNECT SOCKET ----------------
+  useEffect(() => {
+    const ws = new WebSocket("ws://192.168.1.88:8000/ws/chat/");
+    socketRef.current = ws;
+    ws.onopen = () => console.log("WebSocket Connected");
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (!data.message) return;
+
+      const otherUser = data.from === CURRENT_USER_ID ? data.to : data.from;
+
+      setChatStore((prev) => ({
+        ...prev,
+        [otherUser]: [...(prev[otherUser] || []), data],
+      }));
+
+      // If currently chatting with this user → update UI
+      if (activeUser && otherUser === activeUser.id) {
+        setMessages((prev) => [...prev, data]);
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket Closed");
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // ---------------- LOAD CHAT HISTORY ----------------
+  const loadChat = async (user) => {
+    setActiveUser(user);
+
+    try {
+      const res = await axios.get(
+        `http://192.168.1.88:8000/chat/history/${CURRENT_USER_ID}/${user.id}/`
+      );
+
+      setChatStore((prev) => ({
+        ...prev,
+        [user.id]: res.data.messages,
+      }));
+
+      setMessages(res.data.messages);
+    } catch (err) {
+      console.log("History Load Failed", err);
+    }
+  };
+
+  // ---------------- SEND MESSAGE ----------------
+  const sendMessage = () => {
+    if (!text.trim() || !activeUser) return;
+
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      console.log("Socket not connected");
+      return;
+    }
+
+    const payload = {
+      type: "chat",
+      from: CURRENT_USER_ID,
+      to: activeUser.id,
+      message: text,
+      created_at: new Date().toISOString(),
+    };
+    socketRef.current.send(JSON.stringify(payload));
+
+    // setChatStore((prev) => ({
+    //   ...prev,
+    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
+    // }));
+
+    setMessages((prev) => [...prev, payload]); // instantly show in UI
+    setText("");
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -12,12 +108,13 @@ function MassagingSystem() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-              <Link to="/employer-dashboard">
-                <i className="fa-solid fa-angle-right" /> Dashboard
-              </Link>
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />Messages
+                <i className="fa-solid fa-angle-right" />
+                Messages
               </li>
             </ol>
           </div>
@@ -47,29 +144,36 @@ function MassagingSystem() {
                         </div>
                       </div>
                       <ul className="nav nav-tabs" role="tablist">
-                        <li className="nav-item" role="presentation">
-                          <a
-                            className="nav-link active"
-                            data-bs-toggle="tab"
-                            href="#menu1"
-                            aria-selected="true"
-                            role="tab"
+                        {users.map((u) => (
+                          <li
+                            className="nav-item"
+                            role="presentation"
+                            key={u.id}
+                            onClick={(e) => loadChat(u)}
                           >
-                            <div className="messaging-system-img-user-info">
-                              <div className="messaging-system-user-img">
-                                <img
-                                  src="assets/images/candidate-img/candidate2.jpg"
-                                  alt="image"
-                                />
+                            <a
+                              className="nav-link"
+                              data-bs-toggle="tab"
+                              // href="#menu1"
+                              // aria-selected="true"
+                              // role="tab"
+                            >
+                              <div className="messaging-system-img-user-info">
+                                <div className="messaging-system-user-img">
+                                  <img
+                                    src="assets/images/candidate-img/candidate1.jpg"
+                                    alt="image"
+                                  />
+                                </div>
+                                <div className="messaging-system-user-info">
+                                  <h5>{u.name}</h5>
+                                  <p>Tap to chat</p>
+                                </div>
                               </div>
-                              <div className="messaging-system-user-info">
-                                <h5>Sophia Smith</h5>
-                                <p>Software Engineer</p>
-                              </div>
-                            </div>
-                          </a>
-                        </li>
-                        <li className="nav-item" role="presentation">
+                            </a>
+                          </li>
+                        ))}
+                        {/* <li className="nav-item" role="presentation">
                           <a
                             className="nav-link"
                             data-bs-toggle="tab"
@@ -90,126 +194,93 @@ function MassagingSystem() {
                               </div>
                             </div>
                           </a>
-                        </li>
-                        <li className="nav-item" role="presentation">
-                          <a
-                            className="nav-link"
-                            data-bs-toggle="tab"
-                            href="#menu3"
-                            aria-selected="false"
-                            role="tab"
-                          >
-                            <div className="messaging-system-img-user-info">
-                              <div className="messaging-system-user-img">
-                                <img
-                                  src="assets/images/candidate-img/candidate2.jpg"
-                                  alt="image"
-                                />
-                              </div>
-                              <div className="messaging-system-user-info">
-                                <h5>Sophia Smith</h5>
-                                <p>Software Engineer</p>
-                              </div>
-                            </div>
-                          </a>
-                        </li>
+                        </li> */}
                       </ul>
                     </div>
+
                     <div className="messaging-system-chat-box">
+                      {/* Tab Panes */}
                       <div className="messaging-system-heading-info">
                         <div className="messaging-system-img-user-info">
                           <div className="messaging-system-user-img">
                             <img
-                              src="assets/images/candidate-img/candidate2.jpg"
+                              src="assets/images/candidate-img/candidate1.jpg"
                               alt="image"
                             />
                           </div>
                           <div className="messaging-system-user-name">
-                            <h5>Sophia Smith</h5>
-                            <p>Software Engineer</p>
+                            <h5>
+                              {activeUser ? activeUser.name : "Select User"}
+                            </h5>
+                            <p>Online</p>
                           </div>
                         </div>
                       </div>
+                      {/* ---------------- CHAT MESSAGES ---------------- */}
                       <div className="tab-content">
                         <div
                           className="tab-pane fade show active"
-                          id="menu1"
-                          role="tabpanel"
+                          // id="menu1"
+                          // role="tabpanel"
                         >
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
+                          {(chatStore[activeUser?.id] || []).map((msg, index) =>
+                            msg.from === CURRENT_USER_ID ? (
+                              // RIGHT SIDE (RECTRUITER - YOU)
+                              <>
+                                <div className="messaging-system-recruiter-messaging">
+                                  <div className="messaging-system-user-message bg-color">
+                                    <p>{msg.message}</p>
+                                    <div className="messaging-system-recruiter-message-time">
+                                      {/* <h6>Sophia Smith</h6> */}
+                                      <p>
+                                        {new Date(
+                                          msg.created_at
+                                        ).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="messaging-system-userImg">
+                                    <img
+                                      src="assets/images/candidate-img/candidate2.jpg"
+                                      alt="image"
+                                    />
+                                  </div>
+                                </div>
+                                <div ref={bottomRef}></div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="messaging-system-user-messaging">
+                                  <div className="messaging-system-userImg">
+                                    <img
+                                      src="assets/images/candidate-img/candidate1.jpg"
+                                      alt="user"
+                                    />
+                                  </div>
+                                  <div className="messaging-system-user-message">
+                                    <p>{msg.message}</p>
+                                    <div className="messaging-system-message-time">
+                                      {/* <h6>Sophia Smith</h6> */}
+                                      <p>
+                                        {new Date(
+                                          msg.created_at
+                                        ).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div ref={bottomRef}></div>
+                              </>
+                            )
+                          )}
                         </div>
-                        <div
+                        {/* <div
                           className="tab-pane fade"
                           id="menu2"
                           role="tabpanel"
@@ -250,130 +321,23 @@ function MassagingSystem() {
                               />
                             </div>
                           </div>
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          className="tab-pane fade"
-                          id="menu3"
-                          role="tabpanel"
-                        >
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
-                        </div>
+                        </div> */}
                       </div>
+
+                      {/* ---------------- INPUT ---------------- */}
                       <div className="messaging-system-typeing-send-btn">
                         <textarea
                           className="form-control"
                           placeholder="Write Brief Bio Or Introduction"
                           rows={1}
+                          value={text}
                           defaultValue={""}
+                          onChange={(e) => setText(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <i className="fa-solid fa-paper-plane" />
+                        <div onClick={sendMessage}>
+                          <i className="fa-solid fa-paper-plane" />
+                        </div>
                       </div>
                     </div>
                     <div className="messaging-system-interview-scheduling">

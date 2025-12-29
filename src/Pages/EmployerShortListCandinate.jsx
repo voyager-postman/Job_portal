@@ -8,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 function EmployerShortListCandinate() {
+  const [loading, setLoading] = useState(false);
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   // const [bookmarkCount, setBookMarkCount] = useState("");
@@ -42,6 +43,7 @@ function EmployerShortListCandinate() {
   }, []);
   const fetchBookmarkedCandidates = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -52,8 +54,17 @@ function EmployerShortListCandinate() {
       setTotalCount(res.data.totalCount || 0); // <-- ADD THIS
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
+    } finally {
+      setLoading(false);
     }
   };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading BookMark Candidates, please wait...</p>
+    </div>
+  );
+
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -95,7 +106,6 @@ function EmployerShortListCandinate() {
   console.log(totalCount);
   return (
     <>
-    
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -162,91 +172,96 @@ function EmployerShortListCandinate() {
             </div>
           </div>
           <div className="row">
-            {bookmarkedCandidates.length === 0 && (
-              <p>No bookmarked candidates found.</p>
+            {loading && <JobListLoader />}
+            {!loading && bookmarkedCandidates.length === 0 && (
+              <p className="text-center py-4">
+                No bookmarked candidates found.
+              </p>
             )}
 
-            {bookmarkedCandidates.map((item, index) => {
-              const candidate = item.candidateId;
-              return (
-                <div
-                  className="col-lg-6 col-sm-6"
-                  data-aos="fade-up"
-                  data-aos-delay={index * 100}
-                  key={item._id}
-                >
-                  <div className="candidate-list-info single-freelancer-card">
-                    <Link
-                      to={`/candidates-profile-details`}
-                      state={{ userId: candidate._id }}
-                    >
-                      <div className="row align-items-center">
-                        <div className="col-lg-4">
-                          <div className="freelancer-img">
-                            <img
-                              crossOrigin="anonymous"
-                              src={
-                                cleanImageUrl(candidate?.profileImage) ||
-                                "assets/images/freelancers/freelancers-img-1.jpg"
-                              }
-                              alt="Profile"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-8">
-                          <div className="freelancer-content">
-                            <h3>
-                              {candidate.first_name} {candidate.last_name}
-                            </h3>
-                            <span>
-                              {candidate?.candidateProfile?.career_goals
-                                ?.DesiredJobTitle || "N/A"}
-                            </span>
-
-                            <div className="info">
-                              <ul>
-                                <li>
-                                  <i className="fa-solid fa-location-dot" />{" "}
-                                  {candidate.city}
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-envelope" />{" "}
-                                  {candidate.email}
-                                </li>
-                              </ul>
+            {!loading &&
+              bookmarkedCandidates.length > 0 &&
+              bookmarkedCandidates.map((item, index) => {
+                const candidate = item.candidateId;
+                return (
+                  <div
+                    className="col-lg-6 col-sm-6"
+                    data-aos="fade-up"
+                    data-aos-delay={index * 100}
+                    key={item._id}
+                  >
+                    <div className="candidate-list-info single-freelancer-card">
+                      <Link
+                        to={`/candidates-profile-details`}
+                        state={{ userId: candidate._id }}
+                      >
+                        <div className="row align-items-center">
+                          <div className="col-lg-4">
+                            <div className="freelancer-img">
+                              <img
+                                crossOrigin="anonymous"
+                                src={
+                                  cleanImageUrl(candidate?.profileImage) ||
+                                  "assets/images/freelancers/freelancers-img-1.jpg"
+                                }
+                                alt="Profile"
+                              />
                             </div>
+                          </div>
 
-                            <div className="candidate-list-shortlist-candidates">
-                              <div
-                                className="candidate-list-bookmark"
-                                onClick={(e) => {
-                                  e.preventDefault(); // ⬅ stop page reload
-                                  e.stopPropagation(); // ⬅ stop parent card click
-                                  handleBookmark(
-                                    candidate?._id,
-                                    candidate.jobId
-                                  );
-                                }}
-                                style={{ cursor: "pointer" }}
-                              >
-                                <i
-                                  className={"fa-solid fa-bookmark"}
-                                  style={{
-                                    cursor: "pointer",
-                                    color: "#1868ca",
+                          <div className="col-lg-8">
+                            <div className="freelancer-content">
+                              <h3>
+                                {candidate.first_name} {candidate.last_name}
+                              </h3>
+                              <span>
+                                {candidate?.candidateProfile?.career_goals
+                                  ?.DesiredJobTitle || "N/A"}
+                              </span>
+
+                              <div className="info">
+                                <ul>
+                                  <li>
+                                    <i className="fa-solid fa-location-dot" />{" "}
+                                    {candidate.city}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-envelope" />{" "}
+                                    {candidate.email}
+                                  </li>
+                                </ul>
+                              </div>
+
+                              <div className="candidate-list-shortlist-candidates">
+                                <div
+                                  className="candidate-list-bookmark"
+                                  onClick={(e) => {
+                                    e.preventDefault(); // ⬅ stop page reload
+                                    e.stopPropagation(); // ⬅ stop parent card click
+                                    handleBookmark(
+                                      candidate?._id,
+                                      candidate.jobId
+                                    );
                                   }}
-                                />
+                                  style={{ cursor: "pointer" }}
+                                >
+                                  <i
+                                    className={"fa-solid fa-bookmark"}
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#1868ca",
+                                    }}
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
           {totalPages > 1 && (
             <div className="paginations style2 mb-30">

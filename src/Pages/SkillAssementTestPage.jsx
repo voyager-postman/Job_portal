@@ -96,9 +96,9 @@ function SkillAssementTestPage() {
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <Link to="/candidate-dashboard">
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
                   <i className="fa-solid fa-angle-right" /> Dashboard
-                </Link>
+                </Link>{" "}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Skill Assessments
