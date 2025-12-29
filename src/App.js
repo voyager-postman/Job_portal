@@ -61,6 +61,7 @@ import Setting from "./Pages/Setting";
 import EmployerWallet from "./Pages/EmployerWallet";
 import AddPlan from "./Pages/AddPlan";
 import ResumeBuilder from "./Pages/ResumeBuilder";
+import AddOnPack from "./Pages/AddOnPack";
 
 // "build 04-09-2025"
 console.log("Date:-04-12-2025,time:-10:29");
@@ -152,6 +153,8 @@ function LayoutWrapper() {
         />
         <Route path="/company-details" element={<CompanyDetailsInfo />} />
         <Route path="/add-plan" element={<AddPlan />} />
+        <Route path="/add-on-pack" element={<AddOnPack />} />
+
         {/* Protected Routes */}
         <Route
           path="/job-details-form/:id"

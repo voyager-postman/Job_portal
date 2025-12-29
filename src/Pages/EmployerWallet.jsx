@@ -69,7 +69,7 @@ const EmployerWallet = () => {
       <p>Loading User Wallet, please wait...</p>
     </div>
   );
-  
+
   return (
     <>
       {/* <!-- Start Main Dashboard Content Wrapper Area --> */}
@@ -130,6 +130,9 @@ const EmployerWallet = () => {
                       </a>
                       <Link to="/add-plan" className="credit-buy-btn">
                         Add Plan
+                      </Link>
+                      <Link to="/add-on-pack" className="credit-buy-btn">
+                        Add On Pack
                       </Link>
                     </div>
                   </div>
@@ -214,46 +217,96 @@ const EmployerWallet = () => {
                   )}
 
                   {/* ✅ Job Posting */}
-                  {(hasWelcomePack || hasPurchasedPack) && (
+                  {hasWelcomePack && welcomePack && (
                     <div className="user-wallet-credit-box">
+                      <h3 style={{ color: "#004895ff" }}>Welcome Pack</h3>
+
+                      {/* Today Usage */}
                       <h3>
-                        {usageToday?.jobPostingUsed || 0}/
+                        {usageToday?.jobPostingUsed || 0} /
                         {remainingToday?.jobPostingRemaining || 0}
                       </h3>
-                      <h4>jobs created today</h4>
-                      <h4>Max {dailyJobLimit} postings/day</h4>
-                      <p>Daily limits reset automatically at midnight</p>
+                      <h4>Jobs created today</h4>
+
+                      {/* Limits */}
+                      <h4>Daily Job Limit: {welcomePack.dailyJobLimit}</h4>
+                      <h4>
+                        Daily Profile Limit: {welcomePack.dailyProfileLimit}
+                      </h4>
+
+                      {/* Total Credits */}
+                      <h4>Total Job Credits: {welcomePack.totalJobCredits}</h4>
+                      <h4>
+                        Total Profile Credits: {welcomePack.totalProfileCredits}
+                      </h4>
+
+                      {/* Validity */}
+                      <h4>Days Left: {welcomePack.daysLeft}</h4>
+
+                      <p>
+                        Expiry:{" "}
+                        {new Date(welcomePack.expiresAt).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </p>
                     </div>
                   )}
 
                   {/* ✅ Profile Viewing */}
-                  {(hasWelcomePack || hasPurchasedPack) && (
+                  {hasPurchasedPack && purchasedPack && (
                     <div className="user-wallet-credit-box">
+                      <h3 style={{ color: "#ff6a00" }}>
+                        {purchasedPack.packName}
+                      </h3>
+
+                      {/* Today Profile Usage */}
                       <h3>
-                        {usageToday?.profileViewingUsed || 0}/
+                        {usageToday?.profileViewingUsed || 0} /
                         {remainingToday?.profileViewingRemaining || 0}
                       </h3>
-                      <h4>profiles viewed</h4>
-                      <h4>Max {dailyProfileLimit} views/day</h4>
-                      <p>Daily limits reset automatically at midnight</p>
+                      <h4>Profiles viewed today</h4>
+
+                      {/* Limits */}
+                      <h4>
+                        Daily Profile Limit: {purchasedPack.dailyProfileLimit}
+                      </h4>
+                      <h4>Daily Job Limit: {purchasedPack.dailyJobLimit}</h4>
+
+                      {/* Total Credits */}
+                      <h4>
+                        Total Profile Credits:{" "}
+                        {purchasedPack.totalProfileCredits}
+                      </h4>
+                      <h4>
+                        Total Job Credits: {purchasedPack.totalJobCredits}
+                      </h4>
+
+                      {/* Extra Info */}
+                      <h4>Payment Mode: {purchasedPack.paymentMode}</h4>
+                      <h4>Days Left: {purchasedPack.daysLeft}</h4>
+
+                      {/* Expiry */}
+                      <p>
+                        Expiry:{" "}
+                        {new Date(purchasedPack.expiresAt).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </p>
                     </div>
                   )}
 
                   {/* ✅ Validity */}
                   {/* ✅ Validity */}
-                  {activePack && (
-                    <div className="user-wallet-credit-box">
-                      <h3 style={{ color: "#ff6a00", fontWeight: "700" }}>
-                        {daysLeft} days
-                      </h3>
-
-                      <h4>Validity Period</h4>
-
-                      <h4>{planName}</h4>
-
-                      <p>Expiry Date: {expiryDate}</p>
-                    </div>
-                  )}
                 </div>
               </section>
 
