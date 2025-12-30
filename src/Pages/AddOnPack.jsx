@@ -37,33 +37,33 @@ const AddOnPack = () => {
 
     fetchActivePacks();
   }, []);
-  const handleBuyNow = async (planId) => {
-    try {
-      const token = localStorage.getItem("token");
+  // const handleBuyNow = async (planId) => {
+  //   try {
+  //     const token = localStorage.getItem("token");
 
-      const res = await axios.post(
-        `${API_BASE_URL}company/purchase-pack`,
-        { packId: planId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  //     const res = await axios.post(
+  //       `${API_BASE_URL}company/purchase-pack`,
+  //       { packId: planId },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
 
-      console.log("Purchase successful:", res.data);
-      toast.success(`Plan purchased successfully: ${res.data.packName}`, {
-        autoClose: 5000,
-        theme: "colored",
-      });
-    } catch (error) {
-      console.error("Purchase failed:", error.response || error);
+  //     console.log("Purchase successful:", res.data);
+  //     toast.success(`Plan purchased successfully: ${res.data.packName}`, {
+  //       autoClose: 5000,
+  //       theme: "colored",
+  //     });
+  //   } catch (error) {
+  //     console.error("Purchase failed:", error.response || error);
 
-      toast.error(
-        `Purchase failed: ${error.response?.data?.message || error.message}`
-      );
-    }
-  };
+  //     toast.error(
+  //       `Purchase failed: ${error.response?.data?.message || error.message}`
+  //     );
+  //   }
+  // };
   return (
     <>
       <ToastContainer />
@@ -157,7 +157,7 @@ const AddOnPack = () => {
                   <div className="plan-price-btn-info">
                     <button
                       className="plan-price-btn default-btn btn"
-                      onClick={() => handleBuyNow(plan._id)}
+                      // onClick={() => handleBuyNow(plan._id)}
                     >
                       Buy Now
                     </button>

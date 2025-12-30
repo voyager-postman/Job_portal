@@ -10,6 +10,8 @@ function YourJobPosts() {
   const navigate = useNavigate();
   // const [isPost, setIsPost] = useState("");
   const [cateroryList, setCategoryList] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
+
   const [jobTitle, setJobTitle] = useState("");
   const [jobCategory, setJobCategory] = useState("");
   const [activeStatus, setActiveStatus] = useState("published");
@@ -216,6 +218,25 @@ function YourJobPosts() {
       );
     }
   };
+  const fetchJobDashboardStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await axios.get(`${API_BASE_URL}get/jobDashboardStats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setDashboardStats(res.data.data); // adjust key if needed
+    } catch (error) {
+      console.error("Dashboard Stats Error:", error);
+    }
+  };
+  useEffect(() => {
+    fetchJobDashboardStats();
+  }, []);
 
   const handleViewOpen = () => setViewOpen(true);
   const handleViewClose = () => setViewOpen(false);
@@ -240,6 +261,14 @@ function YourJobPosts() {
         console.error(error);
       });
   };
+  const renderWeeklyChange = (value) => (
+    <p>
+      <i
+        className={`fa-solid ${value >= 0 ? "fa-arrow-up" : "fa-arrow-down"}`}
+      />{" "}
+      {Math.abs(value)}% this week
+    </p>
+  );
 
   return (
     <>
@@ -283,10 +312,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>All Jobs Posted</h4>
-                        <h5>30</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 60% this week
-                        </p>
+                        <h5>{dashboardStats?.allJobs?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.allJobs?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -304,10 +333,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Published Jobs</h4>
-                        <h5>5</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 50% this week
-                        </p>
+                        <h5>{dashboardStats?.published?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.published?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -323,10 +352,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Draft Job </h4>
-                        <h5>1000</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 15% this week
-                        </p>
+                        <h5>{dashboardStats?.draft?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.draft?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -342,10 +371,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Archived Job</h4>
-                        <h5>0</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 10% this week
-                        </p>
+                        <h5>{dashboardStats?.archived?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.archived?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -363,10 +392,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Unpublished Job</h4>
-                        <h5>0</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 10% this week
-                        </p>
+                        <h5>{dashboardStats?.unpublished?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.unpublished?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -382,10 +411,10 @@ function YourJobPosts() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Expired Job</h4>
-                        <h5>0</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 10% this week
-                        </p>
+                        <h5>{dashboardStats?.expired?.count ?? 0}</h5>
+                        {renderWeeklyChange(
+                          dashboardStats?.expired?.weeklyChange ?? 0
+                        )}
                       </div>
                     </div>
                   </a>
@@ -440,7 +469,7 @@ function YourJobPosts() {
                           />
                         </div>
                         <div className="modal-body">
-                          <div >
+                          <div>
                             <div className="form-group">
                               <label>Job Title</label>
                               <span className="text-danger">*</span>
