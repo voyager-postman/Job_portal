@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-// Load Stripe.js
-
-// Initialize Stripe with your publishable key
+import StripeCheckout from "react-stripe-checkout";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 const AddPlan = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [startPayment, setStartPayment] = useState(false);
 
   useEffect(() => {
     const fetchActivePacks = async () => {
@@ -33,13 +36,55 @@ const AddPlan = () => {
 
     fetchActivePacks();
   }, []);
-  const handleBuyNow = async (planId) => {
+  const resetPaymentState = () => {
+    setShowPaymentModal(false);
+    setStartPayment(false);
+    setPaymentMethod("");
+    setSelectedPlan(null);
+  };
+
+  const handleToken = async (token) => {
+    // toast("Success ! payment successfully", {
+    //   type: "success",
+    // });
+    await purchasePack();
+    resetPaymentState();
+  };
+  const handleBuyNow = (plan) => {
+    setSelectedPlan(plan);
+    setPaymentMethod("");
+    setShowPaymentModal(true);
+  };
+  const handleDemoPayment = async () => {
+    try {
+      await new Promise((res) => setTimeout(res, 1000));
+      // toast.success(`Demo Payment Successful via ${paymentMethod}`);
+      await purchasePack();
+      resetPaymentState();
+    } catch {
+      toast.error("Demo payment failed");
+    }
+  };
+
+  const handleProceed = () => {
+    if (!paymentMethod) {
+      toast.error("Please select payment method");
+      return;
+    }
+    setStartPayment(true);
+  };
+  const closeModal = () => {
+    setShowPaymentModal(false);
+    setStartPayment(false);
+    setPaymentMethod("");
+  };
+  const purchasePack = async () => {
     try {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
         `${API_BASE_URL}company/purchase-pack`,
-        { packId: planId },
+        { packId: selectedPlan._id },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -47,19 +92,19 @@ const AddPlan = () => {
         }
       );
 
-      console.log("Purchase successful:", res.data);
       toast.success(`Plan purchased successfully: ${res.data.packName}`, {
         autoClose: 5000,
         theme: "colored",
       });
+
+      resetPaymentState(); // close modal + reset states
     } catch (error) {
       console.error("Purchase failed:", error.response || error);
 
-      toast.error(
-        `Purchase failed: ${error.response?.data?.message || error.message}`
-      );
+      toast.error(error.response?.data?.message || "Purchase failed");
     }
   };
+
   return (
     <>
       <ToastContainer />
@@ -153,7 +198,7 @@ const AddPlan = () => {
                   <div className="plan-price-btn-info">
                     <button
                       className="plan-price-btn default-btn btn"
-                      onClick={() => handleBuyNow(plan._id)}
+                      onClick={() => handleBuyNow(plan)}
                     >
                       Buy Now
                     </button>
@@ -164,6 +209,128 @@ const AddPlan = () => {
           </div>
         </div>
       </section>
+      {showPaymentModal && (
+        <div
+          className="modal fade show d-block"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Select Payment Method</h5>
+                <button className="btn-close" onClick={resetPaymentState} />
+              </div>
+
+              <div className="modal-body">
+                {!startPayment && (
+                  <>
+                    <div className="form-check mb-2">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        name="payment"
+                        value="Stripe"
+                        checked={paymentMethod === "Stripe"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <label className="form-check-label">Stripe</label>
+                    </div>
+
+                    <div className="form-check mb-2">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        name="payment"
+                        value="PayPal"
+                        checked={paymentMethod === "PayPal"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <label className="form-check-label">PayPal</label>
+                    </div>
+
+                    <div className="form-check">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        name="payment"
+                        value="CMI"
+                        checked={paymentMethod === "CMI"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <label className="form-check-label">CMI</label>
+                    </div>
+                  </>
+                )}
+
+                {/* STRIPE */}
+                {startPayment && paymentMethod === "Stripe" && (
+                  <StripeCheckout
+                    stripeKey="pk_test_51JGNLWBVnEa8wQ1y8ZGMn9tw57qHCROwaNVr5eplb1UvQsN410gJpXPyNW8yFgNQZeM7twAoAjZ7LosccszLnDMz00pIIh0lL0"
+                    token={handleToken}
+                    amount={selectedPlan.amount * 100}
+                    name="Job Portal"
+                  >
+                    <button className="btn btn-primary w-100">
+                      Pay ₹{selectedPlan.amount} with Stripe
+                    </button>
+                  </StripeCheckout>
+                )}
+
+                {/* PAYPAL */}
+                {startPayment && paymentMethod === "PayPal" && (
+                  <PayPalScriptProvider options={{ clientId: "test" }}>
+                    <PayPalButtons
+                      createOrder={(data, actions) =>
+                        actions.order.create({
+                          purchase_units: [
+                            { amount: { value: selectedPlan.amount } },
+                          ],
+                        })
+                      }
+                      onApprove={(data, actions) =>
+                        actions.order.capture().then(() => {
+                          // toast.success("PayPal Payment Successful");
+                          purchasePack();
+                          resetPaymentState();
+                        })
+                      }
+                    />
+                  </PayPalScriptProvider>
+                )}
+
+                {/* CMI */}
+                {startPayment && paymentMethod === "CMI" && (
+                  <button
+                    className="btn btn-success w-100"
+                    onClick={handleDemoPayment}
+                  >
+                    Pay with CMI
+                  </button>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                {!startPayment ? (
+                  <button
+                    className="btn btn-primary"
+                    disabled={!paymentMethod}
+                    onClick={handleProceed}
+                  >
+                    Proceed
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setStartPayment(false)}
+                  >
+                    Back
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
