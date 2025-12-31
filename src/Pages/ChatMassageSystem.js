@@ -23,7 +23,7 @@ function ChatMassageSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.1.88:8000/ws/chat/");
+    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
@@ -57,7 +57,7 @@ function ChatMassageSystem() {
 
     try {
       const res = await axios.get(
-        `http://192.168.1.88:8000/chat/history/${CURRENT_USER_ID}/${user.id}/`
+        `http://66.116.198.68:8788/chat/history/${CURRENT_USER_ID}/${user.id}/`
       );
 
       setChatStore((prev) => ({
@@ -279,7 +279,7 @@ function ChatMassageSystem() {
                     />
                   </div>
                   <div
-                    className="chat-messaging-send-btn"
+                    // className="chat-messaging-send-btn"
                     onClick={sendMessage}
                   >
                     <i className="fa-solid fa-paper-plane" />

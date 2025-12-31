@@ -5,8 +5,8 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+
 function EmployerShortListCandinate() {
   const [loading, setLoading] = useState(false);
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
@@ -34,13 +34,12 @@ function EmployerShortListCandinate() {
       window.scrollTo({ top: 0, behavior: "smooth" }); // optional
     }
   };
-
   const token = localStorage.getItem("token");
-
   useEffect(() => {
     AOS.init({ duration: 1200 });
     fetchBookmarkedCandidates(); // load bookmark list
   }, []);
+
   const fetchBookmarkedCandidates = async () => {
     try {
       setLoading(true);
@@ -58,6 +57,7 @@ function EmployerShortListCandinate() {
       setLoading(false);
     }
   };
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -72,7 +72,6 @@ function EmployerShortListCandinate() {
         { candidateId, jobId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       // Show message from backend
       toast.success(res.data.message);
       fetchBookmarkedCandidates(); // load bookmark list
@@ -87,6 +86,7 @@ function EmployerShortListCandinate() {
       }
     }
   };
+
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
