@@ -179,8 +179,8 @@ Dashboard Area CSS
   /* overflow: hidden; */
   background-color: #f0f5f7;
   /* min-height: 100vh; */
-  padding-right: 60px;
-  padding-left: 380px;
+  padding-right: 20px;
+  padding-left: 360px;
   padding-top: 50px;
 }
 
@@ -3328,7 +3328,7 @@ input:checked + .slider:before {
 
 .work-exprinace-edit {
   position: absolute;
-  right: 20px;
+  right: 40px;
 }
 
 .work-exprinace-edit i {
@@ -6093,7 +6093,7 @@ width:100%;
   display: flex;
 }
 
-.job-seeker-message-time p{
+.job-seeker-message-time p {
   font-size: 12px;
 }
 
@@ -7206,81 +7206,78 @@ width:100%;
 }
 /*Amrjeet Dashboard Css End here*/
 
-
 /*Plan price page css start here*/
- 
- 
+
 .plan-price-info-area {
-margin:0px 0px 0px 0px; 
-padding:60px 0px 60px 0px;  
+  margin: 0px 0px 0px 0px;
+  padding: 60px 0px 60px 0px;
 }
- 
- 
+
 .plan-price-box-info-area {
-border-radius: 10px;
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
- 
+
 .card-header-orange {
-background:#ff6600 !important;  
+  background: #ff6600 !important;
 }
- 
+
 .card-header-green {
-background:#008000 !important;  
+  background: #008000 !important;
 }
- 
+
 .plan-price-heaing-info {
-color: #fff;
-padding: 10px 0px;
-text-align: center;
-background: #0066cc;
-margin-bottom: 10px;
-border-radius: 10px 10px 0px 0px;
+  color: #fff;
+  padding: 10px 0px;
+  text-align: center;
+  background: #0066cc;
+  margin-bottom: 10px;
+  border-radius: 10px 10px 0px 0px;
 }
- 
+
 .plan-price-heaing-info h4 {
-color: #fff;
-font-size: 20px;
-text-transform: capitalize;
+  color: #fff;
+  font-size: 20px;
+  text-transform: capitalize;
 }
- 
+
 .plan-price-heaing-info h5 {
-color: #fff;
-text-transform: capitalize;
+  color: #fff;
+  text-transform: capitalize;
 }
- 
+
 .plan-price-detail-info ul {
-width:90%;
-margin: auto;
-text-align: center;
-padding: 0px 0px 0px 0px;
+  width: 90%;
+  margin: auto;
+  text-align: center;
+  padding: 0px 0px 0px 0px;
 }
- 
+
 .plan-price-detail-info ul li {
-list-style: none;
-font-weight: 500;
-font-size: 16px;
-padding: 15px 20px;
-text-transform: capitalize;
-border-bottom:1px solid #d7d7d7cf;
+  list-style: none;
+  font-weight: 500;
+  font-size: 16px;
+  padding: 15px 20px;
+  text-transform: capitalize;
+  border-bottom: 1px solid #d7d7d7cf;
 }
- 
+
 .plan-price-btn-info {
-padding:20px 0px;  
-text-align:center;
+  padding: 20px 0px;
+  text-align: center;
 }
- 
+
 .cv-view-plan-price-info-area {
-border-radius: 10px;
-background: #f0f4fc;
-padding: 50px 0px 60px 0px;
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+  border-radius: 10px;
+  background: #f0f4fc;
+  padding: 50px 0px 60px 0px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
- 
+
 .cv-view-plan-price-info-area .plan-price-box-info-area {
-background: #fff;
-border-radius: 10px;
-box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
- 
+
 /*Plan price page css end here*/
