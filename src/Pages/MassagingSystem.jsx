@@ -5,10 +5,7 @@ import axios from "axios";
 function MassagingSystem() {
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
-
-  // Job Seeker (YOU)
   const CURRENT_USER_ID = 1;
-  // const RECEIVER_ID = 2; // selected chat user
   const [users, setUsers] = useState([
     { id: 2, name: "User One" },
     { id: 4, name: "User Two" },
@@ -19,7 +16,6 @@ function MassagingSystem() {
   const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
 
-  // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket("ws://192.168.1.88:8000/ws/chat/");
     socketRef.current = ws;
@@ -35,7 +31,6 @@ function MassagingSystem() {
         [otherUser]: [...(prev[otherUser] || []), data],
       }));
 
-      // If currently chatting with this user → update UI
       if (activeUser && otherUser === activeUser.id) {
         setMessages((prev) => [...prev, data]);
       }
@@ -49,7 +44,6 @@ function MassagingSystem() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ---------------- LOAD CHAT HISTORY ----------------
   const loadChat = async (user) => {
     setActiveUser(user);
 
@@ -69,7 +63,6 @@ function MassagingSystem() {
     }
   };
 
-  // ---------------- SEND MESSAGE ----------------
   const sendMessage = () => {
     if (!text.trim() || !activeUser) return;
 
@@ -86,11 +79,6 @@ function MassagingSystem() {
       created_at: new Date().toISOString(),
     };
     socketRef.current.send(JSON.stringify(payload));
-
-    // setChatStore((prev) => ({
-    //   ...prev,
-    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
-    // }));
 
     setMessages((prev) => [...prev, payload]); // instantly show in UI
     setText("");
