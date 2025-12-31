@@ -8,7 +8,7 @@ function MassagingSystem() {
   const CURRENT_USER_ID = 1;
   const [users, setUsers] = useState([
     { id: 2, name: "User One" },
-    { id: 4, name: "User Two" },
+    { id: 3, name: "User Two" },
   ]);
 
   const [activeUser, setActiveUser] = useState(null);
@@ -17,15 +17,13 @@ function MassagingSystem() {
   const [chatStore, setChatStore] = useState({});
 
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.1.88:8000/ws/chat/");
+    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
       if (!data.message) return;
-
       const otherUser = data.from === CURRENT_USER_ID ? data.to : data.from;
-
       setChatStore((prev) => ({
         ...prev,
         [otherUser]: [...(prev[otherUser] || []), data],
@@ -46,10 +44,9 @@ function MassagingSystem() {
 
   const loadChat = async (user) => {
     setActiveUser(user);
-
     try {
       const res = await axios.get(
-        `http://192.168.1.88:8000/chat/history/${CURRENT_USER_ID}/${user.id}/`
+        `http://66.116.198.68:8788/chat/history/${CURRENT_USER_ID}/${user.id}/`
       );
 
       setChatStore((prev) => ({
@@ -319,7 +316,6 @@ function MassagingSystem() {
                           placeholder="Write Brief Bio Or Introduction"
                           rows={1}
                           value={text}
-                          defaultValue={""}
                           onChange={(e) => setText(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />

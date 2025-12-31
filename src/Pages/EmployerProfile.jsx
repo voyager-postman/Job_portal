@@ -14,7 +14,6 @@ function EmployerProfile() {
   const [companyData, setCompanyData] = useState(null);
   const [fileName, setFileName] = useState("No file selected");
   const [fileName1, setFileName1] = useState("No file selected");
-
   const [preview, setPreview] = useState("assets/images/company/dummy-img.png");
   const [preview1, setPreview1] = useState(
     "assets/images/company/dummy-img.png"
@@ -891,6 +890,7 @@ function EmployerProfile() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
+           <h1>Employer Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -909,7 +909,7 @@ function EmployerProfile() {
           {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Employer Profile</h3>
+              {/* <h3>Employer Profile</h3> */}
               <div className="company-profile-management-info">
                 {/* Nav Tabs */}
                 <div className="company-profile-management-tab">
