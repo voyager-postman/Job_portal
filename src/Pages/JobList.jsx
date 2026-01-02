@@ -2018,12 +2018,13 @@ const JobList = () => {
                                     </div>
 
                                     <div className="available-job-type-details">
-                                      <h5>{job?.jobTitle}</h5>
-                                      <p>{job?.shortDescription}</p>
+                                      <h5>{job?.jobTitle || "N/A"}</h5>
+                                      <p>{job?.shortDescription || "N/A"}</p>
                                       <ul>
                                         <li>
                                           <i className="fa-regular fa-calendar" />{" "}
-                                          {moment(job?.createdAt).fromNow()}
+                                          {moment(job?.createdAt).fromNow() ||
+                                            "N/A"}
                                         </li>
                                         <li>
                                           <i className="fa-regular fa-file" />{" "}
@@ -2036,7 +2037,7 @@ const JobList = () => {
                                         <li>
                                           <i className="fa-solid fa-location-dot" />{" "}
                                           {job?.city && job?.city.length > 0
-                                            ? job.city
+                                            ? job.city.join(", ")
                                             : job?.company_city || "N/A"}
                                         </li>
 

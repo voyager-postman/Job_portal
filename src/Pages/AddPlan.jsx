@@ -73,11 +73,7 @@ const AddPlan = () => {
     }
     setStartPayment(true);
   };
-  const closeModal = () => {
-    setShowPaymentModal(false);
-    setStartPayment(false);
-    setPaymentMethod("");
-  };
+
   const purchasePack = async () => {
     try {
       const token = localStorage.getItem("token");

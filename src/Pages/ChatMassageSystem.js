@@ -234,7 +234,7 @@ function ChatMassageSystem() {
                           </div>
                         </div>
                       ) : (
-                        // LEFT SIDE (RECRUITER)
+                  
                         <div key={index} className="user-message-chat-details">
                           <div className="job-seeker-message-name-img-time">
                             <div className="job-seeker-message-img">
@@ -285,15 +285,7 @@ function ChatMassageSystem() {
                     <i className="fa-solid fa-paper-plane" />
                   </div>
                   <div className="chat-messaging-typeing-function">
-                    {/* <div className="chat-messaging-emoji">
-                      <i className="fa-solid fa-face-smile" />
-                    </div>
-                    <div className="chat-messaging-upload-img">
-                      <i className="fa-solid fa-image" />
-                    </div>
-                    <div className="chat-messaging-upload-file">
-                      <i className="fa-solid fa-paperclip" />
-                    </div> */}
+                   
                   </div>
                 </div>
               </div>

@@ -731,7 +731,7 @@ function YourJobPosts() {
             border: "2px solid none",
           }}
         >
-          <Typography
+          {/* <Typography
             variant="h5"
             gutterBottom
             sx={{ fontWeight: "bold", mb: 2 }}
@@ -757,7 +757,7 @@ function YourJobPosts() {
                 }}
               />
             </div>
-          </Box>
+          </Box> */}
           <Card variant="outlined" sx={{ p: 2 }}>
             <Divider sx={{ mb: 2 }} />
             <Typography>

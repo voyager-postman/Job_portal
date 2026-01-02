@@ -162,17 +162,17 @@ function CandinateProfileDetails() {
                 <h4>Social Media</h4>
                 <ul>
                   <li>
-                    <a href={candidate?.userId?.googleId} target="_blank">
+                    <a href={candidate?.links?.portfolio} target="_blank">
                       <i className="fa-solid fa-globe" />
                     </a>
                   </li>
                   <li>
-                    <a href={candidate?.userId?.githubId} target="_blank">
+                    <a href={candidate?.links?.github} target="_blank">
                       <i className="fa-brands fa-github" />
                     </a>
                   </li>
                   <li>
-                    <a href={candidate?.userId?.linkedinId} target="_blank">
+                    <a href={candidate?.links?.linkedin} target="_blank">
                       <i className="fa-brands fa-linkedin-in" />
                     </a>
                   </li>
