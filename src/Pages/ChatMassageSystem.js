@@ -23,7 +23,7 @@ function ChatMassageSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
+    const ws = new WebSocket("wss://66.116.198.68:8788/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
