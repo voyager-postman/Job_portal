@@ -1310,6 +1310,9 @@ Dashboard Area CSS
 .applied-shorting-content {
   margin-bottom: 20px;
 }
+.space-cover {
+  min-height: 100vh;
+}
 .applied-shorting-content .shorting-left-content span strong {
   font-weight: 500;
   color: #202124;

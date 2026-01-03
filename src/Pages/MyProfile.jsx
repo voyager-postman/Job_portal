@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext"; // adjust path
 import { useLocation } from "react-router-dom";
 const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
+  const containerId = "page-a-toast";
   const { login } = useAuth();
   const location = useLocation();
   const [showModal, setShowModal] = useState(false);
@@ -131,7 +132,6 @@ function MyProfile() {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-
     if (selectedFile) {
       const allowedTypes = [
         "application/pdf",
@@ -143,7 +143,6 @@ function MyProfile() {
         setError("Only PDF, DOC, and DOCX files are allowed.");
         return;
       }
-
       setError("");
       setFile(selectedFile); // for display
       setFormData((prev) => ({
@@ -174,43 +173,6 @@ function MyProfile() {
       toast.error("Last name is required.");
       return false;
     }
-    // if (!formData.city) {
-    //   toast.error("City is required.");
-    //   return false;
-    // }
-    // if (!formData.jobTitle?.trim()) {
-    //   toast.error("Job title is required.");
-    //   return false;
-    // }
-    // if (!formData.experience?.trim()) {
-    //   toast.error("Experience is required.");
-    //   return false;
-    // }
-    // if (!formData.employmentType) {
-    //   toast.error("Employment type is required.");
-    //   return false;
-    // }
-    // if (!formData.occupationType) {
-    //   toast.error("Occupation type is required.");
-    //   return false;
-    // }
-    // if (!formData.salaryType) {
-    //   toast.error("Salary type is required.");
-    //   return false;
-    // }
-    // if (!formData.salaryAmount?.trim()) {
-    //   toast.error("Salary amount is required.");
-    //   return false;
-    // }
-    // if (!formData.selectedCategory) {
-    //   toast.error("Job category is required.");
-    //   return false;
-    // }
-    // if (!formData.eligibleInFrance) {
-    //   toast.error("Eligibility to work in France is required.");
-    //   return false;
-    // }
-
     return true;
   };
 
@@ -286,29 +248,6 @@ function MyProfile() {
     }
   };
 
-  // const uploadResume = async () => {
-  //   const data = new FormData();
-  //   data.append("resume", formData.attachment);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
-
-  //     toast.success("Resume uploaded successfully!");
-
-  //     // Close modal programmatically
-  //     const modalElement = document.getElementById("exampleModal");
-  //     const modalInstance =
-  //       Modal.getInstance(modalElement) || new Modal(modalElement);
-  //     modalInstance.hide();
-
-  //     // Optional: Reset file input or form data
-  //     // setFormData({ ...formData, attachment: null });
-  //     // setFile(null);
-  //   } catch (err) {
-  //     console.error("Error:", err.response?.data || err.message);
-  //     toast.error("Failed to upload resume. Try again.");
-  //   }
-  // };
   const handleCitySearch = async (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, city: value }));
@@ -363,28 +302,6 @@ function MyProfile() {
     }
   };
 
-  // const uploadResume = async () => {
-  //   const data = new FormData();
-  //   data.append("resume", formData.attachment);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
-
-  //     if (res.data.success && res.data.jobId) {
-  //       toast.success("Resume uploaded successfully!");
-
-  //       const jobId = res.data.jobId;
-
-  //       // Now call second API to get extracted result
-  //       fetchExtractedData(jobId);
-  //     } else {
-  //       toast.error("Upload succeeded but jobId missing.");
-  //     }
-  //   } catch (err) {
-  //     console.error("Error:", err.response?.data || err.message);
-  //     toast.error("Failed to upload resume. Try again.");
-  //   }
-  // };
   const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
@@ -438,133 +355,11 @@ function MyProfile() {
       toast.error("Error fetching resume data.");
     }
   };
-
-  // const fetchExtractedData = async (jobId) => {
-  //   try {
-  //     const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
-
-  //     // Correct structure
-  //     if (
-  //       res.data.success &&
-  //       res.data.result &&
-  //       res.data.result.success &&
-  //       res.data.result.parsed
-  //     ) {
-  //       const extracted = res.data.result.parsed;
-
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         firstName: extracted.firstName || "",
-  //         lastName: extracted.lastName || "",
-  //         city: extracted.city || "",
-  //         jobTitle: extracted.jobTitle || "",
-  //         experience: extracted.totalExperience
-  //           ? extracted.totalExperience.split(" ")[0]
-  //           : "",
-  //         employmentType: extracted.employmentType || "",
-  //         occupationType: extracted.occupationType || "",
-  //         salaryType: extracted.desiredSalaryType || "",
-  //         salaryAmount: extracted.desiredSalaryAmount || "",
-  //         eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
-  //         selectedCategory: extracted.jobCategory || "",
-  //       }));
-  //       setShowModal(false);
-  //       // toast.success("Resume extracted successfully!");
-  //     } else {
-  //       toast.error("Extraction failed — no data found yet.");
-  //     }
-  //   } catch (err) {
-  //     console.log("Extraction Error:", err.response?.data || err.message);
-  //     toast.error("Error fetching extracted resume data.");
-  //   }
-  // };
-
-  // const uploadResume = async () => {
-  //   const data = new FormData();
-  //   data.append("resume", formData.attachment);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
-
-  //     if (res.data.success && res.data.data) {
-  //       setShowModal(false);
-  //       toast.success("Resume uploaded successfully!");
-
-  //       const extracted = res.data.data;
-
-  //       // Map API response to form fields
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         firstName: extracted.firstName || "",
-  //         lastName: extracted.lastName || "",
-  //         city: extracted.city || "",
-  //         jobTitle: extracted.jobTitle || "",
-  //         experience: extracted.experience || "",
-  //         employmentType: extracted.employmentType || "",
-  //         occupationType: extracted.occupationType || "",
-  //         salaryType: extracted.desiredSalaryType || "",
-  //         salaryAmount: extracted.desiredSalaryAmount || "",
-  //         eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
-  //         selectedCategory: extracted.jobCategory || "",
-  //       }));
-
-  //       // Close modal
-  //       // const modalElement = document.getElementById("exampleModal");
-  //       // const modalInstance =
-  //       //   Modal.getInstance(modalElement) || new Modal(modalElement);
-  //       // modalInstance.hide();
-  //     } else {
-  //       toast.error("Upload succeeded but data extraction failed.");
-  //     }
-  //   } catch (err) {
-  //     console.error("Error:", err.response?.data || err.message);
-  //     toast.error("Failed to upload resume. Try again.");
-  //   }
-  // };
-  // const importFromLinkedIn = async () => {
-  //   try {
-  //     // const userId = localStorage.getItem("user_id");
-
-  //     // if (!userId) {
-  //     //   toast.error("User not logged in");
-  //     //   return;
-  //     // }
-
-  //     const res = await axios.get(`${API_BASE_URL}linkedin/parse`);
-
-  //     if (res.data.success) {
-  //       const profile = res.data.data;
-
-  //       // Example: map LinkedIn data to your form
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         firstName: profile.firstName || "",
-  //         lastName: profile.lastName || "",
-  //         jobTitle: profile.headline || "",
-  //         city: profile.location || "",
-  //         experience: profile.experience || "",
-  //       }));
-
-  //       toast.success("LinkedIn profile imported successfully!");
-  //     } else {
-  //       toast.error("Failed to import LinkedIn profile");
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("LinkedIn import failed");
-  //   }
-  // };
-
   const importFromLinkedIn = () => {
     try {
-      // Redirect user to backend LinkedIn OAuth/parse URL
       window.location.assign(
         "https://sisccltd.com/job_portal/api/linkedin/parse"
       );
-
-      // OR (both are equivalent)
-      // window.location.href =
-      //   "https://sisccltd.com/job_portal/api/linkedin/parse";
     } catch (err) {
       console.error(err);
       toast.error("LinkedIn redirect failed");
@@ -572,7 +367,7 @@ function MyProfile() {
   };
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-
+    console.log(params);
     const success = params.get("success");
     const message = params.get("message");
 
@@ -602,31 +397,30 @@ function MyProfile() {
         selectedCategory: "",
       }));
 
-      toast.success("LinkedIn profile imported successfully!");
+      toast.success("LinkedIn profile imported successfully!", {
+        containerId,
+      });
     }
 
     // ❌ FAILURE CASE
     if (success === "false") {
-      toast.error(message || "LinkedIn profile fetch failed");
+      toast.success(message || "LinkedIn profile fetch failed", {
+        containerId,
+      });
     }
   }, [location.search]);
 
   return (
     <>
-      <ToastContainer />
-      {/* <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>Profile Basic Info</h1>
-            <ul>
-              <li>
-                <a href="index.html">Home</a>
-              </li>
-              <li>Profile Basic Info</li>
-            </ul>
-          </div>
-        </div>
-      </div> */}
+      <ToastContainer
+        containerId={containerId}
+        position="top-right"
+        autoClose={3000}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
           <img
@@ -823,20 +617,7 @@ function MyProfile() {
                   <h3 class="heading-bottom-line">Basic Information</h3>
                   <div class="manual-input-acitve-deactive toggle-atv-dtv-btn">
                     <Switch {...label} />
-                    {/* <span
-                      onClick={handleToggle}
-                      className={`toggle-atv-dtv-btn ${
-                        isActive ? "active" : "deactive"
-                      }`}
-                    >
-                      {isActive ? "Active" : "Deactive"}
-                    </span> */}
                   </div>
-                  {/* <div class="manual-input-acitve-deactive">
-                    <span id="toggleButton" class="toggle-atv-dtv-btn deactive">
-                      Deactive
-                    </span>
-                  </div> */}
                 </div>
                 <div className="row">
                   <div className="col-lg-6 col-md-6">
@@ -870,6 +651,27 @@ function MyProfile() {
                     </div>
                   </div>
 
+                  <div className="col-lg-6 col-md-6">
+                    <div className="form-group">
+                      <label>
+                        County <span>(optional)</span>
+                      </label>
+                      <select
+                        name="County" // ✅ Important
+                        className="form-select form-control"
+                        value={formData.County}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select County</option>
+                        {countries?.length > 0 &&
+                          countries.map((country, idx) => (
+                            <option key={idx} value={country.name || country}>
+                              {country.name || country}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
                   <div className="col-lg-6 col-md-6">
                     <div className="form-group position-relative">
                       <label>
@@ -911,27 +713,6 @@ function MyProfile() {
                           ))}
                         </ul>
                       )}
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <div className="form-group">
-                      <label>
-                        County <span>(optional)</span>
-                      </label>
-                      <select
-                        name="County" // ✅ Important
-                        className="form-select form-control"
-                        value={formData.County}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select County</option>
-                        {countries?.length > 0 &&
-                          countries.map((country, idx) => (
-                            <option key={idx} value={country.name || country}>
-                              {country.name || country}
-                            </option>
-                          ))}
-                      </select>
                     </div>
                   </div>
                 </div>
@@ -998,7 +779,7 @@ function MyProfile() {
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
                     <label>
-                      Desired Employment Type <span>(optional)</span>
+                      Job Type <span>(optional)</span>
                     </label>
 
                     <select
@@ -1007,7 +788,7 @@ function MyProfile() {
                       onChange={handleChange}
                       className="form-control"
                     >
-                      <option value="">Select Employment Type</option>
+                      <option value="">Select Job Type</option>
 
                       {jobTypes.map((job) => (
                         <option key={job._id} value={job.name}>

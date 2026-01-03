@@ -1,64 +1,122 @@
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { MdEmail } from "react-icons/md";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import { useNavigate, Link } from "react-router-dom";
 
 const VerifyEmail = () => {
   const location = useLocation();
   const navigate = useNavigate();
- const { email, showToast } = location.state || {};
+  const { email, token, showToast } = location.state || {};
+
   const [loading, setLoading] = useState(false);
-   useEffect(() => {
+  const [isVerified, setIsVerified] = useState(false);
+
+  /* ✅ Show initial toast */
+  useEffect(() => {
     if (showToast) {
       toast.info("Please check your email for verification.");
     }
   }, [showToast]);
+
+  /* ✅ Check verification status */
+  const checkVerificationStatus = async () => {
+    if (!token) return;
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}checkVerificationStatus`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(res);
+      if (res.data?.verified === true && !isVerified) {
+        setIsVerified(true);
+
+        toast.success("Email verified successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 2000,
+        });
+
+        // ✅ Auto redirect after short delay
+        setTimeout(() => {
+          const redirectUrl =
+            `https://itdevelopmentservices.com/jobPortal/account-verified` +
+            `?email=${encodeURIComponent(email)}` +
+            `&role=${encodeURIComponent(res.data.role || "JobSeeker")}` +
+            `&token=${encodeURIComponent(token)}`;
+
+          window.location.href = redirectUrl; // 👈 external redirect
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Verification status error:", error);
+    }
+  };
+
+  /* ✅ Auto-check every 5 seconds */
+  useEffect(() => {
+    if (!email || isVerified) return;
+
+    const interval = setInterval(() => {
+      checkVerificationStatus();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [email, isVerified]);
+
+  /* ✅ Resend email */
   const handleResendVerification = async () => {
     if (!email) {
-      toast.error("Email is required to resend verification.");
+      toast.error("Email is required.", {
+        containerId: "verify-email-toast",
+      });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}resendVerificationEmail`,
-        { email }
-      );
+      const res = await axios.post(`${API_BASE_URL}resendVerificationEmail`, {
+        email,
+      });
 
-      const { success, message } = response.data;
-
-      if (success) {
-        console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-        toast.success("Verification email resent successfully!");
+      if (res.data.success) {
+        toast.success("Verification email resent!", {
+          containerId: "verify-email-toast",
+        });
       } else {
-        if (message == "Email already verified") {
-          console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-          toast.success(message);
-          // Redirect to login (or profile if logged in)
-          navigate("/");
-        } else {
-          toast.error(message || "Failed to resend verification email.");
-        }
+        toast.error(res.data.message || "Failed to resend email.", {
+          containerId: "verify-email-toast",
+        });
       }
     } catch (error) {
-      console.error("Resend verification error:", error);
-      // Handle 400 or other HTTP errors
-      toast.error(
-        error.response?.data?.message || "Error resending verification email."
-      );
+      toast.error(error.response?.data?.message || "Error resending email.", {
+        containerId: "verify-email-toast",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  /* ✅ Continue after verification */
+  const handleContinue = () => {
+    navigate("/login"); // or dashboard
+  };
+
   return (
     <>
-      <ToastContainer />
+      <ToastContainer
+        containerId="verify-email-toast"
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
+
       <div className="verify-container">
         <div className="verify-card">
           <div className="icon-wrapper">
@@ -66,24 +124,18 @@ const VerifyEmail = () => {
               <MdEmail />
             </span>
           </div>
+
           <h2>Please verify your email</h2>
-          <p>You're almost there! We sent an email to</p>
+          <p>We sent a verification email to</p>
           <p className="email">{email}</p>
-          <p>
-            Just click on the link in that email to complete your signup. If you
-            don't see it, you may need to <strong>check your spam</strong>{" "}
-            folder.
-          </p>
-          <p>Still can't find the email? No problem.</p>
-          <div className="personal-info-btn">
-            <button
-              className="default-btn btn"
-              onClick={handleResendVerification}
-              disabled={loading}
-            >
-              {loading ? "Sending..." : "Resend Verification Email"}
-            </button>
-          </div>
+
+          <button
+            className="default-btn btn"
+            onClick={handleResendVerification}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Resend Verification Email"}
+          </button>
         </div>
       </div>
     </>

@@ -215,7 +215,7 @@ function CandidateProfile() {
     github: "",
     linkedin: "",
   });
-
+  console.log(profileData.eligibleToWorkInFrance);
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -1074,6 +1074,23 @@ function CandidateProfile() {
       });
     }
   };
+  const isAge18OrAbove = (dobString) => {
+    if (!dobString) return false;
+
+    const [year, month, day] = dobString.split("-");
+    const dob = new Date(year, month - 1, day); // local date
+
+    if (isNaN(dob.getTime())) return false;
+
+    const today = new Date();
+    const eighteenYearsAgo = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+
+    return dob <= eighteenYearsAgo;
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -1102,10 +1119,8 @@ function CandidateProfile() {
         return;
       }
 
-      // ✅ Check if birthYear is a valid past date
-      const dob = new Date(personalDetails.birthYear);
-      if (isNaN(dob.getTime()) || dob > new Date()) {
-        toast.error("Please enter a valid date of birth", {
+      if (!isAge18OrAbove(personalDetails.birthYear)) {
+        toast.error("You must be at least 18 years old", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -2509,8 +2524,16 @@ function CandidateProfile() {
                                       <label>Year Of Birth</label>
                                       <input
                                         className="form-control"
-                                        placeholder="YYYY"
                                         type="date"
+                                        max={
+                                          new Date(
+                                            new Date().setFullYear(
+                                              new Date().getFullYear() - 18
+                                            )
+                                          )
+                                            .toISOString()
+                                            .split("T")[0]
+                                        }
                                         value={personalDetails.birthYear}
                                         onChange={(e) =>
                                           setPersonalDetails({
@@ -2590,7 +2613,7 @@ function CandidateProfile() {
                                   </div>
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
-                                      <label>Nationality</label>
+                                      <label>Country</label>
                                       <select
                                         className="form-select form-control"
                                         value={personalDetails.nationality}
@@ -2601,9 +2624,7 @@ function CandidateProfile() {
                                           })
                                         }
                                       >
-                                        <option value="">
-                                          Select Nationality
-                                        </option>
+                                        <option value="">Select Country</option>
                                         {countries?.length > 0 &&
                                           countries.map((country, idx) => (
                                             <option
@@ -2692,7 +2713,7 @@ function CandidateProfile() {
                                 </div>
                                 <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
-                                    <label>Nationality</label>
+                                    <label>Country</label>
                                     <p>{profileData.Nationality || "N/A"}</p>
                                   </div>
                                 </div>
@@ -3559,7 +3580,8 @@ function CandidateProfile() {
                                   <div className="form-group">
                                     <label>Eligible to work in</label>
                                     <p>
-                                      {profileData.eligibleToWorkInFrance
+                                      {profileData.career_goals
+                                        ?.eligibleToWorkInFrance
                                         ? "France"
                                         : "-"}
                                     </p>
