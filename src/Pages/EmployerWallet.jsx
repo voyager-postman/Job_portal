@@ -34,35 +34,6 @@ const EmployerWallet = () => {
     usageToday,
     remainingToday,
   } = credits;
-
-  // Daily limits (sum only if pack exists)
-  const dailyJobLimit =
-    (hasWelcomePack ? welcomePack?.dailyJobLimit || 0 : 0) +
-    (hasPurchasedPack ? purchasedPack?.dailyJobLimit || 0 : 0);
-
-  const dailyProfileLimit =
-    (hasWelcomePack ? welcomePack?.dailyProfileLimit || 0 : 0) +
-    (hasPurchasedPack ? purchasedPack?.dailyProfileLimit || 0 : 0);
-
-  // Validity → take the latest active one
-
-  const activePack = hasPurchasedPack
-    ? purchasedPack
-    : hasWelcomePack
-    ? welcomePack
-    : null;
-
-  const daysLeft = activePack?.daysLeft || 0;
-  const planName = hasPurchasedPack ? purchasedPack.packName : "Welcome Pack";
-
-  const expiryDate = activePack?.expiresAt
-    ? new Date(activePack.expiresAt).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "N/A";
-
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -193,10 +164,7 @@ const EmployerWallet = () => {
                         </div>
                         <div className="modal-footer">
                           <a href="#" className="buy-plan-btn">
-                            Buy Now
-                          </a>
-                          <a href="#" className="buy-plan-btn">
-                            View Plans
+                            Request
                           </a>
                         </div>
                       </div>
@@ -206,107 +174,245 @@ const EmployerWallet = () => {
               </section>
 
               <section className="user-wallet-credit-limit-info">
-                <div className="user-wallet-credit-limit">
-                  {/* ❌ No active pack */}
-                  {!hasWelcomePack && !hasPurchasedPack && (
-                    <div className="user-wallet-credit-box">
-                      <h3>0/0</h3>
-                      <h4>No Active Plan</h4>
-                      <p>Please purchase a plan to continue</p>
-                    </div>
-                  )}
-
-                  {/* ✅ Job Posting */}
+                <div className="accordion" id="accordionExample">
+                  {/* ===================== WELCOME PACK ===================== */}
                   {hasWelcomePack && welcomePack && (
-                    <div className="user-wallet-credit-box">
-                      <h3 style={{ color: "#004895ff" }}>Welcome Pack</h3>
+                    <div className="accordion-item">
+                      <h2 className="accordion-header">
+                        <button
+                          className="accordion-button collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#welcomePack"
+                        >
+                          Welcome Pack
+                          <span className="PlusIcon">
+                            <i className="fa-solid fa-plus" />
+                          </span>
+                          <span className="MinusIcon">
+                            <i className="fa-solid fa-minus" />
+                          </span>
+                        </button>
+                      </h2>
 
-                      {/* Today Usage */}
-                      <h3>
-                        {usageToday?.jobPostingUsed || 0} /
-                        {remainingToday?.jobPostingRemaining || 0}
-                      </h3>
-                      <h4>Jobs created today</h4>
+                      <div
+                        id="welcomePack"
+                        className="accordion-collapse collapse"
+                        data-bs-parent="#accordionExample"
+                      >
+                        <div className="accordion-body">
+                          <div className="user-wallet-credit-limit">
+                            {/* Jobs Today */}
+                            <div className="user-wallet-credit-box">
+                              <h3>
+                                {usageToday?.jobPostingUsed || 0} /
+                                {remainingToday?.jobPostingRemaining || 0}
+                              </h3>
+                              <h4>Jobs created today</h4>
+                              <h4>
+                                Daily Job Limit: {welcomePack.dailyJobLimit}
+                              </h4>
+                              <p>
+                                Daily limits reset automatically at midnight
+                              </p>
+                            </div>
 
-                      {/* Limits */}
-                      <h4>Daily Job Limit: {welcomePack.dailyJobLimit}</h4>
-                      <h4>
-                        Daily Profile Limit: {welcomePack.dailyProfileLimit}
-                      </h4>
+                            {/* Profiles Today */}
+                            <div className="user-wallet-credit-box">
+                              <h3>
+                                {usageToday?.profileViewingUsed || 0} /
+                                {remainingToday?.profileViewingRemaining || 0}
+                              </h3>
+                              <h4>Profiles viewed today</h4>
+                              <h4>
+                                Daily Profile Limit:{" "}
+                                {welcomePack.dailyProfileLimit}
+                              </h4>
+                              <p>
+                                Daily limits reset automatically at midnight
+                              </p>
+                            </div>
 
-                      {/* Total Credits */}
-                      <h4>Total Job Credits: {welcomePack.totalJobCredits}</h4>
-                      <h4>
-                        Total Profile Credits: {welcomePack.totalProfileCredits}
-                      </h4>
-
-                      {/* Validity */}
-                      <h4>Days Left: {welcomePack.daysLeft}</h4>
-
-                      <p>
-                        Expiry:{" "}
-                        {new Date(welcomePack.expiresAt).toLocaleDateString(
-                          "en-GB",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
-                      </p>
+                            {/* Validity */}
+                            <div className="user-wallet-credit-box">
+                              <h3>{welcomePack.daysLeft} Days</h3>
+                              <h4>Validity Period</h4>
+                              <p>
+                                Expiry:{" "}
+                                {new Date(
+                                  welcomePack.expiresAt
+                                ).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  {/* ✅ Profile Viewing */}
+                  {/* ===================== PURCHASED PACK ===================== */}
                   {hasPurchasedPack && purchasedPack && (
-                    <div className="user-wallet-credit-box">
-                      <h3 style={{ color: "#ff6a00" }}>
-                        {purchasedPack.packName}
-                      </h3>
+                    <div className="accordion-item">
+                      <h2 className="accordion-header">
+                        <button
+                          className="accordion-button collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#purchasedPack"
+                        >
+                          {purchasedPack.packName}
+                          <span className="PlusIcon">
+                            <i className="fa-solid fa-plus" />
+                          </span>
+                          <span className="MinusIcon">
+                            <i className="fa-solid fa-minus" />
+                          </span>
+                        </button>
+                      </h2>
 
-                      {/* Today Profile Usage */}
-                      <h3>
-                        {usageToday?.profileViewingUsed || 0} /
-                        {remainingToday?.profileViewingRemaining || 0}
-                      </h3>
-                      <h4>Profiles viewed today</h4>
+                      <div
+                        id="purchasedPack"
+                        className="accordion-collapse collapse"
+                        data-bs-parent="#accordionExample"
+                      >
+                        <div className="accordion-body">
+                          <div className="user-wallet-credit-limit">
+                            {/* Jobs Today */}
+                            <div className="user-wallet-credit-box">
+                              <h3>
+                                {usageToday?.jobPostingUsed || 0} /
+                                {remainingToday?.jobPostingRemaining || 0}
+                              </h3>
+                              <h4>Jobs created today</h4>
+                              <h4>
+                                Daily Job Limit: {purchasedPack.dailyJobLimit}
+                              </h4>
+                              <p>
+                                Daily limits reset automatically at midnight
+                              </p>
+                            </div>
 
-                      {/* Limits */}
-                      <h4>
-                        Daily Profile Limit: {purchasedPack.dailyProfileLimit}
-                      </h4>
-                      <h4>Daily Job Limit: {purchasedPack.dailyJobLimit}</h4>
+                            {/* Profiles Today */}
+                            <div className="user-wallet-credit-box">
+                              <h3>
+                                {usageToday?.profileViewingUsed || 0} /
+                                {remainingToday?.profileViewingRemaining || 0}
+                              </h3>
+                              <h4>Profiles viewed today</h4>
+                              <h4>
+                                Daily Profile Limit:{" "}
+                                {purchasedPack.dailyProfileLimit}
+                              </h4>
+                              <p>
+                                Daily limits reset automatically at midnight
+                              </p>
+                            </div>
 
-                      {/* Total Credits */}
-                      <h4>
-                        Total Profile Credits:{" "}
-                        {purchasedPack.totalProfileCredits}
-                      </h4>
-                      <h4>
-                        Total Job Credits: {purchasedPack.totalJobCredits}
-                      </h4>
-
-                      {/* Extra Info */}
-                      <h4>Payment Mode: {purchasedPack.paymentMode}</h4>
-                      <h4>Days Left: {purchasedPack.daysLeft}</h4>
-
-                      {/* Expiry */}
-                      <p>
-                        Expiry:{" "}
-                        {new Date(purchasedPack.expiresAt).toLocaleDateString(
-                          "en-GB",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
-                      </p>
+                            {/* Validity */}
+                            <div className="user-wallet-credit-box">
+                              <h3>{purchasedPack.daysLeft} Days</h3>
+                              <h4>Validity Period</h4>
+                              <p>
+                                Expiry:{" "}
+                                {new Date(
+                                  purchasedPack.expiresAt
+                                ).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
+                  <div className="accordion-item">
+                    <h2 className="accordion-header">
+                      <button
+                        className="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#adOnPack"
+                      >
+                        Add on Pack
+                        <span className="PlusIcon">
+                          <i className="fa-solid fa-plus" />
+                        </span>
+                        <span className="MinusIcon">
+                          <i className="fa-solid fa-minus" />
+                        </span>
+                      </button>
+                    </h2>
 
-                  {/* ✅ Validity */}
-                  {/* ✅ Validity */}
+                    <div
+                      id="adOnPack"
+                      className="accordion-collapse collapse"
+                      data-bs-parent="#accordionExample"
+                    >
+                      <div className="accordion-body">
+                        <div className="user-wallet-credit-limit">
+                          {/* Jobs Today */}
+                          <div className="user-wallet-credit-box">
+                            <h3>
+                              {usageToday?.jobPostingUsed || 0} /
+                              {remainingToday?.jobPostingRemaining || 0}
+                            </h3>
+                            <h4>Jobs created today</h4>
+                            <h4>
+                              Daily Job Limit: {purchasedPack.dailyJobLimit}
+                            </h4>
+                            <p>Daily limits reset automatically at midnight</p>
+                          </div>
+
+                          {/* Profiles Today */}
+                          <div className="user-wallet-credit-box">
+                            <h3>
+                              {usageToday?.profileViewingUsed || 0} /
+                              {remainingToday?.profileViewingRemaining || 0}
+                            </h3>
+                            <h4>Profiles viewed today</h4>
+                            <h4>
+                              Daily Profile Limit:{" "}
+                              {purchasedPack.dailyProfileLimit}
+                            </h4>
+                            <p>Daily limits reset automatically at midnight</p>
+                          </div>
+
+                          {/* Validity */}
+                          <div className="user-wallet-credit-box">
+                            <h3>{purchasedPack.daysLeft} Days</h3>
+                            <h4>Validity Period</h4>
+                            <p>
+                              Expiry:{" "}
+                              {new Date(
+                                purchasedPack.expiresAt
+                              ).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* ===================== NO ACTIVE PLAN ===================== */}
+                  {!hasWelcomePack && !hasPurchasedPack && (
+                    <div className="user-wallet-credit-limit">
+                      <div className="user-wallet-credit-box">
+                        <h3>0 / 0</h3>
+                        <h4>No Active Plan</h4>
+                        <p>Please purchase a plan to continue</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 

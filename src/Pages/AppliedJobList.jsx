@@ -121,7 +121,7 @@ function AppliedJobList() {
                       <h4>
                         <img
                           crossOrigin="anonymous"
-                          src={getImageUrl(job?.JobCoverPhoto)}
+                          src={getImageUrl(job?.company?.logo)}
                           alt="logo"
                           onError={(e) => {
                             e.target.src = "assets/images/icon/icon-26.png";
@@ -139,24 +139,24 @@ function AppliedJobList() {
                     <ul>
                       <li>
                         <i className="fa-regular fa-calendar" />{" "}
-                        {moment(job?.createdAt).fromNow()}
+                        {moment(job?.createdAt).fromNow() || "N/A"}
                       </li>
                       {/* <li>
                             <i className="fa-regular fa-file" /> 5 Years
                           </li> */}
                       <li>
                         <i className="fa-regular fa-user" />
-                        {job?.employmentType?.name}
+                        {job?.employmentType?.name || "N/A"}
                       </li>
                       <li>
                         <i className="fa-solid fa-location-dot" />{" "}
-                        {job?.city && job?.city.length > 0
-                          ? job.city
+                        {job?.city && job.city.length > 0
+                          ? job.city.join(", ")
                           : job?.company_city || "N/A"}
                       </li>
                       <li>
                         <i className="fa-regular fa-file" />{" "}
-                        {job?.jobCategory?.name}{" "}
+                        {job?.jobCategory?.name || "N/A"}{" "}
                       </li>
                     </ul>
                   </div>

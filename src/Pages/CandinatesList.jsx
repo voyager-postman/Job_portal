@@ -105,18 +105,6 @@ function CandinatesList() {
               <div className="row">
                 <div className="col-lg-3">
                   <div className="sidebar candidate-list-filter">
-                    <div className="single-sidebar-widget keyword">
-                      <h3>Search By Keyword</h3>
-                      <form>
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="Keywords / Job Title"
-                          />
-                        </div>
-                      </form>
-                    </div>
                     <div className="single-sidebar-widget skills">
                       <h3>Skills</h3>
                       <form>
@@ -425,8 +413,9 @@ function CandinatesList() {
                                           </li>
                                           <li>
                                             <i className="fa-solid fa-money-bill" />
-                                            {candidate.expectedSalary
-                                              ? `$ ${candidate.expectedSalary}`
+                                            {candidate.career_goals
+                                              ?.MinimumDesiredSalary?.amount
+                                              ? `$ ${candidate.career_goals?.MinimumDesiredSalary?.amount}/${candidate.career_goals?.MinimumDesiredSalary?.type}`
                                               : "$ 0"}
                                           </li>
                                           <li>
@@ -436,13 +425,14 @@ function CandinatesList() {
                                           </li>
                                           <li>
                                             <i className="fa-solid fa-graduation-cap" />
-                                            {candidate.educationLevel ||
+                                            {candidate?.career_goals
+                                              ?.DesiredEmploymentType ||
                                               "Not specified"}
                                           </li>
                                           <li>
                                             <i className="fa-solid fa-gear" />
                                             <span className="candidate-active">
-                                              {candidate.isActive
+                                              {candidate.profileVisible
                                                 ? "Active"
                                                 : "Inactive"}
                                             </span>

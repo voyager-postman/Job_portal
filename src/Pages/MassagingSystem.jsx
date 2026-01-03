@@ -158,31 +158,9 @@ function MassagingSystem() {
                             </a>
                           </li>
                         ))}
-                        {/* <li className="nav-item" role="presentation">
-                          <a
-                            className="nav-link"
-                            data-bs-toggle="tab"
-                            href="#menu2"
-                            aria-selected="false"
-                            role="tab"
-                          >
-                            <div className="messaging-system-img-user-info">
-                              <div className="messaging-system-user-img">
-                                <img
-                                  src="assets/images/candidate-img/candidate2.jpg"
-                                  alt="image"
-                                />
-                              </div>
-                              <div className="messaging-system-user-info">
-                                <h5>Sophia Smith</h5>
-                                <p>Software Engineer</p>
-                              </div>
-                            </div>
-                          </a>
-                        </li> */}
+                      
                       </ul>
                     </div>
-
                     <div className="messaging-system-chat-box">
                       {/* Tab Panes */}
                       <div className="messaging-system-heading-info">
@@ -265,48 +243,6 @@ function MassagingSystem() {
                             )
                           )}
                         </div>
-                        {/* <div
-                          className="tab-pane fade"
-                          id="menu2"
-                          role="tabpanel"
-                        >
-                          <div className="messaging-system-user-messaging">
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                            <div className="messaging-system-user-message">
-                              <div className="messaging-system-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                          </div>
-                          <div className="messaging-system-recruiter-messaging">
-                            <div className="messaging-system-user-message bg-color">
-                              <div className="messaging-system-recruiter-message-time">
-                                <h6>Sophia Smith</h6>
-                                <p>7:45 AM</p>
-                              </div>
-                              <p>
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipisicing elit, sed do eiusmod tempor
-                              </p>
-                            </div>
-                            <div className="messaging-system-userImg">
-                              <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
-                              />
-                            </div>
-                          </div>
-                        </div> */}
                       </div>
 
                       {/* ---------------- INPUT ---------------- */}

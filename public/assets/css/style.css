@@ -10580,3 +10580,300 @@ text-transform: capitalize;
 .plan-price-box-info-area {
   margin-bottom: 24px;
 }
+/*creadite point css start here*/
+ 
+.user-wallet-credit-limit-info {
+padding: 0px 0px 0px 0px;
+margin: 30px 0px 30px 0px; 
+}
+ 
+.user-wallet-credit-limit-info .accordion-item {
+border: none;
+position:relative;
+margin-bottom: 30px;
+box-shadow: inherit;
+border-radius: 0px !important;  
+}
+ 
+.user-wallet-credit-limit-info .accordion-button.collapsed .PlusIcon {
+top: 18px;
+right: 20px;
+color: #fff;
+font-size: 18px;
+display:block;
+padding: 0px 5px;
+line-height:25px;
+position: absolute;
+border-radius: 5px;
+background: #ff6600;
+}
+ 
+ 
+.user-wallet-credit-limit-info .accordion-button .PlusIcon {
+display:none;  
+}
+ 
+ 
+.user-wallet-credit-limit-info .accordion-button.collapsed .MinusIcon {
+display:none;
+}
+ 
+.user-wallet-credit-limit-info .accordion-button .MinusIcon {
+top: 18px;
+right: 20px;
+color: #fff;
+display:block;
+font-size: 18px;
+line-height:25px;
+padding: 0px 5px;
+position: absolute;
+border-radius: 5px;
+background: #ff6600;
+}
+ 
+ 
+.user-wallet-credit-limit-info .accordion-button {
+border: 0px;
+outline: none;
+color: #000;
+font-size:20px;
+font-weight: 600;
+border-radius: 0px;
+padding: 15px 20px;
+background: #ffff;
+box-shadow:inherit;
+}
+ 
+ 
+.user-wallet-credit-limit-info .accordion-body {
+border-top: 1px solid #dee2e6;
+}
+ 
+.user-wallet-credit-limit-info .accordion-button:focus {
+box-shadow:inherit !important;  
+}
+ 
+.user-wallet-credit-box-info {
+background: #fff;
+margin-bottom: 10px;
+padding: 20px 20px 10px 20px;
+}
+ 
+ 
+.user-wallet-credit-button {
+display:flex;
+align-items:center;
+justify-content:space-between;  
+}
+ 
+ 
+.user-wallet-credit h4 {
+font-size:16px;
+color:#202124;
+text-transform: capitalize; 
+}
+ 
+ 
+.user-wallet-credit h4 span {
+font-size:20px;
+color:#fe6600; 
+}
+ 
+.credit-buy-btn {
+color: #fff;
+font-size:14px;
+padding: 5px 5px;
+margin-left:10px;
+border-radius: 5px;
+background: #0066CC;
+margin-bottom: 12px;
+text-transform: capitalize;
+}
+ 
+.credit-buy-btn:hover {
+background:#FF6600;
+}
+ 
+.user-wallet-credit-button-info p {
+font-size: 14px;
+margin-top:5px;
+font-weight: 550;
+padding-top: 10px;
+letter-spacing: 0.5px;
+border-top: 1px solid #dee2e6;
+}
+ 
+.user-wallet-credit-limit {
+display:flex; 
+margin-top:10px;
+align-items:center;
+justify-content:space-between;  
+}
+ 
+.user-wallet-credit-box {
+width: 32%;
+height: 200px;
+background: #fff;
+text-align: center;
+margin-bottom:10px;
+border: 1px solid #dee2e6;
+padding: 20px 20px 20px 20px;
+}
+ 
+.user-wallet-credit-box h3 {
+font-size:20px;
+color: #ff6600;
+}
+ 
+.user-wallet-credit-box h4 {
+font-size: 15px;
+font-weight: 450;
+text-transform: capitalize;
+}
+ 
+.user-wallet-credit-box p {
+font-size: 14px;
+font-weight: 450;
+margin-top: 15px;
+padding-top: 5px;
+letter-spacing: 0.5px;
+text-transform: capitalize;  
+border-top: 1px solid #cdcdcd;
+}
+ 
+ 
+.user-wallet-transaction-tab .nav-tabs .nav-item {
+width:50%;
+}
+ 
+.user-wallet-transaction-tab .nav-tabs .nav-link {
+color: #040404;
+font-size: 18px;
+font-weight: 600;  
+}
+ 
+.user-wallet-transaction-table td a {
+color: #0066cc;
+cursor: pointer;
+font-size: 12px;
+font-weight: 700;
+}
+ 
+.user-wallet-transaction-table td a:hover {
+color:#ff6607; 
+}
+ 
+.add-credits-modal-info label {
+color: #202124;
+font-size: 16px;
+font-weight: 500;
+margin-bottom: 5px;
+}
+ 
+.add-credits-modal-info .form-group {
+margin-bottom: 15px; 
+}
+ 
+.add-credits-modal-info .form-control {
+height: auto;
+font-size:15px; 
+padding: 7px 10px;
+}
+ 
+.add-credits-modal-info .modal-footer {
+display: block;
+text-align: center;
+padding: 30px 0px;
+}
+ 
+.buy-plan-btn {
+color: #fff;
+font-size: 14px;
+padding: 7px 10px;
+margin-left: 10px;
+border-radius: 5px;
+background: #0066CC;
+margin-bottom: 12px;
+text-transform: capitalize;
+}
+ 
+.buy-plan-btn:hover {
+background:#FF6600;  
+}
+ 
+ 
+.employer-dashboard-common-heading.subscription-plan-name {
+position:relative;  
+}
+ 
+.employer-dashboard-common-heading.subscription-plan-name span {
+top: 15px;
+right: 10px;
+color: #fff;
+position: absolute;
+padding: 5px 15px;
+border-radius: 20px;
+background: #ff6600;
+}
+ 
+ 
+/*.job-post-cv-view-card-info {
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+ 
+.job-post-cv-view-card-box {
+width: 24%;
+background: #fff;
+padding: 10px 10px;
+border-radius: 5px;
+align-items: center;
+margin-bottom: 20px;
+}
+ 
+ 
+.job-post-cv-view-point {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+ 
+.job-post-cv-view-card-box h3 {
+color: #0066CC;
+font-size: 17px;
+padding-bottom: 5px;
+border-bottom: 1px solid #e2e6f0;  
+}
+ 
+.job-post-cv-view-no h4 {
+font-size:15px;
+color: #ff6600;
+text-transform: capitalize; 
+}
+ 
+.job-post-cv-view-no h5 {
+font-size: 17px;
+}
+ 
+.job-post-cv-view-card-box p {
+font-size: 14px;
+font-weight: 450;
+padding-top: 5px;
+text-transform: capitalize;
+border-top: 1px solid #e2e6f0;
+}
+ 
+.job-post-cv-view-card-box span {
+display:block; 
+}
+ 
+.job-post-cv-view-card-box span label {
+color: #ff6600;
+font-size: 14px;
+font-weight: 600;
+margin-bottom: 10px;
+text-transform: capitalize;
+} */
+ 
+/*creadite point css end here*/
