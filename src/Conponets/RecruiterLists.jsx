@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 function RecruiterLists() {
+  const navigate = useNavigate();
+
   const [data, setData] = useState([]);
   const getRecruiterList = () => {
     const token = localStorage.getItem("token");
@@ -33,6 +38,69 @@ function RecruiterLists() {
   useEffect(() => {
     getRecruiterList();
   }, []);
+  const handleStatusToggle = async (recruiter) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const newStatus = recruiter.status === "Active" ? "Inactive" : "Active";
+
+      await axios.post(
+        `${API_BASE_URL}updateRecruiterStatus/${recruiter._id}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success(`Recruiter ${newStatus}`);
+
+      // Refresh list
+      getRecruiterList();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleDelete = (recruiterId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This recruiter will be deleted permanently!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+
+          await axios.post(
+            `${API_BASE_URL}deleteRecruiter/${recruiterId}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          Swal.fire("Deleted!", "Recruiter deleted successfully.", "success");
+
+          // Refresh list
+          getRecruiterList();
+        } catch (error) {
+          Swal.fire(
+            "Error!",
+            error.response?.data?.message || "Failed to delete recruiter.",
+            "error"
+          );
+        }
+      }
+    });
+  };
 
   const columns = [
     {
@@ -71,192 +139,51 @@ function RecruiterLists() {
     {
       accessorKey: "status",
       header: "Status",
-      cell: () => (
-        <div className="recruiter-status-info">
-          <div className="form-check form-switch">
-            <input className="form-check-input" type="checkbox" role="switch" />
+      cell: ({ row }) => {
+        const recruiter = row.original;
+
+        return (
+          <div className="recruiter-status-info">
+            <div className="form-check form-switch">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                checked={recruiter.status === "Active"}
+                onChange={() => handleStatusToggle(recruiter)}
+              />
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       accessorKey: "action",
       header: "Action",
-      cell: () => (
-        <div className="action-icon-info">
-          <i
-            className="fa-solid fa-pencil"
-            style={{ cursor: "pointer", marginRight: "10px" }}
-          />
-          <i className="fa-solid fa-trash" style={{ cursor: "pointer" }} />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const recruiter = row.original;
+
+        return (
+          <div className="action-icon-info">
+            <i
+              className="fa-solid fa-pencil"
+              style={{ cursor: "pointer", marginRight: "10px" }}
+              onClick={() =>
+                navigate("/create-recruiters", {
+                  state: { recruiterData: recruiter },
+                })
+              }
+            />
+            <i
+              className="fa-solid fa-trash"
+              style={{ cursor: "pointer" }}
+              onClick={() => handleDelete(recruiter._id)}
+            />
+          </div>
+        );
+      },
     },
   ];
-
-  // ✅ Static Data
-  // const data = [
-  //   {
-  //     id: 1,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-  //     name: "Samyara Robert",
-  //     email: "samyara.robert@gmail.com",
-  //     position: "Staff Member",
-  //     phone: "9874563214",
-  //   },
-  //   {
-  //     id: 2,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-  //     name: "John Smith",
-  //     email: "john.smith@gmail.com",
-  //     position: "HR Manager",
-  //     phone: "9876543210",
-  //   },
-  //   {
-  //     id: 3,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-  //     name: "Emma Watson",
-  //     email: "emma.watson@gmail.com",
-  //     position: "Recruiter",
-  //     phone: "9123456789",
-  //   },
-  //   {
-  //     id: 4,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-  //     name: "Robert Brown",
-  //     email: "robert.brown@gmail.com",
-  //     position: "Staff Member",
-  //     phone: "9988776655",
-  //   },
-  //   {
-  //     id: 5,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-  //     name: "Sophia Johnson",
-  //     email: "sophia.johnson@gmail.com",
-  //     position: "Team Lead",
-  //     phone: "9871234567",
-  //   },
-  //   {
-  //     id: 6,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-  //     name: "Liam Williams",
-  //     email: "liam.williams@gmail.com",
-  //     position: "Software Engineer",
-  //     phone: "9765432109",
-  //   },
-  //   {
-  //     id: 7,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-  //     name: "Olivia Martinez",
-  //     email: "olivia.martinez@gmail.com",
-  //     position: "Designer",
-  //     phone: "9456123789",
-  //   },
-  //   {
-  //     id: 8,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-  //     name: "James Anderson",
-  //     email: "james.anderson@gmail.com",
-  //     position: "Staff Member",
-  //     phone: "9870098765",
-  //   },
-  //   {
-  //     id: 9,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-  //     name: "Isabella Taylor",
-  //     email: "isabella.taylor@gmail.com",
-  //     position: "Recruiter",
-  //     phone: "9567843210",
-  //   },
-  //   {
-  //     id: 10,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-  //     name: "Mason Lee",
-  //     email: "mason.lee@gmail.com",
-  //     position: "HR Assistant",
-  //     phone: "9345678123",
-  //   },
-  //   {
-  //     id: 11,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-  //     name: "Mia Davis",
-  //     email: "mia.davis@gmail.com",
-  //     position: "Coordinator",
-  //     phone: "9012345678",
-  //   },
-  //   {
-  //     id: 12,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-  //     name: "Ethan White",
-  //     email: "ethan.white@gmail.com",
-  //     position: "Recruiter",
-  //     phone: "9234567890",
-  //   },
-  //   {
-  //     id: 13,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-  //     name: "Charlotte Harris",
-  //     email: "charlotte.harris@gmail.com",
-  //     position: "Staff Member",
-  //     phone: "9123987654",
-  //   },
-  //   {
-  //     id: 14,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-  //     name: "Benjamin Clark",
-  //     email: "benjamin.clark@gmail.com",
-  //     position: "HR Manager",
-  //     phone: "9345098761",
-  //   },
-  //   {
-  //     id: 15,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-  //     name: "Amelia Lewis",
-  //     email: "amelia.lewis@gmail.com",
-  //     position: "Software Engineer",
-  //     phone: "9785612345",
-  //   },
-  //   {
-  //     id: 16,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-  //     name: "Lucas Walker",
-  //     email: "lucas.walker@gmail.com",
-  //     position: "Designer",
-  //     phone: "9654321789",
-  //   },
-  //   {
-  //     id: 17,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate1.jpg",
-  //     name: "Harper Hall",
-  //     email: "harper.hall@gmail.com",
-  //     position: "Recruiter",
-  //     phone: "9543216789",
-  //   },
-  //   {
-  //     id: 18,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate2.jpg",
-  //     name: "Henry Allen",
-  //     email: "henry.allen@gmail.com",
-  //     position: "Team Lead",
-  //     phone: "9234785612",
-  //   },
-  //   {
-  //     id: 19,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate3.jpg",
-  //     name: "Evelyn Young",
-  //     email: "evelyn.young@gmail.com",
-  //     position: "Staff Member",
-  //     phone: "9874567891",
-  //   },
-  //   {
-  //     id: 20,
-  //     image: "/jobPortal/assets/images/candidate-img/candidate4.jpg",
-  //     name: "Alexander King",
-  //     email: "alexander.king@gmail.com",
-  //     position: "HR Assistant",
-  //     phone: "9765123489",
-  //   },
-  // ];
 
   return (
     <>

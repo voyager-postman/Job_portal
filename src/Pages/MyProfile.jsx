@@ -16,6 +16,8 @@ function MyProfile() {
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [occupationTypes, setOccupationTypes] = useState([]);
+  const [isManualEnabled, setIsManualEnabled] = useState(false);
+  // values: "resume" | "linkedin" | null
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -66,6 +68,7 @@ function MyProfile() {
 
     fetchCountries();
   }, []);
+  useEffect(() => {}, [isManualEnabled]);
   const fetchIndustries = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getIndustries`);
@@ -107,6 +110,9 @@ function MyProfile() {
   useEffect(() => {
     fetchJobTypes();
   }, []);
+  // auto-enable if resume or linkedin filled anything
+
+  // FINAL FLAG
 
   useEffect(() => {
     const fetchJobCategory = async () => {
@@ -188,14 +194,7 @@ function MyProfile() {
     data.append("jobCategory", formData.selectedCategory);
     data.append("DesiredEmploymentType", formData.employmentType);
     data.append("DesiredOccupationType", formData.occupationType);
-    // data.append(
-    //   "MinimumDesiredSalary",
-    //   JSON.stringify({
-    //     type: formData.salaryType || "Yearly",
-    //     amount: formData.salaryAmount,
-    //     currency: "USD",
-    //   })
-    // );
+
     if (formData.salaryType || formData.salaryAmount) {
       data.append(
         "MinimumDesiredSalary",
@@ -233,7 +232,6 @@ function MyProfile() {
         localStorage.setItem("first_name", userDetails.first_name);
         localStorage.setItem("last_name", userDetails.last_name);
         localStorage.setItem("is_completed", userDetails?.is_completed);
-        toast.success("Registration successful!");
         login(); // set auth context / localStorage
         navigate("/profile-basic-info");
       }
@@ -616,7 +614,11 @@ function MyProfile() {
                 <div class="personal-info-heading-toggle">
                   <h3 class="heading-bottom-line">Basic Information</h3>
                   <div class="manual-input-acitve-deactive toggle-atv-dtv-btn">
-                    <Switch {...label} />
+                    <Switch
+                      {...label}
+                      checked={isManualEnabled}
+                      onChange={(e) => setIsManualEnabled(e.target.checked)}
+                    />
                   </div>
                 </div>
                 <div className="row">
@@ -632,6 +634,7 @@ function MyProfile() {
                         onChange={handleChange}
                         placeholder="First name"
                         className="form-control"
+                        disabled={!isManualEnabled}
                       />
                     </div>
                   </div>
@@ -647,6 +650,7 @@ function MyProfile() {
                         onChange={handleChange}
                         placeholder="Last name"
                         className="form-control"
+                        disabled={!isManualEnabled}
                       />
                     </div>
                   </div>
@@ -661,6 +665,7 @@ function MyProfile() {
                         className="form-select form-control"
                         value={formData.County}
                         onChange={handleChange}
+                        disabled={!isManualEnabled}
                       >
                         <option value="">Select County</option>
                         {countries?.length > 0 &&
@@ -685,6 +690,7 @@ function MyProfile() {
                         value={formData.city}
                         onChange={handleCitySearch}
                         autoComplete="off"
+                        disabled={!isManualEnabled}
                       />
 
                       {/* Suggestions Dropdown */}
@@ -735,6 +741,7 @@ function MyProfile() {
                         onChange={handleChange}
                         placeholder="Job Title"
                         className="form-control"
+                        disabled={!isManualEnabled}
                       />
                     </div>
                   </div>
@@ -750,6 +757,7 @@ function MyProfile() {
                         onChange={handleChange}
                         placeholder="Years of experience"
                         className="form-control"
+                        disabled={!isManualEnabled}
                       />
                     </div>
                   </div>
@@ -764,10 +772,13 @@ function MyProfile() {
                     {category.map((cate, index) => (
                       <li
                         key={index}
-                        className={
+                        className={`${
                           activeIndex === index ? "active" : "inactive"
-                        }
-                        onClick={() => handleCategoryClick(index)}
+                        } ${isManualEnabled ? "disabled" : ""}`}
+                        onClick={() => {
+                          if (!isManualEnabled) return; // 🚫 block click
+                          handleCategoryClick(index);
+                        }}
                       >
                         {cate.name}
                       </li>
@@ -787,6 +798,7 @@ function MyProfile() {
                       value={formData.employmentType}
                       onChange={handleChange}
                       className="form-control"
+                      disabled={!isManualEnabled}
                     >
                       <option value="">Select Job Type</option>
 
@@ -810,6 +822,7 @@ function MyProfile() {
                       value={formData.occupationType}
                       onChange={handleChange}
                       className="form-control"
+                      disabled={!isManualEnabled}
                     >
                       <option value="">Select Occupation Type</option>
 
@@ -834,6 +847,7 @@ function MyProfile() {
                       value="Hourly"
                       checked={formData.salaryType === "Hourly"}
                       onChange={handleChange}
+                      disabled={!isManualEnabled}
                     />
                     &nbsp; <label htmlFor="Hourly">Hourly</label>
                     &nbsp;{" "}
@@ -844,6 +858,7 @@ function MyProfile() {
                       value="Daily"
                       checked={formData.salaryType === "Daily"}
                       onChange={handleChange}
+                      disabled={!isManualEnabled}
                     />
                     &nbsp; <label htmlFor="Daily">Daily</label>
                     &nbsp;{" "}
@@ -854,6 +869,7 @@ function MyProfile() {
                       value="Monthly"
                       checked={formData.salaryType === "Monthly"}
                       onChange={handleChange}
+                      disabled={isManualEnabled}
                     />
                     &nbsp; <label htmlFor="Monthly">Monthly</label>
                     &nbsp;{" "}
@@ -864,6 +880,7 @@ function MyProfile() {
                       value="Yearly"
                       checked={formData.salaryType === "Yearly"}
                       onChange={handleChange}
+                      disabled={!isManualEnabled}
                     />
                     &nbsp; <label htmlFor="Yearly">Yearly</label>
                   </div>
@@ -881,6 +898,7 @@ function MyProfile() {
                     value={formData.salaryAmount}
                     onChange={handleChange}
                     className="form-control"
+                    disabled={!isManualEnabled}
                   >
                     <option value="">Select Desired Salary</option>
 

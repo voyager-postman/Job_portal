@@ -11,9 +11,9 @@ function CandidateProfile() {
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
-
+  const [jobTypes, setJobTypes] = useState([]);
   const [activeLevel, setActiveLevel] = useState(null);
-
+  const [occupationTypes, setOccupationTypes] = useState([]);
   const PROFICIENCY_LEVELS = [
     { label: "Basic", code: "A1/A2" },
     { label: "Limited working", code: "B1" },
@@ -33,46 +33,6 @@ function CandidateProfile() {
 
   const fileInputRef = useRef(null);
 
-  // Handle file selection
-  // const handleFileChange = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
-
-  //   // Preview before upload
-  //   const imageUrl = URL.createObjectURL(file);
-  //   setImage(imageUrl);
-
-  //   const formData = new FormData();
-  //   formData.append("profile", file);
-
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const res = await axios.post(
-  //       `${API_BASE_URL}updateProfileImage`,
-  //       formData,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-
-  //     // ✅ Always check if API returned stored image
-  //     const profileImg = res.data?.profileImage;
-  //     if (res.data?.success && profileImg && profileImg.trim() !== "") {
-  //       setImage(API_IMAGE_URL + profileImg); // stored image
-  //       toast.success(res.data.message || "Profile updated successfully!");
-  //     } else {
-  //       setImage(DEFAULT_IMAGE); // fallback
-  //       toast.error(res.data.message || "Something went wrong!");
-  //     }
-  //   } catch (err) {
-  //     console.error("Upload failed:", err);
-  //     setImage(DEFAULT_IMAGE);
-  //     toast.error("Upload failed. Please try again.");
-  //   }
-  // };
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -102,10 +62,6 @@ function CandidateProfile() {
         const fullUrl = profileImg;
         setImage(fullUrl);
         updateProfileImage(fullUrl); // ✅ update header image instantly
-        // toast.dismiss();
-        // toast.success("Profile updated successfully!", {
-        //   toastId: "profile-update",
-        // });
       } else {
         setImage(DEFAULT_IMAGE);
         toast.error(res.data.message || "Something went wrong!");
@@ -188,7 +144,6 @@ function CandidateProfile() {
   const [citySearch, setCitySearch] = useState(""); // for search input
   const [visibilityMessage, setVisibilityMessage] = useState("");
   const [editPortfolioLinks, setEditPortfolioLinks] = useState(false);
-
   const [editMode, setEditMode] = useState(false);
   const [editAboutRole, setEditAboutRole] = useState(false);
   const [editLocation, setEditLocation] = useState(false);
@@ -254,47 +209,40 @@ function CandidateProfile() {
       console.error("Error fetching candidate profile:", error);
     }
   };
-
-  // ✅ call once when component mounts
   useEffect(() => {
     fetchProfile();
   }, []);
+  const fetchIndustries = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getIndustries`);
+      if (res.data.success && Array.isArray(res.data.industries)) {
+        setOccupationTypes(res.data.industries);
+      } else {
+        setOccupationTypes([]);
+      }
+    } catch (err) {
+      console.error("Error fetching industries:", err);
+    }
+  };
+  useEffect(() => {
+    fetchIndustries();
+  }, []);
+  const fetchJobTypes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      if (res.data.success && Array.isArray(res.data.jobTypes)) {
+        setJobTypes(res.data.jobTypes);
+      } else {
+        setJobTypes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
+  useEffect(() => {
+    fetchJobTypes();
+  }, []);
 
-  // useEffect(() => {
-  //   const fetchProfile = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-
-  //       const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-
-  //       console.log("Profile data:", res.data);
-  //       setProfileData(res.data.profile); // ✅ set API response into state
-  //       setCheckStatus(res.data.sectionStatus);
-  //       if (res.data.profile?.skills) {
-  //         setSkills(res.data.profile.skills);
-  //       }
-  //       setEducationList(res.data.profile?.education || []);
-  //       setCvFiles(res.data.profile?.resumeUrls || []);
-  //       setProfileVisible(res.data.profile.profileVisible);
-
-  //       const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       });
-
-  //       console.log("GetLanguage API response:", resLang.data);
-  //       setMasterLanguages(resLang.data.languages || []); // ✅ ensure array
-  //     } catch (error) {
-  //       console.error("Error fetching candidate profile:", error);
-  //     }
-  //   };
-
-  //   fetchProfile();
-  // }, []);
-  // Search cities for Work Location
   const handleWorkLocationSearch = async (e) => {
     const value = e.target.value;
 
@@ -346,7 +294,6 @@ function CandidateProfile() {
       toast.error("Please select proficiency");
       return;
     }
-
     try {
       const token = localStorage.getItem("token");
 
@@ -462,12 +409,9 @@ function CandidateProfile() {
       );
 
       console.log("Account deleted:", res.data);
-
-      // ✅ Close modal after success
       const modal = document.getElementById("exampleModaldlt");
       const modalInstance = window.bootstrap.Modal.getInstance(modal);
       modalInstance.hide();
-
       toast.success("Your account has been deleted successfully!");
       logout(); // clears localStorage + state
       navigate("/"); // redirect to home or login
@@ -492,7 +436,6 @@ function CandidateProfile() {
     }
 
     const token = localStorage.getItem("token");
-
     for (let file of files) {
       if (coverLetters.length >= 3) break;
 
@@ -702,7 +645,7 @@ function CandidateProfile() {
       }
 
       if (!careerGoalsData.employmentType) {
-        toast.error("Please select a Desired Employment Type", {
+        toast.error("Please select a Job Type", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -770,6 +713,23 @@ function CandidateProfile() {
         eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
       };
 
+      // const payload = {
+      //   career_goals: {
+      //     DesiredJobTitle: careerGoalsData.desiredJobTitle,
+      //     DesiredEmploymentType: careerGoalsData.employmentType,
+      //     DesiredOccupationType: careerGoalsData.occupationType,
+      //     MinimumDesiredSalary: {
+      //       amount: careerGoalsData.salaryAmount,
+      //       currency: careerGoalsData.salaryCurrency,
+      //       type: careerGoalsData.salaryType,
+      //     },
+      //     jobSearchStatus: careerGoalsData.lookingForJob,
+      //   },
+
+      //   // ✅ MUST BE OUTSIDE
+      //   eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
+      // };
+
       const response = await axios.put(
         `${API_BASE_URL}updateCareerGoals`,
         payload,
@@ -779,8 +739,16 @@ function CandidateProfile() {
       if (response.status === 200) {
         setProfileData((prev) => ({
           ...prev,
-          career_goals: payload, // ✅ keep consistent with API
+          career_goals: {
+            DesiredJobTitle: payload.DesiredJobTitle,
+            DesiredEmploymentType: payload.DesiredEmploymentType,
+            DesiredOccupationType: payload.DesiredOccupationType,
+            MinimumDesiredSalary: payload.MinimumDesiredSalary,
+            jobSearchStatus: payload.jobSearchStatus,
+          },
+          eligibleToWorkInFrance: payload.eligibleToWorkInFrance,
         }));
+
         setCheckStatus((prev) => ({ ...prev, careerGoals: 1 }));
         setEditMode(false);
 
@@ -1340,204 +1308,6 @@ function CandidateProfile() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
-  // 🚀 Save function (fixed key: workHistory)
-  // const handleSaveWorkExperience = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
-
-  //     const payload = {
-  //       workHistory_id: workExperienceData.workHistory_id || undefined,
-  //       companyName: workExperienceData.companyName,
-  //       jobTitle: workExperienceData.jobTitle,
-  //       startDate: workExperienceData.startDate,
-  //       endDate: workExperienceData.endDate,
-  //       yearOfExperience: workExperienceData.yearOfExperience,
-  //       currentlyWorkingHere: workExperienceData.currentlyWorkingHere,
-  //       keep_employer_anonymous: workExperienceData.currentlyWorkingHereEmp,
-  //       Description: workExperienceData.Description,
-  //       EmploymentType: workExperienceData.EmploymentType,
-  //       workLocation: workExperienceData.workLocation,
-  //       currentSalary: {
-  //         payrollFrequency: workExperienceData.salaryType,
-  //         amount: workExperienceData.salaryAmount,
-  //         currency: workExperienceData.salaryCurrency,
-  //       },
-  //     };
-
-  //     const response = await axios.post(
-  //       `${API_BASE_URL}updateWorkHistory`,
-  //       payload,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     if (response.status === 200) {
-  //       const updatedWorkHistory = response.data.workHistory; // ✅ get updated array from API
-
-  //       setProfileData((prev) => ({
-  //         ...prev,
-  //         workHistory: updatedWorkHistory, // ✅ replace with API response
-  //       }));
-
-  //       setCheckStatus((prev) => ({
-  //         ...prev,
-  //         workExperience: 1,
-  //       }));
-
-  //       setEditMode(false);
-
-  //       toast.success("Work experience saved successfully!", {
-  //         theme: "colored",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving work experience:", error);
-  //     toast.error("Failed to save work experience", { theme: "colored" });
-  //   }
-  // };
-  // const handleSaveWorkExperience = async () => {
-  //   try {
-  //     const {
-  //       companyName,
-  //       jobTitle,
-  //       startDate,
-  //       endDate,
-  //       yearOfExperience,
-  //       currentlyWorkingHere,
-  //       currentlyWorkingHereEmp,
-  //       Description,
-  //       EmploymentType,
-  //       workLocation,
-  //       salaryType,
-  //       salaryAmount,
-  //       salaryCurrency,
-  //     } = workExperienceData;
-
-  //     // ✅ VALIDATION SECTION
-  //     if (!jobTitle?.trim()) {
-  //       toast.error("Please enter Job Title", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!companyName?.trim()) {
-  //       toast.error("Please enter Company Name", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!startDate) {
-  //       toast.error("Please select Start Date", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!currentlyWorkingHere && !endDate) {
-  //       toast.error("Please select End Date or mark 'Currently Working Here'", {
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     // if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-  //     //   toast.error("End Date cannot be before Start Date", { theme: "colored" });
-  //     //   return;
-  //     // }
-
-  //     if (
-  //       !yearOfExperience ||
-  //       isNaN(yearOfExperience) ||
-  //       yearOfExperience <= 0
-  //     ) {
-  //       toast.error("Please enter valid Years of Experience", {
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (!EmploymentType?.trim()) {
-  //       toast.error("Please select Employment Type", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!workLocation?.trim()) {
-  //       toast.error("Please enter Work Location", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!salaryCurrency) {
-  //       toast.error("Please select Salary Currency", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!salaryAmount || isNaN(salaryAmount) || salaryAmount <= 0) {
-  //       toast.error("Please enter valid Salary Amount", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     if (!salaryType) {
-  //       toast.error("Please select Payroll Frequency", { theme: "colored" });
-  //       return;
-  //     }
-
-  //     // ✅ Clean Description — only send if not empty
-  //     const cleanDescription =
-  //       Description && Description.trim() !== ""
-  //         ? Description.trim()
-  //         : undefined;
-
-  //     // ✅ Construct Payload (remove empty fields)
-  //     const payload = {
-  //       workHistory_id: workExperienceData.workHistory_id || undefined,
-  //       companyName: companyName.trim(),
-  //       jobTitle: jobTitle.trim(),
-  //       startDate,
-  //       endDate: endDate || undefined,
-  //       yearOfExperience,
-  //       currentlyWorkingHere,
-  //       keep_employer_anonymous: currentlyWorkingHereEmp,
-  //       ...(cleanDescription && { Description: cleanDescription }), // ✅ include only if not empty
-  //       EmploymentType,
-  //       workLocation: workLocation.trim(),
-  //       currentSalary: {
-  //         payrollFrequency: salaryType,
-  //         amount: salaryAmount,
-  //         currency: salaryCurrency,
-  //       },
-  //     };
-
-  //     const token = localStorage.getItem("token");
-
-  //     // ✅ API CALL
-  //     const response = await axios.post(
-  //       `${API_BASE_URL}updateWorkHistory`,
-  //       payload,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     if (response.status === 200) {
-  //       const updatedWorkHistory = response.data.workHistory;
-
-  //       setProfileData((prev) => ({
-  //         ...prev,
-  //         workHistory: updatedWorkHistory,
-  //       }));
-
-  //       setCheckStatus((prev) => ({
-  //         ...prev,
-  //         workExperience: 1,
-  //       }));
-
-  //       setEditMode(false);
-  //       toast.success("Work experience saved successfully!", {
-  //         theme: "colored",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving work experience:", error);
-  //     const backendError = error.response?.data?.errors?.[0];
-  //     toast.error(backendError || "Failed to save work experience", {
-  //       theme: "colored",
-  //     });
-  //   }
-  // };
   const handleSaveWorkExperience = async () => {
     try {
       const {
@@ -1931,67 +1701,6 @@ function CandidateProfile() {
     }
   };
 
-  // const handleSaveCertificate = async () => {
-  //   try {
-  //     if (!formData.title?.trim()) {
-  //       toast.error("Certificate title is required", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (!formData.issueDate) {
-  //       toast.error("Issue date is required", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-  //     const token = localStorage.getItem("token");
-
-  //     const response = await axios.post(
-  //       `${API_BASE_URL}updateCertificates`,
-  //       formData,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     if (response.status === 200) {
-  //       // ✅ Update profileData state
-  //       const updatedCertificates = formData.certificate_id
-  //         ? profileData.certificates.map((c) =>
-  //             c._id === formData.certificate_id ? { ...c, ...formData } : c
-  //           )
-  //         : [
-  //             ...profileData.certificates,
-  //             { ...formData, _id: response.data.certificate_id },
-  //           ];
-
-  //       setProfileData((prev) => ({
-  //         ...prev,
-  //         certificates: updatedCertificates,
-  //       }));
-  //       setCheckStatus((prev) => ({ ...prev, certificates: 1 }));
-  //       setEditMode(false);
-
-  //       // reset form
-  //       setFormData({ certificate_id: "", title: "", issueDate: "" });
-  //       await fetchProfile();
-  //       toast.success(
-  //         formData.certificate_id
-  //           ? "Certificate updated successfully!"
-  //           : "Certificate added successfully!",
-  //         { autoClose: 2000, theme: "colored" }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving certificate:", error);
-  //     toast.error("Failed to save Certificate", {
-  //       autoClose: 2000,
-  //       theme: "colored",
-  //     });
-  //   }
-  // };
   const handleDeleteCertificate = async (certificate_id) => {
     try {
       const token = localStorage.getItem("token");
@@ -3256,8 +2965,7 @@ function CandidateProfile() {
                                   profileData.career_goals?.jobSearchStatus ||
                                   "",
                                 eligibleToWork:
-                                  profileData.career_goals
-                                    ?.eligibleToWorkInFrance || false,
+                                  profileData.eligibleToWorkInFrance ?? false,
                               });
                               setEditMode(true);
 
@@ -3322,7 +3030,7 @@ function CandidateProfile() {
                                   {/* Employment Type */}
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
-                                      <label>Desired Employment Type</label>
+                                      <label>Job Type</label>
                                       <select
                                         className="form-select form-control"
                                         name="employmentType"
@@ -3332,21 +3040,15 @@ function CandidateProfile() {
                                         <option value="">
                                           Select Employment Type
                                         </option>
-                                        <option value="Full-time">
-                                          Full-time
-                                        </option>
-                                        <option value="Part-time">
-                                          Part-time
-                                        </option>
-                                        <option value="Contract">
-                                          Contract
-                                        </option>
-                                        <option value="Temporary">
-                                          Temporary
-                                        </option>
-                                        <option value="Apprenticeship">
-                                          Apprenticeship
-                                        </option>
+
+                                        {jobTypes?.map((job) => (
+                                          <option
+                                            key={job._id}
+                                            value={job.name}
+                                          >
+                                            {job.name}
+                                          </option>
+                                        ))}
                                       </select>
                                     </div>
                                   </div>
@@ -3364,15 +3066,15 @@ function CandidateProfile() {
                                         <option value="">
                                           Select Occupation Type
                                         </option>
-                                        <option value="Full-time">
-                                          Full-time
-                                        </option>
-                                        <option value="Part-time">
-                                          Part-time
-                                        </option>
-                                        <option value="Full-time/Part-time">
-                                          Full-time/Part-time
-                                        </option>
+
+                                        {occupationTypes?.map((item) => (
+                                          <option
+                                            key={item._id}
+                                            value={item.name}
+                                          >
+                                            {item.name}
+                                          </option>
+                                        ))}
                                       </select>
                                     </div>
                                   </div>
@@ -3386,6 +3088,7 @@ function CandidateProfile() {
                                           type="checkbox"
                                           id="eligibleToWork"
                                           name="eligibleToWork"
+                                          className="mb-2"
                                           checked={
                                             careerGoalsData.eligibleToWork
                                           }
@@ -3556,7 +3259,7 @@ function CandidateProfile() {
 
                                 <div className="col-lg-4 col-md-6">
                                   <div className="form-group">
-                                    <label>Desired Employment Type</label>
+                                    <label>Job Type</label>
                                     <p>
                                       {profileData.career_goals
                                         ?.DesiredEmploymentType || "-"}
@@ -3580,8 +3283,7 @@ function CandidateProfile() {
                                   <div className="form-group">
                                     <label>Eligible to work in</label>
                                     <p>
-                                      {profileData.career_goals
-                                        ?.eligibleToWorkInFrance
+                                      {profileData.eligibleToWorkInFrance
                                         ? "France"
                                         : "-"}
                                     </p>
@@ -3958,7 +3660,6 @@ function CandidateProfile() {
                                     />
                                     <label htmlFor="CurrentlyWorking">
                                       &nbsp;Keep my current employer anonymous
-                                      functionality hold for now
                                     </label>
                                   </div>
                                   {/* Start / End Date */}
@@ -4021,26 +3722,28 @@ function CandidateProfile() {
                                   <div className="col-lg-12 col-md-12">
                                     <div className="form-group">
                                       <label>Employment Type</label>
+
                                       <select
                                         className="form-select form-control"
                                         name="EmploymentType"
                                         value={
-                                          workExperienceData.EmploymentType
+                                          workExperienceData.EmploymentType ||
+                                          ""
                                         }
                                         onChange={handleChangeOfWork}
                                       >
                                         <option value="">
                                           Select employment type
                                         </option>
-                                        <option value="Full-time">
-                                          Full-time
-                                        </option>
-                                        <option value="Part-time">
-                                          Part-time
-                                        </option>
-                                        <option value="Contract">
-                                          Contract / Freelance / Self-employed
-                                        </option>
+
+                                        {jobTypes?.map((job) => (
+                                          <option
+                                            key={job._id}
+                                            value={job.name}
+                                          >
+                                            {job.name}
+                                          </option>
+                                        ))}
                                       </select>
                                     </div>
                                   </div>
@@ -4580,7 +4283,9 @@ function CandidateProfile() {
                                 </div>
                               ))
                             ) : (
-                              <p>No education details added yet.</p>
+                              <p className="text-center m-2">
+                                No education details added yet.
+                              </p>
                             )}
                           </div>
                         )}
