@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"; // path based on your folder structure
+import axios from "../utils/axiosInstance"; 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +17,7 @@ function Login() {
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -101,7 +102,6 @@ function Login() {
     e.preventDefault();
 
     if (!validateForm()) return;
-
     setLoading(true);
 
     try {
@@ -130,14 +130,11 @@ function Login() {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-
           const profileImg = profileRes.data?.profile?.profileImage;
           const profileData = profileRes.data?.profile;
-
           if (profileImg && profileImg.trim() !== "") {
             const fullUrl = `${profileImg}`;
             localStorage.setItem("profileImage", fullUrl);
-
             // ✅ Update AuthContext instantly
             if (typeof updateProfileImage === "function") {
               updateProfileImage(fullUrl);
@@ -155,9 +152,7 @@ function Login() {
           console.error("Profile fetch error:", profileErr);
         }
         login(); // call your login context or auth function
-
         toast.success("Login successful!");
-
         // Navigate based on profile completion
         if (user?.is_completed) {
           if (user.role == "Recruiter" || user.role == "Company") {
@@ -177,7 +172,6 @@ function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-
       if (
         error.response?.data?.success === false &&
         error.response?.data?.action === "resendVerificationEmail"
@@ -249,7 +243,6 @@ function Login() {
                             className={`fa-solid ${
                               showPassword ? "fa-eye-slash" : "fa-eye"
                             } toggle-password`}
-                            onClick={() => setShowPassword((prev) => !prev)} // ✅ toggle state
                             style={{
                               position: "absolute",
                               right: "10px",

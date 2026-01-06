@@ -10,6 +10,7 @@ import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 import { SiReaddotcv } from "react-icons/si";
+
 function Sidebar() {
   const userRole = localStorage.getItem("user_role");
   return (
@@ -258,7 +259,7 @@ function Sidebar() {
                 <span className="menu-title">Manage Recruiters</span>
               </NavLink>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <NavLink
                 to="/messaging-system"
                 className={({ isActive }) =>
@@ -266,14 +267,13 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-message" /> */}
                   <i>
                     <AiFillMessage />
                   </i>
                 </span>
                 <span className="menu-title">Messages</span>
               </NavLink>
-            </li>
+            </li> */}
             {/* Repeat for other links as needed */}
           </ul>
         )}

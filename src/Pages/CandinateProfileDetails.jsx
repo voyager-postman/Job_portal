@@ -92,7 +92,23 @@ function CandinateProfileDetails() {
     if (!text) return "";
     return text.length > limit ? text.substring(0, limit) + "..." : text;
   };
+  const handleDownloadCV = () => {
+    const resumes = candidate?.resumeUrls;
 
+    if (!resumes || resumes.length === 0) {
+      toast.info("No CV uploaded by candidate", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    // ✅ Always download latest CV
+    const latestResume = resumes[resumes.length - 1];
+    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
+
+    window.open(fileUrl, "_blank");
+  };
   return (
     <>
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
@@ -154,9 +170,13 @@ function CandinateProfileDetails() {
             </div>
             <div className="col-lg-5 col-md-4">
               <div className="candidate-profile-dcv-btn">
-                <a href="#" className="default-btn btn">
+                <button
+                  type="button"
+                  className="default-btn btn"
+                  onClick={handleDownloadCV}
+                >
                   Download CV
-                </a>
+                </button>
               </div>
               <div className="candidates-share-content">
                 <h4>Social Media</h4>
@@ -220,12 +240,7 @@ function CandinateProfileDetails() {
                   {candidate?.career_goals ? (
                     <>
                       <h5>Eligible to work in</h5>
-                      <p>
-                        {candidate.career_goals.DesiredOccupationType?.toLowerCase().replace(
-                          /^\w/,
-                          (c) => c.toUpperCase()
-                        ) || "Not Provided"}{" "}
-                      </p>
+                      <p>{candidate.eligibleToWorkInFrance ? "France" : "-"}</p>
 
                       <h5>Minimum Desired Salary (Gross)</h5>
                       {candidate.career_goals.MinimumDesiredSalary ? (
@@ -294,7 +309,7 @@ function CandinateProfileDetails() {
                   <p>Monthly</p>
                 </div> */}
                 <div className="works-experience candidate-profile-summary">
-                  <h3>Experience</h3>
+                  <h3>Work Experience</h3>
                   {candidate?.workHistory &&
                   candidate.workHistory.length > 0 ? (
                     candidate.workHistory.map((work) => {
@@ -314,17 +329,21 @@ function CandinateProfileDetails() {
 
                           {/* Duration */}
                           <p>
-                            {startDate.toLocaleString("default", {
-                              month: "short",
-                            })}{" "}
-                            {startDate.getFullYear()} -{" "}
+                            {startDate.toISOString().split("T")[0]} -{" "}
                             {work.currentlyWorkingHere
-                              ? "Until now"
-                              : `${endDate.toLocaleString("default", {
-                                  month: "short",
-                                })} ${endDate.getFullYear?.() || ""}`}
+                              ? "Present"
+                              : endDate
+                              ? endDate.toISOString().split("T")[0]
+                              : ""}
                           </p>
 
+                          <p>
+                            <i className="fa-regular fa-building" />{" "}
+                            {work.companyName}
+                          </p>
+                          <p>{work.EmploymentType}</p>
+                          <label>Years of Experience</label>
+                          <p>{work.yearOfExperience}</p>
                           {/* Company Info */}
                           {!work.keep_employer_anonymous && (
                             <>
@@ -336,12 +355,17 @@ function CandinateProfileDetails() {
                               </p>
                             </>
                           )}
-
                           {/* Job Description */}
                           {work.Description && (
                             <>
-                              <h5>Description</h5>
+                              <h5>Achievements</h5>
                               <p>{work.Description}</p>
+                            </>
+                          )}
+                          {work.workLocation && (
+                            <>
+                              <h5>Work Location</h5>
+                              <p>{work.workLocation}</p>
                             </>
                           )}
 
@@ -358,6 +382,7 @@ function CandinateProfileDetails() {
                               <p>{work.currentSalary.payrollFrequency}</p>
                             </>
                           )}
+                          <div className="divder-line-info-otherCompany" />
                         </div>
                       );
                     })
@@ -576,7 +601,7 @@ function CandinateProfileDetails() {
                   <h3>Candidate Informations</h3>
                   <ul>
                     <li>
-                      <span>Experience :</span>
+                      <span> Experience :</span>
                       {candidate?.aboutRole?.yearOfExperience || 0} Years
                     </li>
                     <li>

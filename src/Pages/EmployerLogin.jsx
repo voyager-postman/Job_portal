@@ -74,6 +74,8 @@ function EmployerLogin() {
         localStorage.setItem("is_completed", user?.is_completed);
         localStorage.setItem("companyId", user?.companyId);
         localStorage.setItem("verifiedByAdmin", user?.verifiedByAdmin);
+        localStorage.setItem("profileImage", user?.company?.logo);
+        
         login(); // call auth context
 
         toast.success("Login successful!");

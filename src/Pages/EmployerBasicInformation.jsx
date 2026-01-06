@@ -464,16 +464,22 @@ const EmployerBasicInformation = () => {
                         zIndex: 9999,
                       }}
                     >
-                      {filteredCountries.map((c) => (
-                        <li
-                          key={c._id}
-                          className="list-group-item list-group-item-action d-flex align-items-center"
-                          onClick={() => handleSelect(c)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          {c.emoji?.toUpperCase()} +{c.phonecode} {c.name}
+                      {filteredCountries.length > 0 ? (
+                        filteredCountries.map((c) => (
+                          <li
+                            key={c._id}
+                            className="list-group-item list-group-item-action d-flex align-items-center"
+                            onClick={() => handleSelect(c)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {c.emoji?.toUpperCase()} +{c.phonecode} {c.name}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="list-group-item text-muted text-center">
+                          No country code found
                         </li>
-                      ))}
+                      )}
                     </ul>
                   )}
                 </div>

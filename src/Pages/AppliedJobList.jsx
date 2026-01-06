@@ -3,6 +3,7 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
+import { TbMessages } from "react-icons/tb";
 import moment from "moment";
 
 function AppliedJobList() {
@@ -157,6 +158,30 @@ function AppliedJobList() {
                       <li>
                         <i className="fa-regular fa-file" />{" "}
                         {job?.jobCategory?.name || "N/A"}{" "}
+                      </li>
+                      <li>
+                        <i
+                          style={{
+                            fontSize: "16px",
+                          }}
+                        >
+                          {" "}
+                          <TbMessages />
+                        </i>
+                        <Link
+                          to="/messaging-system"
+                          state={{
+                            jobId: job._id,
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "#7e7e7e",
+                            }}
+                          >
+                            Send Message
+                          </span>
+                        </Link>
                       </li>
                     </ul>
                   </div>

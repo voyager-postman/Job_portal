@@ -1,21 +1,16 @@
 import axios from "axios";
-import { API_BASE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 function ChatMassageSystem() {
+  const token = localStorage.getItem("token");
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
-
-  // Job Seeker (YOU)
-  const CURRENT_USER_ID = 2;
-
-  // const RECEIVER_ID = 2; // selected chat user
-  const [users, setUsers] = useState([
-    { id: 1, name: "Recruiters One" },
-    { id: 3, name: "Recruiters  Two" },
-  ]);
-
+  const [users, setUsers] = useState([]);
+  const CURRENT_USER_ID = localStorage.getItem("user_id");
+  console.log("Current Employer ID:-", CURRENT_USER_ID);
+  const profileImage = localStorage.getItem("profileImage");
   const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -23,26 +18,32 @@ function ChatMassageSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("wss://66.116.198.68:8788/ws/chat/");
+    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (!data.message) return;
+      const normalized = {
+        ...data,
+        sender: data.from,
+        receiver: data.to,
+      };
 
-      const otherUser = data.from === CURRENT_USER_ID ? data.to : data.from;
+      const otherUserId =
+        String(normalized.sender) === String(CURRENT_USER_ID)
+          ? normalized.receiver
+          : normalized.sender;
 
       setChatStore((prev) => ({
         ...prev,
-        [otherUser]: [...(prev[otherUser] || []), data],
+        [otherUserId]: [...(prev[otherUserId] || []), normalized],
       }));
 
       // If currently chatting with this user → update UI
-      if (activeUser && otherUser === activeUser.id) {
-        setMessages((prev) => [...prev, data]);
+      if (activeUser && otherUserId === activeUser.id) {
+        setMessages((prev) => [...prev, normalized]);
       }
     };
-
     ws.onclose = () => console.log("WebSocket Closed");
     return () => ws.close();
   }, []);
@@ -51,21 +52,59 @@ function ChatMassageSystem() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const fetchCandidates = async () => {
+    const res = await fetch(`${API_BASE_URL}getJobseekerChatList`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+    const chats = data.chats || [];
+    setUsers(chats);
+
+    // ✅ Auto-select first user
+    if (chats.length > 0) {
+      loadChat(chats[0]);
+    }
+  };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
   // ---------------- LOAD CHAT HISTORY ----------------
   const loadChat = async (user) => {
-    setActiveUser(user);
+    const userId = user.otherUser.companyId;
+
+    setActiveUser({
+      id: userId,
+      name: user?.otherUser?.brandName || "Null",
+      image: user?.otherUser?.logo
+        ? user.otherUser.logo.startsWith("http")
+          ? user.otherUser.logo
+          : `${API_IMAGE_URL}${user.otherUser.logo}`
+        : "assets/images/freelancers/freelancers-img-1.jpg",
+      jobId: user.jobId,
+    });
+
+    // If already cached, reuse it
+    if (chatStore[userId]) {
+      setMessages(chatStore[userId]);
+      return;
+    }
 
     try {
-      const res = await axios.get(
-        `http://66.116.198.68:8788/chat/history/${CURRENT_USER_ID}/${user.id}/`
+      const res = await axios.post(
+        `${API_BASE_URL}getChatHistory/${userId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setChatStore((prev) => ({
         ...prev,
-        [user.id]: res.data.messages,
+        [userId]: res.data.data,
       }));
 
-      setMessages(res.data.messages);
+      setMessages(res.data.data);
     } catch (err) {
       console.log("History Load Failed", err);
     }
@@ -79,12 +118,12 @@ function ChatMassageSystem() {
       console.log("Socket not connected");
       return;
     }
-
     const payload = {
       type: "chat",
       from: CURRENT_USER_ID,
       to: activeUser.id,
       message: text,
+      jobId: activeUser.jobId,
       created_at: new Date().toISOString(),
     };
     socketRef.current.send(JSON.stringify(payload));
@@ -138,8 +177,9 @@ function ChatMassageSystem() {
                 <div className="user-img-name-status-info">
                   <div className="user-message-img">
                     <img
-                      src="assets/images/candidate-img/candidate2.jpg"
-                      alt="image"
+                      crossOrigin="anonymous"
+                      src={activeUser?.image}
+                      alt={activeUser?.name}
                     />
                   </div>
                   <div className="user-name-status">
@@ -163,31 +203,34 @@ function ChatMassageSystem() {
                     <li
                       className="nav-item"
                       role="presentation"
-                      key={u.id}
+                      key={u?.otherUser?.id}
                       onClick={(e) => loadChat(u)}
                     >
-                      <a
-                        className="nav-link"
-                        data-bs-toggle="tab"
-                        // href="#menu1"
-                        // aria-selected="false"
-                        // role="tab"
-                      >
+                      <a className="nav-link" data-bs-toggle="tab">
                         <div className="user-img-name-chat-count-time-massage">
                           <div className="user-img-chat-count">
                             <img
-                              src="assets/images/candidate-img/candidate2.jpg"
+                              crossOrigin="anonymous"
+                              src={
+                                u?.otherUser?.logo
+                                  ? u.otherUser.logo.startsWith(
+                                      "http"
+                                    )
+                                    ? u.otherUser.logo
+                                    : `${API_IMAGE_URL}${u.otherUser.logo}`
+                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                              }
                               alt="image"
                             />
-                            <span className="chat-count">1</span>
+                            {/* <span className="chat-count">1</span> */}
                           </div>
                           <div className="user-name-chat-time-massage">
                             <div className="user-name-time-info">
-                              <h6>{u.name}</h6>
-                              <p>Tap to chat</p>
+                              <h6>{u?.otherUser?.brandName}</h6>
+                              {/* <p>Tap to chat</p> */}
                             </div>
                             <div className="user-short-massage">
-                              <p>Lorem Ipsum is not simply random</p>
+                              <p>{u.lastMessage}</p>
                             </div>
                           </div>
                         </div>
@@ -203,7 +246,7 @@ function ChatMassageSystem() {
                 <div className="tab-content">
                   <div className="tab-pane fade show active">
                     {(chatStore[activeUser?.id] || []).map((msg, index) =>
-                      msg.from === CURRENT_USER_ID ? (
+                      String(msg.sender) === String(CURRENT_USER_ID) ? (
                         // RIGHT SIDE (JOB SEEKER - YOU)
                         <div
                           key={index}
@@ -227,20 +270,27 @@ function ChatMassageSystem() {
                           <div className="job-seeker-message-name-img-time">
                             <div className="job-seeker-message-img">
                               <img
-                                src="assets/images/candidate-img/candidate1.jpg"
+                                crossOrigin="anonymous"
+                                src={
+                                  profileImage
+                                    ? profileImage.startsWith("http")
+                                      ? profileImage
+                                      : `${API_IMAGE_URL}${profileImage}`
+                                    : "assets/images/freelancers/freelancers-img-1.jpg"
+                                }
                                 alt="rectruiter"
                               />
                             </div>
                           </div>
                         </div>
                       ) : (
-                  
                         <div key={index} className="user-message-chat-details">
                           <div className="job-seeker-message-name-img-time">
                             <div className="job-seeker-message-img">
                               <img
-                                src="assets/images/candidate-img/candidate2.jpg"
-                                alt="image"
+                                crossOrigin="anonymous"
+                                src={activeUser?.image}
+                                alt={activeUser?.name}
                               />
                             </div>
                           </div>
@@ -279,14 +329,13 @@ function ChatMassageSystem() {
                     />
                   </div>
                   <div
-                    // className="chat-messaging-send-btn"
                     onClick={sendMessage}
+                    className="chat-messaging-send-btn"
                   >
                     <i className="fa-solid fa-paper-plane" />
+                    Send
                   </div>
-                  <div className="chat-messaging-typeing-function">
-                   
-                  </div>
+                  <div className="chat-messaging-typeing-function"></div>
                 </div>
               </div>
             </div>

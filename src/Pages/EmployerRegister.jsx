@@ -80,7 +80,7 @@ function EmployerRegister() {
         login(); // ✅ update auth context / global state
 
         // ✅ Navigate to verification page with email
-        navigate("/verification", { state: { email, showToast: true } });
+        navigate("/verification", { state: { email,token, showToast: true } });
       }
     } catch (error) {
       console.error("Register error:", error);

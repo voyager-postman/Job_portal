@@ -1,10 +1,14 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 
 function CreateRecruiters() {
+  const location = useLocation();
+  const editData = location.state?.recruiterData;
+  const isEditMode = Boolean(editData);
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: "",
@@ -13,7 +17,16 @@ function CreateRecruiters() {
     password: "",
   });
   const [loading, setLoading] = useState(false);
-
+  useEffect(() => {
+    if (isEditMode) {
+      setFormData({
+        first_name: editData.first_name || "",
+        last_name: editData.last_name || "",
+        email: editData.email || "",
+        password: "", // keep empty for security
+      });
+    }
+  }, [isEditMode, editData]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -21,47 +34,50 @@ function CreateRecruiters() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !formData.first_name ||
-      !formData.last_name ||
-      !formData.email ||
-      !formData.password
-    ) {
+
+    if (!formData.first_name || !formData.last_name || !formData.email) {
       toast.error("All fields are required!");
       return;
     }
+
+    if (!isEditMode && !formData.password) {
+      toast.error("Password is required!");
+      return;
+    }
+
     setLoading(true);
+
     try {
       const token = localStorage.getItem("token");
 
-      const response = await axios.post(
-        `${API_BASE_URL}addRecruiter`,
-        {
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          email: formData.email,
-          password: formData.password,
+      const url = isEditMode
+        ? `${API_BASE_URL}updateRecruiter/${editData._id}`
+        : `${API_BASE_URL}addRecruiter`;
+
+      const payload = isEditMode
+        ? {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            email: formData.email,
+          }
+        : formData;
+
+      await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      });
+
+      toast.success(
+        isEditMode
+          ? "Recruiter updated successfully!"
+          : "Recruiter added successfully!"
       );
 
-      if (response.status === 200 || response.status === 201) {
-        toast.success("Recruiter added successfully!");
-        setFormData({ first_name: "", last_name: "", email: "", password: "" });
-
-        // ✅ Navigate after success
-        navigate("/recruiters-list");
-      } else {
-        toast.error(response.data?.message || "Something went wrong!");
-      }
+      navigate("/recruiters-list");
     } catch (error) {
-      console.error("Error adding recruiter:", error);
-      toast.error(error.response?.data?.message || "Failed to add recruiter!");
+      toast.error(error.response?.data?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -136,19 +152,21 @@ function CreateRecruiters() {
                         />
                       </div>
                     </div>
-                    <div className="col-lg-6 col-md-6">
-                      <div className="form-group">
-                        <label>Password</label>
-                        <input
-                          className="form-control"
-                          type="password"
-                          name="password"
-                          placeholder="Password"
-                          value={formData.password}
-                          onChange={handleChange}
-                        />
+                    {!isEditMode && (
+                      <div className="col-lg-6 col-md-6">
+                        <div className="form-group">
+                          <label>Password</label>
+                          <input
+                            className="form-control"
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            value={formData.password}
+                            onChange={handleChange}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="create-recruiters-btn">
                     <button
@@ -156,7 +174,11 @@ function CreateRecruiters() {
                       className="default-btn btn"
                       disabled={loading}
                     >
-                      {loading ? "Submitting..." : "Submit"}
+                      {loading
+                        ? "Submitting..."
+                        : isEditMode
+                        ? "Update Recruiter"
+                        : "Create Recruiter"}
                     </button>
                   </div>
                 </form>

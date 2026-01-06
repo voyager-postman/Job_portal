@@ -110,7 +110,7 @@ function Register() {
         login();
 
         // ✅ Navigate to verification page and pass email
-        navigate("/verification", { state: { email, showToast: true } });
+        navigate("/verification", { state: { email, token, showToast: true } });
       } else {
         toast.error("Something went wrong, please try again.");
       }

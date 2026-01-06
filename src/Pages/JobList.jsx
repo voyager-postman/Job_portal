@@ -27,6 +27,8 @@ const JobList = () => {
 
   console.log("Received Alert Data:", alert);
   const userRole = localStorage.getItem("role");
+  const userId = localStorage.getItem("user_id");
+
   // or from context:  user?.role
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -2061,7 +2063,7 @@ const JobList = () => {
                                             e.preventDefault();
 
                                             // 🔥 If not logged in, redirect to login page
-                                            if (userRole !== "JobSeeker") {
+                                            if (!userId) {
                                               navigate("/login");
                                               return;
                                             }

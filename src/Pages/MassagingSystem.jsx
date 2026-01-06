@@ -1,39 +1,52 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 
 function MassagingSystem() {
+  const location = useLocation();
+  const token = localStorage.getItem("token");
+  const profileImage = localStorage.getItem("profileImage");
+  const jobId = location.state?.jobId;
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
-  const CURRENT_USER_ID = 1;
-  const [users, setUsers] = useState([
-    { id: 2, name: "User One" },
-    { id: 3, name: "User Two" },
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
+  const CURRENT_USER_ID = localStorage.getItem("companyId");
+  console.log("Current Employer ID:-", CURRENT_USER_ID);
+  // const companyId = localStorage.getItem("companyId");
 
+  // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("wss://66.116.198.68:8788/ws/chat/");
+    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (!data.message) return;
-      const otherUser = data.from === CURRENT_USER_ID ? data.to : data.from;
+      const normalized = {
+        ...data,
+        sender: data.from,
+        receiver: data.to,
+      };
+
+      const otherUserId =
+        String(normalized.sender) === String(CURRENT_USER_ID)
+          ? normalized.receiver
+          : normalized.sender;
+
       setChatStore((prev) => ({
         ...prev,
-        [otherUser]: [...(prev[otherUser] || []), data],
+        [otherUserId]: [...(prev[otherUserId] || []), normalized],
       }));
 
-      if (activeUser && otherUser === activeUser.id) {
-        setMessages((prev) => [...prev, data]);
+      if (activeUser && otherUserId === activeUser.id) {
+        setMessages((prev) => [...prev, normalized]);
       }
     };
-
     ws.onclose = () => console.log("WebSocket Closed");
     return () => ws.close();
   }, []);
@@ -42,19 +55,53 @@ function MassagingSystem() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const fetchCandidates = async () => {
+    const res = await fetch(`${API_BASE_URL}getApplicantsListByJob/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json();
+    const applicants = data.applicants || [];
+    setUsers(applicants);
+
+    // ✅ Auto-select first user
+    if (applicants.length > 0) {
+      loadChat(applicants[0]);
+    }
+  };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
   const loadChat = async (user) => {
-    setActiveUser(user);
+    const userId = user.applicant.userId;
+
+    setActiveUser({
+      id: userId,
+      name: `${user.applicant.first_name} ${user.applicant.last_name}`,
+      image: user.applicant.profileImage,
+      jobId: user.jobId,
+    });
+
+    // If already cached, reuse it
+    if (chatStore[userId]) {
+      setMessages(chatStore[userId]);
+      return;
+    }
     try {
-      const res = await axios.get(
-        `http://66.116.198.68:8788/chat/history/${CURRENT_USER_ID}/${user.id}/`
+      const res = await axios.post(
+        `${API_BASE_URL}getChatHistory/${userId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setChatStore((prev) => ({
         ...prev,
-        [user.id]: res.data.messages,
+        [userId]: res.data.data,
       }));
 
-      setMessages(res.data.messages);
+      setMessages(res.data.data);
     } catch (err) {
       console.log("History Load Failed", err);
     }
@@ -67,17 +114,23 @@ function MassagingSystem() {
       console.log("Socket not connected");
       return;
     }
-
     const payload = {
       type: "chat",
       from: CURRENT_USER_ID,
       to: activeUser.id,
       message: text,
+      jobId: jobId,
       created_at: new Date().toISOString(),
     };
+    console.log(payload);
     socketRef.current.send(JSON.stringify(payload));
 
-    setMessages((prev) => [...prev, payload]); // instantly show in UI
+    // setChatStore((prev) => ({
+    //   ...prev,
+    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
+    // }));
+
+    setMessages((prev) => [...prev, payload]);
     setText("");
   };
 
@@ -107,13 +160,12 @@ function MassagingSystem() {
           {/*Start messaging system start here*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Message</h3>
               <div className="profile-form">
                 <div className="row">
                   <div className="messaging-system-info-area">
                     <div className="messaging-system-tab-area">
                       <div className="messaging-system-heading-info">
-                        <h5>Candidate massage</h5>
+                        {/* <h5>Candidate massage</h5> */}
                         <div className="messaging-system-search-icon">
                           <div className="messaging-system-search">
                             <input
@@ -133,32 +185,37 @@ function MassagingSystem() {
                           <li
                             className="nav-item"
                             role="presentation"
-                            key={u.id}
+                            key={u.applicant.userId}
                             onClick={(e) => loadChat(u)}
                           >
-                            <a
-                              className="nav-link"
-                              data-bs-toggle="tab"
-                              // href="#menu1"
-                              // aria-selected="true"
-                              // role="tab"
-                            >
+                            <a className="nav-link" data-bs-toggle="tab">
                               <div className="messaging-system-img-user-info">
                                 <div className="messaging-system-user-img">
                                   <img
-                                    src="assets/images/candidate-img/candidate1.jpg"
+                                    crossOrigin="anonymous"
+                                    src={
+                                      u?.applicant?.profileImage
+                                        ? u.applicant.profileImage.startsWith(
+                                            "http"
+                                          )
+                                          ? u.applicant.profileImage
+                                          : `${API_IMAGE_URL}${u.userId.profileImage}`
+                                        : "assets/images/freelancers/freelancers-img-1.jpg"
+                                    }
                                     alt="image"
                                   />
                                 </div>
                                 <div className="messaging-system-user-info">
-                                  <h5>{u.name}</h5>
+                                  <h5>
+                                    {u.applicant?.first_name}{" "}
+                                    {u.applicant?.last_name}
+                                  </h5>
                                   <p>Tap to chat</p>
                                 </div>
                               </div>
                             </a>
                           </li>
                         ))}
-                      
                       </ul>
                     </div>
                     <div className="messaging-system-chat-box">
@@ -167,8 +224,9 @@ function MassagingSystem() {
                         <div className="messaging-system-img-user-info">
                           <div className="messaging-system-user-img">
                             <img
-                              src="assets/images/candidate-img/candidate1.jpg"
-                              alt="image"
+                              crossOrigin="anonymous"
+                              src={activeUser?.image}
+                              alt={activeUser?.name}
                             />
                           </div>
                           <div className="messaging-system-user-name">
@@ -187,14 +245,16 @@ function MassagingSystem() {
                           // role="tabpanel"
                         >
                           {(chatStore[activeUser?.id] || []).map((msg, index) =>
-                            msg.from === CURRENT_USER_ID ? (
+                            String(msg.sender) === String(CURRENT_USER_ID) ? (
                               // RIGHT SIDE (RECTRUITER - YOU)
                               <>
-                                <div className="messaging-system-recruiter-messaging">
+                                <div
+                                  key={index}
+                                  className="messaging-system-recruiter-messaging"
+                                >
                                   <div className="messaging-system-user-message bg-color">
                                     <p>{msg.message}</p>
                                     <div className="messaging-system-recruiter-message-time">
-                                      {/* <h6>Sophia Smith</h6> */}
                                       <p>
                                         {new Date(
                                           msg.created_at
@@ -207,8 +267,15 @@ function MassagingSystem() {
                                   </div>
                                   <div className="messaging-system-userImg">
                                     <img
-                                      src="assets/images/candidate-img/candidate2.jpg"
-                                      alt="image"
+                                      crossOrigin="anonymous"
+                                      src={
+                                        profileImage
+                                          ? profileImage.startsWith("http")
+                                            ? profileImage
+                                            : `${API_IMAGE_URL}${profileImage}`
+                                          : "assets/images/freelancers/freelancers-img-1.jpg"
+                                      }
+                                      alt="rectruiter"
                                     />
                                   </div>
                                 </div>
@@ -219,14 +286,14 @@ function MassagingSystem() {
                                 <div className="messaging-system-user-messaging">
                                   <div className="messaging-system-userImg">
                                     <img
-                                      src="assets/images/candidate-img/candidate1.jpg"
-                                      alt="user"
+                                      crossOrigin="anonymous"
+                                      src={activeUser?.image}
+                                      alt={activeUser?.name}
                                     />
                                   </div>
                                   <div className="messaging-system-user-message">
                                     <p>{msg.message}</p>
                                     <div className="messaging-system-message-time">
-                                      {/* <h6>Sophia Smith</h6> */}
                                       <p>
                                         {new Date(
                                           msg.created_at
@@ -244,7 +311,6 @@ function MassagingSystem() {
                           )}
                         </div>
                       </div>
-
                       {/* ---------------- INPUT ---------------- */}
                       <div className="messaging-system-typeing-send-btn">
                         <textarea
@@ -255,68 +321,10 @@ function MassagingSystem() {
                           onChange={(e) => setText(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <div onClick={sendMessage}>
+                        <div onClick={sendMessage} className="send_chat">
                           <i className="fa-solid fa-paper-plane" />
+                          Send
                         </div>
-                      </div>
-                    </div>
-                    <div className="messaging-system-interview-scheduling">
-                      <div className="messaging-system-heading-info">
-                        <h5>Interview Scheduling</h5>
-                        <div className="messaging-system-select">
-                          <select
-                            className="form-select form-control"
-                            aria-label="Default2 select example"
-                          >
-                            <option selected>Select Interview</option>
-                            <option value={1}>Development</option>
-                            <option value={2}>Information IT</option>
-                            <option value={3}>Corporate Job</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="interview-scheduling-info">
-                        <span>
-                          <input
-                            type="radio"
-                            id="html"
-                            name="fav_language"
-                            defaultValue="HTML"
-                          />
-                          <label htmlFor="html">Tuesday, 10:00 AM</label>
-                        </span>
-                        <span>
-                          <input
-                            type="radio"
-                            id="css"
-                            name="fav_language"
-                            defaultValue="CSS"
-                          />
-                          <label htmlFor="css">Tuesday, 1:00 PM</label>
-                        </span>
-                        <span>
-                          <input
-                            type="radio"
-                            id="javascript"
-                            name="fav_language"
-                            defaultValue="JavaScript"
-                          />
-                          <label htmlFor="javascript">Wednesday, 2:00 PM</label>
-                        </span>
-                        <span>
-                          <input
-                            type="radio"
-                            id="javascript"
-                            name="fav_language"
-                            defaultValue="JavaScript"
-                          />
-                          <label htmlFor="javascript">Thursday, 4:00 PM</label>
-                        </span>
-                      </div>
-                      <div className="send-invitation-btn">
-                        <a href="#" className="default-btn btn">
-                          Send Invitation
-                        </a>
                       </div>
                     </div>
                   </div>
