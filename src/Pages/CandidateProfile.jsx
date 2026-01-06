@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 function CandidateProfile() {
   const navigate = useNavigate();
@@ -1812,7 +1813,15 @@ function CandidateProfile() {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}

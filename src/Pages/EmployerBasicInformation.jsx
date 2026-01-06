@@ -320,6 +320,10 @@ const EmployerBasicInformation = () => {
   const employerLoginPage = () => {
     navigate("/employer-dashboard");
   };
+  const countryOptions = countries.map((c) => ({
+    value: c.phonecode, // numeric value to save
+    label: `${c.emoji} +${c.phonecode} ${c.name}`,
+  }));
 
   return (
     <>
@@ -442,14 +446,24 @@ const EmployerBasicInformation = () => {
                 >
                   <div className="form-group">
                     <label>Country code</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search country code"
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      onFocus={() => setOpen(true)}
-                      autoComplete="off"
+
+                    <Select
+                      options={countryOptions}
+                      placeholder="Select country code"
+                      isSearchable={true}
+                      onChange={(selected) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          country_code: String(selected.value),
+                        }));
+                      }}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          height: "45px",
+                          borderColor: "#ced4da",
+                        }),
+                      }}
                     />
                   </div>
 
