@@ -102,7 +102,7 @@ export const TableView = ({
               </tbody>
             </table>
 
-            <div className="flex justify-end">
+            {/* <div className="flex justify-end">
               <ReactPaginate
                 previousLabel={"previous"}
                 nextLabel={"next"}
@@ -114,7 +114,7 @@ export const TableView = ({
                 disabledClassName={"paginationDisabled"}
                 activeClassName={"paginationActive"}
               />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
