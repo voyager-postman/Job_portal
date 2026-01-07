@@ -193,7 +193,7 @@ function EmployerShortListCandinate() {
                     <div className="candidate-list-info single-freelancer-card">
                       <Link
                         to={`/candidates-profile-details`}
-                        state={{ userId: candidate._id }}
+                        state={{ userId: candidate?._id }}
                       >
                         <div className="row align-items-center">
                           <div className="col-lg-4">
@@ -212,7 +212,7 @@ function EmployerShortListCandinate() {
                           <div className="col-lg-8">
                             <div className="freelancer-content">
                               <h3>
-                                {candidate.first_name} {candidate.last_name}
+                                {candidate?.first_name} {candidate?.last_name}
                               </h3>
                               <span>
                                 {candidate?.candidateProfile?.career_goals
@@ -223,11 +223,11 @@ function EmployerShortListCandinate() {
                                 <ul>
                                   <li>
                                     <i className="fa-solid fa-location-dot" />{" "}
-                                    {candidate.city}
+                                    {candidate?.city}
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-envelope" />{" "}
-                                    {candidate.email}
+                                    {candidate?.email}
                                   </li>
                                 </ul>
                               </div>
@@ -240,7 +240,7 @@ function EmployerShortListCandinate() {
                                     e.stopPropagation(); // ⬅ stop parent card click
                                     handleBookmark(
                                       candidate?._id,
-                                      candidate.jobId
+                                      candidate?.jobId
                                     );
                                   }}
                                   style={{ cursor: "pointer" }}

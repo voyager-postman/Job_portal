@@ -200,6 +200,8 @@ function CandidateDashboard() {
   useEffect(() => {
     getAllJobList(pageSize, pageNumber);
   }, [pageNumber, pageSize]);
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -219,7 +221,29 @@ function CandidateDashboard() {
     }
 
     if (selectedType === "custom") {
-      formData.append("customResume", fileInputRef.current.files[0]);
+      const file = fileInputRef.current?.files?.[0];
+
+      // ✅ FILE REQUIRED
+      if (!file) {
+        toast.error("Please select a resume file.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return;
+      }
+
+      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return; // ⛔ STOP — DO NOT HIT API
+      }
+
+      formData.append("customResume", file);
     }
 
     formData.append("jobId", jobId);
@@ -227,12 +251,12 @@ function CandidateDashboard() {
     try {
       const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
-      getAllJobList(pageSize, pageNumber);
+
       toast.success(res.data.message || "Applied successfully!");
+      getAllJobList(pageSize, pageNumber);
 
       const modal = document.getElementById("exampleModal");
       if (modal) {
@@ -240,11 +264,67 @@ function CandidateDashboard() {
         bootstrapModal?.hide();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong!");
+      console.error("Apply job error:", error);
+
+      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
+      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Something went wrong!");
+      }
     } finally {
       setIsApplying(false); // 🔥 Stop loader
     }
   };
+
+  // const handleApplyJob = async () => {
+  //   if (!jobId) {
+  //     console.error("❌ jobId is missing");
+  //     return;
+  //   }
+
+  //   setIsApplying(true); // 🔥 Start loader
+
+  //   const formData = new FormData();
+
+  //   if (selectedType === "resume") {
+  //     formData.append("cv", selectedId);
+  //   }
+
+  //   if (selectedType === "cover") {
+  //     formData.append("coverLetter", selectedId);
+  //   }
+
+  //   if (selectedType === "custom") {
+  //     formData.append("customResume", fileInputRef.current.files[0]);
+  //   }
+
+  //   formData.append("jobId", jobId);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //     getAllJobList(pageSize, pageNumber);
+  //     toast.success(res.data.message || "Applied successfully!");
+
+  //     const modal = document.getElementById("exampleModal");
+  //     if (modal) {
+  //       const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+  //       bootstrapModal?.hide();
+  //     }
+  //   } catch (error) {
+  //     toast.error(error?.response?.data?.message || "Something went wrong!");
+  //   } finally {
+  //     setIsApplying(false); // 🔥 Stop loader
+  //   }
+  // };
   // ⚡ Example total count (replace with value from API if available)
   // const totalJobs = 7700;
   // const totalPages = Math.ceil(totalJobs / pageSize);

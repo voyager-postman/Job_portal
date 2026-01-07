@@ -11,33 +11,112 @@ function CandinatesList() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showAllEducation, setShowAllEducation] = useState(false);
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedEducation, setSelectedEducation] = useState([]);
+  const [selectedExperience, setSelectedExperience] = useState([]);
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
+  const educationLevels = [
+    "High School",
+    "Secondary School",
+    "Higher Secondary",
+    "Certificate",
+    "Diploma",
+    "Associate Degree",
+    "Bachelor Degree",
+    "Master’s Degree",
+    "Doctorate (PhD)",
+    "Post Doctorate",
+    "Professional Degree",
+  ];
+  const experienceLevels = ["0-2", "2-4", "5-7", "8-10", "10+"];
 
+  const handleLocationSearch = async (e) => {
+    const value = e.target.value;
+    setLocationSearchTerm(value);
+
+    if (!value.trim()) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      setIsLocationLoading(true);
+      const res = await axios.get(`${API_BASE_URL}searchCities`, {
+        params: { key: value },
+      });
+
+      if (res.data?.success && Array.isArray(res.data.cities)) {
+        setLocationSuggestions(res.data.cities);
+      } else {
+        setLocationSuggestions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cities:", err);
+      setLocationSuggestions([]);
+    } finally {
+      setIsLocationLoading(false);
+    }
+  };
+  const handleSelectLocation = (city) => {
+    setSelectedLocation(city.name); // ✅ NAME
+    setLocationSearchTerm(
+      `${city.name}, ${city.state_name}, ${city.country_name}`
+    );
+    setLocationSuggestions([]);
+  };
+  const clearLocationFilter = () => {
+    setSelectedLocation(null);
+    setLocationSearchTerm("");
+    setLocationSuggestions([]);
+  };
+
+  const visibleEducation = showAllEducation
+    ? educationLevels
+    : educationLevels.slice(0, 5);
   const fetchCandidates = async (page = 1) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
 
       const response = await axios.post(
         `${API_BASE_URL}getCandidateList`,
-        {}, // send body if API expects filters, else keep empty
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
+          },
+          params: {
+            page,
+
+            // ✅ Convert to comma-separated values
+            location: selectedLocation || "",
+
+            education:
+              selectedEducation.length > 0 ? selectedEducation.join(",") : "",
+
+            experience:
+              selectedExperience.length > 0 ? selectedExperience.join(",") : "",
           },
         }
       );
 
       setCandidates(response.data.data || []);
       setTotalPages(response.data.totalPages || 1);
-    } catch (error) {
-      console.error("Error fetching candidates:", error);
-      setCandidates([]);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCandidates(1);
+  }, [selectedEducation, selectedExperience, selectedLocation]);
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -47,7 +126,8 @@ function CandinatesList() {
 
   useEffect(() => {
     fetchCandidates(currentPage);
-  }, [currentPage]);
+  }, [currentPage, selectedEducation, selectedExperience, selectedLocation]);
+
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -76,6 +156,34 @@ function CandinatesList() {
       }
     }
   };
+  const toggleEducation = (value) => {
+    setSelectedEducation((prev) =>
+      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+    );
+  };
+
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // ✅ Default local dashboard image
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+      return url;
+    }
+
+    // ✅ Fix wrong stored URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // ✅ External image (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image
+    return `${API_IMAGE_URL}${url}`;
+  };
+
   return (
     <>
       <ToastContainer />
@@ -98,159 +206,171 @@ function CandinatesList() {
               </li>
             </ol>
           </div>
-          {/* End Breadcrumb Area */}
-          {/*Start Candidates Listing Area*/}
           <div className="candidate-listing-area">
             <div className="container">
               <div className="row">
                 <div className="col-lg-3">
                   <div className="sidebar candidate-list-filter">
-                    <div className="single-sidebar-widget skills">
-                      <h3>Skills</h3>
-                      <form>
-                        <div className="form-group">
-                          <select
-                            className="form-select form-control"
-                            aria-label="Default select example"
-                          >
-                            <option selected>Choose A Skills</option>
-                            <option value={1}>Digital</option>
-                            <option value={2}>Design</option>
-                            <option value={3}>Developer</option>
-                            <option value={4}>Front End</option>
-                            <option value={5}>Microsoft Excel</option>
-                            <option value={6}>Telemarketing</option>
-                            <option value={7}>Account</option>
-                            <option value={8}>Finance</option>
-                            <option value={9}>Marketing</option>
-                          </select>
-                        </div>
-                      </form>
-                    </div>
                     <div className="single-sidebar-widget">
                       <h3>Experience level</h3>
                       <div className="candidate-list-select-filter">
                         <ul>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">0 - 2 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">2 - 4 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">5 - 7 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">8 - 10 Years</label>
-                          </li>
+                          {experienceLevels.map((exp, index) => (
+                            <li key={index}>
+                              <input
+                                type="checkbox"
+                                id={`exp-${index}`}
+                                value={exp}
+                                checked={selectedExperience.includes(exp)}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  setSelectedExperience((prev) =>
+                                    prev.includes(value)
+                                      ? prev.filter((i) => i !== value)
+                                      : [...prev, value]
+                                  );
+                                }}
+                              />
+                              <label htmlFor={`exp-${index}`}>
+                                {exp === "10+"
+                                  ? "10+ Years"
+                                  : exp.replace("-", " - ") + " Years"}
+                              </label>
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     </div>
+
                     <div className="single-sidebar-widget">
                       <h3>Education</h3>
+
                       <div className="candidate-list-select-filter">
                         <ul>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">Certified</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">Diploma</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">Associate Degree</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">Bachelor Degree</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1">Master’s Degree</label>
-                          </li>
+                          {/* First 5 */}
+                          {educationLevels.slice(0, 5).map((edu, index) => (
+                            <li key={edu}>
+                              <input
+                                type="checkbox"
+                                id={`education-${index}`}
+                                value={edu}
+                                checked={selectedEducation.includes(edu)}
+                                onChange={() => toggleEducation(edu)}
+                              />
+                              <label htmlFor={`education-${index}`}>
+                                {edu}
+                              </label>
+                            </li>
+                          ))}
                         </ul>
+
+                        {/* Collapsed items */}
+                        <div className="collapse" id="educationCollapse">
+                          <ul>
+                            {educationLevels.slice(5).map((edu, index) => {
+                              const realIndex = index + 5;
+                              return (
+                                <li key={edu}>
+                                  <input
+                                    type="checkbox"
+                                    id={`education-${realIndex}`}
+                                    value={edu}
+                                    checked={selectedEducation.includes(edu)}
+                                    onChange={() => toggleEducation(edu)}
+                                  />
+                                  <label htmlFor={`education-${realIndex}`}>
+                                    {edu}
+                                  </label>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+
+                        {/* Show More / Show Less */}
+                        {educationLevels.length > 5 && (
+                          <div
+                            className="show-more-less-btn collapsed"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#educationCollapse"
+                            aria-expanded="false"
+                          >
+                            <span className="show-more">
+                              Show More <i className="fa fa-angle-down" />
+                            </span>
+                            <span className="show-less">
+                              Show Less <i className="fa fa-angle-up" />
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
+
                     <div className="single-sidebar-widget location-style2">
                       <h3>Location</h3>
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Choose a location</option>
-                        <option value={1}>California, US</option>
-                        <option value={2}>London, UK</option>
-                        <option value={3}>Dubai, UAE</option>
-                        <option value={4}>New York, US</option>
-                        <option value={5}>Milan, Italy</option>
-                        <option value={5}>Washington, US</option>
-                      </select>
-                      {/* <p>Radius around selected destination</p>
-                          <div class="range-slider-area">
-                              <div class="area-range-slider"></div>
-                              <div class="input-outer">
-                                  <div class="amount-outer"><span class="area-amount"></span>km</div>
-                              </div>
-                              <div class="okm">
-                                  <span>0 km</span>
-                              </div>
-                          </div> */}
+
+                      <div className="position-relative">
+                        <input
+                          type="search"
+                          className="form-control"
+                          placeholder="Search location"
+                          value={locationSearchTerm}
+                          onChange={handleLocationSearch}
+                        />
+
+                        {/* ❌ Clear icon */}
+                        {selectedLocation && (
+                          <span
+                            onClick={clearLocationFilter}
+                            style={{
+                              position: "absolute",
+                              right: "10px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              cursor: "pointer",
+                              fontSize: "16px",
+                              color: "#999",
+                            }}
+                            title="Clear location"
+                          >
+                            ✕
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Loading */}
+                      {isLocationLoading && (
+                        <div className="suggestion-box">Searching...</div>
+                      )}
+
+                      {/* Suggestions */}
+                      {!isLocationLoading && locationSuggestions.length > 0 && (
+                        <ul
+                          className="list-group position-absolute w-100"
+                          style={{
+                            zIndex: 1000,
+                            maxHeight: "200px",
+                            overflowY: "auto",
+                          }}
+                        >
+                          {locationSuggestions.map((city) => (
+                            <li
+                              key={city._id}
+                              className="list-group-item list-group-item-action"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => handleSelectLocation(city)}
+                            >
+                              {city.name}, {city.state_name},{" "}
+                              {city.country_name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="col-lg-9">
-                  <div className="search-job-top-content">
+                  {/* <div className="search-job-top-content">
                     <div className="row align-items-center">
                       <div className="col-lg-6 col-md-4">
                         <div className="shoing-content">
@@ -290,69 +410,8 @@ function CandinatesList() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                  {/* <div className="row">
-                    
-                    <div
-                      className="col-lg-6 col-sm-6 aos-init aos-animate"
-                      data-aos="fade-up"
-                      data-aos-duration={1200}
-                      data-aos-delay={200}
-                    >
-                      <div className="candidate-list-info single-freelancer-card">
-                        <div className="row align-items-center">
-                          <Link to="/candidates-profile-details"></Link>
-                          <div className="col-lg-4">
-                            <div className="freelancer-img">
-                              <a href="candidates-profile-details.html">
-                                <img
-                                  src="assets/images/freelancers/freelancers-img-1.jpg"
-                                  alt="Image"
-                                />
-                              </a>
-                            </div>
-                          </div>
-                          <div className="col-lg-8">
-                            <div className="freelancer-content">
-                              <Link to="/candidates-profile-details">
-                                <h3>Jequline Fenda</h3>
-                              </Link>
-                              <span>IT Developer</span>
-                              <div className="info">
-                                <ul>
-                                  <li>
-                                    <i className="fa-solid fa-file" /> 5 Years
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-money-bill" />$
-                                    2000
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-location-dot" />
-                                    Washington DC, US
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-graduation-cap" />
-                                    Master’s Degree
-                                  </li>
-                                  <li>
-                                    <i className="fa-solid fa-gear" />
-                                    <span className="candidate-active">
-                                      Active
-                                    </span>
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="candidate-list-bookmark">
-                                <i className="fa-regular fa-heart" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  
                   </div> */}
+
                   <div className="row">
                     {loading ? (
                       <JobListLoader />
@@ -380,16 +439,12 @@ function CandinatesList() {
                                     <div className="freelancer-img">
                                       <img
                                         src={
-                                          user?.profileImage
-                                            ? `${API_IMAGE_URL}${user?.profileImage}`
-                                            : "assets/images/freelancers/freelancers-img-1.jpg"
+                                          cleanImageUrl(user?.profileImage) ||
+                                          "assets/images/freelancers/freelancers-img-1.jpg"
                                         }
                                         crossOrigin="anonymous"
+                                        alt="Profile"
                                       />
-                                      {/* <img
-                                        src="assets/images/freelancers/freelancers-img-1.jpg"
-                                        alt="Image"
-                                      /> */}
                                     </div>
                                   </div>
                                   <div className="col-lg-8">
@@ -475,34 +530,10 @@ function CandinatesList() {
                         );
                       })
                     ) : (
-                      <p>No candidates found.</p>
+                      <p className="text-center">No candidates found.</p>
                     )}
                   </div>
-                  {/* <div className="paginations mb-30">
-                    <ul>
-                      <li>
-                        <a href="#">
-                          <i className="fa-solid fa-angle-left" />
-                        </a>
-                      </li>
-                      <li>
-                        <a className="active" href="candidates.html">
-                          1
-                        </a>
-                      </li>
-                      <li>
-                        <a href="#">2</a>
-                      </li>
-                      <li>
-                        <a href="#">3</a>
-                      </li>
-                      <li>
-                        <a href="#">
-                          <i className="fa-solid fa-angle-right" />
-                        </a>
-                      </li>
-                    </ul>
-                  </div> */}
+
                   <div className="paginations mb-30">
                     <ul>
                       {/* Previous button */}
@@ -558,8 +589,7 @@ function CandinatesList() {
               </div>
             </div>
           </div>
-          {/*End Candidates Listing Area*/}
-          {/*End Bookmark Jobs Area*/}
+
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">

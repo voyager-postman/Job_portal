@@ -23,6 +23,8 @@ function Header({ bgColor }) {
     updateProfileImage,
     updateName,
   } = useAuth();
+  console.log(updateProfileImage);
+  console.log(profileImage);
   const userRole = localStorage.getItem("user_role");
   const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
@@ -508,7 +510,7 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  
+
   const cleanImageUrl = (url) => {
     if (!url) return "";
 

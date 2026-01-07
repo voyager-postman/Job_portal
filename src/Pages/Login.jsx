@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"; 
+import axios from "../utils/axiosInstance";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -232,17 +232,18 @@ function Login() {
                         <label>Password*</label>
                         <div style={{ position: "relative" }}>
                           <input
-                            type={showPassword ? "text" : "password"} // ✅ toggle type
+                            type={showPassword ? "text" : "password"}
                             id="password"
                             className="form-control"
                             placeholder="Password*"
                             value={formData.password}
                             onChange={handleChange}
                           />
+
                           <i
                             className={`fa-solid ${
                               showPassword ? "fa-eye-slash" : "fa-eye"
-                            } toggle-password`}
+                            }`}
                             style={{
                               position: "absolute",
                               right: "10px",
@@ -250,6 +251,7 @@ function Login() {
                               transform: "translateY(-50%)",
                               cursor: "pointer",
                             }}
+                            onClick={() => setShowPassword((prev) => !prev)}
                           />
                         </div>
                       </div>

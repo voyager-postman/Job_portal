@@ -283,9 +283,47 @@ function MyProfile() {
     }));
     setCitySuggestions([]); // ✅ hide dropdown after selecting
   };
+  // const uploadResume = async () => {
+  //   const data = new FormData();
+  //   data.append("resume", formData.attachment);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+
+  //     if (res.data.success && res.data.jobId) {
+  //       fetchExtractedData(res.data.jobId); // start polling
+  //     } else {
+  //       toast.error("Upload succeeded but jobId missing.");
+  //     }
+  //   } catch (err) {
+  //     toast.error("Failed to upload resume.");
+  //   }
+  // };
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
   const uploadResume = async () => {
+    const file = formData?.attachment;
+
+    // ✅ File existence check
+    if (!file) {
+      toast.error("Please select a resume file.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    // ✅ File size validation (prevents 413)
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Uploaded file is too large. Max size is 2MB.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return; // ⛔ STOP — do not hit API
+    }
+
     const data = new FormData();
-    data.append("resume", formData.attachment);
+    data.append("resume", file);
 
     try {
       const res = await axios.post(`${API_BASE_URL}extractResume`, data);
@@ -296,7 +334,17 @@ function MyProfile() {
         toast.error("Upload succeeded but jobId missing.");
       }
     } catch (err) {
-      toast.error("Failed to upload resume.");
+      console.error("Resume upload error:", err);
+
+      // 🔒 Backup 413 handling
+      if (err?.response?.status === 413 || err?.message?.includes("413")) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Failed to upload resume.");
+      }
     }
   };
 

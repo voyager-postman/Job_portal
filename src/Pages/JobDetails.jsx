@@ -18,7 +18,6 @@ function JobDetails() {
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const { id } = useParams(); // ✅ Get job ID from URL
   const navigate = useNavigate();
-
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
@@ -29,7 +28,6 @@ function JobDetails() {
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   const [job, setJob] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
-
   const [loading, setLoading] = useState(true);
   console.log(id);
   const fetchJobDetails = async () => {
@@ -204,6 +202,8 @@ function JobDetails() {
       console.error("Failed to copy text:", err);
     }
   };
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -223,7 +223,29 @@ function JobDetails() {
     }
 
     if (selectedType === "custom") {
-      formData.append("customResume", fileInputRef.current.files[0]);
+      const file = fileInputRef.current?.files?.[0];
+
+      // ✅ FILE REQUIRED
+      if (!file) {
+        toast.error("Please select a resume file.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return;
+      }
+
+      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return; // ⛔ STOP — DO NOT HIT API
+      }
+
+      formData.append("customResume", file);
     }
 
     formData.append("jobId", jobId);
@@ -231,12 +253,12 @@ function JobDetails() {
     try {
       const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchJobDetails();
+
       toast.success(res.data.message || "Applied successfully!");
+      fetchJobDetails();
 
       const modal = document.getElementById("exampleModal");
       if (modal) {
@@ -244,11 +266,67 @@ function JobDetails() {
         bootstrapModal?.hide();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong!");
+      console.error("Apply job error:", error);
+
+      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
+      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Something went wrong!");
+      }
     } finally {
       setIsApplying(false); // 🔥 Stop loader
     }
   };
+
+  // const handleApplyJob = async () => {
+  //   if (!jobId) {
+  //     console.error("❌ jobId is missing");
+  //     return;
+  //   }
+
+  //   setIsApplying(true); // 🔥 Start loader
+
+  //   const formData = new FormData();
+
+  //   if (selectedType === "resume") {
+  //     formData.append("cv", selectedId);
+  //   }
+
+  //   if (selectedType === "cover") {
+  //     formData.append("coverLetter", selectedId);
+  //   }
+
+  //   if (selectedType === "custom") {
+  //     formData.append("customResume", fileInputRef.current.files[0]);
+  //   }
+
+  //   formData.append("jobId", jobId);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //     fetchJobDetails();
+  //     toast.success(res.data.message || "Applied successfully!");
+
+  //     const modal = document.getElementById("exampleModal");
+  //     if (modal) {
+  //       const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+  //       bootstrapModal?.hide();
+  //     }
+  //   } catch (error) {
+  //     toast.error(error?.response?.data?.message || "Something went wrong!");
+  //   } finally {
+  //     setIsApplying(false); // 🔥 Stop loader
+  //   }
+  // };
   const handleSaveJob2 = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
@@ -514,21 +592,6 @@ function JobDetails() {
                         Apply Now
                       </a>
                     )}
-                    {/* {jobStatus === "Applied" ? (
-                      <a href="#" className="default-btn btn">
-                        {jobStatus}
-                      </a>
-                    ) : (
-                      <a
-                        href="#"
-                        className="default-btn btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
-                        onClick={() => setJobId(job._id)} // ✅ set job ID here
-                      >
-                        Apply Now
-                      </a>
-                    )} */}
                   </div>
                 </div>
                 <div
@@ -800,7 +863,7 @@ function JobDetails() {
                     </h4>
                     <Link to="/jobs">
                       <p className="active_link">
-                        {job?.jobDetails?.minimumLevel || "N/A"}
+                        {job?.jobDetails?.minimumLevel?.name || "N/A"}
                       </p>
                     </Link>
                   </div>
@@ -810,7 +873,7 @@ function JobDetails() {
                       Type of contract
                     </h4>
                     <p className="active_link">
-                      {job?.jobDetails?.employmentType || "N/A"}
+                      {job?.jobDetails?.employmentType?.name || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -866,43 +929,7 @@ function JobDetails() {
                 <h5>Job Description</h5>
                 <div dangerouslySetInnerHTML={{ __html: decodedHtml }} />
               </div>
-              {/* <div className="job-details-job-qualifications">
-                <h5>Required Qualifications</h5>
-                <p>
-                  You are at BAC + 3 to BAC + 5 level (Engineering schools, BTS,
-                  DUT, DESS, Master).
-                </p>
-                <p>Your level of English is fluent, both spoken and written.</p>
-                <p>
-                  You like to stay up to date with new technological
-                  developments, and practice regular monitoring.
-                </p>
-                <p>
-                  You have significant experience (at least 3 years) in the
-                  technologies of our stack: AWS, Snowflake, python, spark
-                  scala, SQL.
-                </p>
-              </div> */}
-              {/* <div className="job-details-job-qualifications">
-                <h5>Required Skills</h5>
-                <p>
-                  Proficiency in front-end technologies (HTML, CSS, JavaScript,
-                  React, Angular, or Vue.js).
-                </p>
-                <p>
-                  Experience with back-end development using Node.js, Python,
-                  PHP, or Java.
-                </p>
-                <p>
-                  Familiarity with SQL and NoSQL databases (PostgreSQL, MySQL,
-                  MongoDB, etc.).
-                </p>
-                <p>Experience with cloud platforms (AWS, GCP, or Azure).</p>
-                <p>
-                  Proficiency in version control systems (Git, GitHub, GitLab,
-                  etc.).
-                </p>
-              </div> */}
+
               <div className="job-details-related-tags">
                 <h5>Related Tags</h5>
                 {job?.jobDetails?.tags && job?.jobDetails?.tags.length > 0 ? (
@@ -978,7 +1005,7 @@ function JobDetails() {
                     </li>
                     <li>
                       <i className="fa-regular fa-user" />{" "}
-                      {job?.jobDetails?.employmentType || "Full time"}
+                      {job?.jobDetails?.employmentType?.name || "Full time"}
                     </li>
                   </ul>
 
@@ -1115,7 +1142,7 @@ function JobDetails() {
                             </li>
                             <li>
                               <i className="fa-regular fa-user" />{" "}
-                              {item?.employmentType || "Full Time"}
+                              {item?.employmentType?.name || "Full Time"}
                             </li>
                             <li>
                               <i className="fa-solid fa-location-dot" />{" "}

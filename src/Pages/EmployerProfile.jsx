@@ -4,11 +4,14 @@ import React, { useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
+import { useAuth } from "../context/AuthContext";
 function EmployerProfile() {
+  const { updateProfileImage } = useAuth();
+
   const [careerDetail, setCareerDetail] = useState("");
   const [isCareerUpdating, setIsCareerUpdating] = useState(false);
   const [companyData, setCompanyData] = useState(null);
@@ -696,9 +699,16 @@ function EmployerProfile() {
       );
 
       if (res.data.success) {
+        const logoUrl = `${API_IMAGE_URL}${res.data.logo}`;
+        console.log(logoUrl);
+        updateProfileImage(logoUrl);
+        setPreview(logoUrl);
         fetchCompanyDetails();
-        toast.success("Logo updated successfully!");
-
+        // toast.success("Logo updated successfully!");
+        toast.success("Logo updated successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 2000,
+        });
         // Update preview with server image if returned
         // if (res.data.logo) setPreview(`${API_IMAGE_URL}${res.data.logo}`);
       } else {
@@ -739,7 +749,10 @@ function EmployerProfile() {
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Cover Photo updated successfully!");
+        toast.success("Cover Photo updated successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 2000,
+        });
       } else {
         toast.error(res.data.message || "Failed to upload Cover Photo");
       }
@@ -885,12 +898,21 @@ function EmployerProfile() {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer
+        containerId="verify-email-toast"
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-           <h1>Employer Profile</h1>
+            <h1>Employer Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -1358,7 +1380,7 @@ function EmployerProfile() {
                                       accept="image/*"
                                       multiple
                                       onChange={handleFileChangeMultiple}
-                                      style={{ display: "none" }} 
+                                      style={{ display: "none" }}
                                     />
                                   </div>
                                   <div className="upload-company-file-name">
@@ -1528,7 +1550,7 @@ function EmployerProfile() {
                                   <div className="upload-company-file-btn">
                                     <label
                                       htmlFor="officeVideos"
-                                       className="custom-upload default-btn btn"
+                                      className="custom-upload default-btn btn"
                                     >
                                       Choose Videos
                                     </label>
