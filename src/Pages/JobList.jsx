@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../Services/axios";
 import { useLocation } from "react-router-dom";
 import moment from "moment";
 import { useState, useRef, useEffect } from "react";

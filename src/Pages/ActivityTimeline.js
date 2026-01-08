@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios";
+import axios from "../Services/axios";
 
 function ActivityTimeline() {
   const [activity, setActivity] = useState([]);

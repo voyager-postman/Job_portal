@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../utils/axiosInstance"; // path based on your folder structure
+import axios from "../Services/axios";
 import Spinner from "../Conponets/Spinner"; // optional
 import { useAuth } from "../context/AuthContext"; // adjust path
 import ReCAPTCHA from "react-google-recaptcha";

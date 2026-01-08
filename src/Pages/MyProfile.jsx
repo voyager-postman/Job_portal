@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios";
+import axios from "../Services/axios";
 import Switch from "@mui/material/Switch";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path

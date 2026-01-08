@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
+import axios from "../Services/axios";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";

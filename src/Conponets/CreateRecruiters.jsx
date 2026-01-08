@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import axios from "../Services/axios";
 
 function CreateRecruiters() {
   const location = useLocation();

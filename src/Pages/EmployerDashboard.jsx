@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../Services/axios";
 import { API_BASE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../Services/axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import moment from "moment";
@@ -857,7 +857,7 @@ function ManagesJobApplication() {
                                   </li>
                                   <li>
                                     <i className="fa-regular fa-user" />{" "}
-                                    {jobData?.employmentType || "N/A"}
+                                    {jobData?.employmentType?.name || "N/A"}
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-location-dot" />{" "}
