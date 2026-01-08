@@ -3,15 +3,22 @@ import { API_BASE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
+import { TableView } from "../Conponets/DataTable";
+
 function EmployerDashboard() {
   const [stats, setStats] = useState("");
-  const [chartData] = useState({
-    series: [44, 55],
+  const [activity, setActivity] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(5);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [chartData, setChartData] = useState({
+    series: [],
     options: {
       chart: {
         type: "donut",
       },
-      labels: ["Messages", "Replies"], // optional labels
+      labels: ["Messages", "Replies"],
       responsive: [
         {
           breakpoint: 480,
@@ -27,20 +34,18 @@ function EmployerDashboard() {
       ],
     },
   });
-  const [state] = useState({
+
+  const [funnelState, setFunnelState] = useState({
     series: [
       {
         name: "Funnel Series",
-        data: [1380, 1100, 990, 780],
+        data: [],
       },
     ],
     options: {
       chart: {
         type: "bar",
         height: 350,
-        // dropShadow: {
-        //   enabled: true,
-        // },
       },
       plotOptions: {
         bar: {
@@ -53,11 +58,8 @@ function EmployerDashboard() {
       dataLabels: {
         enabled: true,
         formatter: function (val, opt) {
-          return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val;
+          return `${opt.w.globals.labels[opt.dataPointIndex]}: ${val}`;
         },
-        // dropShadow: {
-        //   enabled: true,
-        // },
       },
       title: {
         text: "Recruitment Funnel",
@@ -72,15 +74,15 @@ function EmployerDashboard() {
     },
   });
 
-  const [lineChartConfig] = useState({
+  const [lineChartConfig, setLineChartConfig] = useState({
     series: [
       {
         name: "Views",
-        data: [3, 5, 10, 15, 13, 20, 25], // sample data
+        data: [],
       },
       {
         name: "Applications",
-        data: [1, 3, 5, 7, 6, 9, 12], // sample data
+        data: [],
       },
     ],
     options: {
@@ -97,20 +99,51 @@ function EmployerDashboard() {
         size: 0,
       },
       xaxis: {
-        categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+        categories: [],
       },
       yaxis: {
         min: 0,
-        max: 30,
         tickAmount: 5,
       },
       legend: {
         position: "bottom",
         horizontalAlign: "center",
       },
-      colors: ["#2563eb", "#60a5fa"], // dark blue and light blue
+      colors: ["#2563eb", "#60a5fa"],
     },
   });
+
+  const columns = [
+    {
+      accessorKey: "id",
+      header: "S.No",
+      cell: ({ row }) => (page - 1) * limit + row.index + 1,
+    },
+    {
+      accessorKey: "jobTitle",
+      header: "Job Title",
+      accessorFn: (row) => (row.jobTitle || "").toLowerCase(),
+      cell: ({ row }) => row.original.jobTitle || "Not Provided",
+    },
+    {
+      accessorKey: "location",
+      header: "Location",
+      accessorFn: (row) => (row.location || "").toLowerCase(),
+      cell: ({ row }) => row.original.location || "Not Provided",
+    },
+    {
+      accessorKey: "employmentType",
+      header: "Employment Type",
+      accessorFn: (row) => (row.employmentType || "").toLowerCase(),
+      cell: ({ row }) => row.original.employmentType || "Not Provided",
+    },
+    {
+      accessorKey: "uniqueViews",
+      header: "Views",
+      accessorFn: (row) => (row.uniqueViews || "").toLowerCase(),
+      cell: ({ row }) => String(row.original.uniqueViews) || "Not Provided",
+    },
+  ];
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -130,6 +163,138 @@ function EmployerDashboard() {
     };
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    const fetchJobPerformance = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${API_BASE_URL}getJobPerformanceData`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const { labels, views, applications } = response.data;
+
+        setLineChartConfig((prev) => ({
+          ...prev,
+          series: [
+            { name: "Views", data: views },
+            { name: "Applications", data: applications },
+          ],
+          options: {
+            ...prev.options,
+            xaxis: {
+              categories: labels,
+            },
+          },
+        }));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchJobPerformance();
+  }, []);
+
+  useEffect(() => {
+    const fetchFunnelData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}getJobFunnelData`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log(response.data);
+
+        const { totalViews, totalClicks, totalApplications, totalHires } =
+          response.data;
+        const normalize = (value) => (value === 0 ? 0 : value);
+
+        const originalValues = [
+          totalViews,
+          totalClicks,
+          totalApplications,
+          totalHires,
+        ];
+        const funnelValues = originalValues.map(normalize);
+
+        setFunnelState((prev) => ({
+          ...prev,
+          series: [
+            {
+              name: "Funnel Series",
+              data: funnelValues,
+            },
+          ],
+          options: {
+            ...prev.options,
+            dataLabels: {
+              enabled: true,
+              formatter: function (val, opt) {
+                return `${opt.w.globals.labels[opt.dataPointIndex]}: ${
+                  originalValues[opt.dataPointIndex]
+                }`;
+              },
+            },
+          },
+        }));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchFunnelData();
+  }, []);
+
+  useEffect(() => {
+    const fetchInslight = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${API_BASE_URL}getCandidateEngagementInsights`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const { uniqueMessageSentPercentage, uniqueReplyPercentage } =
+          response?.data?.data?.uniqueEngagement;
+
+        setChartData((prev) => ({
+          ...prev,
+          series: [uniqueMessageSentPercentage, uniqueReplyPercentage],
+        }));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchInslight();
+  }, []);
+
+  useEffect(() => {
+    const fetchJobList = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${API_BASE_URL}getCompanyJobOverview?page=${page}&limit=${limit}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // console.log(response);
+        setActivity(response.data.data);
+        setTotalPages(response?.data?.pagination?.totalPages || 1);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchJobList();
+  }, [page, limit]);
 
   return (
     <>
@@ -168,7 +333,8 @@ function EmployerDashboard() {
                         <h4>Jobs Posted</h4>
                         <h5>{stats.totalJobs || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.jobsPosted?.percent || 0}% this week
+                          <i className="fa-solid fa-arrow-up" />{" "}
+                          {stats?.weekly?.jobsPosted?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -184,7 +350,8 @@ function EmployerDashboard() {
                         <h4>Total Applicants</h4>
                         <h5>{stats.totalApplicants || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.applicants?.percent || 0}% this week
+                          <i className="fa-solid fa-arrow-up" />{" "}
+                          {stats?.weekly?.applicants?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -216,7 +383,8 @@ function EmployerDashboard() {
                         <h4>Shortlist</h4>
                         <h5>{stats.totalShortlisted || 0}</h5>
                         <p>
-                          <i className="fa-solid fa-arrow-up" /> {stats?.weekly?.shortlisted?.percent || 0}% this week
+                          <i className="fa-solid fa-arrow-up" />{" "}
+                          {stats?.weekly?.shortlisted?.percent || 0}% this week
                         </p>
                       </div>
                     </div>
@@ -249,8 +417,8 @@ function EmployerDashboard() {
                   Views → Clicks → Applications → Hires
                 </div>
                 <ReactApexChart
-                  options={state.options}
-                  series={state.series}
+                  options={funnelState.options}
+                  series={funnelState.series}
                   type="bar"
                   height={350}
                 />
@@ -266,52 +434,47 @@ function EmployerDashboard() {
             <div className="dashboard">
               {/* Left Panel */}
               <div className="left dashboard-bottom">
-                <div className="filters">
-                  <select id="locationFilter" onchange="filterJobs()">
-                    <option value="All">All Locations</option>
-                    <option value="New York">New York</option>
-                    <option value="Ohbari">Ohbari</option>
-                    <option value="Linkedin">Linkedin</option>
-                  </select>
-                  <select id="typeFilter" onchange="filterJobs()">
-                    <option value="All">All Types</option>
-                    <option value="Onsite">Onsite</option>
-                    <option value="Once">Once</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Referral">Referral</option>
-                  </select>
+                <TableView
+                  columns={columns}
+                  data={activity}
+                  limit={limit}
+                  setLimit={(value) => {
+                    setLimit(value);
+                    setPage(1);
+                  }}
+                />
+                {/* PAGINATION BUTTONS */}
+                <div className="d-flex justify-content-center mt-3">
+                  <button
+                    className="btn btn-sm btn-primary mx-1"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Prev
+                  </button>
+
+                  {[...Array(totalPages)].map((_, index) => (
+                    <button
+                      key={index}
+                      className={`btn btn-sm mx-1 ${
+                        page === index + 1
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
+                      onClick={() => setPage(index + 1)}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    className="btn btn-sm btn-primary mx-1"
+                    disabled={page === totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Next
+                  </button>
                 </div>
-                <table className="table table-bordered" id="jobsTable">
-                  <thead>
-                    <tr>
-                      <th>Job Title</th>
-                      <th>Location / Type</th>
-                      <th>Views</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr data-location="New York" data-type="Onsite">
-                      <td>Software Engineer</td>
-                      <td>New York / Onsite</td>
-                      <td>300</td>
-                    </tr>
-                    <tr data-location="New York" data-type="Once">
-                      <td>Product Manager</td>
-                      <td>New York / Once</td>
-                      <td>280</td>
-                    </tr>
-                    <tr data-location="Ohbari" data-type="Hybrid">
-                      <td>Sales Representative</td>
-                      <td>Ohbari / Hybrid</td>
-                      <td>230</td>
-                    </tr>
-                    <tr data-location="Linkedin" data-type="Referral">
-                      <td>Marketing Specialist</td>
-                      <td>Linkedin / Referral</td>
-                      <td>160</td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
               {/* Right Panel */}
               <div className="right dashboard-bottom">
@@ -319,13 +482,10 @@ function EmployerDashboard() {
                 <ReactApexChart
                   options={chartData.options}
                   series={chartData.series}
-                  width={350} // 👈 set width
-                  height={350} // 👈 set height
+                  width={400}
+                  height={400}
                   type="donut"
                 />
-                <div className="stat">
-                  Avg. Application Completion Time: <strong>2.5 min</strong>
-                </div>
               </div>
             </div>
           </section>

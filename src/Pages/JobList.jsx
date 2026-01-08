@@ -271,6 +271,24 @@ const JobList = () => {
     }
   };
 
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
+    }
+  };
+
   const handleLocationSearch = async (e) => {
     const value = e.target.value;
     setLocationSearchTerm(value);
@@ -2070,6 +2088,8 @@ const JobList = () => {
 
                                             // 🔥 If logged in → set jobId
                                             setJobId(job._id);
+
+                                            handleJobClick(job._id)
 
                                             // 🔥 Open Apply Modal (correct way)
                                             const modalEl =

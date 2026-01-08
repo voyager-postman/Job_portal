@@ -18,7 +18,9 @@ function ChatMassageSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
+    const ws = new WebSocket(
+      "ws://thunderingslap.com/chatusingsocket/ws/chat/"
+    );
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
@@ -66,7 +68,6 @@ function ChatMassageSystem() {
       loadChat(chats[0]);
     }
   };
-
   useEffect(() => {
     fetchCandidates();
   }, []);
@@ -74,6 +75,36 @@ function ChatMassageSystem() {
   // ---------------- LOAD CHAT HISTORY ----------------
   const loadChat = async (user) => {
     const userId = user.otherUser.companyId;
+
+    const getLastSeenText = (lastActiveAt) => {
+      if (!lastActiveAt) return "";
+
+      const lastActive = new Date(lastActiveAt);
+      const now = new Date();
+
+      const isToday =
+        lastActive.getDate() === now.getDate() &&
+        lastActive.getMonth() === now.getMonth() &&
+        lastActive.getFullYear() === now.getFullYear();
+
+      if (isToday) {
+        const time = lastActive.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+
+        return `last seen today at ${time}`;
+      }
+
+      const date = lastActive.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+
+      return `last seen ${date}`;
+    };
 
     setActiveUser({
       id: userId,
@@ -84,6 +115,10 @@ function ChatMassageSystem() {
           : `${API_IMAGE_URL}${user.otherUser.logo}`
         : "assets/images/freelancers/freelancers-img-1.jpg",
       jobId: user.jobId,
+      online:
+        user?.otherUser?.isOnline === "true"
+          ? "Online"
+          : getLastSeenText(user?.otherUser?.lastActiveAt),
     });
 
     // If already cached, reuse it
@@ -184,7 +219,7 @@ function ChatMassageSystem() {
                   </div>
                   <div className="user-name-status">
                     <h6>{activeUser ? activeUser.name : "Select User"}</h6>
-                    <span>Online</span>
+                    <span>{activeUser?.online}</span>
                   </div>
                 </div>
                 <div className="user-message-dlt">
@@ -213,9 +248,7 @@ function ChatMassageSystem() {
                               crossOrigin="anonymous"
                               src={
                                 u?.otherUser?.logo
-                                  ? u.otherUser.logo.startsWith(
-                                      "http"
-                                    )
+                                  ? u.otherUser.logo.startsWith("http")
                                     ? u.otherUser.logo
                                     : `${API_IMAGE_URL}${u.otherUser.logo}`
                                   : "assets/images/freelancers/freelancers-img-1.jpg"

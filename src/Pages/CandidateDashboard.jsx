@@ -200,12 +200,30 @@ function CandidateDashboard() {
   useEffect(() => {
     getAllJobList(pageSize, pageNumber);
   }, [pageNumber, pageSize]);
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
+    }
+  };
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
       return;
     }
-
     setIsApplying(true); // 🔥 Start loader
 
     const formData = new FormData();
@@ -292,6 +310,7 @@ function CandidateDashboard() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+
   return (
     <>
       <ToastContainer />
@@ -362,7 +381,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>Recruiter Messages </h4>
-                          <h5>5</h5>
+                          <h5>{count.recruiterMessages || 0}</h5>
                         </div>
                       </div>
                     </Link>
@@ -375,7 +394,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>Upcoming interviews </h4>
-                          <h5>5</h5>
+                          <h5>{count.upcomingInterviews || 0}</h5>
                         </div>
                       </div>
                     </a>
@@ -389,7 +408,7 @@ function CandidateDashboard() {
                         </div>
                         <div className="box-content">
                           <h4>User Log</h4>
-                          <h5>5</h5>
+                          <h5>{count.userLogs || 0}</h5>
                         </div>
                       </div>
                     </Link>
@@ -600,7 +619,10 @@ function CandidateDashboard() {
                                           className="default-btn btn"
                                           data-bs-toggle="modal"
                                           data-bs-target="#exampleModal"
-                                          onClick={() => setJobId(job._id)} // ✅ set job ID here
+                                          onClick={() => {
+                                            setJobId(job._id);
+                                            handleJobClick(job._id);
+                                          }}
                                         >
                                           Apply Now
                                         </a>

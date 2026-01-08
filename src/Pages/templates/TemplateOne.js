@@ -21,17 +21,15 @@ const TemplateOne = ({ data }) => {
               <div className="second-resume-template-left-side">
                 <div className="resume-template-user-Img">
                   <img
+                    crossOrigin="anonymous"
                     src={
                       personal?.profileImage
-                        ? `${API_IMAGE_URL}${personal.profileImage}`
-                        : "assets/images/candidate-img/candidate1.jpg"
+                        ? personal?.profileImage.startsWith("http")
+                          ? personal?.profileImage
+                          : `${API_IMAGE_URL}${personal?.profileImage}`
+                        : "assets/images/freelancers/freelancers-img-1.jpg"
                     }
                     alt="Profile"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src =
-                        "assets/images/candidate-img/candidate1.jpg";
-                    }}
                   />
                 </div>
 

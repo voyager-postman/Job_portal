@@ -19,16 +19,15 @@ const TemplateThird = ({ data }) => {
             <div className="third-resume-template-top-area">
               <div className="third-resume-template-Img">
                 <img
+                  crossOrigin="anonymous"
                   src={
                     personal?.profileImage
-                      ? `${API_IMAGE_URL}${personal.profileImage}`
-                      : "assets/images/candidate-img/candidate1.jpg"
+                      ? personal?.profileImage.startsWith("http")
+                        ? personal?.profileImage
+                        : `${API_IMAGE_URL}${personal?.profileImage}`
+                      : "assets/images/freelancers/freelancers-img-1.jpg"
                   }
                   alt="Profile"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "assets/images/candidate-img/candidate1.jpg";
-                  }}
                 />
               </div>
               <div className="third-resume-template-text">
@@ -287,9 +286,11 @@ const TemplateThird = ({ data }) => {
                         <i className="fa-solid fa-phone"></i>{" "}
                         {personal.phone || " +91 9885252855"}
                       </p>
-                      <p style={{
-                            wordWrap: "break-word",
-                          }}>
+                      <p
+                        style={{
+                          wordWrap: "break-word",
+                        }}
+                      >
                         <i className="fa-solid fa-envelope"></i>
                         {personal.email}
                       </p>

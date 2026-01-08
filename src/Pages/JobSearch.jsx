@@ -23,6 +23,7 @@ import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
+
 function JobSearch() {
   const location = useLocation();
   const { alert } = location.state || {};
@@ -37,55 +38,43 @@ function JobSearch() {
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
-
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
   const [appliedFilters, setAppliedFilters] = useState({});
-  // Stores the current input in the location search box
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [notifyEvery, setNotifyEvery] = useState("1 day");
   const [loading, setLoading] = useState(false);
-  // Stores the list of suggested cities from API
   const [locationSuggestions, setLocationSuggestions] = useState([]);
-  const [alertCreated, setAlertCreated] = useState(false); // ✅ track alert creation
-  // Stores the locations selected by the user (can support multiple)
+  const [alertCreated, setAlertCreated] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [companies, setCompanies] = useState([]);
+
   // Loading state for city suggestions
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   useEffect(() => {
     if (!alert) return;
 
     console.log("🔵 Prefilling filters from alert:", alert);
-
     // Job Types
     setSelectedJobTypes(alert.jobType || []);
-
     // Seniority Levels
     setSelectedSeniority(alert.experience || []);
-
     // Tech Stacks (filterCategory contains objects)
     setSelectedTechStacks(alert.filterCategory?.map((item) => item._id) || []);
-
     // Industries (contains objects with _id + name)
     setSelected(alert.industry || []);
-
     // Companies (convert string → object)
     setSelectedCompanies(
       alert.company?.map((name) => ({ _id: name, brandName: name })) || []
     );
-
     // Locations (convert string → object)
     setSelectedLocations(
       alert.location?.map((name) => ({ _id: name, name })) || []
     );
-
     // Salary Ranges
     setSelectedSalaryRanges(alert.salaryRange || []);
-
     // Mark alert as created
     setAlertCreated(true);
-
     // Immediately load job list using restored filters
     getAllJobList(
       pageSize,
@@ -169,12 +158,30 @@ function JobSearch() {
       updatedRanges // ✅ salary filters
     );
   };
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
+    }
+  };
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
       return;
     }
-
     setIsApplying(true); // 🔥 Start loader
 
     const formData = new FormData();
@@ -2335,7 +2342,10 @@ function JobSearch() {
                                         className="default-btn btn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#exampleModal"
-                                        onClick={() => setJobId(job._id)} // ✅ set job ID here
+                                        onClick={() => {
+                                          setJobId(job._id);
+                                          handleJobClick(job._id)
+                                        }}
                                       >
                                         Apply Now
                                       </a>

@@ -22,7 +22,7 @@ function MassagingSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("ws://66.116.198.68:8788/ws/chat/");
+    const ws = new WebSocket("ws://thunderingslap.com/chatusingsocket/ws/chat/");
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
@@ -241,8 +241,6 @@ function MassagingSystem() {
                       <div className="tab-content">
                         <div
                           className="tab-pane fade show active"
-                          // id="menu1"
-                          // role="tabpanel"
                         >
                           {(chatStore[activeUser?.id] || []).map((msg, index) =>
                             String(msg.sender) === String(CURRENT_USER_ID) ? (
@@ -321,7 +319,7 @@ function MassagingSystem() {
                           onChange={(e) => setText(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <div onClick={sendMessage} className="send_chat">
+                        <div onClick={sendMessage} className="send_chat cusror-pointer">
                           <i className="fa-solid fa-paper-plane" />
                           Send
                         </div>
