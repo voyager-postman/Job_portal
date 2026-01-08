@@ -80,7 +80,7 @@ function EmployerRegister() {
         login(); // ✅ update auth context / global state
 
         // ✅ Navigate to verification page with email
-        navigate("/verification", { state: { email,token, showToast: true } });
+        navigate("/verification", { state: { email, token, showToast: true } });
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -93,17 +93,15 @@ function EmployerRegister() {
   };
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-
     const success = queryParams.get("success");
     const token = queryParams.get("token");
     const message = queryParams.get("message"); // backend error message
     const provider = queryParams.get("provider"); // optional (github/linkedin)
-
+    console.log(queryParams);
     // ❌ Backend error handling
     if (success === "false") {
       toast.error(message || "Login failed!");
       console.error(`Login failed from ${provider}:`, message);
-
       // clean URL
       window.history.replaceState({}, document.title, "/jobPortal");
       return;
@@ -143,26 +141,18 @@ function EmployerRegister() {
     localStorage.setItem("user_profile", avatar);
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
-
     toast.success("Login Successful!");
-
-    // Close modal
     const loginModal = document.getElementById("exampleModalLogin");
     const registerModal = document.getElementById("exampleModalRegister");
-
     if (loginModal?.classList.contains("show")) {
       const modalInstance = window.bootstrap.Modal.getInstance(loginModal);
       modalInstance?.hide();
     }
-
     if (registerModal?.classList.contains("show")) {
       const modalInstance = window.bootstrap.Modal.getInstance(registerModal);
       modalInstance?.hide();
     }
-
     authLogin();
-
-    // 👉 Redirect based on role & completion
     if (user.is_completed) {
       if (role === "Recruiter" || role === "Company") {
         navigate("/employer-dashboard");

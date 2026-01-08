@@ -6,10 +6,18 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
   );
+  const DEFAULT_PROFILE_IMAGE =
+    "/jobPortal/assets/images/dashboard/images1.png";
 
-  const [profileImage, setProfileImage] = useState(
-    localStorage.getItem("profileImage") ||
-      "/jobPortal/assets/images/dashboard/images1.png"
+  const getSafeProfileImage = (img) => {
+    if (!img || img === "null" || img === "undefined") {
+      return DEFAULT_PROFILE_IMAGE;
+    }
+    return img;
+  };
+
+  const [profileImage, setProfileImage] = useState(() =>
+    getSafeProfileImage(localStorage.getItem("profileImage"))
   );
 
   const [firstName, setFirstName] = useState(
@@ -19,18 +27,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.getItem("last_name") || ""
   );
 
-  // 🔥 Load stored data when user is already logged in
   useEffect(() => {
     if (isLoggedIn) {
-      const storedImage = localStorage.getItem("profileImage");
-      console.log(storedImage);
-      if (storedImage) setProfileImage(storedImage);
+      setProfileImage(
+        getSafeProfileImage(localStorage.getItem("profileImage"))
+      );
 
-      const storedFirst = localStorage.getItem("first_name");
-      if (storedFirst) setFirstName(storedFirst);
-
-      const storedLast = localStorage.getItem("last_name");
-      if (storedLast) setLastName(storedLast);
+      setFirstName(localStorage.getItem("first_name") || "");
+      setLastName(localStorage.getItem("last_name") || "");
     }
   }, [isLoggedIn]);
 

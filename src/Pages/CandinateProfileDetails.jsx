@@ -109,8 +109,16 @@ function CandinateProfileDetails() {
 
     window.open(fileUrl, "_blank");
   };
+  
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading BookMark Candidates, please wait...</p>
+    </div>
+  );
   return (
     <>
+    
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">

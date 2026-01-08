@@ -148,6 +148,8 @@ function YourJobPosts() {
         return "There Are No Unpublished Job Posts.";
       case "archived":
         return "There Are No Archived Job Posts.";
+      case "scheduled":
+        return "There Are No Scheduled Job Posts.";
       case "all":
       default:
         return "No Jobs Found.";
@@ -580,6 +582,16 @@ function YourJobPosts() {
                         <i className="fas fa-archive"></i> Archived
                       </a>
                     </li>
+                    {/* <li className="nav-item">
+                      <a
+                        className={`nav-link ${
+                          activeStatus === "archived" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveStatus("Scheduled")}
+                      >
+                        <i className="fas fa-archive"></i> Archived
+                      </a>
+                    </li> */}
                   </ul>
                 </div>
               </div>

@@ -5,9 +5,23 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 function CandidateProfile() {
   const navigate = useNavigate();
+  const degreeOptions = [
+    "High School",
+    "Secondary School",
+    "Higher Secondary",
+    "Certificate",
+    "Diploma",
+    "Associate Degree",
+    "Bachelor Degree",
+    "Master’s Degree",
+    "Doctorate (PhD)",
+    "Post Doctorate",
+    "Professional Degree",
+  ];
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -424,20 +438,28 @@ function CandidateProfile() {
     const files = e.target.files;
     if (!files.length) return;
 
+    // ✅ Max 3 cover letters allowed
     if (coverLetters.length >= 3) {
       toast.error(
         "You can upload only up to 3 cover letters. Please delete one first.",
-        {
-          autoClose: 2000,
-          theme: "colored",
-        }
+        { autoClose: 2000, theme: "colored" }
       );
       return;
     }
 
     const token = localStorage.getItem("token");
+
     for (let file of files) {
       if (coverLetters.length >= 3) break;
+
+      // ✅ FILE SIZE CHECK (prevents 413)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File "${file.name}" is too large. Max size is 2MB.`, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        continue; // ⛔ skip this file
+      }
 
       const formData = new FormData();
       formData.append("coverLetter", file);
@@ -454,11 +476,13 @@ function CandidateProfile() {
             ...prev,
             {
               name: file.name,
-              url: response.data.coverLetterUrl, // ✅ backend returns this
-              _id: String(response.data.coverLetterId || Date.now()), // always string
+              url: response.data.coverLetterUrl,
+              _id: String(response.data.coverLetterId || Date.now()),
             },
           ]);
+
           await fetchProfile();
+
           toast.success("Cover letter uploaded successfully!", {
             autoClose: 2000,
             theme: "colored",
@@ -466,19 +490,81 @@ function CandidateProfile() {
         }
       } catch (error) {
         console.error("Upload cover letter error:", error);
-        toast.error("Failed to upload cover letter", {
-          autoClose: 2000,
-          theme: "colored",
-        });
+
+        // ✅ HANDLE 413 ERROR PROPERLY
+        if (error.response?.status === 413) {
+          toast.error(`File "${file.name}" is too large for upload.`, {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        } else {
+          toast.error("Failed to upload cover letter", {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        }
       }
     }
   };
+  // const handleUploadCoverLetter = async (e) => {
+  //   const files = e.target.files;
+  //   if (!files.length) return;
 
+  //   if (coverLetters.length >= 3) {
+  //     toast.error(
+  //       "You can upload only up to 3 cover letters. Please delete one first.",
+  //       {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       }
+  //     );
+  //     return;
+  //   }
+
+  //   const token = localStorage.getItem("token");
+  //   for (let file of files) {
+  //     if (coverLetters.length >= 3) break;
+
+  //     const formData = new FormData();
+  //     formData.append("coverLetter", file);
+
+  //     try {
+  //       const response = await axios.put(
+  //         `${API_BASE_URL}updateCoverLetter`,
+  //         formData,
+  //         { headers: { Authorization: `Bearer ${token}` } }
+  //       );
+
+  //       if (response.status === 200) {
+  //         setCoverLetters((prev) => [
+  //           ...prev,
+  //           {
+  //             name: file.name,
+  //             url: response.data.coverLetterUrl, // ✅ backend returns this
+  //             _id: String(response.data.coverLetterId || Date.now()), // always string
+  //           },
+  //         ]);
+  //         await fetchProfile();
+  //         toast.success("Cover letter uploaded successfully!", {
+  //           autoClose: 2000,
+  //           theme: "colored",
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error("Upload cover letter error:", error);
+  //       toast.error("Failed to upload cover letter", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //     }
+  //   }
+  // };
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleUploadCv = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
 
-    // ✅ Validation: max 3 CVs allowed
+    // ✅ Max 3 CVs allowed
     if (cvFiles.length >= 3) {
       toast.error("You can upload only up to 3 CVs. Please delete one first.", {
         autoClose: 2000,
@@ -490,7 +576,16 @@ function CandidateProfile() {
     const token = localStorage.getItem("token");
 
     for (let file of files) {
-      if (cvFiles.length >= 3) break; // ✅ stop if already 3
+      if (cvFiles.length >= 3) break;
+
+      // ✅ FILE SIZE CHECK (prevents 413)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File "${file.name}" is too large. Max size is 2MB.`, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        continue; // ⛔ skip this file, continue next
+      }
 
       const formData = new FormData();
       formData.append("resume", file);
@@ -508,9 +603,10 @@ function CandidateProfile() {
             {
               name: file.name,
               url: response.data.resumeUrl,
-              _id: String(response.data.resumeId || Date.now()), // ✅ always string
+              _id: String(response.data.resumeId || Date.now()),
             },
           ]);
+
           await fetchProfile();
 
           toast.success("CV uploaded successfully!", {
@@ -520,13 +616,76 @@ function CandidateProfile() {
         }
       } catch (error) {
         console.error("Upload CV error:", error);
-        toast.error("Failed to upload CV", {
-          autoClose: 2000,
-          theme: "colored",
-        });
+
+        // ✅ HANDLE 413 ERROR PROPERLY
+        if (error.response?.status === 413) {
+          toast.error(`File "${file.name}" is too large for upload.`, {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        } else {
+          toast.error("Failed to upload CV", {
+            autoClose: 2000,
+            theme: "colored",
+          });
+        }
       }
     }
   };
+
+  // const handleUploadCv = async (e) => {
+  //   const files = e.target.files;
+  //   if (!files.length) return;
+
+  //   // ✅ Validation: max 3 CVs allowed
+  //   if (cvFiles.length >= 3) {
+  //     toast.error("You can upload only up to 3 CVs. Please delete one first.", {
+  //       autoClose: 2000,
+  //       theme: "colored",
+  //     });
+  //     return;
+  //   }
+
+  //   const token = localStorage.getItem("token");
+
+  //   for (let file of files) {
+  //     if (cvFiles.length >= 3) break; // ✅ stop if already 3
+
+  //     const formData = new FormData();
+  //     formData.append("resume", file);
+
+  //     try {
+  //       const response = await axios.put(
+  //         `${API_BASE_URL}updateResumeUrl`,
+  //         formData,
+  //         { headers: { Authorization: `Bearer ${token}` } }
+  //       );
+
+  //       if (response.status === 200) {
+  //         setCvFiles((prev) => [
+  //           ...prev,
+  //           {
+  //             name: file.name,
+  //             url: response.data.resumeUrl,
+  //             _id: String(response.data.resumeId || Date.now()), // ✅ always string
+  //           },
+  //         ]);
+  //         await fetchProfile();
+
+  //         toast.success("CV uploaded successfully!", {
+  //           autoClose: 2000,
+  //           theme: "colored",
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error("Upload CV error:", error);
+  //       toast.error("Failed to upload CV", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //     }
+  //   }
+  // };
   const handleDeleteCoverLetter = async (clId) => {
     try {
       const token = localStorage.getItem("token");
@@ -1812,7 +1971,15 @@ function CandidateProfile() {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -1948,7 +2115,6 @@ function CandidateProfile() {
                                 aria-label="Close"
                               />
                             </div>
-
                             <div className="modal-body">
                               <div className="form-group">
                                 <div className="custom-file-upload text-center">
@@ -2274,6 +2440,33 @@ function CandidateProfile() {
                                       </select>
                                     </div>
                                   </div>
+
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>Country</label>
+                                      <select
+                                        className="form-select form-control"
+                                        value={personalDetails.nationality}
+                                        onChange={(e) =>
+                                          setPersonalDetails({
+                                            ...personalDetails,
+                                            nationality: e.target.value,
+                                          })
+                                        }
+                                      >
+                                        <option value="">Select Country</option>
+                                        {countries?.length > 0 &&
+                                          countries.map((country, idx) => (
+                                            <option
+                                              key={idx}
+                                              value={country.name || country}
+                                            >
+                                              {country.name || country}
+                                            </option>
+                                          ))}
+                                      </select>
+                                    </div>
+                                  </div>
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group position-relative">
                                       <label>City</label>
@@ -2318,32 +2511,6 @@ function CandidateProfile() {
                                             ))}
                                           </ul>
                                         )}
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Country</label>
-                                      <select
-                                        className="form-select form-control"
-                                        value={personalDetails.nationality}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            nationality: e.target.value,
-                                          })
-                                        }
-                                      >
-                                        <option value="">Select Country</option>
-                                        {countries?.length > 0 &&
-                                          countries.map((country, idx) => (
-                                            <option
-                                              key={idx}
-                                              value={country.name || country}
-                                            >
-                                              {country.name || country}
-                                            </option>
-                                          ))}
-                                      </select>
                                     </div>
                                   </div>
                                 </div>
@@ -2414,16 +2581,17 @@ function CandidateProfile() {
                                     <p>{profileData.gender || "N/A"}</p>
                                   </div>
                                 </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>City</label>
-                                    <p>{profileData.city || "N/A"}</p>
-                                  </div>
-                                </div>
+
                                 <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
                                     <label>Country</label>
                                     <p>{profileData.Nationality || "N/A"}</p>
+                                  </div>
+                                </div>
+                                <div className="col-lg-6 col-md-6">
+                                  <div className="form-group">
+                                    <label>City</label>
+                                    <p>{profileData.city || "N/A"}</p>
                                   </div>
                                 </div>
                               </div>
@@ -4097,14 +4265,19 @@ function CandidateProfile() {
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
                                       <label>Degree</label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Enter Degree"
+                                      <select
+                                        className="form-select form-control"
                                         name="degree"
                                         value={educationForm.degree}
                                         onChange={handleInputChange}
-                                      />
+                                      >
+                                        <option value="">Select Degree</option>
+                                        {degreeOptions.map((degree, index) => (
+                                          <option key={index} value={degree}>
+                                            {degree}
+                                          </option>
+                                        ))}
+                                      </select>
                                     </div>
                                   </div>
                                   <div className="col-lg-6 col-md-6">
