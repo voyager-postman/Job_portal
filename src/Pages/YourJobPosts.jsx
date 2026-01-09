@@ -743,33 +743,6 @@ function YourJobPosts() {
             border: "2px solid none",
           }}
         >
-          {/* <Typography
-            variant="h5"
-            gutterBottom
-            sx={{ fontWeight: "bold", mb: 2 }}
-          >
-            Job Details
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <div>
-              <img
-                src={
-                  viewData?.jobDetails?.JobCoverPhoto
-                    ? `${API_IMAGE_URL}${viewData?.jobDetails?.JobCoverPhoto}`
-                    : "assets/images/dashboard/images1.png"
-                }
-                crossorigin="anonymous"
-                alt="logo"
-                style={{
-                  width: "100px",
-                  maxHeight: "100px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                }}
-              />
-            </div>
-          </Box> */}
           <Card variant="outlined" sx={{ p: 2 }}>
             <Divider sx={{ mb: 2 }} />
             <Typography>
@@ -782,12 +755,14 @@ function YourJobPosts() {
             </Typography>
             <Typography>
               <strong>Employment Type:</strong>{" "}
-              {viewData?.jobDetails?.employmentType || "Not Provided"}
+              {viewData?.jobDetails?.employmentType?.name || "Not Provided"}
             </Typography>
+
             <Typography>
               <strong>Minimum Level:</strong>{" "}
-              {viewData?.jobDetails?.minimumLevel || "Not Provided"}
+              {viewData?.jobDetails?.minimumLevel?.name || "Not Provided"}
             </Typography>
+
             <Typography>
               <strong>Remote Type:</strong>{" "}
               {viewData?.jobDetails?.remote || "Not Provided"}
@@ -802,12 +777,7 @@ function YourJobPosts() {
                 ? viewData?.jobDetails?.companyId?.city?.join(",")
                 : viewData.jobDetails.city?.join(", ") || "Not Provided"}
             </Typography>
-            {/* <Typography>
-              <strong>Region:</strong>
-              {viewData?.jobDetails?.region == null
-                ? viewData?.jobDetails?.companyId?.region
-                : viewData.jobDetails.region || "null"}
-            </Typography> */}
+
             <Typography>
               <p>
                 <strong>Country:</strong>{" "}
@@ -815,10 +785,6 @@ function YourJobPosts() {
                   (country) => country._id === viewData?.jobDetails?.country
                 )?.name || "Not provided"}
               </p>
-
-              {/* {viewData?.jobDetails?.country == null
-                ? viewData?.jobDetails?.companyId?.country
-                : viewData.jobDetails.country || "null"} */}
             </Typography>
             <Typography>
               <strong>Status:</strong>{" "}
@@ -875,7 +841,6 @@ function YourJobPosts() {
                   __html: viewData?.jobDetails?.jobDescription,
                 }}
               />
-              {/* {viewData?.jobDetails?.jobDescription || "null"} */}
             </Typography>
           </Card>
 

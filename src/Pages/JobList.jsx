@@ -753,6 +753,15 @@ const JobList = () => {
     // ✅ now call the API with latest filters
     getAllJobList();
   };
+
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const handleApplyJob = async () => {
@@ -1119,7 +1128,7 @@ const JobList = () => {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`);
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -2169,7 +2178,7 @@ const JobList = () => {
                                             // 🔥 If logged in → set jobId
                                             setJobId(job._id);
 
-                                            handleJobClick(job._id)
+                                            handleJobClick(job._id);
 
                                             // 🔥 Open Apply Modal (correct way)
                                             const modalEl =
@@ -2433,7 +2442,9 @@ const JobList = () => {
                                           <button
                                             className="default-btn btn w-100"
                                             onClick={handleApplyJob}
-                                            disabled={isApplying}
+                                            disabled={
+                                              isApplying || !isSelectionMade()
+                                            }
                                           >
                                             {isApplying ? (
                                               <>

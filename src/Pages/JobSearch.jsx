@@ -176,31 +176,123 @@ function JobSearch() {
       console.log(console.error);
     }
   };
-  
- const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  // const handleApplyJob = async () => {
+  //   if (!jobId) {
+  //     console.error("❌ jobId is missing");
+  //     return;
+  //   }
+  //   setIsApplying(true); // 🔥 Start loader
+
+  //   const formData = new FormData();
+
+  //   if (selectedType === "resume") {
+  //     formData.append("cv", selectedId);
+  //   }
+
+  //   if (selectedType === "cover") {
+  //     formData.append("coverLetter", selectedId);
+  //   }
+
+  //   if (selectedType === "custom") {
+  //     const file = fileInputRef.current?.files?.[0];
+
+  //     // ✅ FILE REQUIRED
+  //     if (!file) {
+  //       toast.error("Please select a resume file.", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       setIsApplying(false);
+  //       return;
+  //     }
+
+  //     // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
+  //     if (file.size > MAX_FILE_SIZE) {
+  //       toast.error("Uploaded file is too large. Max size is 2MB.", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       setIsApplying(false);
+  //       return; // ⛔ STOP — DO NOT HIT API
+  //     }
+
+  //     formData.append("customResume", file);
+  //   }
+
+  //   formData.append("jobId", jobId);
+
+  //   try {
+  //     const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     toast.success(res.data.message || "Applied successfully!");
+  //     getAllJobList(pageSize, pageNumber);
+
+  //     const modal = document.getElementById("exampleModal");
+  //     if (modal) {
+  //       const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+  //       bootstrapModal?.hide();
+  //     }
+  //   } catch (error) {
+  //     console.error("Apply job error:", error);
+
+  //     // 🔒 BACKUP SAFETY (in case proxy still throws 413)
+  //     if (error?.response?.status === 413 || error?.message?.includes("413")) {
+  //       toast.error("Uploaded file is too large. Max size is 2MB.", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //     } else {
+  //       toast.error("Something went wrong!");
+  //     }
+  //   } finally {
+  //     setIsApplying(false); // 🔥 Stop loader
+  //   }
+  // };
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
       return;
     }
+
+    // ✅ VALIDATION: Ensure one of the three options is selected
+    if (
+      selectedType === "resume" &&
+      !selectedId &&
+      selectedType === "cover" &&
+      !selectedId &&
+      selectedType === "custom" &&
+      !selectedCustomFile
+    ) {
+      toast.error(
+        "Please select a resume, cover letter, or upload a custom file.",
+        {
+          autoClose: 2000,
+          theme: "colored",
+        }
+      );
+      return; // stop here
+    }
+
     setIsApplying(true); // 🔥 Start loader
 
     const formData = new FormData();
 
     if (selectedType === "resume") {
       formData.append("cv", selectedId);
-    }
-
-    if (selectedType === "cover") {
+    } else if (selectedType === "cover") {
       formData.append("coverLetter", selectedId);
-    }
+    } else if (selectedType === "custom") {
+      const file = selectedCustomFile;
 
-    if (selectedType === "custom") {
-      const file = fileInputRef.current?.files?.[0];
-
-      // ✅ FILE REQUIRED
       if (!file) {
-        toast.error("Please select a resume file.", {
+        toast.error("Please select a custom file.", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -208,14 +300,13 @@ function JobSearch() {
         return;
       }
 
-      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
       if (file.size > MAX_FILE_SIZE) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
         });
         setIsApplying(false);
-        return; // ⛔ STOP — DO NOT HIT API
+        return;
       }
 
       formData.append("customResume", file);
@@ -240,8 +331,6 @@ function JobSearch() {
       }
     } catch (error) {
       console.error("Apply job error:", error);
-
-      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
       if (error?.response?.status === 413 || error?.message?.includes("413")) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
@@ -739,6 +828,15 @@ function JobSearch() {
   useEffect(() => {
     fetchCompanies(companySearchTerm); // call API with search term
   }, [companySearchTerm]);
+  const formatSalaryRanges = (ranges = []) => {
+    return ranges.map(
+      (range) =>
+        range
+          .replace(/\$/g, "") // remove $
+          .replace(/\s+/g, "") // remove spaces
+          .replace("-", "-") // keep dash
+    );
+  };
 
   const getAllJobList = async (
     limit = pageSize,
@@ -771,8 +869,10 @@ function JobSearch() {
       };
 
       if (locationFilter) params.Filterlocation = locationFilter;
-      if (salaryRangesAPI.length > 0)
-        params.salary_range = salaryRangesAPI.join(",");
+      if (salaryRangesAPI.length > 0) {
+        const formattedSalaryRanges = formatSalaryRanges(salaryRangesAPI);
+        params.salary_range = formattedSalaryRanges.join(",");
+      }
 
       const res = await axios.get(`${API_BASE_URL}getAllJob`, {
         params,
@@ -1009,6 +1109,13 @@ function JobSearch() {
       selectedSalaryRanges // salary filter
     );
   };
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
 
   const handleClearTechStacks = () => {
     setSelectedTechStacks([]);
@@ -1061,7 +1168,7 @@ function JobSearch() {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`);
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -2377,7 +2484,7 @@ function JobSearch() {
                                         data-bs-target="#exampleModal"
                                         onClick={() => {
                                           setJobId(job._id);
-                                          handleJobClick(job._id)
+                                          handleJobClick(job._id);
                                         }}
                                       >
                                         Apply Now
@@ -2626,7 +2733,9 @@ function JobSearch() {
                                         <button
                                           className="default-btn btn w-100"
                                           onClick={handleApplyJob}
-                                          disabled={isApplying}
+                                          disabled={
+                                            isApplying || !isSelectionMade()
+                                          } // ✅ Disabled if nothing selected
                                         >
                                           {isApplying ? (
                                             <>

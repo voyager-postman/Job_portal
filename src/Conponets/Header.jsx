@@ -33,7 +33,6 @@ function Header({ bgColor }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   localStorage.setItem("verifiedByAdmin", "true");
-  localStorage.setItem("is_completed", user.is_completed);
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -829,10 +828,6 @@ function Header({ bgColor }) {
                                     <button
                                       className="nav-link"
                                       onClick={async () => {
-                                        const isCompleted =
-                                          localStorage.getItem(
-                                            "is_completed"
-                                          ) === "true";
                                         const role =
                                           localStorage.getItem("user_role");
                                         const updatedUser =
@@ -855,16 +850,6 @@ function Header({ bgColor }) {
                                         }
 
                                         if (role === "JobSeeker") {
-                                          if (!isCompleted) {
-                                            Swal.fire({
-                                              title: "Profile Incomplete",
-                                              text: "Please fill first basic information page.",
-                                              icon: "warning",
-                                              confirmButtonText: "OK",
-                                            });
-                                            return;
-                                          }
-
                                           navigate("/candidate-dashboard");
                                         } else {
                                           navigate("/employer-dashboard");

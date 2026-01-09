@@ -1,201 +1,126 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "../Services/axios";
 
 function ActivityTimeline() {
+  const [globalFilter, setGlobalFilter] = useState("");
+
   const [activity, setActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  // ✅ API CALL
   const fetchActivity = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${API_BASE_URL}jobseeker/activity?page=${page}&limit=${limit}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      console.log("Activity Timeline data:-", response.data.data);
-      setActivity(response.data.data);
-      setTotalPages(response.data.totalPages || 1);
-    } catch (error) {
-      console.error(error);
+
+      const res = await axios.get(`${API_BASE_URL}jobseeker/activity`, {
+        params: { page, limit }, // ✅ correct way
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setActivity(res.data.data || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error("Activity fetch error", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔥 Re-fetch when page OR limit changes
   useEffect(() => {
     fetchActivity();
   }, [page, limit]);
 
+  // 🔹 Columns
   const columns = [
     {
-      accessorKey: "id",
       header: "S.No",
       cell: ({ row }) => (page - 1) * limit + row.index + 1,
     },
     {
       accessorKey: "activityType",
       header: "Activity Type",
-      accessorFn: (row) => (row.activityType || "").toLowerCase(),
-      cell: ({ row }) => row.original.activityType || "Not Provided",
     },
     {
       accessorKey: "message",
       header: "Message",
-      accessorFn: (row) => (row.message || "").toLowerCase(),
-      cell: ({ row }) => row.original.message || "Not Provided",
     },
     {
-      accessorKey: "date",
       header: "Date",
-      cell: ({ row }) => {
-        const value = row.original.updatedAt;
-        if (!value) return "Not Provided";
-
-        const date = new Date(value);
-        return date.toLocaleDateString("en-IN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        });
-      },
+      cell: ({ row }) =>
+        new Date(row.original.createdAt).toLocaleDateString("en-IN"),
     },
     {
-      accessorKey: "time",
       header: "Time",
-      cell: ({ row }) => {
-        const value = row.original.updatedAt;
-        if (!value) return "Not Provided";
-
-        const date = new Date(value);
-        return date.toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        });
-      },
+      cell: ({ row }) =>
+        new Date(row.original.createdAt).toLocaleTimeString("en-IN"),
     },
   ];
 
   return (
-    <>
-      <div className="main-dashboard-content d-flex flex-column">
-        <div className="responsive-content">
-          {/* Breadcrumb Area */}
-          <div className="breadcrumb-area">
-            <h1>Activity timeline</h1>
-            <ol className="breadcrumb">
-              <li className="item">
-                <a href="dashboard.html">Home </a>
-              </li>
-              <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
-              </li>
-              <li className="item">
-                <i className="fa-solid fa-angle-right" /> Activity timeline
-              </li>
-            </ol>
-          </div>
-          {/* End Breadcrumb Area */}
-          {/*Start My Profile Area*/}
-          <div className="my-profile-area">
-            <div className="profile-form-content add-recruiters-btn-postion">
-              {/* <h3>Andy Smith log view</h3> */}
+    <div className="main-dashboard-content d-flex flex-column">
+      <div className="responsive-content">
+        <div className="breadcrumb-area">
+          <h1>Activity Timeline</h1>
+        </div>
 
-              <div className="profile-form">
-                <div className="row">
-                  <div className="col-lg-12 col-md-12">
-                    {loading ? (
-                      <div className="d-flex justify-content-center py-5">
-                        <div className="spinner-border text-primary"></div>
-                      </div>
-                    ) : (
-                      <>
-                        <TableView
-                          columns={columns}
-                          data={activity}
-                          limit={limit}
-                          setLimit={(value) => {
-                            setLimit(value);
-                            setPage(1);
-                          }}
-                        />
-                        {/* PAGINATION BUTTONS */}
-                        <div className="d-flex justify-content-center mt-3">
-                          <button
-                            className="btn btn-sm btn-primary mx-1"
-                            disabled={page === 1}
-                            onClick={() => setPage(page - 1)}
-                          >
-                            Prev
-                          </button>
+        <div className="my-profile-area">
+          <div className="profile-form-content">
+            {loading ? (
+              <div className="d-flex justify-content-center py-5">
+                <div className="spinner-border text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* TABLE */}
+                <TableView
+                  columns={columns}
+                  data={activity}
+                  limit={limit}
+                  setLimit={(val) => {
+                    setLimit(val);
+                    setPage(1); // 🔥 reset page
+                  }}
+                  globalFilter={globalFilter}
+                  setGlobalFilter={setGlobalFilter}
+                />
 
-                          {[...Array(totalPages)].map((_, index) => (
-                            <button
-                              key={index}
-                              className={`btn btn-sm mx-1 ${
-                                page === index + 1
-                                  ? "btn-primary"
-                                  : "btn-outline-primary"
-                              }`}
-                              onClick={() => setPage(index + 1)}
-                            >
-                              {index + 1}
-                            </button>
-                          ))}
+                {/* ✅ PAGINATION */}
+                <div className="d-flex justify-content-center mt-3">
+                  <button
+                    className="btn btn-sm btn-primary mx-1"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    Prev
+                  </button>
 
-                          <button
-                            className="btn btn-sm btn-primary mx-1"
-                            disabled={page === totalPages}
-                            onClick={() => setPage(page + 1)}
-                          >
-                            Next
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <span className="mx-2">
+                    Page {page} of {totalPages}
+                  </span>
+
+                  <button
+                    className="btn btn-sm btn-primary mx-1"
+                    disabled={page === totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next
+                  </button>
                 </div>
-              </div>
-            </div>
-          </div>
-          {/*End My Profile Area*/}
-          <div className="copy-right-area bg-f0f4fc">
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-left-content">
-                  <p>
-                    {" "}
-                    <span className="copy">© </span>
-                    <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-right-content">
-                  <p>
-                    Designed By{" "}
-                    <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

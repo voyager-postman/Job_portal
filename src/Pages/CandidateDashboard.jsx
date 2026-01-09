@@ -107,7 +107,7 @@ function CandidateDashboard() {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`);
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -218,8 +218,15 @@ function CandidateDashboard() {
       console.log(console.error);
     }
   };
-  
- const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -951,7 +958,9 @@ function CandidateDashboard() {
                                           <button
                                             className="default-btn btn w-100"
                                             onClick={handleApplyJob}
-                                            disabled={isApplying}
+                                            disabled={
+                                              isApplying || !isSelectionMade()
+                                            }
                                           >
                                             {isApplying ? (
                                               <>

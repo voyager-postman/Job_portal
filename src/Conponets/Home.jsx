@@ -114,7 +114,7 @@ function Home() {
 
   const getCompanyList = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`);
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
 
       if (res.data.success) {
         setCompanies(res.data);
@@ -812,7 +812,22 @@ function Home() {
                   lacus vel facilisis dolore magna.
                 </p>
                 <div className="cv-btn">
-                  <a href="#!" className="default-btn btn mr-20">
+                  <a
+                    href="#!"
+                    className="default-btn btn mr-20"
+                    onClick={(e) => {
+                      e.preventDefault();
+
+                      const userId = localStorage.getItem("user_id");
+                      const userRole = localStorage.getItem("user_role");
+
+                      if (userId && userRole === "JobSeeker") {
+                        navigate("/candidate-profile"); // ✅ go to candidate profile
+                      } else {
+                        navigate("/login"); // ❌ not logged in or not jobseeker
+                      }
+                    }}
+                  >
                     {t("header.uploadYourCV")}
                   </a>
                 </div>
@@ -851,7 +866,8 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                   {t("header.highestRated")} <label class="oragneColor">{t("header.freelancers")}</label>
+                    {t("header.highestRated")}{" "}
+                    <label class="oragneColor">{t("header.freelancers")}</label>
                   </h2>
                 </div>
               </div>
@@ -1208,7 +1224,7 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                  {t("header.readArticleTo")}{" "}
+                    {t("header.readArticleTo")}{" "}
                     <label class="oragneColor"> {t("header.getTricks")}</label>{" "}
                   </h2>
                 </div>
@@ -1222,7 +1238,7 @@ function Home() {
                         : "/employer-login"
                     }
                   >
-                   {t("header.browseAllCandidates")}
+                    {t("header.browseAllCandidates")}
                   </Link>
                 </div>
               </div>
@@ -1371,8 +1387,10 @@ function Home() {
             <div className="col-lg-8 col-md-9">
               <div className="contact-left-content">
                 <h2>
-                 {t("header.findNextGreat")}{" "}
-                  <label class="oragneColor">{t("header.jobOpportunity")}</label>
+                  {t("header.findNextGreat")}{" "}
+                  <label class="oragneColor">
+                    {t("header.jobOpportunity")}
+                  </label>
                 </h2>
               </div>
             </div>

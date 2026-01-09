@@ -145,12 +145,20 @@ function CompanyDetailsPage() {
     e.preventDefault(); // prevent navigation
     fileInputRef.current.click(); // open file dialog
   };
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
       return;
     }
-
     setIsApplying(true); // 🔥 Start loader
 
     const formData = new FormData();
@@ -164,7 +172,29 @@ function CompanyDetailsPage() {
     }
 
     if (selectedType === "custom") {
-      formData.append("customResume", fileInputRef.current.files[0]);
+      const file = fileInputRef.current?.files?.[0];
+
+      // ✅ FILE REQUIRED
+      if (!file) {
+        toast.error("Please select a resume file.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return;
+      }
+
+      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return; // ⛔ STOP — DO NOT HIT API
+      }
+
+      formData.append("customResume", file);
     }
 
     formData.append("jobId", jobId);
@@ -172,12 +202,12 @@ function CompanyDetailsPage() {
     try {
       const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
-      if (companyId) getCompanyDetails();
+
       toast.success(res.data.message || "Applied successfully!");
+      if (companyId) getCompanyDetails();
 
       const modal = document.getElementById("exampleModal");
       if (modal) {
@@ -185,7 +215,17 @@ function CompanyDetailsPage() {
         bootstrapModal?.hide();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something went wrong!");
+      console.error("Apply job error:", error);
+
+      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
+      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Something went wrong!");
+      }
     } finally {
       setIsApplying(false); // 🔥 Stop loader
     }
@@ -201,18 +241,27 @@ function CompanyDetailsPage() {
     decodeHtml(company?.careerDetail || "")
   );
   const handleCopy = async (e, linkUrl, jobId) => {
+    console.log(linkUrl);
     e.preventDefault();
 
-    if (!linkUrl) return;
+    // ❌ No link case
+    if (!linkUrl) {
+      toast.error("Link not available", {
+        autoClose: 1500,
+        theme: "colored",
+      });
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(linkUrl);
-      setCopiedJobId(jobId); // mark this job as copied
+      setCopiedJobId(jobId);
 
-      // remove message after 2 seconds
+      // reset after 2 sec
       setTimeout(() => setCopiedJobId(null), 2000);
     } catch (err) {
       console.error("Failed to copy text:", err);
+      toast.error("Failed to copy link");
     }
   };
 
@@ -817,7 +866,9 @@ function CompanyDetailsPage() {
                                           <button
                                             className="default-btn btn w-100"
                                             onClick={handleApplyJob}
-                                            disabled={isApplying}
+                                            disabled={
+                                              isApplying || !isSelectionMade()
+                                            }
                                           >
                                             {isApplying ? (
                                               <>
@@ -847,11 +898,27 @@ function CompanyDetailsPage() {
                                     href="#"
                                     onClick={(e) =>
                                       handleCopy(e, job?.link, job?._id)
-                                    } // ✅ pass job._id
-                                    style={{ cursor: "pointer" }}
-                                    title="Copy link"
+                                    }
+                                    style={{
+                                      cursor: job?.link
+                                        ? "pointer"
+                                        : "not-allowed",
+                                    }}
+                                    title={
+                                      !job?.link
+                                        ? "Link not available"
+                                        : copiedJobId === job?._id
+                                        ? "Copied!"
+                                        : "Copy link"
+                                    }
                                   >
-                                    <i className="fa-solid fa-link" />
+                                    {job?.link ? (
+                                      <i className="fa-solid fa-link" />
+                                    ) : (
+                                      <span style={{ fontWeight: "bold" }}>
+                                        N
+                                      </span>
+                                    )}
                                   </a>
 
                                   {/* Show "Copied!" only for this job */}

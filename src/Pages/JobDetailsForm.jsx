@@ -184,10 +184,10 @@ function JobDetailsForm() {
 
     setFormData((prev) => {
       const updatedForm = { ...prev, city: updatedCities };
-       if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      handlePublishJob(updatedForm, false);
-    }, 800);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        handlePublishJob(updatedForm, false);
+      }, 800);
       return updatedForm;
     });
   };
@@ -326,10 +326,10 @@ function JobDetailsForm() {
   }, []);
 
   useEffect(() => {
-  if (Array.isArray(formData.city)) {
-    setSelectedCities(formData.city);
-  }
-}, [formData.city]);
+    if (Array.isArray(formData.city)) {
+      setSelectedCities(formData.city);
+    }
+  }, [formData.city]);
 
   const [tagInput, setTagInput] = useState("");
   const handleAddTag = (e) => {
@@ -1251,7 +1251,8 @@ function JobDetailsForm() {
                     <div className="row">
                       <div className="col-lg-6 col-md-6">
                         <div className="form-group">
-                          <label>Min salary (Gross)</label>
+                          <label>Min salary (Gross $)</label>
+
                           {/* <span className="text-danger">*</span> */}
                           <input
                             className="form-control"
@@ -1265,7 +1266,7 @@ function JobDetailsForm() {
                       </div>
                       <div className="col-lg-6 col-md-6">
                         <div className="form-group">
-                          <label>Max salary (Gross)</label>
+                          <label>Max salary (Gross $)</label>
                           {/* <span className="text-danger">*</span> */}
                           <input
                             className="form-control"

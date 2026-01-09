@@ -34,7 +34,7 @@ const Employers = () => {
         params.industry = industryIds.join(",");
       }
 
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`, {
         params,
       });
 
