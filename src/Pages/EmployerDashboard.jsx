@@ -330,7 +330,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-briefcase" />
                       </div>
                       <div className="employer-box-content">
-                        <h4>Jobs Posted</h4>
+                        <h4>All Jobs</h4>
                         <h5>{stats.totalJobs || 0}</h5>
                         <p>
                           <i className="fa-solid fa-arrow-up" />{" "}

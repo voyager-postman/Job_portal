@@ -176,7 +176,7 @@ function JobSearch() {
       console.log(console.error);
     }
   };
-  
+
  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleApplyJob = async () => {
     if (!jobId) {
@@ -267,9 +267,11 @@ function JobSearch() {
       console.error("Error fetching job types:", error);
     }
   };
+
   useEffect(() => {
     fetchJobTypes();
   }, []);
+
   const fetchSeniorityLevels = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getActiveSeniorityLevelList`);
@@ -286,6 +288,7 @@ function JobSearch() {
   useEffect(() => {
     fetchSeniorityLevels();
   }, []);
+
   useEffect(() => {
     getSalaryRanges();
   }, []);
@@ -364,9 +367,7 @@ function JobSearch() {
         salaryRange: selectedSalaryRanges.filter(Boolean), // ✅ salary strings
         notifyEvery: notifyEvery || "1 day", // ✅ fallback if not selected
       };
-
       console.log("📤 Sending Job Alert payload:", payload);
-
       const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });

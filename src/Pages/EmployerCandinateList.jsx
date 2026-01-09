@@ -246,6 +246,7 @@ function EmployerCandinateList() {
       }
     }
   };
+
   const getResumeUrl = () => {
     const { coverLetter, cv, customResume } = selectedCandidate || {};
     console.log(selectedCandidate);
@@ -603,7 +604,7 @@ function EmployerCandinateList() {
                                 <li>
                                   <i className="fa-solid fa-gear" />{" "}
                                   <span className="candidate-active">
-                                    Active
+                                    {candidate?.userId?.candidateProfile?.profileVisible === true ? "Active" : "Inactive"}
                                   </span>
                                 </li>
                               </ul>

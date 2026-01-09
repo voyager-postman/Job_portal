@@ -313,7 +313,7 @@ function YourJobPosts() {
                         <i className="fas fa-tasks"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>All Jobs Posted</h4>
+                        <h4>All Jobs</h4>
                         <h5>{dashboardStats?.allJobs?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.allJobs?.weeklyChange ?? 0
@@ -582,16 +582,16 @@ function YourJobPosts() {
                         <i className="fas fa-archive"></i> Archived
                       </a>
                     </li>
-                    {/* <li className="nav-item">
+                    <li className="nav-item">
                       <a
                         className={`nav-link ${
-                          activeStatus === "archived" ? "active" : ""
+                          activeStatus === "scheduled" ? "active" : ""
                         }`}
-                        onClick={() => setActiveStatus("Scheduled")}
+                        onClick={() => setActiveStatus("scheduled")}
                       >
-                        <i className="fas fa-archive"></i> Archived
+                        <i className="fas fa-archive"></i> Scheduled
                       </a>
-                    </li> */}
+                    </li>
                   </ul>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
+
 function ManagesJobApplication() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -857,7 +858,7 @@ function ManagesJobApplication() {
                                   </li>
                                   <li>
                                     <i className="fa-regular fa-user" />{" "}
-                                    {jobData?.employmentType || "N/A"}
+                                    {jobData?.employmentType?.name || "N/A"}
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-location-dot" />{" "}

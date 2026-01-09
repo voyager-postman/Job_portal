@@ -5921,9 +5921,11 @@ width:100%;
 /*chat messaging system css start here*/
 
 .chat-messaging-system-info {
-  padding-bottom: 50px;
-  padding-right: 15px;
+  padding-top: 30px;
+  padding-right: 30px;
+  padding-bottom: 30px;
   background-color: #ffffff;
+  display: flex;
 }
 
 .chat-messaging-system-heading {
@@ -5933,7 +5935,6 @@ width:100%;
 }
 
 .user-message-list-search {
-  width: 31%;
   padding: 20px 20px;
 }
 
@@ -5954,12 +5955,12 @@ width:100%;
 }
 
 .user-name-message-dlt-info {
-  width: 70%;
   display: flex;
   padding: 15px 20px;
   align-items: center;
   border-left: 1px solid #eeeeee;
   justify-content: space-between;
+  border-bottom: 1px solid #eeeeee;
 }
 
 .user-img-name-status-info {
@@ -5975,6 +5976,16 @@ width:100%;
   overflow: hidden;
   border-radius: 50px;
   margin-right: 10px;
+}
+
+.user-message-img img {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50px;
+  border: 2px solid #cdcdcdb8;
+  padding: 2px;
+  object-fit: cover;
 }
 
 .user-name-status span {
@@ -5998,10 +6009,10 @@ width:100%;
   width: 90%;
 }
 
-.user-message-list-massage-detail {
+/* .user-message-list-massage-detail {
   display: flex;
   padding: 0px 0px 0px 20px;
-}
+} */
 
 .user-message-list .nav-tabs {
   display: block;
@@ -6014,16 +6025,12 @@ width:100%;
   border: none;
   padding: 10px 10px;
   border-radius: 0px;
-  border: 1px solid #eeeeee;
+  border-bottom: 1px solid #eeeeee;
 }
 
 .user-message-list .nav-link.active {
   border-radius: 0px;
   background: #ff6600;
-}
-
-.user-message-list {
-  width: 40%;
 }
 
 .user-img-name-chat-count-time-massage {
@@ -6041,6 +6048,9 @@ width:100%;
   width: 50px;
   height: 50px;
   border-radius: 50px;
+  border: 2px solid #cdcdcdb8;
+  padding: 2px;
+  object-fit: cover;
 }
 
 .chat-count {
@@ -6055,6 +6065,7 @@ width:100%;
   background: #0066cc;
   position: absolute;
   border-radius: 50px;
+  align-items: center;
 }
 
 .user-name-time-info {
@@ -6071,11 +6082,6 @@ width:100%;
   text-overflow: ellipsis;
 }
 
-.job-seeker-employer-message-detail {
-  width: 90%;
-  margin: 0px 0px 0px 0px;
-}
-
 .user-message-chat-details {
   display: flex;
   margin-top: 30px;
@@ -6086,6 +6092,8 @@ width:100%;
   height: 50px;
   overflow: hidden;
   border-radius: 50px;
+  border: 2px solid #cdcdcdb8;
+  padding: 2px;
 }
 
 .job-seeker-message-img {
@@ -6204,6 +6212,14 @@ width:100%;
 
 .employer-info-main-area .job-seeker-message-detail-text {
   background: #0066cc;
+}
+
+.search-box-user-list-area {
+  width: 30%;
+}
+
+.user-header-user-chat-details {
+  width: 70%;
 }
 
 /*chat messaging system css end here*/
@@ -7017,11 +7033,17 @@ width:100%;
 }
 
 .messaging-system-user-img {
+  position: relative;
+  margin-right: 10px;
+}
+
+.messaging-system-user-img img {
   width: 50px;
   height: 50px;
-  overflow: hidden;
-  margin-right: 10px;
   border-radius: 50px;
+  border: 2px solid #cdcdcdb8;
+  padding: 2px;
+  object-fit: cover;
 }
 
 .messaging-system-user-info h5 {
@@ -7041,9 +7063,9 @@ width:100%;
 }
 
 .messaging-system-user-name p {
-    font-size: 13px;
-    color: green;
-    font-weight: 700;
+  font-size: 13px;
+  color: green;
+  font-weight: 700;
 }
 
 .messaging-system-search-icon {
@@ -7123,11 +7145,15 @@ width:100%;
 }
 
 .messaging-system-userImg {
+  margin-right: 10px;
+}
+.messaging-system-userImg img {
   width: 50px;
   height: 50px;
   overflow: hidden;
-  margin-right: 10px;
   border-radius: 50px;
+  border: 2px solid #cdcdcdb8;
+  padding: 2px;
 }
 
 .messaging-system-user-message {

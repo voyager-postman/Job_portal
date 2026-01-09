@@ -22,7 +22,9 @@ function MassagingSystem() {
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
-    const ws = new WebSocket("wss://thunderingslap.com/chatusingsocket/ws/chat/");
+    const ws = new WebSocket(
+      "wss://thunderingslap.com/chatusingsocket/ws/chat/"
+    );
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
     ws.onmessage = (e) => {
@@ -74,14 +76,61 @@ function MassagingSystem() {
     fetchCandidates();
   }, []);
 
+  const checkUnreadCount = async (groupId) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}chat/mark-read/${groupId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const loadChat = async (user) => {
     const userId = user.applicant.userId;
+    const groupId = user?.chat?.groupId || {};
 
+    const getLastSeenText = (lastMessageAt) => {
+      if (!lastMessageAt) return "";
+
+      const lastActive = new Date(lastMessageAt);
+      const now = new Date();
+
+      const isToday =
+        lastActive.getDate() === now.getDate() &&
+        lastActive.getMonth() === now.getMonth() &&
+        lastActive.getFullYear() === now.getFullYear();
+
+      if (isToday) {
+        const time = lastActive.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        return `last seen today at ${time}`;
+      }
+
+      const date = lastActive.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      });
+      return `last seen ${date}`;
+    };
     setActiveUser({
       id: userId,
       name: `${user.applicant.first_name} ${user.applicant.last_name}`,
       image: user.applicant.profileImage,
       jobId: user.jobId,
+      online:
+        user?.applicant?.isOnline === "true"
+          ? "Online"
+          : getLastSeenText(user?.chat?.lastMessageAt),
+      groupId: groupId,
+      unreadCount: user?.chat?.unreadCount || 0,
     });
 
     // If already cached, reuse it
@@ -186,7 +235,10 @@ function MassagingSystem() {
                             className="nav-item"
                             role="presentation"
                             key={u.applicant.userId}
-                            onClick={(e) => loadChat(u)}
+                            onClick={() => {
+                              loadChat(u);
+                              checkUnreadCount(u.chat.groupId || 1);
+                            }}
                           >
                             <a className="nav-link" data-bs-toggle="tab">
                               <div className="messaging-system-img-user-info">
@@ -204,13 +256,25 @@ function MassagingSystem() {
                                     }
                                     alt="image"
                                   />
+                                  {u?.chat?.unreadCount > 0 && (
+                                    <>
+                                      <span className="chat-count">
+                                        {u?.chat?.unreadCount}
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
                                 <div className="messaging-system-user-info">
                                   <h5>
                                     {u.applicant?.first_name}{" "}
                                     {u.applicant?.last_name}
                                   </h5>
-                                  <p>Tap to chat</p>
+                                  <p>
+                                    {u?.chat?.lastMessage?.length > 40
+                                      ? u.chat.lastMessage.substring(0, 40) +
+                                        "..."
+                                      : u?.chat?.lastMessage}
+                                  </p>
                                 </div>
                               </div>
                             </a>
@@ -233,15 +297,13 @@ function MassagingSystem() {
                             <h5>
                               {activeUser ? activeUser.name : "Select User"}
                             </h5>
-                            <p>Online</p>
+                            <p>{activeUser?.online}</p>
                           </div>
                         </div>
                       </div>
                       {/* ---------------- CHAT MESSAGES ---------------- */}
                       <div className="tab-content">
-                        <div
-                          className="tab-pane fade show active"
-                        >
+                        <div className="tab-pane fade show active">
                           {(chatStore[activeUser?.id] || []).map((msg, index) =>
                             String(msg.sender) === String(CURRENT_USER_ID) ? (
                               // RIGHT SIDE (RECTRUITER - YOU)
@@ -319,7 +381,10 @@ function MassagingSystem() {
                           onChange={(e) => setText(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         />
-                        <div onClick={sendMessage} className="send_chat cusror-pointer">
+                        <div
+                          onClick={sendMessage}
+                          className="send_chat cusror-pointer"
+                        >
                           <i className="fa-solid fa-paper-plane" />
                           Send
                         </div>
