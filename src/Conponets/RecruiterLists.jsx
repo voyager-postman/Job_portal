@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios";
+import axios from "../Services/axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";

@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
+import axios from "../Services/axios";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -190,18 +190,32 @@ function JobDetails() {
     }
   };
   const [copied, setCopied] = useState(false);
-  const handleCopy = async (e) => {
-    e.preventDefault(); // stop opening the link
-    if (!linkUrl) return;
+  const handleCopy = async (e, url) => {
+    e.preventDefault();
+
+    if (!url) {
+      toast.error("Link not available yet");
+      return;
+    }
 
     try {
-      await navigator.clipboard.writeText(linkUrl);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast.success("Link copied!");
     } catch (err) {
       console.error("Failed to copy text:", err);
+      toast.error("Copy failed");
     }
   };
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const handleApplyJob = async () => {
@@ -258,7 +272,9 @@ function JobDetails() {
       });
 
       toast.success(res.data.message || "Applied successfully!");
-      fetchJobDetails();
+      if (id) {
+        fetchJobDetails();
+      }
 
       const modal = document.getElementById("exampleModal");
       if (modal) {
@@ -361,7 +377,9 @@ function JobDetails() {
         //   )
         // );
 
-        fetchJobDetails();
+        if (id) {
+          fetchJobDetails();
+        }
 
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
@@ -451,9 +469,11 @@ function JobDetails() {
                       <li style={{ position: "relative" }}>
                         <a
                           href="#"
-                          onClick={handleCopy}
-                          style={{ cursor: "pointer" }}
-                          title="Copy link"
+                          onClick={(e) => handleCopy(e, linkUrl)}
+                          style={{
+                            cursor: linkUrl ? "pointer" : "not-allowed",
+                          }}
+                          title={linkUrl ? "Copy link" : "Link not available"}
                         >
                           <i className="fa-solid fa-link" />
                         </a>
@@ -811,7 +831,7 @@ function JobDetails() {
                             <button
                               className="default-btn btn w-100"
                               onClick={handleApplyJob}
-                              disabled={isApplying}
+                              disabled={isApplying || !isSelectionMade()}
                             >
                               {isApplying ? (
                                 <>

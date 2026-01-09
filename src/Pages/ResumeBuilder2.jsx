@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../Services/axios";
 import { API_BASE_URL } from "../Url/Url";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";

@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
+import axios from "../Services/axios";
 import Swal from "sweetalert2";
 
 function Header({ bgColor }) {

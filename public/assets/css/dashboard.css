@@ -1843,7 +1843,7 @@ Dashboard Area CSS
 .my-profile-area .profile-form-content {
   background-color: #ffffff;
   margin-bottom: 30px;
-  padding-top: 25px;
+  padding: 25px;
 }
 .my-profile-area .profile-form-content h3 {
   font-size: 18px;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import axios from "../Services/axios";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import Stack from "@mui/material/Stack";
@@ -34,7 +34,7 @@ const Employers = () => {
         params.industry = industryIds.join(",");
       }
 
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`, {
         params,
       });
 

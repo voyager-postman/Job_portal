@@ -1,5 +1,3 @@
-import { useState } from "react";
-import ReactPaginate from "react-paginate";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,15 +8,12 @@ import {
 export const TableView = ({
   columns = [],
   data = [],
+  limit,
+  setLimit,
+  globalFilter,
+  setGlobalFilter,
   customElement = <></>,
 }) => {
-  const [pageNumber, setPageNumber] = useState(0);
-  const [usersPerPage, setUserPerPage] = useState(10);
-  const [globalFilter, setGlobalFilter] = useState("");
-
-  const pagesVisited = pageNumber * usersPerPage;
-  const pageCount = Math.ceil(data.length / usersPerPage);
-
   const table = useReactTable({
     data,
     columns,
@@ -30,92 +25,78 @@ export const TableView = ({
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const changePage = ({ selected }) => {
-    setPageNumber(selected);
-  };
-
   return (
     <div className="top-space-search-reslute">
       <div className="tab-content px-2 md:!px-4">
         <div className="parentProduceSearch">
+          {/* 🔹 ENTRIES */}
           <div className="entries">
             <small>show</small>{" "}
             <select
-              value={usersPerPage}
-              onChange={(e) => setUserPerPage(Number(e.target.value))}
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
             >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>{" "}
             <small>entries</small>
           </div>
+
+          {/* 🔹 SEARCH */}
           <div className="table-search-box-info">
             <input
-              onChange={(e) => setGlobalFilter(e.target.value)}
               type="search"
               placeholder="search"
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
             />
           </div>
         </div>
 
         {customElement}
 
-        <div className="tab-pane active" id="header" role="tabpanel">
-          <div
-            id="datatable_wrapper"
-            className="information_dataTables dataTables_wrapper dt-bootstrap4 table-responsive"
-          >
-            <table 
-              id="example"
-              className="display table table-bordered borderTerpProduce"
-              style={{ width: "100%" }}
-            >
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th key={header.id}>
+        <div className="table-responsive">
+          <table className="table table-bordered">
+            <thead>
+              {table.getHeaderGroups().map((group) => (
+                <tr key={group.id}>
+                  {group.headers.map((header) => (
+                    <th key={header.id}>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+
+            <tbody>
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="text-center">
+                    No data found
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>
                         {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
-                      </th>
+                      </td>
                     ))}
                   </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table
-                  .getRowModel()
-                  .rows.slice(pagesVisited, pagesVisited + usersPerPage)
-                  .map((row) => (
-                    <tr key={row.id} className="rowCursorPointer">
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-
-            {/* <div className="flex justify-end">
-              <ReactPaginate
-                previousLabel={"previous"}
-                nextLabel={"next"}
-                pageCount={pageCount}
-                onPageChange={changePage}
-                containerClassName={"paginationBttns"}
-                previousLinkClassName={"previousBttn"}
-                nextLinkClassName={"nextBttn"}
-                disabledClassName={"paginationDisabled"}
-                activeClassName={"paginationActive"}
-              />
-            </div> */}
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

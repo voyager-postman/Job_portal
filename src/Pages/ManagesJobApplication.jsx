@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../Services/axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import moment from "moment";
@@ -40,8 +40,15 @@ function ManagesJobApplication() {
 
   // Handle Withdraw Submit
   const handleWithdrawSubmit = async () => {
-    if (!reason) return alert("Please select a reason.");
-    if (!consent) return alert("Please agree to the consent checkbox.");
+    if (!reason) {
+      toast.error("Please select a reason.");
+      return;
+    }
+
+    if (!consent) {
+      toast.error("Please agree to the consent checkbox.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -62,11 +69,31 @@ function ManagesJobApplication() {
         }
       );
 
-      alert(res.data.message || "Application withdrawn successfully!");
-      window.location.reload(); // Reload or update UI state
+      // Close Bootstrap modal safely
+      const modalEl = document.getElementById("exampleModal");
+      if (modalEl) {
+        const modalInstance =
+          window.bootstrap.Modal.getInstance(modalEl) ||
+          new window.bootstrap.Modal(modalEl);
+        modalInstance.hide();
+      }
+
+      toast.success(
+        res?.data?.message || "Application withdrawn successfully!"
+      );
+
+      if (activeTab === "saved-jobs") {
+        fetchSavedJobs();
+      } else if (activeTab === "applications") {
+        fetchApplications();
+      }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Something went wrong!");
+
+      toast.error(
+        err?.response?.data?.message ||
+          "Failed to withdraw application. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -201,9 +228,12 @@ function ManagesJobApplication() {
         params.industry = industryIds.join(",");
       }
 
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
-        params,
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}GetCompanyDetailsList`,
+        {
+          params,
+        }
+      );
 
       if (res.data.success) {
         setCompanies(res.data);
