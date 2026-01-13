@@ -7,7 +7,11 @@ import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
+import Select from "react-select";
+
 function CandidateProfile() {
+  const containerRef = useRef(null);
+
   const navigate = useNavigate();
   const degreeOptions = [
     "High School",
@@ -26,8 +30,12 @@ function CandidateProfile() {
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [jobTypes, setJobTypes] = useState([]);
+  const [open, setOpen] = useState(false);
+
   const [activeLevel, setActiveLevel] = useState(null);
   const [occupationTypes, setOccupationTypes] = useState([]);
+  const [countryCode, setCountryCode] = useState("");
+
   const PROFICIENCY_LEVELS = [
     { label: "Basic", code: "A1/A2" },
     { label: "Limited working", code: "B1" },
@@ -168,6 +176,7 @@ function CandidateProfile() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "", // ✅ API key
     birthYear: "",
     gender: "",
     city: "",
@@ -226,6 +235,18 @@ function CandidateProfile() {
   useEffect(() => {
     fetchProfile();
   }, []);
+  const countryOptions = countries.map((c) => ({
+    value: c.phonecode, // numeric value to save
+    label: `${c.emoji} +${c.phonecode} ${c.name}`,
+  }));
+  const term = (countryCode || "").toString().toLowerCase();
+  const filteredCountries = countries.filter((c) => {
+    const name = (c.name || "").toLowerCase();
+    const phone = (c.phonecode || "").toString();
+    const iso2 = (c.iso2 || "").toLowerCase();
+
+    return name.includes(term) || phone.includes(term) || iso2.includes(term);
+  });
   const fetchIndustries = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getIndustries`);
@@ -288,6 +309,15 @@ function CandidateProfile() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // When user selects city from dropdown
   const handleSelectWorkLocation = (city) => {
@@ -559,6 +589,16 @@ function CandidateProfile() {
   //     }
   //   }
   // };
+  const handleSelect = (c) => {
+    const formatted = `${c.emoji.toUpperCase()} +${c.phonecode} ${c.name}`;
+    setCountryCode(formatted); // input shows exact format
+    setFormData((prev) => ({
+      ...prev,
+      country_code: String(c.phonecode),
+    }));
+    setOpen(false);
+  };
+
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleUploadCv = async (e) => {
     const files = e.target.files;
@@ -838,16 +878,16 @@ function CandidateProfile() {
         return;
       }
 
-      if (
-        !careerGoalsData.salaryAmount ||
-        isNaN(careerGoalsData.salaryAmount)
-      ) {
-        toast.error("Please enter a valid Salary Amount", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        return;
-      }
+      // if (
+      //   !careerGoalsData.salaryAmount ||
+      //   isNaN(careerGoalsData.salaryAmount)
+      // ) {
+      //   toast.error("Please enter a valid Salary Amount", {
+      //     autoClose: 2000,
+      //     theme: "colored",
+      //   });
+      //   return;
+      // }
 
       if (!careerGoalsData.lookingForJob) {
         toast.error("Please select a job opportunity", {
@@ -1125,10 +1165,23 @@ function CandidateProfile() {
       }
 
       const token = localStorage.getItem("token");
+      // ✅ Build payload safely
+      const payload = {
+        education_id: educationForm.education_id,
+        degree: educationForm.degree,
+        University: educationForm.University,
+        startDate: educationForm.startDate,
+        currentlyStudyingHere: educationForm.currentlyStudyingHere,
+      };
+
+      // ✅ Only send endDate when needed
+      if (!educationForm.currentlyStudyingHere && educationForm.endDate) {
+        payload.endDate = educationForm.endDate;
+      }
 
       const response = await axios.post(
         `${API_BASE_URL}updateEducation`,
-        educationForm,
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -1261,6 +1314,13 @@ function CandidateProfile() {
         });
         return;
       }
+      if (!personalDetails.countryCode) {
+        toast.error("Country code is required", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
 
       if (!personalDetails.phone?.trim()) {
         toast.error("Phone number is required", {
@@ -1290,6 +1350,7 @@ function CandidateProfile() {
         nationality: personalDetails.nationality || "",
         city: personalDetails.city || "",
         phone: personalDetails.phone,
+        countryCode: String(personalDetails.countryCode), // ✅ FORCE STRING
       };
 
       const response = await axios.put(
@@ -1311,6 +1372,7 @@ function CandidateProfile() {
           nationality: payload.nationality,
           city: payload.city,
           phone: payload.phone,
+          countryCode: payload.countryCode, // ✅
         }));
 
         // ✅ If you have global profileData, update it too
@@ -1323,6 +1385,7 @@ function CandidateProfile() {
           Nationality: payload.nationality,
           city: payload.city,
           phone: payload.phone,
+          countryCode: payload.countryCode, // ✅
         }));
         updateName(payload.firstname, payload.lastname);
         setCheckStatus((prev) => ({
@@ -1462,11 +1525,24 @@ function CandidateProfile() {
   };
   const handleChangeOfWork = (e) => {
     const { name, value, type, checked } = e.target;
-    setWorkExperienceData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    setWorkExperienceData((prev) => {
+      // ✅ If "Currently Working Here" checked → clear endDate
+      if (name === "currentlyWorkingHere" && checked) {
+        return {
+          ...prev,
+          currentlyWorkingHere: true,
+          endDate: "",
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+    });
   };
+
   const handleSaveWorkExperience = async () => {
     try {
       const {
@@ -1559,10 +1635,10 @@ function CandidateProfile() {
         return;
       }
 
-      if (Number.isNaN(Number(salaryAmount)) || Number(salaryAmount) <= 0) {
-        toast.error("Please enter valid Salary Amount", { theme: "colored" });
-        return;
-      }
+      // if (Number.isNaN(Number(salaryAmount)) || Number(salaryAmount) <= 0) {
+      //   toast.error("Please enter valid Salary Amount", { theme: "colored" });
+      //   return;
+      // }
 
       if (!salaryType) {
         toast.error("Please select Payroll Frequency", { theme: "colored" });
@@ -2242,6 +2318,7 @@ function CandidateProfile() {
                                 lastName: "",
                                 email: "",
                                 phone: "",
+                                countryCode: "",
                                 birthYear: "",
                                 gender: "",
                                 city: "",
@@ -2273,6 +2350,7 @@ function CandidateProfile() {
                                 lastName: profileData?.last_name || "",
                                 email: profileData?.email || "",
                                 phone: profileData?.phone || "",
+                                countryCode: profileData?.countryCode || "",
                                 birthYear: profileData?.date_of_birth
                                   ? new Date(profileData.date_of_birth)
                                       .toISOString()
@@ -2376,6 +2454,71 @@ function CandidateProfile() {
                                         }
                                       />
                                     </div>
+                                  </div>
+
+                                  <div
+                                    className="col-lg-6 col-md-12"
+                                    ref={containerRef}
+                                    style={{ position: "relative" }}
+                                  >
+                                    <div className="form-group">
+                                      <label>Country code</label>
+
+                                      <Select
+                                        options={countryOptions}
+                                        placeholder="Select country code"
+                                        isSearchable={true}
+                                        value={countryOptions.find(
+                                          (opt) =>
+                                            String(opt.value) ===
+                                            personalDetails.countryCode
+                                        )}
+                                        onChange={(selected) => {
+                                          setPersonalDetails((prev) => ({
+                                            ...prev,
+                                            countryCode: String(selected.value), // ✅ FIX HERE
+                                          }));
+                                        }}
+                                        styles={{
+                                          control: (base) => ({
+                                            ...base,
+                                            height: "45px",
+                                            borderColor: "#ced4da",
+                                          }),
+                                        }}
+                                      />
+                                    </div>
+
+                                    {open && (
+                                      <ul
+                                        className="list-group"
+                                        style={{
+                                          position: "absolute",
+                                          width: "100%",
+                                          maxHeight: "250px",
+                                          overflowY: "auto",
+                                          zIndex: 9999,
+                                        }}
+                                      >
+                                        {filteredCountries.length > 0 ? (
+                                          filteredCountries.map((c) => (
+                                            <li
+                                              key={c._id}
+                                              className="list-group-item list-group-item-action d-flex align-items-center"
+                                              onClick={() => handleSelect(c)}
+                                              style={{ cursor: "pointer" }}
+                                            >
+                                              {c.emoji?.toUpperCase()} +
+                                              {c.phonecode} {c.name}
+                                            </li>
+                                          ))
+                                        ) : (
+                                          <li className="list-group-item text-muted text-center">
+                                            No country code found
+                                          </li>
+                                        )}
+                                      </ul>
+                                    )}
                                   </div>
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
@@ -2558,8 +2701,19 @@ function CandidateProfile() {
                                 </div>
                                 <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
+                                    <label>Country Code</label>
+                                    <p>
+                                      <p>
+                                        +{profileData?.countryCode || "N/A"}
+                                      </p>
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="col-lg-6 col-md-6">
+                                  <div className="form-group">
                                     <label>Phone number</label>
-                                    <p>{profileData.phone || "N/A"}</p>
+                                    <p>{profileData?.phone || "N/A"}</p>
                                   </div>
                                 </div>
                                 <div className="divder-line-info" />
@@ -3085,7 +3239,7 @@ function CandidateProfile() {
                                 employmentType: "",
                                 occupationType: "",
                                 salaryAmount: "",
-                                salaryCurrency: "EUR",
+                                salaryCurrency: "MAD",
                                 salaryType: "Hourly",
                                 lookingForJob: "",
                                 eligibleToWork: false,
@@ -3309,6 +3463,7 @@ function CandidateProfile() {
                                         value={careerGoalsData.salaryCurrency}
                                         onChange={handleCareerGoalsChange}
                                       >
+                                        <option value="MAD">MAD</option>
                                         <option value="EUR">EUR</option>
                                         <option value="USD">USD</option>
                                         <option value="JPY">JPY</option>
@@ -3726,7 +3881,7 @@ function CandidateProfile() {
                               EmploymentType: "",
                               workLocation: "",
                               salaryAmount: "",
-                              salaryCurrency: "USD",
+                              salaryCurrency: "MAD",
                               salaryType: "Monthly",
                             });
                             setEditMode(true);
@@ -3852,6 +4007,9 @@ function CandidateProfile() {
                                         name="endDate"
                                         value={workExperienceData.endDate}
                                         onChange={handleChangeOfWork}
+                                        disabled={
+                                          workExperienceData.currentlyWorkingHere
+                                        }
                                       />
                                     </div>
                                   </div>
@@ -3989,7 +4147,10 @@ function CandidateProfile() {
                                         }
                                         onChange={handleChangeOfWork}
                                       >
+                                        <option value="MAD"> MAD</option>
+
                                         <option value="USD">USD</option>
+
                                         <option value="EUR">EUR</option>
                                         <option value="JPY">JPY</option>
                                         <option value="GBP">GBP</option>
@@ -4001,7 +4162,7 @@ function CandidateProfile() {
                                       <label>Salary Amount</label>
                                       <input
                                         className="form-control"
-                                        type="text"
+                                        type="number"
                                         name="salaryAmount"
                                         value={workExperienceData.salaryAmount}
                                         onChange={handleChangeOfWork}
