@@ -1007,10 +1007,11 @@ function CandidateDashboard() {
                                       {companies?.companies?.length > 0 ? (
                                         companies.companies.map((item) => {
                                           const company = item?.companyId;
+                                          const topThreeJobs =
+                                            item?.jobList?.slice(0, 3) || [];
                                           return (
                                             <SwiperSlide key={company?._id}>
                                               <div className="job-card-companies-box">
-                                                {/* ✅ Cover Image */}
                                                 <div className="job-card-companies-img">
                                                   <img
                                                     alt={
@@ -1025,7 +1026,6 @@ function CandidateDashboard() {
                                                     crossOrigin="anonymous"
                                                   />
 
-                                                  {/* ✅ Company Logo */}
                                                   <div className="job-card-companies-logo">
                                                     <img
                                                       alt="logo"
@@ -1039,9 +1039,17 @@ function CandidateDashboard() {
                                                   </div>
                                                 </div>
 
-                                                {/* ✅ Company Info */}
                                                 <div className="job-card-companies-name">
-                                                  <h4>
+                                                  <h4
+                                                    onClick={() =>
+                                                      handleViewCompany(
+                                                        company?._id
+                                                      )
+                                                    }
+                                                    style={{
+                                                      cursor: "pointer",
+                                                    }}
+                                                  >
                                                     {company?.brandName ||
                                                       "Unnamed Company"}
                                                   </h4>
@@ -1050,42 +1058,32 @@ function CandidateDashboard() {
                                                 {/* ✅ Latest Jobs */}
                                                 <div className="job-card-companies-name">
                                                   <h5>Latest Jobs</h5>
-                                                  {/* <ul>
-                                                  {item?.latestJobs?.length >
-                                                  0 ? (
-                                                    item.latestJobs
-                                                      .slice(0, 3)
-                                                      .map((job) => (
-                                                        <li key={job?._id}>
-                                                          <a
-                                                            href={`/job-details/${job?._id}`}
-                                                          >
-                                                            {job?.title ||
-                                                              "Untitled Job"}
-                                                          </a>
-                                                        </li>
-                                                      ))
-                                                  ) : (
-                                                    <li>No jobs available</li>
-                                                  )}
-                                                </ul> */}
+
                                                   <ul>
-                                                    <li>
-                                                      <i className="fa-solid fa-location-dot" />{" "}
-                                                      {company?.city ||
-                                                        "Location not available"}
-                                                    </li>
-                                                    <li>
-                                                      <i className="fa-solid fa-user" />{" "}
-                                                      {company?.numberOfEmployees ||
-                                                        "N/A"}
-                                                    </li>
-                                                    <li>
-                                                      <i className="fa-solid fa-globe" />{" "}
-                                                      {company?.industry
-                                                        ?.name ||
-                                                        "Industry not specified"}
-                                                    </li>
+                                                    {topThreeJobs.length > 0 ? (
+                                                      topThreeJobs.map(
+                                                        (job) => (
+                                                          <li key={job._id}>
+                                                            <Link
+                                                              to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                                                              className="job-link"
+                                                              style={{
+                                                                color:
+                                                                  "#007bff",
+                                                                textDecoration:
+                                                                  "none",
+                                                                fontWeight:
+                                                                  "500",
+                                                              }}
+                                                            >
+                                                              {job.jobTitle}
+                                                            </Link>{" "}
+                                                          </li>
+                                                        )
+                                                      )
+                                                    ) : (
+                                                      <li>No jobs available</li>
+                                                    )}
                                                   </ul>
                                                 </div>
 
@@ -1115,7 +1113,7 @@ function CandidateDashboard() {
                                     </Swiper>
                                   </div>
                                 </section>
-                              )}
+                               )}
                             </React.Fragment>
                           ))}
                         </>

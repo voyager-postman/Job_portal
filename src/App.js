@@ -62,6 +62,7 @@ import EmployerWallet from "./Pages/EmployerWallet";
 import AddPlan from "./Pages/AddPlan";
 import ResumeBuilder from "./Pages/ResumeBuilder";
 import AddOnPack from "./Pages/AddOnPack";
+import SendOtp from "./Pages/SendOtp";
 
 // "build 04-09-2025"
 console.log("Date:-04-12-2025,time:-10:29");
@@ -122,6 +123,7 @@ function LayoutWrapper() {
 
         <Route path="/register" element={<Register />} />
         <Route path="/recovery-password" element={<RecoveryPassword />} />
+        <Route path="/verify-otp" element={<SendOtp />} />
         <Route path="/employer-register" element={<EmployerRegister />} />
         <Route path="/employer-login" element={<EmployerLogin />} />
         <Route path="/email-verification" element={<EmailOTPVerification />} />

@@ -3021,7 +3021,7 @@ Dashboard Area CSS
 
 .divder-line-info {
   border-top: 1px solid #eeee;
-  margin-bottom: 25px;
+  margin-bottom:15px;
 }
 .divder-line-info-otherCompany {
   border-top: 2px solid #1868ca;
@@ -3680,7 +3680,7 @@ background:#0066CC;
 .job-filter-heading-area h4 {
   font-size: 16px;
   cursor: pointer;
-  margin-bottom: 25px;
+  margin-bottom:10px;
 }
 
 .job-filter-heading-area h4 a {
@@ -3702,8 +3702,8 @@ background:#0066CC;
 }
 
 .job-filter-heading h4 {
-  font-size: 16px;
-  margin-bottom: 15px;
+  font-size:15px;
+  margin-bottom:5px;
 }
 
 .job-filter-heading h4 i {
@@ -3746,7 +3746,7 @@ background:#0066CC;
   display: flex;
   cursor: pointer;
   list-style: none;
-  margin-bottom: 10px;
+  margin-bottom:5px;
   align-items: baseline;
 }
 
@@ -3990,11 +3990,11 @@ background:#0066CC;
 } */
 
 .job-filter-main-info.sidebar-scroll-touch-footer {
-  top: 100px;
-  z-index: 1;
-  position: sticky;
-  height: 750px;
-  overflow: auto;
+top: 100px;
+z-index: 1;
+position: sticky;
+height: calc(97vh - 90px);
+overflow: auto;
 }
 
 /*new fillter css end here*/

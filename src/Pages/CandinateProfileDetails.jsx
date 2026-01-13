@@ -348,10 +348,12 @@ function CandinateProfileDetails() {
                               : ""}
                           </p>
 
-                          <p>
-                            <i className="fa-regular fa-building" />{" "}
-                            {work.companyName}
-                          </p>
+                          {!work?.keep_employer_anonymous && (
+                            <p>
+                              <i className="fa-regular fa-building" />{" "}
+                              {work.companyName}
+                            </p>
+                          )}
                           <p>{work.EmploymentType}</p>
                           <label>Years of Experience</label>
                           <p>{work.yearOfExperience}</p>
