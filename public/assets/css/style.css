@@ -9584,7 +9584,7 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .job-card-list-info-area .job-search-info-area {
-  margin-top: 60px;
+  margin-top:30px;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
 }
 
@@ -9903,7 +9903,7 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-overflow: ellipsis;
   color: #0066cc;
   font-weight:600;
-  /* border: 1px solid #e3dcdc; */
+  border: 1px solid #e3dcdc;
   /*border-top: 1px solid #eeeeee;*/
 }
 

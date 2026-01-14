@@ -109,7 +109,7 @@ function CandinateProfileDetails() {
 
     window.open(fileUrl, "_blank");
   };
-  
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -118,7 +118,6 @@ function CandinateProfileDetails() {
   );
   return (
     <>
-    
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">
@@ -163,7 +162,11 @@ function CandinateProfileDetails() {
                     </h3>
                     <h3>
                       <strong>Contact:</strong>{" "}
-                      {candidate?.userId?.phone || "Not Provided"}
+                      {candidate?.userId?.countryCode
+                        ? `+${candidate.userId.countryCode} ${
+                            candidate?.userId?.phone || ""
+                          }`
+                        : candidate?.userId?.phone || "Not Provided"}
                     </h3>
                     <h3>
                       <strong>Address:</strong>{" "}
@@ -345,10 +348,12 @@ function CandinateProfileDetails() {
                               : ""}
                           </p>
 
-                          <p>
-                            <i className="fa-regular fa-building" />{" "}
-                            {work.companyName}
-                          </p>
+                          {!work?.keep_employer_anonymous && (
+                            <p>
+                              <i className="fa-regular fa-building" />{" "}
+                              {work.companyName}
+                            </p>
+                          )}
                           <p>{work.EmploymentType}</p>
                           <label>Years of Experience</label>
                           <p>{work.yearOfExperience}</p>

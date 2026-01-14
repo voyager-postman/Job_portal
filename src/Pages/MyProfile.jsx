@@ -48,26 +48,39 @@ function MyProfile() {
     const fetchCountries = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}get/countries`);
-        console.log("Countries API Response:", response.data);
 
         if (response.status === 200) {
-          // check if response contains "countries" key
+          let countryList = [];
+
           if (Array.isArray(response.data)) {
-            setCountries(response.data);
+            countryList = response.data;
           } else if (Array.isArray(response.data.countries)) {
-            setCountries(response.data.countries);
-          } else {
-            console.error("Unexpected countries API format", response.data);
-            setCountries([]); // fallback empty
+            countryList = response.data.countries;
           }
+
+          // ✅ Move Morocco to top
+          const moroccoIndex = countryList.findIndex(
+            (c) =>
+              c.name?.toLowerCase() === "morocco" ||
+              c.code?.toUpperCase() === "MA"
+          );
+
+          if (moroccoIndex > -1) {
+            const [morocco] = countryList.splice(moroccoIndex, 1);
+            countryList.unshift(morocco);
+          }
+
+          setCountries(countryList);
         }
       } catch (error) {
         console.error("Error fetching countries:", error);
+        setCountries([]);
       }
     };
 
     fetchCountries();
   }, []);
+
   useEffect(() => {}, [isManualEnabled]);
   const fetchIndustries = async () => {
     try {
@@ -302,7 +315,15 @@ function MyProfile() {
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const uploadResume = async () => {
+    const userId = localStorage.getItem("user_id"); // ✅ get userId
     const file = formData?.attachment;
+    if (!userId) {
+      toast.error("User not found. Please login again.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
 
     // ✅ File existence check
     if (!file) {
@@ -326,7 +347,15 @@ function MyProfile() {
     data.append("resume", file);
 
     try {
-      const res = await axios.post(`${API_BASE_URL}extractResume`, data);
+      const res = await axios.post(
+        `${API_BASE_URL}extractResume/${userId}`, // ✅ PASS userId
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (res.data.success && res.data.jobId) {
         fetchExtractedData(res.data.jobId); // start polling
@@ -347,7 +376,6 @@ function MyProfile() {
       }
     }
   };
-
   const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
@@ -357,9 +385,7 @@ function MyProfile() {
       // ⏳ Still processing → retry
       if (state === "active") {
         if (attempt < 10) {
-          setTimeout(() => {
-            fetchExtractedData(jobId, attempt + 1);
-          }, 2000); // retry every 2 sec
+          setTimeout(() => fetchExtractedData(jobId, attempt + 1), 2000);
         } else {
           toast.error("Resume extraction taking too long.");
         }
@@ -372,25 +398,36 @@ function MyProfile() {
         return;
       }
 
-      // ✅ Success
-      if (state === "completed" && result?.parsed) {
-        const extracted = result.parsed;
+      // ✅ Completed & success
+      if (state === "completed" && result?.parsedResume?.data) {
+        const data = result.parsedResume.data;
 
         setFormData((prev) => ({
           ...prev,
-          firstName: extracted.firstName || "",
-          lastName: extracted.lastName || "",
-          city: extracted.city || "",
-          jobTitle: extracted.jobTitle || "",
-          experience: extracted.totalExperience
-            ? extracted.totalExperience.split(" ")[0]
+
+          firstName: data?.name?.first || "",
+          lastName: data?.name?.last || "",
+
+          city: data?.location?.city || "",
+          County: data?.location?.country || "",
+
+          jobTitle:
+            data?.workExperience?.[0]?.occupation?.jobTitleNormalized ||
+            data?.workExperience?.[0]?.jobTitle ||
+            "",
+
+          experience: data?.totalYearsExperience
+            ? String(data.totalYearsExperience)
             : "",
-          employmentType: extracted.employmentType || "",
-          occupationType: extracted.occupationType || "",
-          salaryType: extracted.desiredSalaryType || "",
-          salaryAmount: extracted.desiredSalaryAmount || "",
-          eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
-          selectedCategory: extracted.jobCategory || "",
+
+          employmentType: "",
+          occupationType: data?.profession || "",
+
+          salaryType: "",
+          salaryAmount: "",
+
+          eligibleInFrance: "Yes",
+          selectedCategory: "",
         }));
 
         setShowModal(false);
@@ -401,6 +438,60 @@ function MyProfile() {
       toast.error("Error fetching resume data.");
     }
   };
+
+  // const fetchExtractedData = async (jobId, attempt = 0) => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
+
+  //     const { state, result } = res.data;
+
+  //     // ⏳ Still processing → retry
+  //     if (state === "active") {
+  //       if (attempt < 10) {
+  //         setTimeout(() => {
+  //           fetchExtractedData(jobId, attempt + 1);
+  //         }, 2000); // retry every 2 sec
+  //       } else {
+  //         toast.error("Resume extraction taking too long.");
+  //       }
+  //       return;
+  //     }
+
+  //     // ❌ Completed but failed
+  //     if (state === "completed" && !result?.success) {
+  //       toast.error("Resume extraction failed.");
+  //       return;
+  //     }
+
+  //     // ✅ Success
+  //     if (state === "completed" && result?.parsed) {
+  //       const extracted = result.parsed;
+
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         firstName: extracted.firstName || "",
+  //         lastName: extracted.lastName || "",
+  //         city: extracted.city || "",
+  //         jobTitle: extracted.jobTitle || "",
+  //         experience: extracted.totalExperience
+  //           ? extracted.totalExperience.split(" ")[0]
+  //           : "",
+  //         employmentType: extracted.employmentType || "",
+  //         occupationType: extracted.occupationType || "",
+  //         salaryType: extracted.desiredSalaryType || "",
+  //         salaryAmount: extracted.desiredSalaryAmount || "",
+  //         eligibleInFrance: extracted.eligibleToWorkInFrance ? "Yes" : "No",
+  //         selectedCategory: extracted.jobCategory || "",
+  //       }));
+
+  //       setShowModal(false);
+  //       toast.success("Resume extracted successfully!");
+  //     }
+  //   } catch (err) {
+  //     console.error("Extraction Error:", err.response?.data || err.message);
+  //     toast.error("Error fetching resume data.");
+  //   }
+  // };
   const importFromLinkedIn = () => {
     try {
       window.location.assign(
