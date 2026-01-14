@@ -20,7 +20,7 @@ const AccountVerified = () => {
     localStorage.removeItem("user_role");
     localStorage.removeItem("isLoggedIn");
   }, [reason, email, role, token]);
-  // const handleContinue = () => {
+
   //   console.log(role);
 
   //   console.log(token);

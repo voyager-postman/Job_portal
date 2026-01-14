@@ -18,6 +18,8 @@ function MyProfile() {
   const [occupationTypes, setOccupationTypes] = useState([]);
   const [isManualEnabled, setIsManualEnabled] = useState(false);
   // values: "resume" | "linkedin" | null
+  const [isUploading, setIsUploading] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -194,35 +196,38 @@ function MyProfile() {
     }
     return true;
   };
-
-  const candidateLogin = async () => {
-    if (!validate()) return;
+  const createCandidateProfile = async (autoData = null) => {
     const data = new FormData();
-    data.append("firstname", formData.firstName);
-    data.append("lastname", formData.lastName);
-    data.append("city", formData.city);
-    data.append("County", formData.County);
-    data.append("jobTitle", formData.jobTitle);
-    data.append("yearOfExprerience", formData.experience);
-    data.append("jobCategory", formData.selectedCategory);
-    data.append("DesiredEmploymentType", formData.employmentType);
-    data.append("DesiredOccupationType", formData.occupationType);
 
-    if (formData.salaryType || formData.salaryAmount) {
+    const payload = autoData || formData;
+
+    data.append("firstname", payload.firstName);
+    data.append("lastname", payload.lastName);
+    data.append("city", payload.city);
+    data.append("County", payload.County);
+    data.append("jobTitle", payload.jobTitle);
+    data.append("yearOfExprerience", payload.experience);
+    data.append("jobCategory", payload.selectedCategory);
+    data.append("DesiredEmploymentType", payload.employmentType);
+    data.append("DesiredOccupationType", payload.occupationType);
+
+    if (payload.salaryType || payload.salaryAmount) {
       data.append(
         "MinimumDesiredSalary",
         JSON.stringify({
-          type: formData.salaryType || "Yearly",
-          amount: formData.salaryAmount || "",
+          type: payload.salaryType || "Yearly",
+          amount: payload.salaryAmount || "",
           currency: "USD",
         })
       );
     }
 
-    const isEligible = formData.eligibleInFrance?.toLowerCase() === "yes";
+    const isEligible = payload.eligibleInFrance?.toLowerCase() === "yes";
     data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
 
-    data.append("resume", formData.attachment);
+    if (payload.attachment) {
+      data.append("resume", payload.attachment);
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -236,8 +241,10 @@ function MyProfile() {
           },
         }
       );
+
       if (response.data.success) {
         const { userDetails } = response.data;
+
         localStorage.setItem("user", JSON.stringify(userDetails));
         localStorage.setItem("user_id", userDetails._id);
         localStorage.setItem("user_email", userDetails.email);
@@ -245,18 +252,82 @@ function MyProfile() {
         localStorage.setItem("first_name", userDetails.first_name);
         localStorage.setItem("last_name", userDetails.last_name);
         localStorage.setItem("is_completed", userDetails?.is_completed);
-        login(); // set auth context / localStorage
-        navigate("/profile-basic-info");
+
+        login(); // auth context
+        navigate("/candidate-profile");
       }
-      toast.success("Profile created successfully!", {
-        autoClose: 5000,
-        theme: "colored",
-      });
-      navigate("/candidate-profile");
     } catch (err) {
-      console.error("Error:", err.response?.data || err.message);
-      toast.error("Failed to create profile. Try again.");
+      console.error("Auto profile creation failed:", err);
+      toast.error("Failed to create profile automatically.");
     }
+  };
+
+  // const candidateLogin = async () => {
+  //   if (!validate()) return;
+  //   const data = new FormData();
+  //   data.append("firstname", formData.firstName);
+  //   data.append("lastname", formData.lastName);
+  //   data.append("city", formData.city);
+  //   data.append("County", formData.County);
+  //   data.append("jobTitle", formData.jobTitle);
+  //   data.append("yearOfExprerience", formData.experience);
+  //   data.append("jobCategory", formData.selectedCategory);
+  //   data.append("DesiredEmploymentType", formData.employmentType);
+  //   data.append("DesiredOccupationType", formData.occupationType);
+
+  //   if (formData.salaryType || formData.salaryAmount) {
+  //     data.append(
+  //       "MinimumDesiredSalary",
+  //       JSON.stringify({
+  //         type: formData.salaryType || "Yearly",
+  //         amount: formData.salaryAmount || "",
+  //         currency: "USD",
+  //       })
+  //     );
+  //   }
+
+  //   const isEligible = formData.eligibleInFrance?.toLowerCase() === "yes";
+  //   data.append("eligibleToWorkInFrance", JSON.stringify(isEligible));
+
+  //   data.append("resume", formData.attachment);
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}createCandidateProfile`,
+  //       data,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     if (response.data.success) {
+  //       const { userDetails } = response.data;
+  //       localStorage.setItem("user", JSON.stringify(userDetails));
+  //       localStorage.setItem("user_id", userDetails._id);
+  //       localStorage.setItem("user_email", userDetails.email);
+  //       localStorage.setItem("user_role", userDetails.role);
+  //       localStorage.setItem("first_name", userDetails.first_name);
+  //       localStorage.setItem("last_name", userDetails.last_name);
+  //       localStorage.setItem("is_completed", userDetails?.is_completed);
+  //       login(); // set auth context / localStorage
+  //       navigate("/profile-basic-info");
+  //     }
+  //     toast.success("Profile created successfully!", {
+  //       autoClose: 5000,
+  //       theme: "colored",
+  //     });
+  //     navigate("/candidate-profile");
+  //   } catch (err) {
+  //     console.error("Error:", err.response?.data || err.message);
+  //     toast.error("Failed to create profile. Try again.");
+  //   }
+  // };
+  const candidateLogin = async () => {
+    if (!validate()) return;
+    createCandidateProfile();
   };
 
   const handleCitySearch = async (e) => {
@@ -296,27 +367,11 @@ function MyProfile() {
     }));
     setCitySuggestions([]); // ✅ hide dropdown after selecting
   };
-  // const uploadResume = async () => {
-  //   const data = new FormData();
-  //   data.append("resume", formData.attachment);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}extractResume`, data);
-
-  //     if (res.data.success && res.data.jobId) {
-  //       fetchExtractedData(res.data.jobId); // start polling
-  //     } else {
-  //       toast.error("Upload succeeded but jobId missing.");
-  //     }
-  //   } catch (err) {
-  //     toast.error("Failed to upload resume.");
-  //   }
-  // };
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
   const uploadResume = async () => {
-    const userId = localStorage.getItem("user_id"); // ✅ get userId
+    const userId = localStorage.getItem("extract_id");
     const file = formData?.attachment;
+
     if (!userId) {
       toast.error("User not found. Please login again.", {
         autoClose: 2000,
@@ -325,7 +380,6 @@ function MyProfile() {
       return;
     }
 
-    // ✅ File existence check
     if (!file) {
       toast.error("Please select a resume file.", {
         autoClose: 2000,
@@ -334,112 +388,114 @@ function MyProfile() {
       return;
     }
 
-    // ✅ File size validation (prevents 413)
     if (file.size > MAX_FILE_SIZE) {
       toast.error("Uploaded file is too large. Max size is 2MB.", {
         autoClose: 2000,
         theme: "colored",
       });
-      return; // ⛔ STOP — do not hit API
+      return;
     }
 
     const data = new FormData();
     data.append("resume", file);
 
     try {
+      setIsUploading(true); // ✅ START LOADER
+
       const res = await axios.post(
-        `${API_BASE_URL}extractResume/${userId}`, // ✅ PASS userId
+        `${API_BASE_URL}extractResume/${userId}`,
         data,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
       if (res.data.success && res.data.jobId) {
-        fetchExtractedData(res.data.jobId); // start polling
+        setIsExtracting(true); // ✅ extraction loader
+        fetchExtractedData(res.data.jobId);
       } else {
         toast.error("Upload succeeded but jobId missing.");
+        setIsUploading(false);
       }
     } catch (err) {
       console.error("Resume upload error:", err);
+      setIsUploading(false);
 
-      // 🔒 Backup 413 handling
-      if (err?.response?.status === 413 || err?.message?.includes("413")) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
+      if (err?.response?.status === 413) {
+        toast.error("Uploaded file is too large. Max size is 2MB.");
       } else {
         toast.error("Failed to upload resume.");
       }
     }
   };
+
   const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
-
       const { state, result } = res.data;
 
-      // ⏳ Still processing → retry
+      // ⏳ Still processing
       if (state === "active") {
         if (attempt < 10) {
           setTimeout(() => fetchExtractedData(jobId, attempt + 1), 2000);
         } else {
+          setIsExtracting(false);
           toast.error("Resume extraction taking too long.");
         }
         return;
       }
 
-      // ❌ Completed but failed
+      // ❌ Failed
       if (state === "completed" && !result?.success) {
+        setIsExtracting(false);
         toast.error("Resume extraction failed.");
         return;
       }
 
-      // ✅ Completed & success
+      // ✅ Success
       if (state === "completed" && result?.parsedResume?.data) {
         const data = result.parsedResume.data;
 
-        setFormData((prev) => ({
-          ...prev,
-
+        const autoProfileData = {
           firstName: data?.name?.first || "",
           lastName: data?.name?.last || "",
-
           city: data?.location?.city || "",
           County: data?.location?.country || "",
-
           jobTitle:
             data?.workExperience?.[0]?.occupation?.jobTitleNormalized ||
             data?.workExperience?.[0]?.jobTitle ||
             "",
-
           experience: data?.totalYearsExperience
             ? String(data.totalYearsExperience)
             : "",
-
           employmentType: "",
           occupationType: data?.profession || "",
-
           salaryType: "",
           salaryAmount: "",
-
           eligibleInFrance: "Yes",
           selectedCategory: "",
-        }));
+          attachment: formData.attachment, // 👈 important
+        };
 
+        setFormData(autoProfileData);
+
+        setIsUploading(false);
+        setIsExtracting(false);
         setShowModal(false);
+
         toast.success("Resume extracted successfully!");
+
+        // 🚀 AUTO CREATE PROFILE + REDIRECT
+        createCandidateProfile(autoProfileData);
       }
     } catch (err) {
-      console.error("Extraction Error:", err.response?.data || err.message);
+      console.error("Extraction Error:", err);
+      setIsUploading(false);
+      setIsExtracting(false);
       toast.error("Error fetching resume data.");
     }
   };
 
-  // const fetchExtractedData = async (jobId, attempt = 0) => {
   //   try {
   //     const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
 
@@ -724,12 +780,41 @@ function MyProfile() {
                                         type="button"
                                         className="mt-3 default-btn btn"
                                         onClick={uploadResume}
+                                        disabled={isUploading || isExtracting}
                                       >
-                                        Upload
+                                        {isUploading || isExtracting ? (
+                                          <>
+                                            <span
+                                              className="spinner-border spinner-border-sm me-2"
+                                              role="status"
+                                            />
+                                            {isUploading
+                                              ? "Uploading..."
+                                              : "Extracting Resume..."}
+                                          </>
+                                        ) : (
+                                          "Upload"
+                                        )}
                                       </button>
                                     </div>
                                   </div>
                                 </div>
+                                {(isUploading || isExtracting) && (
+                                  <div
+                                    className="position-absolute top-0 start-0 w-100 h-100 d-flex
+       justify-content-center align-items-center bg-white bg-opacity-75"
+                                    style={{ zIndex: 1050 }}
+                                  >
+                                    <div className="text-center">
+                                      <div className="spinner-border text-primary mb-3" />
+                                      <p className="fw-bold">
+                                        {isUploading
+                                          ? "Uploading resume..."
+                                          : "Extracting information from resume..."}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1051,7 +1136,11 @@ function MyProfile() {
               </div>
 
               <div className="personal-info-btn">
-                <a className="default-btn btn" onClick={candidateLogin}>
+                <a
+                  className="default-btn btn"
+                  disabled={!isManualEnabled}
+                  onClick={candidateLogin}
+                >
                   Submit
                 </a>
               </div>

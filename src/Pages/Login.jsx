@@ -118,6 +118,8 @@ function Login() {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user.id);
+        localStorage.setItem("extract_id", user?.id);
+
         localStorage.setItem("user_email", user.email);
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("first_name", user.first_name);
