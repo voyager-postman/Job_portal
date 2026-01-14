@@ -32,6 +32,7 @@ function EmployerCandinateList() {
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [newApplicationStatus, setNewApplicationStatus] = useState("");
+  const [candidateCount, setCandidateCount] = useState("");
 
   const [filters, setFilters] = useState({
     search: "",
@@ -71,6 +72,27 @@ function EmployerCandinateList() {
       setSelectedCandidate(null);
     }
   };
+  const fetchCandidates2 = async () => {
+    let query = [];
+
+    query.push(`page=${page}`);
+    query.push(`limit=${limit}`);
+
+    const queryString = `?${query.join("&")}`;
+    const res = await fetch(
+      `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    const data = await res.json();
+    console.log("Candidate Count Data:-", data.summary);
+    setCandidateCount(data.summary || {});
+    setTotalPages(data.totalPages || 1);
+  };
+  useEffect(() => {
+    fetchCandidates2();
+  }, [page]);
 
   useEffect(() => {
     fetchSalaryRanges();
@@ -91,6 +113,7 @@ function EmployerCandinateList() {
   }, []);
   useEffect(() => {
     fetchCandidates(selectedStatus);
+    fetchCandidates2();
   }, [page, selectedStatus]);
 
   const fetchExperienceLevels = async () => {
@@ -127,6 +150,7 @@ function EmployerCandinateList() {
       );
 
       console.log("Status Updated", res.data);
+      fetchCandidates2();
       fetchCandidates();
       // Refresh candidate details
       fetchApplicantDetails(selectedCandidate?.userInfo?._id);
@@ -356,7 +380,6 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
-
             <div className="col-lg-3 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
@@ -407,7 +430,6 @@ function EmployerCandinateList() {
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Score</h3>
-
                   <form>
                     <div className="form-group">
                       <select
@@ -479,19 +501,17 @@ function EmployerCandinateList() {
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
                 <div className="employer-candidate-number">
-                  <h4>Candidates ({candidateListSummary?.Total})</h4>
+                  <h4>Candidates ({candidateCount?.Total})</h4>
                 </div>
                 <div className="employer-candidate-profile-count">
                   <ul>
-                    <li>({candidateListSummary?.New}) New Candidate</li>
+                    <li>({candidateCount?.New}) New Candidate</li>
 
                     <li>
-                      ({candidateListSummary?.Shortlisted}) Shortlisted Candidate
+                      ({candidateCount?.Shortlisted}) Shortlisted Candidate
                     </li>
-                    <li>
-                      ({candidateListSummary?.Rejected}) Rejected Candidate
-                    </li>
-                    <li>({candidateListSummary?.Hired}) Hired Candidate</li>
+                    <li>({candidateCount?.Rejected}) Rejected Candidate</li>
+                    <li>({candidateCount?.Hired}) Hired Candidate</li>
                   </ul>
                 </div>
               </div>
@@ -604,7 +624,10 @@ function EmployerCandinateList() {
                                 <li>
                                   <i className="fa-solid fa-gear" />{" "}
                                   <span className="candidate-active">
-                                    {candidate?.userId?.candidateProfile?.profileVisible === true ? "Active" : "Inactive"}
+                                    {candidate?.userId?.candidateProfile
+                                      ?.profileVisible === true
+                                      ? "Active"
+                                      : "Inactive"}
                                   </span>
                                 </li>
                               </ul>
@@ -704,7 +727,7 @@ function EmployerCandinateList() {
                                 )
                                 ? selectedCandidate.userInfo.profileImage // external URL → use directly
                                 : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                              : "assets/images/default-user.png"
+                              : "assets/images/freelancers/freelancers-img-1.jpg"
                           }
                           alt="Image"
                         />

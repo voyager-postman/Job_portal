@@ -1956,7 +1956,7 @@ function CandidateProfile() {
   };
 
   console.log(image);
-  const formatEmail = (email, maxLength = 22) => {
+  const formatEmail = (email, maxLength = 35) => {
     if (!email) return "N/A";
 
     if (email.length <= maxLength) return email;

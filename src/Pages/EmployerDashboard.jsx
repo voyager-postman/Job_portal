@@ -49,12 +49,15 @@ function EmployerDashboard() {
       },
       plotOptions: {
         bar: {
-          borderRadius: 0,
           horizontal: true,
-          barHeight: "85%",
           isFunnel: true,
+          barHeight: "85%",
+          dataLabels: {
+            position: "center",
+          },
         },
       },
+
       dataLabels: {
         enabled: true,
         formatter: function (val, opt) {
@@ -198,6 +201,7 @@ function EmployerDashboard() {
     fetchJobPerformance();
   }, []);
 
+  const MIN_BAR_VALUE = 0.1;
   useEffect(() => {
     const fetchFunnelData = async () => {
       try {
@@ -207,11 +211,13 @@ function EmployerDashboard() {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log(response.data);
 
-        const { totalViews, totalClicks, totalApplications, totalHires } =
-          response.data;
-        const normalize = (value) => (value === 0 ? 0 : value);
+        const {
+          totalViews = 0,
+          totalClicks = 0,
+          totalApplications = 0,
+          totalHires = 0,
+        } = response.data;
 
         const originalValues = [
           totalViews,
@@ -219,24 +225,26 @@ function EmployerDashboard() {
           totalApplications,
           totalHires,
         ];
-        const funnelValues = originalValues.map(normalize);
+
+        const renderValues = originalValues.map((v) =>
+          v === 0 ? MIN_BAR_VALUE : v
+        );
 
         setFunnelState((prev) => ({
           ...prev,
           series: [
             {
               name: "Funnel Series",
-              data: funnelValues,
+              data: renderValues,
             },
           ],
           options: {
             ...prev.options,
             dataLabels: {
               enabled: true,
-              formatter: function (val, opt) {
-                return `${opt.w.globals.labels[opt.dataPointIndex]}: ${
-                  originalValues[opt.dataPointIndex]
-                }`;
+              formatter: (val, opt) => {
+                const label = opt.w.globals.labels[opt.dataPointIndex];
+                return `${label}: ${originalValues[opt.dataPointIndex]}`;
               },
             },
           },
@@ -245,6 +253,7 @@ function EmployerDashboard() {
         console.error(error);
       }
     };
+
     fetchFunnelData();
   }, []);
 

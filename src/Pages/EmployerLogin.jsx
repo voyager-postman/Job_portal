@@ -180,7 +180,7 @@ function EmployerLogin() {
     localStorage.setItem("user_profile", avatar);
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
-    toast.success("Login Successful!");
+    toast.success("Login successfully");
 
     // Close modal
     const loginModal = document.getElementById("exampleModalLogin");
