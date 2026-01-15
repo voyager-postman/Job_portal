@@ -19,6 +19,9 @@ function EmployerDashboard() {
         type: "donut",
       },
       labels: ["Messages", "Replies"],
+      legend: {
+        position: "bottom",
+      },
       responsive: [
         {
           breakpoint: 480,
@@ -51,7 +54,8 @@ function EmployerDashboard() {
         bar: {
           horizontal: true,
           isFunnel: true,
-          barHeight: "85%",
+          barHeight: "65%", // tighter funnel
+          distributed: false,
           dataLabels: {
             position: "center",
           },
@@ -201,7 +205,7 @@ function EmployerDashboard() {
     fetchJobPerformance();
   }, []);
 
-  const MIN_BAR_VALUE = 0.1;
+  const VISUAL_WIDTHS = [100, 75, 50, 30];
   useEffect(() => {
     const fetchFunnelData = async () => {
       try {
@@ -219,32 +223,28 @@ function EmployerDashboard() {
           totalHires = 0,
         } = response.data;
 
-        const originalValues = [
+        const actualValues = [
           totalViews,
           totalClicks,
           totalApplications,
           totalHires,
         ];
 
-        const renderValues = originalValues.map((v) =>
-          v === 0 ? MIN_BAR_VALUE : v
-        );
-
         setFunnelState((prev) => ({
           ...prev,
           series: [
             {
               name: "Funnel Series",
-              data: renderValues,
+              data: VISUAL_WIDTHS, // fixed visual widths
             },
           ],
           options: {
             ...prev.options,
             dataLabels: {
               enabled: true,
-              formatter: (val, opt) => {
+              formatter: (_, opt) => {
                 const label = opt.w.globals.labels[opt.dataPointIndex];
-                return `${label}: ${originalValues[opt.dataPointIndex]}`;
+                return `${label}: ${actualValues[opt.dataPointIndex]}`;
               },
             },
           },
@@ -257,30 +257,70 @@ function EmployerDashboard() {
     fetchFunnelData();
   }, []);
 
+  const ZERO_COLOR = "#b2bacf"; // light gray
+  const NORMAL_COLORS = ["#3b82f6", "#34d399"]; // Messages, Replies
   useEffect(() => {
-    const fetchInslight = async () => {
+    const fetchInsight = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}getCandidateEngagementInsights`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const { uniqueMessageSentPercentage, uniqueReplyPercentage } =
-          response?.data?.data?.uniqueEngagement;
+
+        const { uniqueMessageSentPercentage = 0, uniqueReplyPercentage = 0 } =
+          response?.data?.data?.uniqueEngagement || {};
+
+        const isZeroState =
+          uniqueMessageSentPercentage === 0 && uniqueReplyPercentage === 0;
 
         setChartData((prev) => ({
           ...prev,
-          series: [uniqueMessageSentPercentage, uniqueReplyPercentage],
+          series: isZeroState
+            ? [100] // full circle
+            : [uniqueMessageSentPercentage, uniqueReplyPercentage],
+
+          options: {
+            ...prev.options,
+            labels: isZeroState ? ["No Engagement"] : ["Messages", "Replies"],
+
+            colors: isZeroState ? [ZERO_COLOR] : NORMAL_COLORS,
+
+            dataLabels: {
+              enabled: !isZeroState,
+              formatter: (val) => `${val}%`,
+            },
+
+            tooltip: {
+              enabled: !isZeroState,
+              formatter: (val) => `${val}%`,
+            },
+
+            plotOptions: {
+              pie: {
+                donut: {
+                  size: "65%",
+                  labels: {
+                    show: true,
+                    total: {
+                      // show: isZeroState,
+                      // label: "No Engagement",
+                      formatter: () => "0%",
+                    },
+                  },
+                },
+              },
+            },
+          },
         }));
       } catch (error) {
         console.error(error);
       }
     };
-    fetchInslight();
+
+    fetchInsight();
   }, []);
 
   useEffect(() => {

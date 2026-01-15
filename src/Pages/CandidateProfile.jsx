@@ -26,6 +26,7 @@ function CandidateProfile() {
     "Post Doctorate",
     "Professional Degree",
   ];
+
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -2203,7 +2204,8 @@ function CandidateProfile() {
                                   <input
                                     type="file"
                                     id="file-upload"
-                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    // accept=".pdf,.jpg,.jpeg,.png"
+                                    accept="*/*"
                                     style={{ display: "none" }}
                                     onChange={(e) => {
                                       handleUploadCv(e);

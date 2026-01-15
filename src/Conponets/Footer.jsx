@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 
 function Footer() {
   const userRole = localStorage.getItem("user_role");
+  const isJobSeeker = userRole === "JobSeeker";
+  const isEmployer = userRole === "Recruiter" || userRole === "Company";
+  const isGuest = !userRole;
 
   const handleScrollTop = () => {
     window.scrollTo({
@@ -17,7 +20,7 @@ function Footer() {
         <div className="footer-area bg-color pt-50 pb-50">
           <div className="container">
             <div className="row">
-              <div className="col-lg-3 col-sm-6">
+              <div className="col-lg-4 col-sm-6">
                 <div className="single-footer-widget logo-content">
                   <div className="footer-logo">
                     <Link className="navbar-brand" to="/">
@@ -59,76 +62,81 @@ function Footer() {
                   </div>
                 </div>
               </div>
-              <div className="col-lg-3 col-sm-6">
-                <div className="single-footer-widget quick-link">
-                  <h3>Job Seeker</h3>
-                  <ul>
-                    <li>
-                      <Link to="/jobs">Browse Jobs </Link>
-                    </li>
-                    <li>
-                      <Link to="/employers">Browse Companies </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to={
-                          userRole === "JobSeeker"
-                            ? "/candidate-profile"
-                            : "/login"
-                        }
-                      >
-                        Upload Your Resume
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/faq">FAQ JobSeeker </Link>
-                    </li>
-                  </ul>
+              {(isJobSeeker || isGuest) && (
+                <div className="col-lg-2 col-sm-6">
+                  <div className="single-footer-widget quick-link">
+                    <h3>Job Seeker</h3>
+                    <ul>
+                      <li>
+                        <Link to="/jobs">Browse Jobs </Link>
+                      </li>
+                      <li>
+                        <Link to="/employers">Browse Companies </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to={
+                            userRole === "JobSeeker"
+                              ? "/candidate-profile"
+                              : "/login"
+                          }
+                        >
+                          Upload Your Resume
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/faq">FAQ JobSeeker </Link>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
-              <div className="col-lg-2 col-sm-6">
-                <div className="single-footer-widget quick-link">
-                  <h3>Employer</h3>
-                  <ul>
-                    <li>
-                      <Link
-                        to={
-                          userRole === "Recruiter" || userRole === "Company"
-                            ? "/your-job-posts"
-                            : "/employer-login"
-                        }
-                      >
-                        Job Posts
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to={
-                          localStorage.getItem("token")
-                            ? "/shortlist-candidates"
-                            : "/employer-login"
-                        }
-                      >
-                        CV Database
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to={
-                          localStorage.getItem("token")
-                            ? "/candidates-search"
-                            : "/employer-login"
-                        }
-                      >
-                        Candidate Listing
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/faq">FAQ Employer</Link>
-                    </li>
-                  </ul>
+              )}
+
+              {(isEmployer || isGuest) && (
+                <div className="col-lg-2 col-sm-6">
+                  <div className="single-footer-widget quick-link">
+                    <h3>Employer</h3>
+                    <ul>
+                      <li>
+                        <Link
+                          to={
+                            userRole === "Recruiter" || userRole === "Company"
+                              ? "/your-job-posts"
+                              : "/employer-login"
+                          }
+                        >
+                          Job Posts
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to={
+                            localStorage.getItem("token")
+                              ? "/shortlist-candidates"
+                              : "/employer-login"
+                          }
+                        >
+                          CV Database
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to={
+                            localStorage.getItem("token")
+                              ? "/candidates-search"
+                              : "/employer-login"
+                          }
+                        >
+                          Candidate Listing
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="/faq">FAQ Employer</Link>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="col-lg-4 col-sm-6">
                 <div className="single-footer-widget info">
                   <h3>Contact Info</h3>
@@ -140,7 +148,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-envelope" />
                       <h4>
-                         Email :{" "}
+                        Email :{" "}
                         <a href="mailto:info@companyname.com">
                           info@companyname.com
                         </a>

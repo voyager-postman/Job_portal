@@ -152,7 +152,7 @@ function Login() {
           console.error("Profile fetch error:", profileErr);
         }
         login(); // call your login context or auth function
-        toast.success("Login successful!");
+        toast.success("Login successfully!");
         // Navigate based on profile completion
         if (user?.is_completed) {
           if (user.role == "Recruiter" || user.role == "Company") {

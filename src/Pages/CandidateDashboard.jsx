@@ -7,14 +7,12 @@ import { useState, useRef, useEffect } from "react";
 import axios from "../Services/axios";
 import moment from "moment";
 import { ToastContainer, toast } from "react-toastify";
-
 import {
   Navigation,
   Pagination as SwiperPagination,
   Autoplay,
 } from "swiper/modules";
 import Pagination from "@mui/material/Pagination"; // MUI one
-
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -37,13 +35,14 @@ function CandidateDashboard() {
   const [profileVisible, setProfileVisible] = useState(true); // ✅ default true
   const [selectedType, setSelectedType] = useState(null);
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
-
   const [visibilityMessage, setVisibilityMessage] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
+  const [unreadChat, setUnreadChat] = useState([]);
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -66,8 +65,23 @@ function CandidateDashboard() {
     }
   };
 
+  const getUnreadChatList = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobseekerUnreadChatList`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(res.data);
+      setUnreadChat(res.data?.chats);
+    } catch (error) {
+      console.error("Error Fetching Unread Chat:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCompaniesSlider();
+    getUnreadChatList();
   }, []);
 
   useEffect(() => {
@@ -218,6 +232,7 @@ function CandidateDashboard() {
       console.log(console.error);
     }
   };
+
   const isSelectionMade = () => {
     return (
       (selectedType === "resume" && selectedId) ||
@@ -1113,7 +1128,7 @@ function CandidateDashboard() {
                                     </Swiper>
                                   </div>
                                 </section>
-                               )}
+                              )}
                             </React.Fragment>
                           ))}
                         </>
@@ -1179,25 +1194,6 @@ function CandidateDashboard() {
                           </p>
                         </div>
                       </div>
-                      {/* <div className="dashboard-profile-visibility-hide">
-                      <div className="dashboard-profile-visibility">
-                        <h4>Profile Visibility</h4>
-                        <span>
-                          <label className="switch">
-                            <input type="checkbox" />
-                            <span className="slider round" />
-                          </label>
-                          <span>Hidden</span>
-                        </span>
-                      </div>
-                      <div className="dashboard-profile-visibility-content">
-                        <p>
-                          Profile Visibility Hidden Make your profile visible to
-                          employers looking for your qualifications and get job
-                          interviews directly!
-                        </p>
-                      </div>
-                    </div> */}
                       <div className="dashboard-other-detail-info">
                         <ul>
                           <li>
@@ -1229,126 +1225,22 @@ function CandidateDashboard() {
                       <div className="recent-notifications-box">
                         <h3>Recruiter Messages</h3>
                         <ul>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Tyrone Lowe</span> Applied For A Job{" "}
-                            <strong>Software Engineer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
+                          {unreadChat.map((chat, index) => (
+                            <li key={index}>
+                              <div className="icon">
+                                <i className="flaticon-portfolio" />
+                              </div>
+                              <span>{chat?.otherUser?.brandName}</span> Applied For A Job{" "}
+                              <strong>{chat.jobTitle}</strong>
+                            </li>
+                          ))}
+                          {/* <li>
                             <div className="icon">
                               <i className="flaticon-portfolio" />
                             </div>
                             <span>Kaedyn Fraser</span> Applied For A Job{" "}
                             <strong>Web Developer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Harold Adams</span> Applied For A Job{" "}
-                            <strong>Technical Architect</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Joshua Mcnair</span> Applied For A Job{" "}
-                            <strong>UI Designer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Kathryn Mcgee</span> Applied For A Job{" "}
-                            <strong>Senior Product Designer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Kaedyn Fraser</span> Applied For A Job{" "}
-                            <strong>Product Designer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Dianna Smiley</span> Applied For A Job{" "}
-                            <strong>Android Developer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
-                          <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Micheal Murphy</span> Applied For A Job{" "}
-                            <strong>Digital Marketer</strong>
-                            <button
-                              type="button"
-                              className="close"
-                              data-bs-dismiss="alert"
-                              aria-label="Close"
-                            >
-                              <span aria-hidden="true">×</span>
-                            </button>
-                          </li>
+                          </li> */}
                         </ul>
                       </div>
                     </div>

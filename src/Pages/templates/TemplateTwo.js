@@ -148,7 +148,7 @@ const TemplateTwo = ({ data }) => {
                           </div>
                         </div>
                       </div>
-                      <div className="second-resume-profesionl-summary">
+                      {/* <div className="second-resume-profesionl-summary">
                         <h4>
                           <i className="fa-solid fa-address-card"></i>About Your
                           Role
@@ -175,7 +175,7 @@ const TemplateTwo = ({ data }) => {
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                       <div className="second-resume-profesionl-summary">
                         <h4>
                           <i className="fa-solid fa-briefcase"></i>Work
@@ -183,32 +183,36 @@ const TemplateTwo = ({ data }) => {
                         </h4>
                         <div className="second-resume-profesionl-summary-content">
                           {experience.map((exp) => (
-                            <div className="second-resume-summary-other">
-                              <h5>{exp.jobTitle}</h5>
-                              <p>
-                                {new Date(exp.startDate).toLocaleDateString()} –
-                                {exp.currentlyWorkingHere
-                                  ? "Present"
-                                  : new Date(exp.endDate).toLocaleDateString()}
-                              </p>
-                              <p>
-                                <strong>Company:</strong> {exp.companyName}
-                              </p>
-                              <p>
-                                <strong>Location:</strong> {exp.workLocation}
-                              </p>
-                              <p>
-                                <strong>Employment Type:</strong>{" "}
-                                {exp.EmploymentType}
-                              </p>
-                              <p>
-                                <strong>Salary:</strong>
-                                {exp?.currentSalary?.currency}{" "}
-                                {exp?.currentSalary?.amount}(
-                                {exp?.currentSalary?.payrollFrequency})
-                              </p>
-                              <h5>Achievements</h5>
-                              <p>{exp?.Description}</p>
+                            <div className="row">
+                              <div className="col-lg-8 col-md-6">
+                                <div className="second-resume-summary-other">
+                                  <h5>{exp.jobTitle}</h5>
+                                  <h6>{exp.companyName}</h6>
+                                </div>
+                              </div>
+                              <div className="col-lg-3 col-md-6">
+                                <div className="second-resume-summary-other">
+                                  <p>
+                                    {new Date(
+                                      exp.startDate
+                                    ).toLocaleDateString()}{" "}
+                                    –
+                                    {exp.currentlyWorkingHere
+                                      ? "Present"
+                                      : new Date(
+                                          exp.endDate
+                                        ).toLocaleDateString()}
+                                  </p>
+                                  <p>{exp.workLocation}</p>
+                                </div>
+                              </div>
+                              <div className="col-lg-12 col-md-12">
+                                <div class="second-resume-summary-other">
+                                  <h5>Achievements</h5>
+                                  <p>{exp?.Description}</p>
+                                </div>
+                              </div>
+                              <div className="third-resume-summary-divder-line"></div>
                             </div>
                           ))}
                         </div>
@@ -220,20 +224,15 @@ const TemplateTwo = ({ data }) => {
                           <i className="fa-solid fa-address-card"></i>Skills &
                           Technologies
                         </h4>
-                        {skills.map((skill) => (
-                          <div
-                            className="second-resume-profesionl-summary-content"
-                            key={skill._id}
-                          >
-                            <div className="row">
-                              <div className="col-lg-3 col-md-6">
-                                <div className="second-resume-summary-other">
-                                  <p>{skill}</p>
-                                </div>
-                              </div>
-                            </div>
+                        <div className="second-resume-profesionl-summary-content">
+                          <div className="second-resume-summary-other">
+                            <ul>
+                              {skills.map((skill) => (
+                                <li key={skill._id}>{skill}</li>
+                              ))}
+                            </ul>
                           </div>
-                        ))}
+                        </div>
                       </div>
                       <div className="second-resume-profesionl-summary">
                         <h4>
@@ -241,44 +240,42 @@ const TemplateTwo = ({ data }) => {
                           Education
                         </h4>
                         {education.map((educ) => (
-                          <div className="second-resume-profesionl-summary-content">
-                            <div className="row" key={educ._id}>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="second-resume-summary-other">
-                                  <h5>Degree</h5>
-                                  <p>{educ.degree}</p>
+                          <>
+                            <div className="second-resume-profesionl-summary-content">
+                              <div className="row" key={educ._id}>
+                                <div className="col-lg-3 col-md-6">
+                                  <div className="second-resume-summary-other">
+                                    <h5>Degree</h5>
+                                    <p>{educ.degree}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="second-resume-summary-other">
-                                  <h5>University</h5>
-                                  <p>{educ.University}</p>
+                                <div className="col-lg-3 col-md-6">
+                                  <div className="second-resume-summary-other">
+                                    <h5>University</h5>
+                                    <p>{educ.University}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="second-resume-summary-other">
-                                  <h5>Start Date</h5>
-                                  <p>
-                                    {new Date(
-                                      educ.startDate
-                                    ).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-lg-6 col-md-6">
-                                <div className="second-resume-summary-other">
-                                  <h5>End Date</h5>
-                                  <p>
-                                    {new Date(
-                                      educ.endDate
-                                    ).toLocaleDateString()}
-                                  </p>
+                                <div className="col-lg-6 col-md-6">
+                                  <div className="second-resume-summary-other">
+                                    <h5>Date</h5>
+                                    <p>
+                                      {new Date(
+                                        educ.startDate
+                                      ).toLocaleDateString()}{" "}
+                                      -{" "}
+                                      {new Date(
+                                        educ.endDate
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
+                            <div className="second-resume-divider-line"></div>
+                          </>
                         ))}
                       </div>
+
                       <div className="second-resume-profesionl-summary">
                         <h4>
                           <i className="fa-solid fa-language"></i>Languages
@@ -296,6 +293,7 @@ const TemplateTwo = ({ data }) => {
                           ))}
                         </div>
                       </div>
+
                       <div className="second-resume-profesionl-summary">
                         <h4>
                           <i className="fa-solid fa-file"></i>Certificates

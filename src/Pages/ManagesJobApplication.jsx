@@ -192,6 +192,7 @@ function ManagesJobApplication() {
       setLoading(false);
     }
   };
+
   const fetchApplications = async (status = "") => {
     try {
       setLoading(true);
@@ -228,12 +229,9 @@ function ManagesJobApplication() {
         params.industry = industryIds.join(",");
       }
 
-      const res = await axios.get(
-        `${API_BASE_URL}GetCompanyDetailsList`,
-        {
-          params,
-        }
-      );
+      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+        params,
+      });
 
       if (res.data.success) {
         setCompanies(res.data);
@@ -242,16 +240,20 @@ function ManagesJobApplication() {
       console.error("Error fetching company list:", error);
     }
   };
+
   useEffect(() => {
     const selectedIndustryIds = selected.map((i) => i._id);
     getCompanyList(selectedIndustryIds, pageNumber, pageSize);
   }, [pageNumber, pageSize, selected]);
+
   const handleViewCompany = (company) => {
     navigate("/companies-details", {
       state: { companyId: company }, // 👈 send ID as prop-like data
     });
   };
+
   const totalPages = companies?.totalPages;
+
   useEffect(() => {
     getCompanyList();
   }, []);
@@ -372,6 +374,7 @@ function ManagesJobApplication() {
       toast.error("Error deleting alert");
     }
   };
+
   return (
     <>
       <ToastContainer />
@@ -394,6 +397,7 @@ function ManagesJobApplication() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+
           {/* mannage Job application section start here */}
           <section className="mannage-job-application-tab">
             <div className="company-detail-tab-info">
@@ -442,6 +446,7 @@ function ManagesJobApplication() {
               </ul>
             </div>
           </section>
+
           <section className="mannage-job-application-tab-description">
             {/* Tab panes */}
             <div className="tab-content">
@@ -530,6 +535,7 @@ function ManagesJobApplication() {
                       </div>
                     </Link>
                   </div> */}
+
                   {/* Application List */}
                   {applications.length === 0 ? (
                     <p>No applications found.</p>
@@ -597,11 +603,11 @@ function ManagesJobApplication() {
                                 </li>
                                 <li>
                                   <i className="fa-regular fa-user" />{" "}
-                                  {job?.employmentType?.name}{" "}
+                                  {job?.employmentType?.name || "N/A"}{" "}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-location-dot" />{" "}
-                                  {job?.city?.join(", ")}
+                                  {job?.city?.join(", ") || company?.city}
                                 </li>
                                 <li>
                                   <i className="fa-regular fa-file" />{" "}
@@ -892,7 +898,8 @@ function ManagesJobApplication() {
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-location-dot" />{" "}
-                                    {jobData?.city || "N/A"}
+                                    {jobData?.city?.join(", ") ||
+                                      jobData?.companyId?.city}
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-users" />{" "}

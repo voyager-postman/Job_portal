@@ -37,6 +37,7 @@ const TemplateThird = ({ data }) => {
                 <h4>{personal?.career_goals?.DesiredJobTitle}</h4>
               </div>
             </div>
+
             <div className="third-resume-all-summary-area">
               <div className="third-resume-summary-info-area">
                 <div className="third-resume-summary-content">
@@ -101,7 +102,7 @@ const TemplateThird = ({ data }) => {
                     </div>
                   </div>
                 </div>
-                <div className="third-resume-summary-content">
+                {/* <div className="third-resume-summary-content">
                   <h4>About Your Role</h4>
                   <div className="third-resume-content-area">
                     <div className="row">
@@ -125,51 +126,58 @@ const TemplateThird = ({ data }) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className="third-resume-summary-content">
                   <h4>Work Experience</h4>
                   <div className="third-resume-content-area">
                     {experience.map((exp) => (
-                      <div className="third-resume-summary-other">
-                        <h5>{exp.jobTitle}</h5>
-                        <p>
-                          {new Date(exp.startDate).toLocaleDateString()} –
-                          {exp.currentlyWorkingHere
-                            ? "Present"
-                            : new Date(exp.endDate).toLocaleDateString()}
-                        </p>
-                        <p>
-                          <strong>Company:</strong> {exp.companyName}
-                        </p>
-                        <p>
-                          <strong>Location:</strong> {exp.workLocation}
-                        </p>
-                        <p>
-                          <strong>Employment Type:</strong> {exp.EmploymentType}
-                        </p>
-                        <p>
-                          <strong>Salary:</strong>{" "}
-                          {exp?.currentSalary?.currency}{" "}
-                          {exp?.currentSalary?.amount}(
-                          {exp?.currentSalary?.payrollFrequency})
-                        </p>
-                        {/* <h5>Description</h5>
-                        <p>
-                          Dynamic agricultural company serving farmers,
-                          exporters, and wholesale markets. Dynamic agricultural
-                          company serving farmers, exporters, and wholesale
-                          markets. Dynamic agricultural company serving farmers,
-                          exporters, and wholesale markets.
-                        </p> */}
-                        <h5>Achievements</h5>
-                        <p>{exp?.Description}</p>
-                      </div>
+                      <>
+                        <div className="row">
+                          <div className="col-lg-8 col-md-6">
+                            <div className="third-resume-summary-other">
+                              <h5>{exp.jobTitle}</h5>
+                              <h6>{exp.companyName}</h6>
+                            </div>
+                          </div>
+                          <div className="col-lg-4 col-md-6">
+                            <div className="third-resume-summary-other">
+                              <p>
+                                {new Date(exp.startDate).toLocaleDateString()} –
+                                {exp.currentlyWorkingHere
+                                  ? "Present"
+                                  : new Date(exp.endDate).toLocaleDateString()}
+                              </p>
+                              <p>{exp.workLocation}</p>
+                            </div>
+                          </div>
+                          <div className="col-lg-12 col-md-12">
+                            <div className="third-resume-summary-other">
+                              <p>{exp?.Description}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="third-resume-summary-divder-line"></div>
+                      </>
                     ))}
+                  </div>
+                </div>
+                <div className="third-resume-summary-content">
+                  <h4>Skills & Technologies</h4>
+                  <div className="third-resume-content-area">
+                    <div className="row">
+                      {skills.map((skill) => (
+                        <div className="col-lg-6 col-md-6">
+                          <div className="third-resume-summary-other">
+                            <p>{skill}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="third-resume-box-card-main-bg">
-                <div className="third-resume-box-card-bg">
+                {/* <div className="third-resume-box-card-bg">
                   <div className="third-resume-summary-content">
                     <h4>Skills & Technologies</h4>
                     <div className="third-resume-content-area">
@@ -184,14 +192,14 @@ const TemplateThird = ({ data }) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className="third-resume-box-card-bg">
                   <div className="third-resume-summary-content">
                     <h4>Education</h4>
                     <div className="third-resume-content-area">
                       <div className="row">
                         {education.map((educ) => (
-                          <div className="col-lg-3 col-md-6" key={educ._id}>
+                          <div className="col-lg-4 col-md-6" key={educ._id}>
                             <div className="third-resume-summary-other">
                               <h5>Degree</h5>
                               <p>{educ.degree}</p>

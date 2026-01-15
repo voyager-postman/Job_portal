@@ -7,7 +7,7 @@ const TemplateOne = ({ data }) => {
   const personal = data.personal || {};
   const experience = data.experience || [];
   const education = data.education || [];
-  // const skills = data.skills || [];
+  const skills = data.skills || [];
   const languages = data.languages || [];
   const certificates = data.certificates || [];
   return (
@@ -61,6 +61,15 @@ const TemplateOne = ({ data }) => {
                     <i className="fa-brands fa-linkedin"></i>{" "}
                     {personal?.links?.linkedin}
                   </p>
+                </div>
+
+                <div className="second-resume-candidate-contact">
+                  <h4>Skills</h4>
+                  {skills.map((skill) => (
+                    <p key={skill._id}>
+                      <i className="fa-solid fa-gear"></i> {skill}
+                    </p>
+                  ))}
                 </div>
 
                 <div className="second-resume-candidate-contact">
@@ -160,7 +169,7 @@ const TemplateOne = ({ data }) => {
                 </div>
 
                 {/* <!-- ROLE DETAILS --> */}
-                <div className="resume-template-details">
+                {/* <div className="resume-template-details">
                   <h4>About Your Role</h4>
                   <div className="second-resume-template-line"></div>
 
@@ -178,46 +187,42 @@ const TemplateOne = ({ data }) => {
                       <p>{personal?.aboutRole?.jobCategory}</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* <!-- WORK EXPERIENCE --> */}
                 <div className="resume-template-details">
                   <h4>Work Experience</h4>
                   <div className="second-resume-template-line"></div>
                   {experience.map((exp, index) => (
-                    <div key={index}>
-                      <h5>{exp.jobTitle}</h5>
-                      <p>
-                        {new Date(exp.startDate).toLocaleDateString()} –
-                        {exp.currentlyWorkingHere
-                          ? "Present"
-                          : new Date(exp.endDate).toLocaleDateString()}
-                      </p>
-                      <p>
-                        <strong>Company:</strong>
-                        {exp.companyName}
-                      </p>
-                      <p>
-                        <strong>Location:</strong> {exp.workLocation}
-                      </p>
-                      <p>
-                        <strong>Employment Type:</strong> {exp.EmploymentType}
-                      </p>
-                      <p>
-                        <strong>Salary:</strong>
-                        {exp?.currentSalary?.currency}{" "}
-                        {exp?.currentSalary?.amount}(
-                        {exp?.currentSalary?.payrollFrequency})
-                      </p>
-                      {/* <h5>Description</h5>
-                      <p>
-                        Dynamic agricultural company serving farmers, exporters,
-                        and wholesale markets.
-                      </p> */}
-
-                      <h5>Achievements</h5>
-                      <p>{exp?.Description}</p>
-                    </div>
+                    <>
+                      <div className="row" key={index}>
+                        <div className="col-lg-8 col-md-6">
+                          <div className="work-experience-area">
+                            <h5>{exp.jobTitle}</h5>
+                            <h6>{exp.companyName}</h6>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                          <div className="work-experience-area">
+                            <p>
+                              {new Date(exp.startDate).toLocaleDateString()} –
+                              {exp.currentlyWorkingHere
+                                ? "Present"
+                                : new Date(exp.endDate).toLocaleDateString()}
+                            </p>
+                            <p>{exp.workLocation}</p>
+                          </div>
+                        </div>
+                        <div class="second-resume-template-line"></div>
+                        <div class="col-lg-12 col-md-12">
+                          <div class="description-achievements-area">
+                            <h5>Achievements</h5>
+                            <p>{exp?.Description}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="first-resume-template-line"></div>
+                    </>
                   ))}
                 </div>
 
@@ -226,24 +231,26 @@ const TemplateOne = ({ data }) => {
                   <h4>Education</h4>
                   <div className="second-resume-template-line"></div>
                   {education.map((educ) => (
-                    <div className="row" key={educ._id}>
-                      <div className="col-lg-6 col-md-6">
-                        <h5>Degree</h5>
-                        <p>{educ.degree}</p>
+                    <>
+                      <div className="row" key={educ._id}>
+                        <div className="col-lg-4 col-md-6">
+                          <h5>Degree</h5>
+                          <p>{educ.degree}</p>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                          <h5>University</h5>
+                          <p>{educ.University}</p>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                          <h5>Date</h5>
+                          <p>
+                            {new Date(educ.startDate).toLocaleDateString()} -{" "}
+                            {new Date(educ.endDate).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                      <div className="col-lg-6 col-md-6">
-                        <h5>University</h5>
-                        <p>{educ.University}</p>
-                      </div>
-                      <div className="col-lg-6 col-md-6">
-                        <h5>Start Date</h5>
-                        <p>{new Date(educ.startDate).toLocaleDateString()}</p>
-                      </div>
-                      <div className="col-lg-6 col-md-6">
-                        <h5>End Date</h5>
-                        <p>{new Date(educ.endDate).toLocaleDateString()}</p>
-                      </div>
-                    </div>
+                      <div class="first-resume-template-line"></div>
+                    </>
                   ))}
                 </div>
               </div>
@@ -251,7 +258,6 @@ const TemplateOne = ({ data }) => {
           </div>
         </div>
       </section>
-
       {/* <!--Second Resume Template Design end here --> */}
     </>
   );

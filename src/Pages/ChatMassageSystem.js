@@ -80,6 +80,7 @@ function ChatMassageSystem() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log(res.data);
+      fetchCandidates();
     } catch (error) {
       console.error(error);
     }
@@ -140,20 +141,18 @@ function ChatMassageSystem() {
       setMessages(chatStore[userId]);
       return;
     }
-
     try {
       const res = await axios.post(
         `${API_BASE_URL}getChatHistory/${userId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setChatStore((prev) => ({
         ...prev,
         [userId]: res.data.data,
       }));
-
       setMessages(res.data.data);
+      fetchCandidates();
     } catch (err) {
       console.log("History Load Failed", err);
     }
@@ -234,15 +233,14 @@ function ChatMassageSystem() {
                         loadChat(u);
                         fetchCandidates();
                         checkUnreadCount(u.groupId);
-                        //update unread count
-                        // setUsers((prevUsers) =>
-                        //   prevUsers.map((item) =>
-                        //     item.groupId === u.groupId
-                        //       ? { ...item, unreadCount: 0 }
-                        //       : item
-                        //   )
-                        // );
-
+                        // update unread count
+                        setUsers((prevUsers) =>
+                          prevUsers.map((item) =>
+                            item.groupId === u.groupId
+                              ? { ...item, unreadCount: 0 }
+                              : item
+                          )
+                        );
                       }}
                     >
                       <a className="nav-link" data-bs-toggle="tab">

@@ -78,7 +78,7 @@ function EmployerLogin() {
         
         login(); // call auth context
 
-        toast.success("Login successful!");
+        toast.success("Login successfully!");
         if (user?.is_completed) {
           if (user.role == "Recruiter" || user.role == "Company") {
             navigate("/employer-dashboard");
