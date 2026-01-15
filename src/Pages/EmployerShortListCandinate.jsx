@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 

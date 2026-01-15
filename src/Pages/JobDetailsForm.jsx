@@ -1,4 +1,5 @@
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";

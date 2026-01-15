@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import Stack from "@mui/material/Stack";

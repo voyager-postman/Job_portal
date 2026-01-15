@@ -5,7 +5,8 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -1072,7 +1073,7 @@ function JobDetails() {
               </div>
 
               {job?.similarJobs?.length > 0 && (
-                <div className="similar-jobs-section">
+                <div className="similar-jobs-section mt-3">
                   <h5>Other job posts you may be interested in</h5>
                   {job.similarJobs.map((item) => (
                     <Link
@@ -1177,26 +1178,20 @@ function JobDetails() {
 
                         {/* Apply Button */}
                         <div className="available-job-type-apply-btn">
-                          <Link
-                            to={`/job-details/${item._id}`}
-                            className="apply-btn-info default-btn btn"
-                          >
-                            {item?.isApplied ? (
-                              <button className="default-btn btn">
-                                {item?.applicationStatus}
-                              </button>
-                            ) : (
-                              <a
-                                href="#"
-                                className="default-btn btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#exampleModal"
-                                onClick={() => setJobId(item._id)} // ✅ set job ID here
-                              >
-                                Apply Now
-                              </a>
-                            )}
-                          </Link>
+                          {item?.isApplied ? (
+                            <button className="default-btn btn">
+                              {item?.applicationStatus}
+                            </button>
+                          ) : (
+                            <button
+                              className="default-btn btn"
+                              data-bs-toggle="modal"
+                              data-bs-target="#exampleModal"
+                              onClick={() => setJobId(item._id)}
+                            >
+                              Apply Now
+                            </button>
+                          )}
                         </div>
                       </div>
                     </Link>

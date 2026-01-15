@@ -1,4 +1,4 @@
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance";
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
@@ -31,11 +31,13 @@ function CandidateProfile() {
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [jobTypes, setJobTypes] = useState([]);
   const [open, setOpen] = useState(false);
-
+  const [error, setError] = useState("");
+  const [file, setFile] = useState(null);
   const [activeLevel, setActiveLevel] = useState(null);
   const [occupationTypes, setOccupationTypes] = useState([]);
   const [countryCode, setCountryCode] = useState("");
-
+  const [isUploading, setIsUploading] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
   const PROFICIENCY_LEVELS = [
     { label: "Basic", code: "A1/A2" },
     { label: "Limited working", code: "B1" },
@@ -54,7 +56,27 @@ function CandidateProfile() {
   const [storedImage, setStoredImage] = useState(null); // server stored image
 
   const fileInputRef = useRef(null);
+  const handleFileChange1 = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword", // .doc
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      ];
 
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setError("Only PDF, DOC, and DOCX files are allowed.");
+        return;
+      }
+      setError("");
+      setFile(selectedFile); // for display
+      setFormData1((prev) => ({
+        ...prev,
+        attachment: selectedFile,
+      }));
+    }
+  };
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -120,6 +142,10 @@ function CandidateProfile() {
     title: "",
     issueDate: "",
   });
+
+  const [formData1, setFormData1] = useState({
+    attachment: null,
+  });
   const [educationForm, setEducationForm] = useState({
     education_id: "",
     degree: "",
@@ -161,6 +187,8 @@ function CandidateProfile() {
   const [reason, setReason] = useState("");
   const [comments, setComments] = useState("");
   const [checkStatus, setCheckStatus] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
   const [cities, setCities] = useState([]);
   const [countries, setCountries] = useState([]);
   const [citySearch, setCitySearch] = useState(""); // for search input
@@ -1407,7 +1435,106 @@ function CandidateProfile() {
       });
     }
   };
+  const uploadResume = async () => {
+    const userId = localStorage.getItem("extract_id");
+    const file = formData1?.attachment;
 
+    if (!userId) {
+      toast.error("User not found. Please login again.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (!file) {
+      toast.error("Please select a resume file.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Uploaded file is too large. Max size is 2MB.", {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    const data = new FormData();
+    data.append("resume", file);
+
+    try {
+      setIsUploading(true); // ✅ START LOADER
+
+      const res = await axios.post(
+        `${API_BASE_URL}extractResume/${userId}`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (res.data.success && res.data.jobId) {
+        setIsExtracting(true); // ✅ extraction loader
+        fetchExtractedData(res.data.jobId);
+      } else {
+        toast.error("Upload succeeded but jobId missing.");
+        setIsUploading(false);
+      }
+    } catch (err) {
+      console.error("Resume upload error:", err);
+      setIsUploading(false);
+
+      if (err?.response?.status === 413) {
+        toast.error("Uploaded file is too large. Max size is 2MB.");
+      } else {
+        toast.error("Failed to upload resume.");
+      }
+    }
+  };
+
+  const fetchExtractedData = async (jobId, attempt = 0) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
+      const { state, result } = res.data;
+
+      // ⏳ Still processing
+      if (state === "active") {
+        if (attempt < 10) {
+          setTimeout(() => fetchExtractedData(jobId, attempt + 1), 2000);
+        } else {
+          setIsExtracting(false);
+          toast.error("Resume extraction taking too long.");
+        }
+        return;
+      }
+
+      // ❌ Failed
+      if (state === "completed" && !result?.success) {
+        setIsExtracting(false);
+        toast.error("Resume extraction failed.");
+        return;
+      }
+
+      // ✅ Success
+      if (state === "completed" && result?.parsedResume?.data) {
+        const data = result.parsedResume.data;
+        await fetchProfile();
+        setIsUploading(false);
+        setIsExtracting(false);
+        setShowModal(false);
+        toast.success("Resume extracted successfully!");
+      }
+    } catch (err) {
+      console.error("Extraction Error:", err);
+      setIsUploading(false);
+      setIsExtracting(false);
+      toast.error("Error fetching resume data.");
+    }
+  };
   const handleSaveLocation = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -1748,50 +1875,48 @@ function CandidateProfile() {
       });
     }
   };
-
   const handleSavePortfolioLinks = async () => {
     try {
-      if (!portfolioLinks.personalWebsite) {
-        toast.error("Please enter a valid Personal Website URL", {
+      // 🔹 At least one link must be provided (optional rule – you can remove if not needed)
+      if (
+        !portfolioLinks.personalWebsite &&
+        !portfolioLinks.github &&
+        !portfolioLinks.linkedin
+      ) {
+        toast.error("Please add at least one portfolio link", {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
 
-      if (!portfolioLinks.github) {
-        toast.error("Please enter a valid GitHub profile link", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        return;
+      // 🔹 Build payload dynamically (ONLY filled fields)
+      const payload = {};
+
+      if (portfolioLinks.personalWebsite) {
+        payload.portfolio = portfolioLinks.personalWebsite;
       }
 
-      if (!portfolioLinks.linkedin) {
-        toast.error("Please enter a valid LinkedIn profile link", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        return;
+      if (portfolioLinks.github) {
+        payload.github = portfolioLinks.github;
       }
+
+      if (portfolioLinks.linkedin) {
+        payload.linkedin = portfolioLinks.linkedin;
+      }
+
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${API_BASE_URL}updateLinks`,
-        {
-          portfolio: portfolioLinks.personalWebsite,
-          github: portfolioLinks.github,
-          linkedin: portfolioLinks.linkedin,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+
+      const response = await axios.post(`${API_BASE_URL}updateLinks`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.status === 200) {
         const updatedLinks = {
-          portfolio: response.data?.portfolio || portfolioLinks.personalWebsite,
-          github: response.data?.github || portfolioLinks.github,
-          linkedin: response.data?.linkedin || portfolioLinks.linkedin,
+          portfolio:
+            response.data?.portfolio ?? portfolioLinks.personalWebsite ?? "",
+          github: response.data?.github ?? portfolioLinks.github ?? "",
+          linkedin: response.data?.linkedin ?? portfolioLinks.linkedin ?? "",
         };
 
         // ✅ update local state
@@ -1801,7 +1926,7 @@ function CandidateProfile() {
           linkedin: updatedLinks.linkedin,
         });
 
-        // ✅ also update profileData so it reflects instantly
+        // ✅ update profile data
         setProfileData((prev) => ({
           ...prev,
           links: updatedLinks,
@@ -1813,7 +1938,6 @@ function CandidateProfile() {
         // ✅ exit edit mode
         setEditPortfolioLinks(false);
 
-        // ✅ success toast
         toast.success("Portfolio links updated successfully!", {
           position: "top-right",
           autoClose: 2000,
@@ -1827,6 +1951,85 @@ function CandidateProfile() {
       });
     }
   };
+
+  // const handleSavePortfolioLinks = async () => {
+  //   try {
+  //     if (!portfolioLinks.personalWebsite) {
+  //       toast.error("Please enter a valid Personal Website URL", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!portfolioLinks.github) {
+  //       toast.error("Please enter a valid GitHub profile link", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!portfolioLinks.linkedin) {
+  //       toast.error("Please enter a valid LinkedIn profile link", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+  //     const token = localStorage.getItem("token");
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}updateLinks`,
+  //       {
+  //         portfolio: portfolioLinks.personalWebsite,
+  //         github: portfolioLinks.github,
+  //         linkedin: portfolioLinks.linkedin,
+  //       },
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+
+  //     if (response.status === 200) {
+  //       const updatedLinks = {
+  //         portfolio: response.data?.portfolio || portfolioLinks.personalWebsite,
+  //         github: response.data?.github || portfolioLinks.github,
+  //         linkedin: response.data?.linkedin || portfolioLinks.linkedin,
+  //       };
+
+  //       // ✅ update local state
+  //       setPortfolioLinks({
+  //         personalWebsite: updatedLinks.portfolio,
+  //         github: updatedLinks.github,
+  //         linkedin: updatedLinks.linkedin,
+  //       });
+
+  //       // ✅ also update profileData so it reflects instantly
+  //       setProfileData((prev) => ({
+  //         ...prev,
+  //         links: updatedLinks,
+  //       }));
+
+  //       // ✅ mark section completed
+  //       setCheckStatus((prev) => ({ ...prev, links: 1 }));
+
+  //       // ✅ exit edit mode
+  //       setEditPortfolioLinks(false);
+
+  //       // ✅ success toast
+  //       toast.success("Portfolio links updated successfully!", {
+  //         position: "top-right",
+  //         autoClose: 2000,
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Error saving links:", err);
+  //     toast.error("Failed to update portfolio links", {
+  //       position: "top-right",
+  //       autoClose: 2000,
+  //     });
+  //   }
+  // };
   const handleToggleVisibility = async (e) => {
     const newValue = e.target.checked;
     setProfileVisible(newValue); // update UI instantly
@@ -2160,13 +2363,159 @@ function CandidateProfile() {
                       <a
                         href="#"
                         className="default-btn btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowModal(true);
+                        }}
                       >
                         <i className="fa-solid fa-file" />
-                        Upload CV
+                        CV Auto Extractor
                       </a>
+                      {showModal && (
+                        <div className="modal show d-block" tabIndex="-1">
+                          <div className="modal-dialog">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5 className="modal-title">Upload CV</h5>
+                                <button
+                                  type="button"
+                                  className="btn-close"
+                                  onClick={() => {
+                                    setShowModal(false);
+                                    setFile(null); // clear selected file
+                                    setFormData1((prev) => ({
+                                      ...prev,
+                                      attachment: null, // clear from formData
+                                    }));
+                                  }}
+                                />
+                              </div>
 
+                              <div className="modal-body">
+                                <div className="form-group">
+                                  <div
+                                    className="custom-file-upload text-center"
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.classList.add(
+                                        "drag-active"
+                                      );
+                                    }}
+                                    onDragLeave={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.classList.remove(
+                                        "drag-active"
+                                      );
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      e.currentTarget.classList.remove(
+                                        "drag-active"
+                                      );
+
+                                      const droppedFiles = e.dataTransfer.files;
+                                      if (
+                                        droppedFiles &&
+                                        droppedFiles.length > 0
+                                      ) {
+                                        // ✅ Reuse your existing handler
+                                        const fakeEvent = {
+                                          target: { files: droppedFiles },
+                                        };
+                                        handleFileChange1(fakeEvent);
+                                      }
+                                    }}
+                                  >
+                                    <label
+                                      htmlFor="file-upload"
+                                      className="fw-bold"
+                                    >
+                                      Upload Your File (PDF/DOC/DOCX)
+                                    </label>
+
+                                    <input
+                                      type="file"
+                                      id="file-upload"
+                                      accept=".pdf,.doc,.docx"
+                                      required
+                                      onChange={handleFileChange1}
+                                      className="input-hidden"
+                                    />
+
+                                    <label
+                                      htmlFor="file-upload"
+                                      className="file-text cursor-pointer"
+                                    >
+                                      <i
+                                        className="fas fa-cloud-upload-alt"
+                                        style={{
+                                          fontSize: "30px",
+                                          color: "#007bff",
+                                        }}
+                                      />
+                                      <br />
+                                      Click to Upload or drag & drop
+                                    </label>
+
+                                    {error && (
+                                      <div className="invalid-feedback d-block mt-2">
+                                        {error}
+                                      </div>
+                                    )}
+                                    {file && (
+                                      <div className="mt-2 text-success">
+                                        Selected: {file.name}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="text-center">
+                                    <button
+                                      type="button"
+                                      className="mt-3 default-btn btn"
+                                      onClick={uploadResume}
+                                      disabled={isUploading || isExtracting}
+                                    >
+                                      {isUploading || isExtracting ? (
+                                        <>
+                                          <span
+                                            className="spinner-border spinner-border-sm me-2"
+                                            role="status"
+                                          />
+                                          {isUploading
+                                            ? "Uploading..."
+                                            : "Extracting Resume..."}
+                                        </>
+                                      ) : (
+                                        "Upload"
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              {(isUploading || isExtracting) && (
+                                <div
+                                  className="position-absolute top-0 start-0 w-100 h-100 d-flex
+       justify-content-center align-items-center bg-white bg-opacity-75"
+                                  style={{ zIndex: 1050 }}
+                                >
+                                  <div className="text-center">
+                                    <div className="spinner-border text-primary mb-3" />
+                                    <p className="fw-bold">
+                                      {isUploading
+                                        ? "Uploading resume..."
+                                        : "Extracting information from resume..."}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {/* Modal */}
                       <div
                         className="modal fade"
@@ -5015,7 +5364,7 @@ function CandidateProfile() {
                                         <label>{cert.title}</label>
                                         <p>
                                           Issue Date:{" "}
-                                          {cert.issueDate.slice(0, 10)}
+                                          {cert?.issueDate?.slice(0, 10)}
                                         </p>
                                       </div>
                                     </div>
@@ -5121,7 +5470,7 @@ function CandidateProfile() {
                                 <div className="row">
                                   <div className="col-lg-12 col-md-12">
                                     <div className="form-group">
-                                      <label>Add personal website</label>
+                                      <label> Personal website</label>
                                       <input
                                         className="form-control"
                                         type="url"

@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
 import moment from "moment";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -124,6 +124,7 @@ function JobSearch() {
       setSelectedId(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -177,7 +178,7 @@ function JobSearch() {
     }
   };
 
- const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -369,16 +370,28 @@ function JobSearch() {
     setLoading(true);
     try {
       const payload = {
-        jobCategory: selectedCategories.map((c) => c._id).filter(Boolean), // ✅ category IDs
-        Filtercategory: selectedTechStacks.filter(Boolean), // ✅ tech stack IDs
-        jobType: selectedJobTypes.filter(Boolean), // ✅ job type IDs
-        experience: selectedSeniority.filter(Boolean), // ✅ seniority IDs
-        location: selectedLocations.map((l) => l.name).filter(Boolean), // ✅ city names
-        company: selectedCompanies.map((c) => c.brandName).filter(Boolean), // ✅ company names
-        industry: selected.map((i) => i._id).filter(Boolean), // ✅ industry IDs
-        salaryRange: selectedSalaryRanges.filter(Boolean), // ✅ salary strings
-        notifyEvery: notifyEvery || "1 day", // ✅ fallback if not selected
+        jobCategory: selectedCategories.map((c) => c._id).filter(Boolean),
+        Filtercategory: [
+          ...selectedTechStacks,
+          ...(appliedFilters.category ? [appliedFilters.category.id] : []), // ✅ send only ID
+        ],
+
+        jobType: selectedJobTypes.filter(Boolean),
+        experience: selectedSeniority.filter(Boolean),
+        location: [
+          ...selectedLocations.map((l) => l.name),
+          ...(appliedFilters.location ? [appliedFilters.location] : []),
+        ].filter(Boolean),
+
+        company: selectedCompanies.map((c) => c.brandName).filter(Boolean),
+        industry: selected.map((i) => i._id).filter(Boolean),
+        salaryRange: selectedSalaryRanges.filter(Boolean),
+        notifyEvery: notifyEvery || "1 day",
+        // jobTitle: appliedFilters.keywords || "",
       };
+      if (appliedFilters.keywords?.trim()) {
+        payload.jobTitle = appliedFilters.keywords.trim();
+      }
       console.log("📤 Sending Job Alert payload:", payload);
       const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -836,7 +849,12 @@ function JobSearch() {
     if (filters.location) newFilters.location = filters.location;
     if (filters.category) {
       const selectedCat = categories.find((c) => c._id === filters.category);
-      newFilters.category = selectedCat ? selectedCat.name : "";
+      if (selectedCat) {
+        newFilters.category = {
+          id: selectedCat._id, // ✅ use this for API
+          name: selectedCat.name, // ✅ use this for UI
+        };
+      }
     }
 
     setAppliedFilters(newFilters);
@@ -1112,6 +1130,15 @@ function JobSearch() {
       <p>Loading jobs, please wait...</p>
     </div>
   );
+  const hasAnyFilter =
+    selectedJobTypes.length > 0 ||
+    selectedSeniority.length > 0 ||
+    selectedCompanies.length > 0 ||
+    selected.length > 0 ||
+    selectedSalaryRanges.length > 0 ||
+    selectedLocations.length > 0 ||
+    selectedTechStacks.length > 0 ||
+    Object.keys(appliedFilters).length > 0; // 🔥 key line
 
   return (
     <>
@@ -2097,7 +2124,8 @@ function JobSearch() {
                           {Object.entries(appliedFilters).map(
                             ([key, value]) => (
                               <span key={key} className="filter-tag">
-                                {value}
+                                {typeof value === "object" ? value.name : value}{" "}
+                                {/* show name if object */}
                                 <i
                                   className="fa-solid fa-xmark"
                                   style={{
@@ -2109,6 +2137,7 @@ function JobSearch() {
                               </span>
                             )
                           )}
+
                           {/* ✅ Dynamic selected filters */}
                           {selectedJobTypes.map((id) => {
                             const jobType = jobTypes.find((j) => j._id === id);
@@ -2236,13 +2265,7 @@ function JobSearch() {
                             ))}
 
                           <div className="set-alart-and-notification">
-                            {(selectedJobTypes.length > 0 ||
-                              selectedSeniority.length > 0 ||
-                              selectedCompanies.length > 0 ||
-                              selected.length > 0 ||
-                              selectedSalaryRanges.length > 0 ||
-                              selectedLocations.length > 0 ||
-                              selectedTechStacks.length > 0) && (
+                            {hasAnyFilter && (
                               <>
                                 {!alertCreated ? (
                                   <button

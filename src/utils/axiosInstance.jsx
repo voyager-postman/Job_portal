@@ -25,7 +25,7 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
 
-    if (status === 401 ) {
+    if (status === 401) {
       // Clear auth-related storage
       localStorage.clear();
 
@@ -34,7 +34,7 @@ axiosInstance.interceptors.response.use(
 
       // Redirect to login
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = "/jobPortal";
       }, 1000);
     }
 

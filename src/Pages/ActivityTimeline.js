@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 
 function ActivityTimeline() {
   const [globalFilter, setGlobalFilter] = useState("");
