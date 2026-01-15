@@ -1,5 +1,6 @@
 // import axios from "../Services/axios";
-import axios from "axios";
+import axios from "../utils/axiosInstance";
+
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
@@ -721,115 +722,114 @@ function EmployerProfile() {
     }
   };
   const handleFileChangeCoverImage = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // ✅ Validate image dimensions BEFORE upload
-  const img = new Image();
-  const imageURL = URL.createObjectURL(file);
+    // ✅ Validate image dimensions BEFORE upload
+    const img = new Image();
+    const imageURL = URL.createObjectURL(file);
 
-  img.src = imageURL;
+    img.src = imageURL;
 
-  img.onload = async () => {
-    const { width, height } = img;
+    img.onload = async () => {
+      const { width, height } = img;
 
-    // ❌ Reject if below minimum size
-    if (width < 1024 || height < 700) {
-      toast.error(
-        "Cover image must be at least 1024 × 700 pixels",
-        { autoClose: 3000 }
-      );
-      URL.revokeObjectURL(imageURL);
-      return;
-    }
-
-    // ✅ Preview only if valid
-    setPreview1(imageURL);
-    setFileName1(file.name);
-
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const companyId = user?.companyId;
-      const token = localStorage.getItem("token");
-
-      const formData = new FormData();
-      formData.append("coverPhoto", file);
-      formData.append("companyId", companyId);
-
-      const res = await axios.post(
-        `${API_BASE_URL}updateCompanyCoverPhoto`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.data.success) {
-        fetchCompanyDetails();
-        toast.success("Cover Photo updated successfully!", {
-          containerId: "verify-email-toast",
-          autoClose: 2000,
+      // ❌ Reject if below minimum size
+      if (width < 1024 || height < 700) {
+        toast.error("Cover image must be at least 1024 × 700 pixels", {
+          autoClose: 3000,
         });
-      } else {
-        toast.error(res.data.message || "Failed to upload Cover Photo");
+        URL.revokeObjectURL(imageURL);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to upload Cover Photo");
-    }
+
+      // ✅ Preview only if valid
+      setPreview1(imageURL);
+      setFileName1(file.name);
+
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const companyId = user?.companyId;
+        const token = localStorage.getItem("token");
+
+        const formData = new FormData();
+        formData.append("coverPhoto", file);
+        formData.append("companyId", companyId);
+
+        const res = await axios.post(
+          `${API_BASE_URL}updateCompanyCoverPhoto`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.data.success) {
+          fetchCompanyDetails();
+          toast.success("Cover Photo updated successfully!", {
+            containerId: "verify-email-toast",
+            autoClose: 2000,
+          });
+        } else {
+          toast.error(res.data.message || "Failed to upload Cover Photo");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to upload Cover Photo");
+      }
+    };
+
+    img.onerror = () => {
+      toast.error("Invalid image file");
+      URL.revokeObjectURL(imageURL);
+    };
   };
 
-  img.onerror = () => {
-    toast.error("Invalid image file");
-    URL.revokeObjectURL(imageURL);
-  };
-};
+  //   const handleFileChangeCoverImage = async (e) => {
+  //     const file = e.target.files[0];
+  //     if (!file) return;
 
-//   const handleFileChangeCoverImage = async (e) => {
-//     const file = e.target.files[0];
-//     if (!file) return;
+  //     setPreview1(URL.createObjectURL(file)); // show selected image immediately
+  //     setFileName1(file.name);
 
-//     setPreview1(URL.createObjectURL(file)); // show selected image immediately
-//     setFileName1(file.name);
+  //     try {
+  //       const user = JSON.parse(localStorage.getItem("user"));
+  //       const companyId = user?.companyId;
+  //       const token = localStorage.getItem("token");
 
-//     try {
-//       const user = JSON.parse(localStorage.getItem("user"));
-//       const companyId = user?.companyId;
-//       const token = localStorage.getItem("token");
+  //       const formData = new FormData();
+  //       formData.append("coverPhoto", file);
+  //       formData.append("companyId", companyId);
 
-//       const formData = new FormData();
-//       formData.append("coverPhoto", file);
-//       formData.append("companyId", companyId);
+  //       const res = await axios.post(
+  //         `${API_BASE_URL}updateCompanyCoverPhoto
+  // `,
+  //         formData,
+  //         {
+  //           headers: {
+  //             "Content-Type": "multipart/form-data",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
 
-//       const res = await axios.post(
-//         `${API_BASE_URL}updateCompanyCoverPhoto
-// `,
-//         formData,
-//         {
-//           headers: {
-//             "Content-Type": "multipart/form-data",
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-
-//       if (res.data.success) {
-//         fetchCompanyDetails();
-//         toast.success("Cover Photo updated successfully!", {
-//           containerId: "verify-email-toast",
-//           autoClose: 2000,
-//         });
-//       } else {
-//         toast.error(res.data.message || "Failed to upload Cover Photo");
-//       }
-//     } catch (err) {
-//       console.error(err);
-//       toast.error("Failed to upload Cover Photo");
-//     }
-//   };
+  //       if (res.data.success) {
+  //         fetchCompanyDetails();
+  //         toast.success("Cover Photo updated successfully!", {
+  //           containerId: "verify-email-toast",
+  //           autoClose: 2000,
+  //         });
+  //       } else {
+  //         toast.error(res.data.message || "Failed to upload Cover Photo");
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       toast.error("Failed to upload Cover Photo");
+  //     }
+  //   };
   const [images, setImages] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState([]); // photos from API
   // Handle file selection
@@ -1127,7 +1127,7 @@ function EmployerProfile() {
                                 <div className="upload-company-info-area">
                                   <div className="upload-company-img-preview">
                                     <img
-                                      crossorigin="anonymous"
+                                      crossOrigin="anonymous"
                                       src={preview1}
                                       className="main-logo"
                                       alt="Image Preview"

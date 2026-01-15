@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../Services/axios";import Spinner from "../Conponets/Spinner"; // optional
+import axios from "../utils/axiosInstance"
+import Spinner from "../Conponets/Spinner"; // optional
 import { useAuth } from "../context/AuthContext"; // adjust path
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -104,10 +105,9 @@ function Register() {
         const { token, user } = response.data;
 
         localStorage.setItem("token", token);
-
+        localStorage.setItem("extract_id", user?.id);
         toast.success("Registration successful!");
         login();
-
         // ✅ Navigate to verification page and pass email
         navigate("/verification", { state: { email, token, showToast: true } });
       } else {

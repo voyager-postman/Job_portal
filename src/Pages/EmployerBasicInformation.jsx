@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL } from "../Url/Url";

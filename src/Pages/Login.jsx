@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -118,6 +118,8 @@ function Login() {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user.id);
+        localStorage.setItem("extract_id", user?.id);
+
         localStorage.setItem("user_email", user.email);
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("first_name", user.first_name);

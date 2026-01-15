@@ -5,7 +5,8 @@ import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../Services/axios";
+import axios from "../utils/axiosInstance"
+
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
