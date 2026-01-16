@@ -59,7 +59,7 @@ const AccountVerified = () => {
       localStorage.setItem("isLoggedIn", "true");
     }
 
-    // ✅ HARD redirect (works in iframe / external page)
+ 
     if (role === "JobSeeker") {
       window.location.href = `/jobPortal/profile-basic-info?token=${token}`;
     } else if (role === "Recruiter" || role === "Company") {

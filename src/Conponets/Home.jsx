@@ -4,7 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect, useRef, useState } from "react";
 import mixitup from "mixitup";
-import axios from "../Services/axios";
+import axios from "axios"
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
 import { useInView } from "react-intersection-observer";

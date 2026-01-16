@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../utils/axiosInstance"
+import axios from "axios";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -281,6 +281,16 @@ function EmployerCandinateList() {
 
     return null;
   };
+  const handleClearLocation = () => {
+    setLocationSearchTerm("");
+    setSelectedLocation(null);
+    setLocationSuggestions([]);
+
+    setFilters((prev) => ({
+      ...prev,
+      location: "",
+    }));
+  };
 
   return (
     <>
@@ -330,7 +340,7 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div> */}
-            <div className="col-lg-3 col-sm-12">
+            <div className="col-lg-6 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
@@ -362,7 +372,7 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
-            <div className="col-lg-3 col-sm-12">
+            {/* <div className="col-lg-3 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword ">
                   <h3>Date</h3>
@@ -380,20 +390,38 @@ function EmployerCandinateList() {
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-3 col-sm-12">
+            </div> */}
+            <div className="col-lg-6 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Location</h3>
                   <div className="form-group position-relative">
-                    {/* Input field with selected city */}
+                    {/* Input */}
                     <input
-                      className="form-control"
-                      type="search"
+                      className="form-control pe-5"
+                      type="text"
                       placeholder="Search Location"
                       value={locationSearchTerm}
                       onChange={handleLocationSearch}
                     />
+
+                    {/* ❌ Clear button */}
+                    {locationSearchTerm && (
+                      <span
+                        onClick={handleClearLocation}
+                        style={{
+                          position: "absolute",
+                          right: "12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          cursor: "pointer",
+                          fontSize: "18px",
+                          color: "#666",
+                        }}
+                      >
+                        ×
+                      </span>
+                    )}
 
                     {/* Loading */}
                     {isLocationLoading && (
@@ -426,78 +454,6 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
-
-            <div className="col-lg-3 col-sm-12">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Score</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Select Skill"
-                        // value={filters.skills}
-                        // onChange={(e) =>
-                        //   setFilters({ ...filters, skills: e.target.value })
-                        // }
-                      >
-                        <option value="">Choose A Score</option>
-                        <option value="one"> One</option>
-                        <option value="two">Two</option>
-                        <option value="three">Three</option>
-                      </select>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            {/* <div className="col-lg-2 col-sm-6">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Experience level</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option value="">Choose Experience Level</option>
-
-                        {levels?.map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div> */}
-            {/* <div className="col-lg-2 col-sm-6">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Job Type</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option value="">Choose Job Type</option>
-
-                        {jobTypes?.map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div> */}
 
             <div className="col-lg-12 col-sm-12">
               <div className="employer-candidate-number-counting">
@@ -778,10 +734,7 @@ function EmployerCandinateList() {
                             }
 
                             // open in new tab
-                            window.open(
-                              `http://13.48.130.179:4000${fileUrl}`,
-                              "_blank"
-                            );
+                            window.open(`${API_IMAGE_URL}${fileUrl}`, "_blank");
                           }}
                         >
                           Download CV

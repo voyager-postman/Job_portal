@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, Link } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios";
 
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
@@ -1039,11 +1039,6 @@ function CompanyDetailsPage() {
                         <p className="text-muted">No Career Details</p>
                       )}
                     </div>
-
-                    <div
-                      className="career-detail-display"
-                      dangerouslySetInnerHTML={{ __html: decodedHtml1 }}
-                    />
                   </div>
                   <div id="menu6" className="tab-pane fade" role="tabpanel">
                     <div className="company-detail-sixth-tab">

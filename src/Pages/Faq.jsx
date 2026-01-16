@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 
 const Faq = () => {
   return (

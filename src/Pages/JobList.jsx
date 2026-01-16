@@ -1,6 +1,8 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios";
+import { useSearchParams } from "react-router-dom";
+
 import { useLocation } from "react-router-dom";
 import moment from "moment";
 import { useState, useRef, useEffect } from "react";
@@ -24,6 +26,7 @@ import { ToastContainer, toast } from "react-toastify";
 const JobList = () => {
   const location = useLocation();
   const { alert } = location.state || {};
+  const [searchParams] = useSearchParams();
 
   console.log("Received Alert Data:", alert);
   const userRole = localStorage.getItem("role");
@@ -159,6 +162,7 @@ const JobList = () => {
       console.error("Error fetching seniority levels:", error);
     }
   };
+
 
   useEffect(() => {
     fetchSeniorityLevels();
@@ -328,18 +332,20 @@ const JobList = () => {
   };
   useEffect(() => {
     const fetchResume = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Resume Data:-", res.data.profile);
-        const profile = res.data.profile;
-        setResumeList(profile.resumeUrls || []);
-        setCoverLetterList(profile.coverLetter || []);
-      } catch (error) {
-        console.log(error);
+      if (token) {
+        try {
+          const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log("Resume Data:-", res.data.profile);
+          const profile = res.data.profile;
+          setResumeList(profile.resumeUrls || []);
+          setCoverLetterList(profile.coverLetter || []);
+        } catch (error) {
+          console.log(error);
+        }
       }
     };
     fetchResume();
@@ -1150,7 +1156,43 @@ const JobList = () => {
       console.error("Error fetching companies:", error);
     }
   };
+  useEffect(() => {
+    const keywordParam = searchParams.get("keywords") || "";
+    const locationParam = searchParams.get("location") || "";
+    const categoryParam = searchParams.get("category") || "";
 
+    // 🔹 Update filter form inputs
+    setFilters((prev) => ({
+      ...prev,
+      keywords: keywordParam,
+      location: locationParam,
+      category: categoryParam,
+    }));
+  }, [searchParams]);
+  useEffect(() => {
+    if (!categories.length) return;
+
+    const newFilters = {};
+
+    if (filters.keywords) newFilters.keywords = filters.keywords;
+    if (filters.location) newFilters.location = filters.location;
+
+    if (filters.category) {
+      const selectedCat = categories.find((c) => c._id === filters.category);
+
+      if (selectedCat) {
+        newFilters.category = {
+          id: selectedCat._id,
+          name: selectedCat.name,
+        };
+      }
+    }
+
+    setAppliedFilters(newFilters);
+
+    // 🔥 Call job list API with URL filters
+    getAllJobList(pageSize, pageNumber);
+  }, [categories, pageNumber, pageSize]);
   const handleViewCompany = (company) => {
     navigate("/companies-details", {
       state: { companyId: company }, // 👈 send ID as prop-like data

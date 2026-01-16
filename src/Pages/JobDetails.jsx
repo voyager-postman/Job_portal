@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import moment from "moment";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../utils/axiosInstance"
+import axios from "axios";
 
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
@@ -38,7 +38,7 @@ function JobDetails() {
       });
       setJob(res.data?.data || res.data); // Adjust according to your API response
       console.log(res);
-      setLinkUrl(res?.data?.link);
+      setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
     } catch (error) {
       console.error("Error fetching job details:", error);
     } finally {

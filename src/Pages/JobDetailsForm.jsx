@@ -1,4 +1,4 @@
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";

@@ -1,11 +1,10 @@
-import axios from "../utils/axiosInstance";
+import axios from "axios";
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 import Select from "react-select";
 
@@ -1422,10 +1421,9 @@ function CandidateProfile() {
           personalDetails: 1,
         }));
         setEditPersonal(false);
-
         toast.success("Personal details saved successfully!", {
+          containerId: "verify-email-toast",
           autoClose: 2000,
-          theme: "colored",
         });
       }
     } catch (error) {
@@ -1946,9 +1944,17 @@ function CandidateProfile() {
       }
     } catch (err) {
       console.error("Error saving links:", err);
-      toast.error("Failed to update portfolio links", {
+
+      // 🔥 Extract backend validation message
+      const errorMsg =
+        err?.response?.data?.errors?.[0] ||
+        err?.response?.data?.message ||
+        "Failed to update portfolio links";
+
+      toast.error(errorMsg, {
         position: "top-right",
         autoClose: 2000,
+        theme: "colored",
       });
     }
   };
@@ -2252,6 +2258,7 @@ function CandidateProfile() {
   return (
     <>
       <ToastContainer
+        containerId="verify-email-toast"
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -2553,8 +2560,8 @@ function CandidateProfile() {
                                   <input
                                     type="file"
                                     id="file-upload"
-                                    // accept=".pdf,.jpg,.jpeg,.png"
-                                    accept="*/*"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    // accept="*/*"
                                     style={{ display: "none" }}
                                     onChange={(e) => {
                                       handleUploadCv(e);

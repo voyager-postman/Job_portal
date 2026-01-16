@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 import moment from "moment";
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
