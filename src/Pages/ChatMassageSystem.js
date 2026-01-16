@@ -1,4 +1,4 @@
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect, useRef } from "react";

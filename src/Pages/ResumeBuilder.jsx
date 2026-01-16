@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 import { API_BASE_URL } from "../Url/Url";
 import TemplateOne from "./templates/TemplateOne";
 import TemplateTwo from "./templates/TemplateTwo";

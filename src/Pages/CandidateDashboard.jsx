@@ -4,7 +4,7 @@ import ReactPaginate from "react-paginate";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useRef, useEffect } from "react";
-import axios from "../utils/axiosInstance";
+import axios from "axios"
 
 import moment from "moment";
 import { ToastContainer, toast } from "react-toastify";

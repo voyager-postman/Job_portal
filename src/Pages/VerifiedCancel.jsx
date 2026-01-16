@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 

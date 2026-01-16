@@ -1,5 +1,3 @@
-import axios from "../utils/axiosInstance";
-
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
+import axios from "axios"
 
 function JobDetailsForm() {
   const navigate = useNavigate();

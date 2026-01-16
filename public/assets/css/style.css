@@ -1516,7 +1516,7 @@ Navbar Area Style
 }
 .desktop-nav .navbar .others-options .profile-nav-item.dropdown .dropdown-menu {
   padding: 15px 15px 10px;
-  min-width: 230px;
+  min-width: 250px;
   max-width: 280px;
   position: absolute;
   right: 0;
@@ -1583,7 +1583,7 @@ Navbar Area Style
   .dropdown-header
   .email {
   color: #666666 !important;
-  font-size: 12px;
+  font-size: 10px;
 }
 .desktop-nav
   .navbar

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 
 import StripeCheckout from "react-stripe-checkout";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";

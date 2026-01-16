@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 // import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "../Services/axios";
+import axios from "axios"
 
 function CreateRecruiters() {
   const location = useLocation();

@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
-import axios from "../Services/axios";
+import axios from "axios"
 import Swal from "sweetalert2";
 
 function Header({ bgColor }) {
@@ -32,7 +32,7 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  localStorage.setItem("verifiedByAdmin", "true");
+  // localStorage.setItem("verifiedByAdmin", "true");
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -68,27 +68,28 @@ function Header({ bgColor }) {
 
   // Fetch notifications from API
   const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        `${API_BASE_URL}get/notifications`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data && response.data.notifications) {
-        const list = response.data.notifications.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}get/notifications`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
 
-        setNotifications(list);
-        setUnreadCount(response.data.unreadCount);
+        if (response.data && response.data.notifications) {
+          const list = response.data.notifications.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+
+          setNotifications(list);
+          setUnreadCount(response.data.unreadCount);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
       }
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
     }
   };
 
@@ -246,132 +247,6 @@ function Header({ bgColor }) {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
-
-  // const login = useGoogleLogin({
-  //   onSuccess: async (tokenResponse) => {
-  //     try {
-  //       console.log("Google Access Token:", tokenResponse.access_token);
-
-  //       // 1️⃣ Fetch Google User Info
-  //       const res = await fetch(
-  //         "https://www.googleapis.com/oauth2/v3/userinfo",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${tokenResponse.access_token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const userInfo = await res.json();
-  //       console.log("Google User Info:", userInfo);
-
-  //       const payload = {
-  //         googleId: userInfo.sub,
-  //         email: userInfo.email,
-  //         first_name: userInfo.given_name,
-  //         last_name: userInfo.family_name,
-  //         profileImage: userInfo.picture,
-  //       };
-
-  //       console.log("Sending to Backend:", payload);
-
-  //       // 2️⃣ Send to Backend API
-  //       const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload);
-  //       console.log("Backend Response:", apiRes.data);
-
-  //       if (!apiRes.data?.success) {
-  //         toast.error(apiRes.data?.message || "Invalid credentials");
-  //         return;
-  //       }
-
-  //       const { token, user } = apiRes.data;
-
-  //       localStorage.setItem("token", token);
-  //       localStorage.setItem("user", JSON.stringify(user));
-  //       localStorage.setItem("user_id", user?._id);
-  //       localStorage.setItem("user_email", user?.email);
-  //       localStorage.setItem("user_role", user?.role);
-  //       localStorage.setItem("first_name", user?.first_name);
-  //       localStorage.setItem("last_name", user?.last_name);
-  //       localStorage.setItem("is_completed", user?.is_completed);
-  //       localStorage.setItem("user_profile", user?.profileImage);
-  //       localStorage.setItem(
-  //         "user_name",
-  //         `${user?.first_name} ${user?.last_name}`
-  //       );
-
-  //       // 4️⃣ Fetch Profile Data
-  //       try {
-  //         const profileRes = await axios.get(
-  //           `${API_BASE_URL}candidate/profile`,
-  //           {
-  //             headers: { Authorization: `Bearer ${token}` },
-  //           }
-  //         );
-
-  //         const profileData = profileRes.data?.profile;
-  //         const profileImg = profileData?.profileImage;
-
-  //         if (profileImg && profileImg.trim() !== "") {
-  //           const fullUrl = `${API_IMAGE_URL}${profileImg}`;
-  //           localStorage.setItem("profileImage", fullUrl);
-  //           if (typeof updateProfileImage === "function") {
-  //             updateProfileImage(fullUrl);
-  //           }
-  //         } else {
-  //           localStorage.setItem(
-  //             "profileImage",
-  //             "/jobPortal/assets/images/dashboard/images1.png"
-  //           );
-  //         }
-
-  //         if (profileData) {
-  //           updateName(profileData.first_name, profileData.last_name);
-  //         }
-  //       } catch (profileErr) {
-  //         console.error("Profile fetch error:", profileErr);
-  //       }
-  //       authLogin();
-  //       toast.success("Login successful!");
-  //       console.log(user?.is_completed);
-  //       // 7️⃣ Navigation
-  //       if (user?.is_completed) {
-  //         console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-dashboard");
-  //         } else {
-  //           console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-  //           navigate("/candidate-profile");
-  //         }
-  //       } else {
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-basic-info");
-  //         } else {
-  //           navigate("/profile-basic-info");
-  //         }
-  //       }
-
-  //       // 8️⃣ Close Login Modal
-  //       const modal = document.getElementById("exampleModalLogin");
-  //       if (modal) {
-  //         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-  //         bootstrapModal?.hide();
-  //       }
-  //     } catch (error) {
-  //       console.error("Google Login Error:", error.response?.data || error);
-  //       toast.error("Google login failed!");
-  //     }
-  //   },
-
-  //   onError: () => {
-  //     console.log("Google Login Failed");
-  //     toast.error("Google login failed. Try again.");
-  //   },
-
-  //   flow: "implicit",
-  // });
-
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -746,17 +621,16 @@ function Header({ bgColor }) {
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">
-                          <a
-                            href="#"
-                            className="dropdown-bs-toggle"
-                            role="button"
+                          <button
+                            type="button"
+                            className="dropdown-bs-toggle bg-transparent border-0"
                             data-bs-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false"
                           >
                             <div className="menu-profile">
                               <img
-                                crossorigin="anonymous"
+                                crossOrigin="anonymous"
                                 src={cleanImageUrl(profileImage)}
                                 className="rounded-circle"
                                 alt="Profile"
@@ -766,7 +640,8 @@ function Header({ bgColor }) {
                                 <i className="fa-solid fa-angle-down" />
                               </span>
                             </div>
-                          </a>
+                          </button>
+
                           <div className="dropdown-menu">
                             <div className="dropdown-header d-flex flex-column align-items-center">
                               <div className="figure mb-3">

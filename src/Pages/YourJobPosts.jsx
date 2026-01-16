@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { Modal, Typography, Card, Divider, Box } from "@mui/material";

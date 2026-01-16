@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import axios from "../utils/axiosInstance"
+import axios from "axios"
 
 function EmployerHomePage() {
   return (
