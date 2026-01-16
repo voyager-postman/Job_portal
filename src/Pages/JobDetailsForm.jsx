@@ -1,4 +1,4 @@
-import axios from "../utils/axiosInstance"
+import axios from "../utils/axiosInstance";
 
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
@@ -546,7 +546,11 @@ function JobDetailsForm() {
 
       console.log("✅ Job Updated:", response.data);
       // ✅ If published, navigate to "your-job-posts"
-      if (statusType === "published" || statusType === "scheduled") {
+      if (
+        statusType === "published" ||
+        statusType === "scheduled" ||
+        statusType === "draft"
+      ) {
         navigate("/your-job-posts", {
           state: {
             jobTitle: data.jobTitle,
@@ -1579,7 +1583,7 @@ function JobDetailsForm() {
                       <div className="job-create-form-back-next-info">
                         <div className="job-create-form-back-next-btn">
                           <button
-                            // onClick={handlePublishJob}
+                            onClick={() => handlePublishJob(formData, "draft")}
                             className="default-btn btn"
                           >
                             Save Draft
