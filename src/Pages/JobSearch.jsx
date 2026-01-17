@@ -448,6 +448,7 @@ function JobSearch() {
       setIsLocationLoading(false);
     }
   };
+
   const handleSelectLocation = (city) => {
     if (!selectedLocations.some((loc) => loc._id === city._id)) {
       const updated = [...selectedLocations, city];
@@ -518,6 +519,7 @@ function JobSearch() {
       selectedSalaryRanges
     );
   };
+
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const [selectedTechStacks, setSelectedTechStacks] = useState(
     alert?.filterCategory?.map((item) => item._id) || []
@@ -725,6 +727,7 @@ function JobSearch() {
       console.error("Error fetching categories:", error);
     }
   };
+  
   const handleRemoveSalaryTag = (range) => {
     const updated = selectedSalaryRanges.filter((r) => r !== range);
     setSelectedSalaryRanges(updated);
@@ -2655,8 +2658,8 @@ function JobSearch() {
                                             }}
                                           >
                                             Custom resume with cover letter
+                                            Upload Your File (PDF/DOC/DOCX)
                                           </a>
-
                                           <input
                                             ref={fileInputRef}
                                             type="file"

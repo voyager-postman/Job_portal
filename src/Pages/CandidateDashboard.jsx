@@ -522,48 +522,52 @@ function CandidateDashboard() {
           {/* candidate mannage Job application end here*/}
           {/* candidate Complete profile section start here */}
           <section className="candidate-complete-info-area">
-            <div className="candidate-complete-info-box">
-              <div className="candidate-complete-progress-info">
+            <div className="candidate-complete-info-box single-line">
+              {/* LEFT SIDE */}
+              <div className="left-area">
                 <h4>Complete your profile and get better matches</h4>
-                <div className="candidate-complete-progress-bar">
-                  <ul>
-                    {[...Array(profileData?.totalSections || 0)].map(
-                      (_, index) => (
-                        <li
-                          key={index}
-                          className={
-                            index < profileData.completedSections
-                              ? "active"
-                              : ""
-                          }
-                        />
-                      )
-                    )}
-                  </ul>
-                  <div className="candidate-complete-progress-circle-main-area">
-                    <div className="candidate-complete-progress-circle">
-                      {[...Array(profileData?.completedSections || 0)].map(
-                        (_, index) => (
-                          <div className="candidate-complete-circel-icon">
-                            <i className="fa-solid fa-check" />
+
+                <div className="steps-wrapper">
+                  {[...Array(profileData?.totalSections || 0)].map(
+                    (_, index) => {
+                      const isCompleted = index < profileData.completedSections;
+
+                      return (
+                        <div key={index} className="step-item">
+                          <div
+                            className={`step-circle ${
+                              isCompleted ? "completed" : "pending"
+                            }`}
+                          >
+                            {isCompleted && <i className="fa-solid fa-check" />}
                           </div>
-                        )
-                      )}
-                    </div>
-                  </div>
+
+                          {index !== profileData.totalSections - 1 && (
+                            <div
+                              className={`step-line ${
+                                index < profileData.completedSections - 1
+                                  ? "line-completed"
+                                  : "line-pending"
+                              }`}
+                            />
+                          )}
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
               </div>
-              <div className="candidate-complete-percent-btn">
-                <h4>
-                  Profile strength:
-                  {profileData?.strength ? profileData.strength : 0}%
-                </h4>
+
+              {/* RIGHT SIDE */}
+              <div className="right-area">
+                <h4>Profile strength: {profileData?.strength ?? 0}%</h4>
                 <Link to="/candidate-profile" className="default-btn btn">
                   Complete Profile
                 </Link>
               </div>
             </div>
           </section>
+
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
           <section className="dashboard-heading-job-profile-info">
@@ -1231,8 +1235,8 @@ function CandidateDashboard() {
                               <div className="icon">
                                 <i className="flaticon-portfolio" />
                               </div>
-                              <span>{chat?.otherUser?.brandName}</span> Applied For A Job{" "}
-                              <strong>{chat.jobTitle}</strong>
+                              <span>{chat?.otherUser?.brandName}</span> Applied
+                              For A Job <strong>{chat.jobTitle}</strong>
                             </li>
                           ))}
                           {/* <li>

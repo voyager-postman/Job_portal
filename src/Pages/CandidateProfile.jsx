@@ -10,7 +10,6 @@ import Select from "react-select";
 
 function CandidateProfile() {
   const containerRef = useRef(null);
-
   const navigate = useNavigate();
   const degreeOptions = [
     "High School",
@@ -3400,7 +3399,7 @@ function CandidateProfile() {
                                   <input
                                     type="file"
                                     name="resume"
-                                    accept=".pdf, .doc, .docx"
+                                    accept=".pdf,.doc,.docx"
                                     multiple
                                     onChange={handleUploadCv}
                                     disabled={cvFiles.length >= 3} // 🚫 disable when limit reached

@@ -1,5 +1,3 @@
-import axios from "axios"
-
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
+import axios from "axios"
 
 function JobDetailsForm() {
   const navigate = useNavigate();
@@ -546,7 +545,11 @@ function JobDetailsForm() {
 
       console.log("✅ Job Updated:", response.data);
       // ✅ If published, navigate to "your-job-posts"
-      if (statusType === "published" || statusType === "scheduled") {
+      if (
+        statusType === "published" ||
+        statusType === "scheduled" ||
+        statusType === "draft"
+      ) {
         navigate("/your-job-posts", {
           state: {
             jobTitle: data.jobTitle,
@@ -1579,7 +1582,7 @@ function JobDetailsForm() {
                       <div className="job-create-form-back-next-info">
                         <div className="job-create-form-back-next-btn">
                           <button
-                            // onClick={handlePublishJob}
+                            onClick={() => handlePublishJob(formData, "draft")}
                             className="default-btn btn"
                           >
                             Save Draft
