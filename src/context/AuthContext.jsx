@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
   console.log(profileImage);
   // 🔥 Logout function
   const logout = () => {
+    localStorage.clear();
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("first_name");
     localStorage.removeItem("last_name");

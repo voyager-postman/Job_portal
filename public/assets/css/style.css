@@ -8385,13 +8385,14 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
 .candidate-profile-skill-info ul li {
   color: #fff;
-  cursor: pointer;
-  list-style: none;
-  margin-right: 20px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  background: #0066cc;
-  display: inline-block;
+    cursor: pointer;
+    list-style: none;
+    margin-right: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    background: #0066cc;
+    display: inline-block;
+    margin-bottom: 15px;
 }
 
 .candidate-profile-review-heading h3 {
@@ -8408,12 +8409,16 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px 20px 20px 20px;
 }
 
-.user-img-main-area img {
+.comment-detail-main-area .user-img-main-area img {
   width: 150px;
   height: 150px;
   border-radius: 5px;
   margin: 0px 20px 0px 0px;
   object-fit: cover;
+}
+
+.user-content-main-area {
+width:70%;  
 }
 
 .user-content-main-area h5 {
@@ -9842,10 +9847,12 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .job-card-companies-box {
-  padding: 10px;
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #d7cbcb9e;
+height: 450px;
+overflow: auto;
+padding: 10px;
+background: #fff;
+border-radius: 10px;
+border: 1px solid #d7cbcb9e;
 }
 
 .job-card-companies-img {
@@ -9895,24 +9902,25 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .job-card-companies-name ul li {
-  list-style: none;
-  overflow: hidden;
-  margin-top: 10px;
-  border-radius: 5px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: #0066cc;
-  font-weight:600;
-  border: 1px solid #e3dcdc;
-  /*border-top: 1px solid #eeeeee;*/
+list-style: none;
+overflow: hidden;
+margin-top: 10px;
+border-radius: 5px;
+white-space: nowrap;
+text-overflow: ellipsis;
+color: #0066cc;
+font-weight:600;
+padding: 2px 5px;
+border: 1px solid #e3dcdc;
+/*border-top: 1px solid #eeeeee;*/
 }
 
 .job-card-companies-name ul li a {
-  color: #666666;
-  display: block;
-  padding: 5px 7px;
-  font-weight: 500;
-  font-size: 15px;
+color: #666666;
+display: block;
+padding: 0px 5px;
+font-weight: 500;
+font-size: 15px;
 }
 
 .job-card-companies-name ul li a:hover {

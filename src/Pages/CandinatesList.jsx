@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"
-
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-
 function CandinatesList() {
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);

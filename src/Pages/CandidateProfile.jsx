@@ -2257,16 +2257,7 @@ function CandidateProfile() {
 
   return (
     <>
-      <ToastContainer
-        containerId="verify-email-toast"
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="light"
-      />
+      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
