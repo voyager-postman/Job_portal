@@ -1,5 +1,5 @@
 // import axios from "../Services/axios";
-import axios from "axios"
+import axios from "axios";
 
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
@@ -21,7 +21,7 @@ function EmployerProfile() {
   const [fileName1, setFileName1] = useState("No file selected");
   const [preview, setPreview] = useState("assets/images/company/dummy-img.png");
   const [preview1, setPreview1] = useState(
-    "assets/images/company/dummy-img.png"
+    "assets/images/company/dummy-img.png",
   );
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingVideos, setIsUploadingVideos] = useState(false);
@@ -84,7 +84,7 @@ function EmployerProfile() {
   useEffect(() => {
     // Set default location — Noida
     setMapUrl(
-      "https://www.google.com/maps?q=28.522404036526275,77.23701088488971&z=15&output=embed"
+      "https://www.google.com/maps?q=28.522404036526275,77.23701088488971&z=15&output=embed",
     );
   }, []);
   const handleSelectCity = (city) => {
@@ -111,12 +111,12 @@ function EmployerProfile() {
         if (res.data && Array.isArray(res.data.countries)) {
           // ✅ 1. Filter out Western Sahara
           let filtered = res.data.countries.filter(
-            (c) => c.name.toLowerCase() !== "western sahara"
+            (c) => c.name.toLowerCase() !== "western sahara",
           );
 
           // ✅ 2. Find Morocco (+212)
           const morocco = filtered.find(
-            (c) => c.phonecode === "212" || c.name.toLowerCase() === "morocco"
+            (c) => c.phonecode === "212" || c.name.toLowerCase() === "morocco",
           );
 
           // ✅ 3. If Morocco exists, move it to the top
@@ -214,7 +214,7 @@ function EmployerProfile() {
       }
 
       const response = await axios.get(
-        `${API_BASE_URL}GetCompanyById/${companyId}`
+        `${API_BASE_URL}GetCompanyById/${companyId}`,
       );
 
       if (response.data.success && response.data.company) {
@@ -224,14 +224,14 @@ function EmployerProfile() {
           photos.map((p) => ({
             id: p._id,
             preview: `${API_IMAGE_URL}${p.url}`, // full URL
-          }))
+          })),
         );
         const vids = response.data.company.videos || [];
         setExistingVideos(
           vids.map((v) => ({
             id: v._id,
             preview: `${API_IMAGE_URL}${v.url}`, // full path
-          }))
+          })),
         );
         // Split companyAddress into city, region, country
         let city = "",
@@ -279,7 +279,7 @@ function EmployerProfile() {
         // ✅ Set Google Map URL if lat/lon exist
         if (data?.latitude && data?.longitude) {
           setMapUrl(
-            `https://www.google.com/maps?q=${data.latitude},${data.longitude}&z=15&output=embed`
+            `https://www.google.com/maps?q=${data.latitude},${data.longitude}&z=15&output=embed`,
           );
         }
 
@@ -375,7 +375,7 @@ function EmployerProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -400,7 +400,7 @@ function EmployerProfile() {
       } else {
         toast.error(
           error.response?.data?.message ||
-            "Profile update failed. Please try again."
+            "Profile update failed. Please try again.",
         );
       }
     } finally {
@@ -412,11 +412,41 @@ function EmployerProfile() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  const MAX_IMAGES = 5; // max images allowed per upload
+  const MAX_SIZE_MB = 2; // max size per image in MB
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"];
+
   const handleSubmitMultipleImage = async (e) => {
     e.preventDefault();
     if (images.length === 0) {
-      toast.info("No new images to upload");
+      toast.info("No new images to upload", {
+        containerId: "verify-email-toast",
+      });
       return;
+    }
+
+    // ✅ Frontend validation
+    if (images.length > MAX_IMAGES) {
+      toast.error(`You can upload up to ${MAX_IMAGES} images at a time`, {
+        containerId: "verify-email-toast",
+      });
+      return;
+    }
+
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+      if (!ALLOWED_TYPES.includes(img.file.type)) {
+        toast.error(`Invalid file type: ${img.file.name}`, {
+          containerId: "verify-email-toast",
+        });
+        return;
+      }
+      if (img.file.size / 1024 / 1024 > MAX_SIZE_MB) {
+        toast.error(`File too large: ${img.file.name} (max ${MAX_SIZE_MB}MB)`, {
+          containerId: "verify-email-toast",
+        });
+        return;
+      }
     }
 
     try {
@@ -438,20 +468,32 @@ function EmployerProfile() {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Photos uploaded successfully!");
+        toast.success("Photos uploaded successfully!", {
+          containerId: "verify-email-toast",
+        });
         setImages([]); // clear newly selected
         setActiveTab("menu4");
       } else {
-        toast.error(res.data.message || "Failed to upload photos");
+        toast.error(res.data.message || "Failed to upload photos", {
+          containerId: "verify-email-toast",
+        });
       }
     } catch (err) {
       console.error(err);
-      toast.error("Upload failed");
+      if (err.response?.status === 413) {
+        toast.error("One or more files are too large for upload", {
+          containerId: "verify-email-toast",
+        });
+      } else {
+        toast.error("Upload failed due to large file", {
+          containerId: "verify-email-toast",
+        });
+      }
     } finally {
       setIsUploading(false); // stop loader
     }
@@ -510,7 +552,7 @@ function EmployerProfile() {
     try {
       const res = await axios.post(
         "http://localhost:4000/api/recruiter/profile",
-        formData
+        formData,
       );
       console.log("API Response:", res.data);
       navigate("/employer-dashboard");
@@ -545,15 +587,19 @@ function EmployerProfile() {
           await axios.post(
             `${API_BASE_URL}deleteCompanyVideo/${id}`,
             {},
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           setExistingVideos((prev) => prev.filter((vid) => vid.id !== id));
           fetchCompanyDetails();
-          toast.success("Video deleted successfully!");
+          toast.success("Video deleted successfully!", {
+            containerId: "verify-email-toast",
+          });
         } catch (err) {
           console.error("Delete video error:", err);
-          toast.error("Failed to delete video");
+          toast.error("Failed to delete video", {
+            containerId: "verify-email-toast",
+          });
         }
       };
       deleteVideo();
@@ -570,7 +616,7 @@ function EmployerProfile() {
       await axios.post(
         `${API_BASE_URL}deleteCompanyVideo`,
         { companyId, videoId: id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setExistingVideos((prev) => prev.filter((v) => v.id !== id));
@@ -628,11 +674,38 @@ function EmployerProfile() {
   //     toast.error("Upload failed");
   //   }
   // };
+  // ✅ Validation settings (adjust as needed)
+  const MAX_VIDEOS = 2; // max videos per upload
+  const MAX_VIDEO_SIZE_MB = 50; // max size per video in MB
+
   const handleSubmitVideo = async (e) => {
     e.preventDefault();
+
     if (videos.length === 0) {
-      toast.info("No new videos to upload");
+      toast.info("No new videos to upload", {
+        containerId: "verify-email-toast",
+      });
       return;
+    }
+
+    // ✅ Frontend validation for number of videos
+    if (videos.length > MAX_VIDEOS) {
+      toast.error(`You can upload up to ${MAX_VIDEOS} videos at a time`, {
+        containerId: "verify-email-toast",
+      });
+      return;
+    }
+
+    // ✅ Frontend validation for file size
+    for (let i = 0; i < videos.length; i++) {
+      const vid = videos[i];
+      if (vid.file.size / 1024 / 1024 > MAX_VIDEO_SIZE_MB) {
+        toast.error(
+          `Video too large: ${vid.file.name} (max ${MAX_VIDEO_SIZE_MB}MB)`,
+          { containerId: "verify-email-toast" },
+        );
+        return;
+      }
     }
 
     try {
@@ -654,24 +727,88 @@ function EmployerProfile() {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Videos uploaded successfully!");
+        toast.success("Videos uploaded successfully!", {
+          containerId: "verify-email-toast",
+        });
         setVideos([]); // clear selected videos
         setActiveTab("menu5");
       } else {
-        toast.error(res.data.message || "Failed to upload videos");
+        toast.error(res.data.message || "Failed to upload videos", {
+          containerId: "verify-email-toast",
+        });
       }
     } catch (err) {
       console.error("Upload video error:", err);
-      toast.error("Upload failed");
+
+      if (err.response?.status === 413) {
+        toast.error("One or more videos are too large for upload", {
+          containerId: "verify-email-toast",
+        });
+      } else {
+        toast.error("Upload failed due to large file", {
+          containerId: "verify-email-toast",
+        });
+      }
     } finally {
       setIsUploadingVideos(false); // stop loader
     }
   };
+
+  // const handleSubmitVideo = async (e) => {
+  //   e.preventDefault();
+  //   if (videos.length === 0) {
+  //     toast.info("No new videos to upload", {
+  //       containerId: "verify-email-toast",
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     setIsUploadingVideos(true); // start loader
+
+  //     const user = JSON.parse(localStorage.getItem("user"));
+  //     const companyId = user?.companyId;
+  //     const token = localStorage.getItem("token");
+
+  //     const formData = new FormData();
+  //     videos.forEach((vid) => formData.append("videos", vid.file));
+  //     formData.append("companyId", companyId);
+
+  //     const res = await axios.post(
+  //       `${API_BASE_URL}updateCompanyVideos`,
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     if (res.data.success) {
+  //       fetchCompanyDetails();
+  //       toast.success("Videos uploaded successfully!", {
+  //         containerId: "verify-email-toast",
+  //       });
+  //       setVideos([]); // clear selected videos
+  //       setActiveTab("menu5");
+  //     } else {
+  //       toast.error(res.data.message || "Failed to upload videos", {
+  //         containerId: "verify-email-toast",
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Upload video error:", err);
+  //     toast.error("Upload failed", { containerId: "verify-email-toast" });
+  //   } finally {
+  //     setIsUploadingVideos(false); // stop loader
+  //   }
+  // };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -697,7 +834,7 @@ function EmployerProfile() {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -714,56 +851,64 @@ function EmployerProfile() {
         // Update preview with server image if returned
         // if (res.data.logo) setPreview(`${API_IMAGE_URL}${res.data.logo}`);
       } else {
-        toast.error(res.data.message || "Failed to upload logo");
+        toast.error(res.data.message || "Failed to upload logo ", {
+          containerId: "verify-email-toast",
+        });
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to upload logo");
+      toast.error("Failed to upload logo Due to large file", {
+        containerId: "verify-email-toast",
+      });
     }
   };
 
-    const handleFileChangeCoverImage = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+  const handleFileChangeCoverImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-      setPreview1(URL.createObjectURL(file)); // show selected image immediately
-      setFileName1(file.name);
+    setPreview1(URL.createObjectURL(file)); // show selected image immediately
+    setFileName1(file.name);
 
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        const companyId = user?.companyId;
-        const token = localStorage.getItem("token");
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const companyId = user?.companyId;
+      const token = localStorage.getItem("token");
 
-        const formData = new FormData();
-        formData.append("coverPhoto", file);
-        formData.append("companyId", companyId);
+      const formData = new FormData();
+      formData.append("coverPhoto", file);
+      formData.append("companyId", companyId);
 
-        const res = await axios.post(
-          `${API_BASE_URL}updateCompanyCoverPhoto
+      const res = await axios.post(
+        `${API_BASE_URL}updateCompanyCoverPhoto
   `,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-        if (res.data.success) {
-          fetchCompanyDetails();
-          toast.success("Cover Photo updated successfully!", {
-            containerId: "verify-email-toast",
-            autoClose: 2000,
-          });
-        } else {
-          toast.error(res.data.message || "Failed to upload Cover Photo");
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to upload Cover Photo");
+      if (res.data.success) {
+        fetchCompanyDetails();
+        toast.success("Cover Photo updated successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 2000,
+        });
+      } else {
+        toast.error(res.data.message || "Failed to upload Cover Photo", {
+          containerId: "verify-email-toast",
+        });
       }
-    };
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload Cover Photo Due to large file", {
+        containerId: "verify-email-toast",
+      });
+    }
+  };
   const [images, setImages] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState([]); // photos from API
   // Handle file selection
@@ -790,16 +935,20 @@ function EmployerProfile() {
           await axios.post(
             `${API_BASE_URL}deleteCompanyPhoto/${id}`,
             {},
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           // ✅ Remove from local state after success
           setExistingPhotos((prev) => prev.filter((img) => img._id !== id));
           fetchCompanyDetails();
-          toast.success("Photo deleted successfully!");
+          toast.success("Photo deleted successfully!", {
+            containerId: "verify-email-toast",
+          });
         } catch (err) {
           console.error("Delete photo error:", err);
-          toast.error("Failed to delete photo");
+          toast.error("Failed to delete photo", {
+            containerId: "verify-email-toast",
+          });
         }
       };
 
@@ -838,7 +987,7 @@ function EmployerProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -852,7 +1001,7 @@ function EmployerProfile() {
       console.error("Update Career Detail error:", error);
       toast.error(
         error.response?.data?.message ||
-          "Something went wrong. Please try again."
+          "Something went wrong. Please try again.",
       );
     } finally {
       setIsCareerUpdating(false);
@@ -886,7 +1035,7 @@ function EmployerProfile() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("Response:", response.data);
@@ -894,8 +1043,13 @@ function EmployerProfile() {
       toast.success("Social links submitted successfully!");
       navigate("/employer-dashboard");
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to submit social links");
+      const errorMessage =
+        error.response?.data?.message || "Failed to submit social links";
+
+      toast.error(errorMessage, {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -1702,7 +1856,7 @@ function EmployerProfile() {
                     >
                       <div className="profile-form">
                         {/* <h4>Links</h4> */}
-                        <p>Links to official website, LinkedIn, etc</p>
+
                         <form onSubmit={handleSubmitOfSocial}>
                           <div className="row">
                             <div className="col-lg-12 col-md-12">

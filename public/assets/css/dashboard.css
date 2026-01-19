@@ -3021,7 +3021,7 @@ Dashboard Area CSS
 
 .divder-line-info {
   border-top: 1px solid #eeee;
-  margin-bottom:15px;
+  margin-bottom: 15px;
 }
 .divder-line-info-otherCompany {
   border-top: 2px solid #1868ca;
@@ -3680,7 +3680,7 @@ background:#0066CC;
 .job-filter-heading-area h4 {
   font-size: 16px;
   cursor: pointer;
-  margin-bottom:10px;
+  margin-bottom: 10px;
 }
 
 .job-filter-heading-area h4 a {
@@ -3702,8 +3702,8 @@ background:#0066CC;
 }
 
 .job-filter-heading h4 {
-  font-size:15px;
-  margin-bottom:5px;
+  font-size: 15px;
+  margin-bottom: 5px;
 }
 
 .job-filter-heading h4 i {
@@ -3746,7 +3746,7 @@ background:#0066CC;
   display: flex;
   cursor: pointer;
   list-style: none;
-  margin-bottom:5px;
+  margin-bottom: 5px;
   align-items: baseline;
 }
 
@@ -3990,11 +3990,11 @@ background:#0066CC;
 } */
 
 .job-filter-main-info.sidebar-scroll-touch-footer {
-top: 100px;
-z-index: 1;
-position: sticky;
-height: calc(97vh - 90px);
-overflow: auto;
+  top: 100px;
+  z-index: 1;
+  position: sticky;
+  height: calc(97vh - 90px);
+  overflow: auto;
 }
 
 /*new fillter css end here*/
@@ -4479,17 +4479,19 @@ overflow: auto;
 }
 
 .view-job-count-btn .default-btn {
-left: 0;
-right: 0;
-bottom:15px;
-font-size: 14px;
-font-weight: 400;
-padding: 5px 10px;
-position: absolute;
-width: 50%;
-margin: auto;
+  left: 0;
+  right: 0;
+  bottom: 15px;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 5px 10px;
+  position: absolute;
+  width: 50%;
+  margin: auto;
 }
-
+.responsive-content {
+  min-height: 80vh;
+}
 /*Your job posts option tab form css start here*/
 
 .job-option-branding-input-area {
@@ -6600,7 +6602,8 @@ width:100%;
   border-radius: 5px;
   margin-bottom: 25px;
   padding: 15px 20px 20px 20px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
@@ -6728,7 +6731,8 @@ width:100%;
 .column-chart-diagram {
   padding: 20px 10px;
   border-radius: 5px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
@@ -6809,7 +6813,8 @@ width:100%;
   position: relative;
   padding: 20px 20px;
   border-radius: 5px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 

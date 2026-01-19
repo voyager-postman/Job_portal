@@ -37,6 +37,9 @@ function CandidateProfile() {
   const [countryCode, setCountryCode] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [languageEditMode, setLanguageEditMode] = useState(false);
+  const [certificateEditMode, setCertificateEditMode] = useState(false);
+
   const PROFICIENCY_LEVELS = [
     { label: "Basic", code: "A1/A2" },
     { label: "Limited working", code: "B1" },
@@ -97,7 +100,7 @@ function CandidateProfile() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       const profileImg = res.data?.profileImage;
@@ -388,7 +391,7 @@ function CandidateProfile() {
 
         const updated = languageForm.language_id
           ? profileData.languages.map((l) =>
-              l._id === languageForm.language_id ? newLang : l
+              l._id === languageForm.language_id ? newLang : l,
             )
           : [...(profileData.languages || []), newLang];
 
@@ -396,10 +399,10 @@ function CandidateProfile() {
         await fetchProfile();
 
         toast.success(
-          languageForm.language_id ? "Language updated!" : "Language added!"
+          languageForm.language_id ? "Language updated!" : "Language added!",
         );
         setLanguageForm({ language_id: "", language: "", proficiency: "" });
-        setEditMode(false);
+        setLanguageEditMode(false);
       }
     } catch (err) {
       console.error("Error saving language:", err);
@@ -413,7 +416,7 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}DeleteLanguage`,
         { language_id: id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.status === 200) {
@@ -431,7 +434,7 @@ function CandidateProfile() {
 
   const openAddForm = () => {
     setLanguageForm({ language_id: "", language: "", proficiency: "" });
-    setEditMode(true);
+    setLanguageEditMode(true);
     const collapse = document.getElementById("collapseLanguages");
     if (collapse && !collapse.classList.contains("show")) {
       new window.bootstrap.Collapse(collapse, { toggle: true });
@@ -444,7 +447,7 @@ function CandidateProfile() {
       language: lang.language,
       proficiency: lang.proficiency,
     });
-    setEditMode(true);
+    setLanguageEditMode(true);
     const collapse = document.getElementById("collapseLanguages");
     if (collapse && !collapse.classList.contains("show")) {
       new window.bootstrap.Collapse(collapse, { toggle: true });
@@ -476,7 +479,7 @@ function CandidateProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("Account deleted:", res.data);
@@ -499,7 +502,7 @@ function CandidateProfile() {
     if (coverLetters.length >= 3) {
       toast.error(
         "You can upload only up to 3 cover letters. Please delete one first.",
-        { autoClose: 2000, theme: "colored" }
+        { autoClose: 2000, theme: "colored" },
       );
       return;
     }
@@ -525,7 +528,7 @@ function CandidateProfile() {
         const response = await axios.put(
           `${API_BASE_URL}updateCoverLetter`,
           formData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         if (response.status === 200) {
@@ -661,7 +664,7 @@ function CandidateProfile() {
         const response = await axios.put(
           `${API_BASE_URL}updateResumeUrl`,
           formData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
 
         if (response.status === 200) {
@@ -762,7 +765,7 @@ function CandidateProfile() {
         { coverLetterId: String(clId) },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -798,7 +801,7 @@ function CandidateProfile() {
         { resumeId: String(cvId) }, // ✅ ensure string
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -892,7 +895,7 @@ function CandidateProfile() {
           {
             autoClose: 2000,
             theme: "colored",
-          }
+          },
         );
         return;
       }
@@ -959,7 +962,7 @@ function CandidateProfile() {
       const response = await axios.put(
         `${API_BASE_URL}updateCareerGoals`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
@@ -982,7 +985,7 @@ function CandidateProfile() {
           profileData.career_goals
             ? "Career Goals updated successfully!"
             : "Career Goals added successfully!",
-          { autoClose: 2000, theme: "colored" }
+          { autoClose: 2000, theme: "colored" },
         );
       }
     } catch (error) {
@@ -1024,7 +1027,7 @@ function CandidateProfile() {
     const fetchCities = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}searchCities?key=${citySearch}`
+          `${API_BASE_URL}searchCities?key=${citySearch}`,
         );
         if (response.status === 200) {
           setCities(response.data || []);
@@ -1083,7 +1086,7 @@ function CandidateProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -1209,7 +1212,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateEducation`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
@@ -1217,7 +1220,7 @@ function CandidateProfile() {
           ? educationList.map((edu) =>
               edu._id === educationForm.education_id
                 ? { ...edu, ...educationForm }
-                : edu
+                : edu,
             )
           : [
               ...educationList,
@@ -1240,7 +1243,7 @@ function CandidateProfile() {
           educationForm.education_id
             ? "Education updated successfully!"
             : "Education added successfully!",
-          { autoClose: 2000, theme: "colored" }
+          { autoClose: 2000, theme: "colored" },
         );
       }
       await fetchProfile();
@@ -1261,12 +1264,12 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteEducation`,
         { education_id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
         setEducationList((prev) =>
-          prev.filter((edu) => edu._id !== education_id)
+          prev.filter((edu) => edu._id !== education_id),
         );
         toast.success("Education deleted successfully!", {
           autoClose: 2000,
@@ -1293,7 +1296,7 @@ function CandidateProfile() {
     const eighteenYearsAgo = new Date(
       today.getFullYear() - 18,
       today.getMonth(),
-      today.getDate()
+      today.getDate(),
     );
 
     return dob <= eighteenYearsAgo;
@@ -1385,7 +1388,7 @@ function CandidateProfile() {
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -1472,7 +1475,7 @@ function CandidateProfile() {
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       if (res.data.success && res.data.jobId) {
@@ -1552,7 +1555,7 @@ function CandidateProfile() {
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -1611,7 +1614,7 @@ function CandidateProfile() {
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -1632,7 +1635,7 @@ function CandidateProfile() {
           {
             autoClose: 2000,
             theme: "colored",
-          }
+          },
         );
       }
     } catch (error) {
@@ -1644,7 +1647,7 @@ function CandidateProfile() {
         {
           autoClose: 2000,
           theme: "colored",
-        }
+        },
       );
     }
   };
@@ -1802,7 +1805,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateWorkHistory`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
@@ -1840,7 +1843,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteExperience`,
         { experience_id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
@@ -1855,7 +1858,7 @@ function CandidateProfile() {
           setProfileData((prev) => ({
             ...prev,
             workHistory: prev.workHistory.filter(
-              (exp) => exp._id !== experience_id
+              (exp) => exp._id !== experience_id,
             ),
           }));
         }
@@ -2048,13 +2051,13 @@ function CandidateProfile() {
         { profileVisible: newValue },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
         toast.success(
           `Profile visibility updated to ${newValue ? "Visible" : "Hidden"}`,
-          { autoClose: 2000, theme: "colored" }
+          { autoClose: 2000, theme: "colored" },
         );
         setVisibilityMessage(response.data.message); // ✅ set backend msg
       }
@@ -2105,14 +2108,14 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateCertificates`,
         formData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
         // ✅ Update profileData state
         const updatedCertificates = formData.certificate_id
           ? profileData.certificates.map((c) =>
-              c._id === formData.certificate_id ? { ...c, ...formData } : c
+              c._id === formData.certificate_id ? { ...c, ...formData } : c,
             )
           : [
               ...profileData.certificates,
@@ -2124,7 +2127,7 @@ function CandidateProfile() {
           certificates: updatedCertificates,
         }));
         setCheckStatus((prev) => ({ ...prev, certificates: 1 }));
-        setEditMode(false);
+        setCertificateEditMode(false);
 
         // reset form
         setFormData({ certificate_id: "", title: "", issueDate: "" });
@@ -2133,7 +2136,7 @@ function CandidateProfile() {
           formData.certificate_id
             ? "Certificate updated successfully!"
             : "Certificate added successfully!",
-          { autoClose: 2000, theme: "colored" }
+          { autoClose: 2000, theme: "colored" },
         );
       }
     } catch (error) {
@@ -2152,7 +2155,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteCertificate`,
         { certificate_id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (response.status === 200) {
@@ -2160,7 +2163,7 @@ function CandidateProfile() {
         setProfileData((prev) => ({
           ...prev,
           certificates: prev.certificates.filter(
-            (c) => c._id !== certificate_id
+            (c) => c._id !== certificate_id,
           ),
         }));
 
@@ -2185,7 +2188,7 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}updateSkills`,
         { skills: [...skills, newSkill.trim()] },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.status === 200) {
@@ -2205,7 +2208,7 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}deleteSkill`,
         { skill },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.status === 200) {
@@ -2397,21 +2400,21 @@ function CandidateProfile() {
                                       e.preventDefault();
                                       e.stopPropagation();
                                       e.currentTarget.classList.add(
-                                        "drag-active"
+                                        "drag-active",
                                       );
                                     }}
                                     onDragLeave={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
                                       e.currentTarget.classList.remove(
-                                        "drag-active"
+                                        "drag-active",
                                       );
                                     }}
                                     onDrop={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
                                       e.currentTarget.classList.remove(
-                                        "drag-active"
+                                        "drag-active",
                                       );
 
                                       const droppedFiles = e.dataTransfer.files;
@@ -2561,7 +2564,7 @@ function CandidateProfile() {
                                         document.getElementById("exampleModal");
                                       const modal =
                                         window.bootstrap.Modal.getInstance(
-                                          modalEl
+                                          modalEl,
                                         );
                                       modal.hide();
                                     }}
@@ -2608,11 +2611,11 @@ function CandidateProfile() {
                                         // Close modal after drop
                                         const modalEl =
                                           document.getElementById(
-                                            "exampleModal"
+                                            "exampleModal",
                                           );
                                         const modal =
                                           window.bootstrap.Modal.getInstance(
-                                            modalEl
+                                            modalEl,
                                           );
                                         modal.hide();
                                       }
@@ -2819,7 +2822,7 @@ function CandidateProfile() {
                                         value={countryOptions.find(
                                           (opt) =>
                                             String(opt.value) ===
-                                            personalDetails.countryCode
+                                            personalDetails.countryCode,
                                         )}
                                         onChange={(selected) => {
                                           setPersonalDetails((prev) => ({
@@ -2894,8 +2897,8 @@ function CandidateProfile() {
                                         max={
                                           new Date(
                                             new Date().setFullYear(
-                                              new Date().getFullYear() - 18
-                                            )
+                                              new Date().getFullYear() - 18,
+                                            ),
                                           )
                                             .toISOString()
                                             .split("T")[0]
@@ -3140,7 +3143,7 @@ function CandidateProfile() {
                             onClick={() => {
                               // pre-fill textarea with existing summary
                               setSummary(
-                                profileData?.professionalSummary || ""
+                                profileData?.professionalSummary || "",
                               );
                               setEditMode(true);
 
@@ -3231,12 +3234,12 @@ function CandidateProfile() {
                                       if (
                                         collapseElement &&
                                         collapseElement.classList.contains(
-                                          "show"
+                                          "show",
                                         )
                                       ) {
                                         new window.bootstrap.Collapse(
                                           collapseElement,
-                                          { toggle: true }
+                                          { toggle: true },
                                         );
                                       }
                                     }}
@@ -3311,19 +3314,19 @@ function CandidateProfile() {
                                       typeof cv === "string"
                                         ? `${API_IMAGE_URL}${cv}`
                                         : cv?.url
-                                        ? `${API_IMAGE_URL}${cv.url}`
-                                        : null;
+                                          ? `${API_IMAGE_URL}${cv.url}`
+                                          : null;
 
                                     const fileName =
                                       typeof cv === "string"
                                         ? decodeURIComponent(
-                                            cv.split("/").pop()
+                                            cv.split("/").pop(),
                                           )
                                         : cv?.url
-                                        ? decodeURIComponent(
-                                            cv.url.split("/").pop()
-                                          )
-                                        : cv?.name || "Unknown file";
+                                          ? decodeURIComponent(
+                                              cv.url.split("/").pop(),
+                                            )
+                                          : cv?.name || "Unknown file";
 
                                     return (
                                       <div
@@ -3347,7 +3350,7 @@ function CandidateProfile() {
                                               setMenuOpenId(
                                                 menuOpenId === (cv._id || index)
                                                   ? null
-                                                  : cv._id || index
+                                                  : cv._id || index,
                                               )
                                             }
                                           />
@@ -3359,7 +3362,7 @@ function CandidateProfile() {
                                                     onClick={() =>
                                                       window.open(
                                                         fileUrl,
-                                                        "_blank"
+                                                        "_blank",
                                                       )
                                                     }
                                                   >
@@ -3370,7 +3373,7 @@ function CandidateProfile() {
                                                 <li
                                                   onClick={() =>
                                                     handleDeleteCv(
-                                                      cv._id || index
+                                                      cv._id || index,
                                                     )
                                                   }
                                                 >
@@ -3459,19 +3462,19 @@ function CandidateProfile() {
                                       typeof cl === "string"
                                         ? `${API_IMAGE_URL}${cl}`
                                         : cl?.url
-                                        ? `${API_IMAGE_URL}${cl.url}`
-                                        : null;
+                                          ? `${API_IMAGE_URL}${cl.url}`
+                                          : null;
 
                                     const fileName =
                                       typeof cl === "string"
                                         ? decodeURIComponent(
-                                            cl.split("/").pop()
+                                            cl.split("/").pop(),
                                           )
                                         : cl?.url
-                                        ? decodeURIComponent(
-                                            cl.url.split("/").pop()
-                                          )
-                                        : cl?.name || "Unknown file";
+                                          ? decodeURIComponent(
+                                              cl.url.split("/").pop(),
+                                            )
+                                          : cl?.name || "Unknown file";
 
                                     return (
                                       <div
@@ -3494,7 +3497,7 @@ function CandidateProfile() {
                                                 menuOpenIdCL ===
                                                   (cl._id || index)
                                                   ? null
-                                                  : cl._id || index
+                                                  : cl._id || index,
                                               )
                                             }
                                           />
@@ -3507,7 +3510,7 @@ function CandidateProfile() {
                                                     onClick={() =>
                                                       window.open(
                                                         fileUrl,
-                                                        "_blank"
+                                                        "_blank",
                                                       )
                                                     }
                                                   >
@@ -3518,7 +3521,7 @@ function CandidateProfile() {
                                                 <li
                                                   onClick={() =>
                                                     handleDeleteCoverLetter(
-                                                      cl._id || index
+                                                      cl._id || index,
                                                     )
                                                   }
                                                 >
@@ -3595,7 +3598,7 @@ function CandidateProfile() {
                               setEditMode(true);
 
                               const collapseElement = document.getElementById(
-                                "collapseCareerGoals"
+                                "collapseCareerGoals",
                               );
                               if (
                                 collapseElement &&
@@ -3640,7 +3643,7 @@ function CandidateProfile() {
                               setEditMode(true);
 
                               const collapseElement = document.getElementById(
-                                "collapseCareerGoals"
+                                "collapseCareerGoals",
                               );
                               if (
                                 collapseElement &&
@@ -4577,7 +4580,7 @@ function CandidateProfile() {
                                                 jobTitle: exp.jobTitle || "",
                                                 startDate:
                                                   exp.startDate?.split(
-                                                    "T"
+                                                    "T",
                                                   )[0] || "",
                                                 endDate:
                                                   exp.endDate?.split("T")[0] ||
@@ -4612,17 +4615,17 @@ function CandidateProfile() {
 
                                               const collapseElement =
                                                 document.getElementById(
-                                                  "collapseSeven"
+                                                  "collapseSeven",
                                                 );
                                               if (
                                                 collapseElement &&
                                                 !collapseElement.classList.contains(
-                                                  "show"
+                                                  "show",
                                                 )
                                               ) {
                                                 new window.bootstrap.Collapse(
                                                   collapseElement,
-                                                  { toggle: true }
+                                                  { toggle: true },
                                                 );
                                               }
                                             }}
@@ -4634,7 +4637,7 @@ function CandidateProfile() {
                                             }}
                                             onClick={() =>
                                               handleDeleteWorkExperience(
-                                                exp._id
+                                                exp._id,
                                               )
                                             }
                                           />
@@ -4693,7 +4696,7 @@ function CandidateProfile() {
                                           <div className="divder-line-info-otherCompany" />
                                         </div>
                                       </div>
-                                    )
+                                    ),
                                   )
                                 ) : (
                                   <p className="text-muted">
@@ -4897,7 +4900,7 @@ function CandidateProfile() {
                                           University: edu.University,
                                           startDate: edu.startDate?.slice(
                                             0,
-                                            10
+                                            10,
                                           ),
                                           endDate: edu.endDate?.slice(0, 10),
                                           currentlyStudyingHere:
@@ -4906,17 +4909,17 @@ function CandidateProfile() {
                                         setIsEditing(true);
                                         const collapseElement =
                                           document.getElementById(
-                                            "collapseEducation"
+                                            "collapseEducation",
                                           );
                                         if (
                                           collapseElement &&
                                           !collapseElement.classList.contains(
-                                            "show"
+                                            "show",
                                           )
                                         ) {
                                           new window.bootstrap.Collapse(
                                             collapseElement,
-                                            { toggle: true }
+                                            { toggle: true },
                                           );
                                         }
                                       }}
@@ -5091,7 +5094,7 @@ function CandidateProfile() {
                     data-bs-parent="#languagesDetail"
                   >
                     <div className="accordion-body">
-                      {editMode ? (
+                      {languageEditMode ? (
                         <div className="profile-form-content from-all-input">
                           <div className="profile-form">
                             <form>
@@ -5151,7 +5154,7 @@ function CandidateProfile() {
                                 <button
                                   type="button"
                                   className="default-btn btn"
-                                  onClick={() => setEditMode(false)}
+                                  onClick={() => setLanguageEditMode(false)}
                                 >
                                   Cancel
                                 </button>
@@ -5215,10 +5218,10 @@ function CandidateProfile() {
                               title: "",
                               issueDate: "",
                             });
-                            setEditMode(true);
+                            setCertificateEditMode(true);
 
                             const collapseElement = document.getElementById(
-                              "collapseCertificates"
+                              "collapseCertificates",
                             );
                             if (
                               collapseElement &&
@@ -5253,7 +5256,7 @@ function CandidateProfile() {
                   >
                     <div className="accordion-body">
                       <div className="candidate-blank-form-detail-edit-info">
-                        {editMode ? (
+                        {certificateEditMode ? (
                           <div className="profile-form-content from-all-input">
                             <div className="profile-form">
                               <form>
@@ -5295,7 +5298,9 @@ function CandidateProfile() {
                                   <button
                                     type="button"
                                     className="default-btn btn"
-                                    onClick={() => setEditMode(false)}
+                                    onClick={() =>
+                                      setCertificateEditMode(false)
+                                    }
                                   >
                                     Cancel
                                   </button>
@@ -5321,26 +5326,26 @@ function CandidateProfile() {
                                           title: cert.title,
                                           issueDate: cert.issueDate.slice(
                                             0,
-                                            10
+                                            10,
                                           ),
                                         });
-                                        setEditMode(true);
+                                        setCertificateEditMode(true);
 
                                         const collapseElement =
                                           document.getElementById(
-                                            "collapseCertificates"
+                                            "collapseCertificates",
                                           );
                                         if (
                                           collapseElement &&
                                           !collapseElement.classList.contains(
-                                            "show"
+                                            "show",
                                           )
                                         ) {
                                           new window.bootstrap.Collapse(
                                             collapseElement,
                                             {
                                               toggle: true,
-                                            }
+                                            },
                                           );
                                         }
                                       }}
@@ -5565,17 +5570,17 @@ function CandidateProfile() {
                                       // ✅ also close accordion if open
                                       const collapseElement =
                                         document.getElementById(
-                                          "collapseTwelve"
+                                          "collapseTwelve",
                                         );
                                       if (
                                         collapseElement &&
                                         collapseElement.classList.contains(
-                                          "show"
+                                          "show",
                                         )
                                       ) {
                                         const collapseInstance =
                                           window.bootstrap.Collapse.getInstance(
-                                            collapseElement
+                                            collapseElement,
                                           );
                                         if (collapseInstance) {
                                           collapseInstance.hide(); // close it

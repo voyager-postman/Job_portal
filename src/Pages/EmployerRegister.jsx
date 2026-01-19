@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios"
-
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
-
 import { API_BASE_URL } from "../Url/Url";
 
 function EmployerRegister() {
