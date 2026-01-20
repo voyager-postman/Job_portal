@@ -3021,7 +3021,7 @@ Dashboard Area CSS
 
 .divder-line-info {
   border-top: 1px solid #eeee;
-  margin-bottom:15px;
+  margin-bottom: 15px;
 }
 .divder-line-info-otherCompany {
   border-top: 2px solid #1868ca;
@@ -3680,7 +3680,7 @@ background:#0066CC;
 .job-filter-heading-area h4 {
   font-size: 16px;
   cursor: pointer;
-  margin-bottom:10px;
+  margin-bottom: 10px;
 }
 
 .job-filter-heading-area h4 a {
@@ -3702,8 +3702,8 @@ background:#0066CC;
 }
 
 .job-filter-heading h4 {
-  font-size:15px;
-  margin-bottom:5px;
+  font-size: 15px;
+  margin-bottom: 5px;
 }
 
 .job-filter-heading h4 i {
@@ -3746,7 +3746,7 @@ background:#0066CC;
   display: flex;
   cursor: pointer;
   list-style: none;
-  margin-bottom:5px;
+  margin-bottom: 5px;
   align-items: baseline;
 }
 
@@ -3990,11 +3990,11 @@ background:#0066CC;
 } */
 
 .job-filter-main-info.sidebar-scroll-touch-footer {
-top: 100px;
-z-index: 1;
-position: sticky;
-height: calc(97vh - 90px);
-overflow: auto;
+  top: 100px;
+  z-index: 1;
+  position: sticky;
+  height: calc(97vh - 90px);
+  overflow: auto;
 }
 
 /*new fillter css end here*/
@@ -6594,7 +6594,8 @@ width:100%;
   border-radius: 5px;
   margin-bottom: 25px;
   padding: 15px 20px 20px 20px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
@@ -6722,7 +6723,8 @@ width:100%;
 .column-chart-diagram {
   padding: 20px 10px;
   border-radius: 5px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
@@ -6803,7 +6805,8 @@ width:100%;
   position: relative;
   padding: 20px 20px;
   border-radius: 5px;
-  box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
+  box-shadow:
+    rgba(0, 0, 0, 0.02) 0px 1px 3px 0px,
     rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
 }
 
@@ -6991,8 +6994,8 @@ width:100%;
 }
 
 .messaging-system-chat-box {
-  width: 60%;
-  border-right: 1px solid #eeeeee;
+  width: 70%;
+  /* border-right: 1px solid #eeeeee; */
   border-left: 1px solid #eeeeee;
 }
 
@@ -7009,13 +7012,16 @@ width:100%;
 
 .messaging-system-tab-area .nav-tabs .nav-link {
   border: none;
-  padding: 0px 10px;
+  padding:10px 10px;
   border-bottom: 1px solid #eeeeee;
 }
 
 .messaging-system-heading-info {
-  padding: 0px 20px 10px 10px;
-  border-bottom: 1px solid #eeeeee;
+padding: 10px 10px 10px 10px;
+border-bottom: 1px solid #eeeeee;
+display: flex;
+align-items: center;
+justify-content: space-between;
 }
 
 .messaging-system-heading-info h5 {
@@ -7028,13 +7034,15 @@ width:100%;
   display: flex;
   align-items: center;
   padding-left: 0px;
-  padding-top: 15px;
-  padding-bottom: 15px;
 }
 
 .messaging-system-user-img {
   position: relative;
   margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  overflow: hidden;
 }
 
 .messaging-system-user-img img {
@@ -7069,8 +7077,10 @@ width:100%;
 }
 
 .messaging-system-search-icon {
-  display: flex;
-  padding: 5px 8px;
+  width:100%;
+   display: flex;
+  margin: 5px 0px;
+  padding:8px 8px;
   align-items: center;
   border-radius: 5px;
   border: 1px solid #cdcd;
@@ -7146,6 +7156,10 @@ width:100%;
 
 .messaging-system-userImg {
   margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  overflow: hidden;
 }
 .messaging-system-userImg img {
   width: 50px;
@@ -7233,6 +7247,8 @@ width:100%;
   font-size: 14px;
   margin-right: 5px;
 }
+
+
 .swiper-button-prev:after,
 .swiper-button-next:after {
   color: #fff;

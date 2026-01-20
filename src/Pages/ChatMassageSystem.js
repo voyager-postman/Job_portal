@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "axios";
 
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect, useRef } from "react";
@@ -21,7 +21,7 @@ function ChatMassageSystem() {
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket(
-      "wss://thunderingslap.com/chatusingsocket/ws/chat/"
+      "wss://thunderingslap.com/chatusingsocket/ws/chat/",
     );
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");
@@ -78,7 +78,7 @@ function ChatMassageSystem() {
       const res = await axios.post(
         `${API_BASE_URL}chat/mark-read/${groupId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       console.log(res.data);
       fetchCandidates();
@@ -146,7 +146,7 @@ function ChatMassageSystem() {
       const res = await axios.post(
         `${API_BASE_URL}getChatHistory/${userId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       setChatStore((prev) => ({
         ...prev,
@@ -210,7 +210,8 @@ function ChatMassageSystem() {
           {/* End Breadcrumb Area */}
 
           {/* Chat Messaging System Section Start Area */}
-          <section className="chat-messaging-system-info">
+          <section className="chat-messaging-system-area">
+           <div className="chat-messaging-system-info">
             <div className="search-box-user-list-area">
               <div className="user-message-list-search">
                 <div className="user-message-search-box-icon-info">
@@ -239,8 +240,8 @@ function ChatMassageSystem() {
                           prevUsers.map((item) =>
                             item.groupId === u.groupId
                               ? { ...item, unreadCount: 0 }
-                              : item
-                          )
+                              : item,
+                          ),
                         );
                       }}
                     >
@@ -345,101 +346,105 @@ function ChatMassageSystem() {
                       {/* Tab Panes */}
                       <div className="tab-content">
                         <div className="tab-pane fade show active">
-                          {(chatStore[activeUser?.id] || []).map((msg, index) =>
-                            String(msg.sender) === String(CURRENT_USER_ID) ? (
-                              // RIGHT SIDE (JOB SEEKER - YOU)
-                              <div
-                                key={index}
-                                className="user-message-chat-details employer-info-main-area"
-                              >
-                                <div className="job-seeker-message-detail-text">
-                                  <p>{msg.message}</p>
-                                  <div className="job-seeker-message-time">
-                                    <p>
-                                      {new Date(
-                                        msg.created_at
-                                      ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                    </p>
+                          {(chatStore[activeUser?.id] || []).map(
+                            (msg, index) =>
+                              String(msg.sender) === String(CURRENT_USER_ID) ? (
+                                // RIGHT SIDE (JOB SEEKER - YOU)
+                                <div
+                                  key={index}
+                                  className="user-message-chat-details employer-info-main-area"
+                                >
+                                  <div className="job-seeker-message-detail-text">
+                                    <p>{msg.message}</p>
+                                    <div className="job-seeker-message-time">
+                                      <p>
+                                        {new Date(
+                                          msg.created_at,
+                                        ).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="job-seeker-message-name-img-time">
+                                    <div className="job-seeker-message-img">
+                                      <img
+                                        crossOrigin="anonymous"
+                                        src={
+                                          profileImage
+                                            ? profileImage.startsWith("http")
+                                              ? profileImage
+                                              : `${API_IMAGE_URL}${profileImage}`
+                                            : "assets/images/freelancers/freelancers-img-1.jpg"
+                                        }
+                                        alt="rectruiter"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="job-seeker-message-name-img-time">
-                                  <div className="job-seeker-message-img">
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={
-                                        profileImage
-                                          ? profileImage.startsWith("http")
-                                            ? profileImage
-                                            : `${API_IMAGE_URL}${profileImage}`
-                                          : "assets/images/freelancers/freelancers-img-1.jpg"
-                                      }
-                                      alt="rectruiter"
-                                    />
+                              ) : (
+                                <div
+                                  key={index}
+                                  className="user-message-chat-details"
+                                >
+                                  <div className="job-seeker-message-name-img-time">
+                                    <div className="job-seeker-message-img">
+                                      <img
+                                        crossOrigin="anonymous"
+                                        src={activeUser?.image}
+                                        alt={activeUser?.name}
+                                      />
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                key={index}
-                                className="user-message-chat-details"
-                              >
-                                <div className="job-seeker-message-name-img-time">
-                                  <div className="job-seeker-message-img">
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={activeUser?.image}
-                                      alt={activeUser?.name}
-                                    />
-                                  </div>
-                                </div>
 
-                                <div className="job-seeker-message-detail-text">
-                                  <p>{msg.message}</p>
-                                  <div className="job-seeker-message-time">
-                                    <p>
-                                      {new Date(
-                                        msg.created_at
-                                      ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })}
-                                    </p>
+                                  <div className="job-seeker-message-detail-text">
+                                    <p>{msg.message}</p>
+                                    <div className="job-seeker-message-time">
+                                      <p>
+                                        {new Date(
+                                          msg.created_at,
+                                        ).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )
+                              ),
                           )}
                           <div ref={bottomRef}></div>
                         </div>
+                        {/* ---------------- INPUT ---------------- */}
+                        <div className="chat-messaging-typeing-function-btn">
+                          <div className="chat-messaging-typeing-box">
+                            <textarea
+                              className="form-control"
+                              placeholder="Type message..."
+                              rows={1}
+                              value={text}
+                              onChange={(e) => setText(e.target.value)}
+                              onKeyDown={(e) =>
+                                e.key === "Enter" && sendMessage()
+                              }
+                            />
+                          </div>
+                          <div
+                            onClick={sendMessage}
+                            className="chat-messaging-send-btn"
+                          >
+                            <i className="fa-solid fa-paper-plane" />
+                            Send
+                          </div>
+                          <div className="chat-messaging-typeing-function"></div>
+                        </div>
                       </div>
-                    </div>
-                    {/* ---------------- INPUT ---------------- */}
-                    <div className="chat-messaging-typeing-function-btn">
-                      <div className="chat-messaging-typeing-box">
-                        <textarea
-                          className="form-control"
-                          placeholder="Type message..."
-                          rows={1}
-                          value={text}
-                          onChange={(e) => setText(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                        />
-                      </div>
-                      <div
-                        onClick={sendMessage}
-                        className="chat-messaging-send-btn"
-                      >
-                        <i className="fa-solid fa-paper-plane" />
-                        Send
-                      </div>
-                      <div className="chat-messaging-typeing-function"></div>
                     </div>
                   </div>
                 </>
               )}
+            </div>
             </div>
           </section>
 

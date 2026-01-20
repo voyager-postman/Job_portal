@@ -300,6 +300,7 @@ function MassagingSystem() {
                             <p>{activeUser?.online}</p>
                           </div>
                         </div>
+                        <div class="user-message-dlt"><span><i class="fa-solid fa-trash"></i>Delete Conversation</span></div>
                       </div>
                       {/* ---------------- CHAT MESSAGES ---------------- */}
                       <div className="tab-content">

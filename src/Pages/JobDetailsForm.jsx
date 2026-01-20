@@ -1520,7 +1520,7 @@ function JobDetailsForm() {
                     <div className="job-detail-in-cart-info">
                       <div className="input-info-edit-area cart-job-detail-edit">
                         <h3>Job post review</h3>
-                        <i className="fas fa-pencil-alt" />
+                        {/* <i className="fas fa-pencil-alt" /> */}
                       </div>
                       <div className="job-post-address-info">
                         <h4>Job post address</h4>
