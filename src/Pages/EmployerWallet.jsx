@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios"
-
+import axios from "axios";
 
 const EmployerWallet = () => {
   const [credits, setCredits] = useState("");
@@ -31,9 +30,11 @@ const EmployerWallet = () => {
     hasWelcomePack,
     hasPurchasedPack,
     welcomePack,
+    hasAddOns,
     purchasedPack,
     usageToday,
     remainingToday,
+    addOns,
   } = credits;
   const JobListLoader = () => (
     <div className="text-center py-5">
@@ -103,7 +104,11 @@ const EmployerWallet = () => {
                       <Link to="/add-plan" className="credit-buy-btn">
                         Add Plan
                       </Link>
-                      <Link to="/add-on-pack" className="credit-buy-btn">
+                      <Link
+                        to="/add-on-pack"
+                        state={{ packId: purchasedPack?.companyPackId }}
+                        className="credit-buy-btn"
+                      >
                         Add On Pack
                       </Link>
                     </div>
@@ -241,7 +246,7 @@ const EmployerWallet = () => {
                               <p>
                                 Expiry:{" "}
                                 {new Date(
-                                  welcomePack.expiresAt
+                                  welcomePack.expiresAt,
                                 ).toLocaleDateString("en-GB", {
                                   day: "2-digit",
                                   month: "short",
@@ -320,7 +325,7 @@ const EmployerWallet = () => {
                               <p>
                                 Expiry:{" "}
                                 {new Date(
-                                  purchasedPack.expiresAt
+                                  purchasedPack.expiresAt,
                                 ).toLocaleDateString("en-GB", {
                                   day: "2-digit",
                                   month: "short",
@@ -333,79 +338,101 @@ const EmployerWallet = () => {
                       </div>
                     </div>
                   )}
-                  <div className="accordion-item">
-                    <h2 className="accordion-header">
-                      <button
-                        className="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#adOnPack"
-                      >
-                        Add on Pack
-                        <span className="PlusIcon">
-                          <i className="fa-solid fa-plus" />
-                        </span>
-                        <span className="MinusIcon">
-                          <i className="fa-solid fa-minus" />
-                        </span>
-                      </button>
-                    </h2>
+                  {/* ===================== ADD-ON PACK ===================== */}
+                  {hasAddOns &&
+                    Array.isArray(addOns) &&
+                    addOns.length > 0 &&
+                    addOns.map((addOn, index) => (
+                      <div className="accordion-item" key={index}>
+                        <h2 className="accordion-header">
+                          <button
+                            className="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target={`#addOnPack${index}`}
+                          >
+                            {addOn.addOnName}
+                            <span className="PlusIcon">
+                              <i className="fa-solid fa-plus" />
+                            </span>
+                            <span className="MinusIcon">
+                              <i className="fa-solid fa-minus" />
+                            </span>
+                          </button>
+                        </h2>
 
-                    <div
-                      id="adOnPack"
-                      className="accordion-collapse collapse"
-                      data-bs-parent="#accordionExample"
-                    >
-                      <div className="accordion-body">
-                        <div className="user-wallet-credit-limit">
-                          {/* Jobs Today */}
-                          <div className="user-wallet-credit-box">
-                            <h3>
-                              {usageToday?.jobPostingUsed || 0} /
-                              {remainingToday?.jobPostingRemaining || 0}
-                            </h3>
-                            <h4>Jobs created today</h4>
-                            <h4>
-                              Daily Job Limit: {purchasedPack.dailyJobLimit}
-                            </h4>
-                            <p>Daily limits reset automatically at midnight</p>
-                          </div>
+                        <div
+                          id={`addOnPack${index}`}
+                          className="accordion-collapse collapse"
+                          data-bs-parent="#accordionExample"
+                        >
+                          <div className="accordion-body">
+                            <div className="user-wallet-credit-limit">
+                              {/* JOB ADD-ON */}
+                              {addOn.type === "JOB" && (
+                                <div className="user-wallet-credit-box">
+                                  <h3>
+                                    {usageToday?.jobPostingUsed || 0} /
+                                    {addOn.remainingCredits}
+                                  </h3>
+                                  <h4>Jobs remaining</h4>
+                                  <h4>Daily Job Limit: {addOn.dailyLimit}</h4>
+                                  <p>
+                                    Daily limits reset automatically at midnight
+                                  </p>
+                                </div>
+                              )}
 
-                          {/* Profiles Today */}
-                          <div className="user-wallet-credit-box">
-                            <h3>
-                              {usageToday?.profileViewingUsed || 0} /
-                              {remainingToday?.profileViewingRemaining || 0}
-                            </h3>
-                            <h4>Profiles viewed today</h4>
-                            <h4>
-                              Daily Profile Limit:{" "}
-                              {purchasedPack.dailyProfileLimit}
-                            </h4>
-                            <p>Daily limits reset automatically at midnight</p>
-                          </div>
+                              {/* PROFILE ADD-ON */}
+                              {addOn.type === "PROFILE" && (
+                                <div className="user-wallet-credit-box">
+                                  <h3>
+                                    {usageToday?.profileViewingUsed || 0} /
+                                    {addOn.remainingCredits}
+                                  </h3>
+                                  <h4>Profiles remaining</h4>
+                                  <h4>
+                                    Daily Profile Limit: {addOn.dailyLimit}
+                                  </h4>
+                                  <p>
+                                    Daily limits reset automatically at midnight
+                                  </p>
+                                </div>
+                              )}
 
-                          {/* Validity */}
-                          <div className="user-wallet-credit-box">
-                            <h3>{purchasedPack.daysLeft} Days</h3>
-                            <h4>Validity Period</h4>
-                            <p>
-                              Expiry:{" "}
-                              {new Date(
-                                purchasedPack.expiresAt
-                              ).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </p>
+                              {/* VALIDITY */}
+                              <div className="user-wallet-credit-box">
+                                <h3>
+                                  {Math.max(
+                                    0,
+                                    Math.ceil(
+                                      (new Date(addOn.expiresAt) - new Date()) /
+                                        (1000 * 60 * 60 * 24),
+                                    ),
+                                  )}{" "}
+                                  Days
+                                </h3>
+                                <h4>Validity Period</h4>
+                                <p>
+                                  Expiry:{" "}
+                                  {new Date(addOn.expiresAt).toLocaleDateString(
+                                    "en-GB",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    },
+                                  )}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    ))}
+
                   {/* ===================== NO ACTIVE PLAN ===================== */}
-                  {!hasWelcomePack && !hasPurchasedPack && (
+                  {!hasWelcomePack && !hasPurchasedPack && !hasAddOns && (
                     <div className="user-wallet-credit-limit">
                       <div className="user-wallet-credit-box">
                         <h3>0 / 0</h3>

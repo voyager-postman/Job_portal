@@ -3,13 +3,15 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios"
-
+import { useLocation } from "react-router-dom";
 import StripeCheckout from "react-stripe-checkout";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 // Load Stripe.js
 
 // Initialize Stripe with your publishable key
 const AddOnPack = () => {
+   const location = useLocation();
+  const { packId } = location.state || {};
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -86,8 +88,9 @@ const AddOnPack = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        `${API_BASE_URL}company/purchase-pack`,
-        { packId: selectedPlan._id },
+        `${API_BASE_URL}/purchase-CompanyAddOn
+`,
+        { addOnId: selectedPlan._id,companyPackId: packId ,paymentMode: "Online" },
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -216,8 +216,8 @@ function EmployerShortListCandinate() {
                                 {candidate?.first_name} {candidate?.last_name}
                               </h3>
                               <span>
-                                {candidate?.candidateProfile?.career_goals
-                                  ?.DesiredJobTitle || "N/A"}
+                                {candidate?.candidateProfile?.aboutRole
+                                  ?.jobTitle || "N/A"}
                               </span>
 
                               <div className="info">
