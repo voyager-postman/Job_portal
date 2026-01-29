@@ -69,7 +69,7 @@ function JobDetails() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -157,7 +157,7 @@ function JobDetails() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -219,6 +219,17 @@ function JobDetails() {
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
+  const resetApplyModal = () => {
+    setSelectedType("");
+    setSelectedId(null);
+    setSelectedCustomFile(null);
+    setIsApplying(false);
+
+    // reset file input
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -286,7 +297,15 @@ function JobDetails() {
       console.error("Apply job error:", error);
 
       // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -362,7 +381,7 @@ function JobDetails() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -405,7 +424,7 @@ function JobDetails() {
 
   // Optionally decode twice if double-encoded
   const decodedHtml = decodeHtml(
-    decodeHtml(job?.jobDetails?.jobDescription || "")
+    decodeHtml(job?.jobDetails?.jobDescription || ""),
   );
   function decodeHtml1(html) {
     const txt = document.createElement("textarea");
@@ -415,7 +434,7 @@ function JobDetails() {
 
   // Double decode for escaped HTML
   const decodedHtml1 = decodeHtml1(
-    decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || "")
+    decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
   );
   console.log(job?.jobDetails);
   return (
@@ -604,7 +623,7 @@ function JobDetails() {
                             document.getElementById("exampleModal");
                           if (modalEl) {
                             const modalInstance = new window.bootstrap.Modal(
-                              modalEl
+                              modalEl,
                             );
                             modalInstance.show();
                           }
@@ -633,6 +652,7 @@ function JobDetails() {
                           className="btn-close"
                           data-bs-dismiss="modal"
                           aria-label="Close"
+                          onClick={resetApplyModal}
                         />
                       </div>
                       {/* NOTE: use className, not class */}
@@ -1056,7 +1076,7 @@ function JobDetails() {
                             document.getElementById("exampleModal");
                           if (modalEl) {
                             const modalInstance = new window.bootstrap.Modal(
-                              modalEl
+                              modalEl,
                             );
                             modalInstance.show();
                           }

@@ -4,7 +4,7 @@ import ReactPaginate from "react-paginate";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useRef, useEffect } from "react";
-import axios from "axios"
+import axios from "axios";
 
 import moment from "moment";
 import { ToastContainer, toast } from "react-toastify";
@@ -93,7 +93,7 @@ function CandidateDashboard() {
           `${API_BASE_URL}getDashboardAnalytics`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         // console.log("Dashboard Count Data:", response.data.counts);
         setCount(response.data.counts);
@@ -148,13 +148,13 @@ function CandidateDashboard() {
         { profileVisible: newValue },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.status === 200) {
         toast.success(
           `Profile visibility updated to ${newValue ? "Visible" : "Hidden"}`,
-          { autoClose: 2000, theme: "colored" }
+          { autoClose: 2000, theme: "colored" },
         );
         setVisibilityMessage(response.data.message); // ✅ set backend msg
         fetchResume();
@@ -226,7 +226,7 @@ function CandidateDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log(response.data);
     } catch (error) {
@@ -241,7 +241,17 @@ function CandidateDashboard() {
       (selectedType === "custom" && selectedCustomFile)
     );
   };
+  const resetApplyModal = () => {
+    setSelectedType("");
+    setSelectedId(null);
+    setSelectedCustomFile(null);
+    setIsApplying(false);
 
+    // reset file input
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleApplyJob = async () => {
     if (!jobId) {
@@ -305,9 +315,16 @@ function CandidateDashboard() {
       }
     } catch (error) {
       console.error("Apply job error:", error);
-
-      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
+        // 🔒 BACKUP SAFETY (in case proxy still throws 413)
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -382,7 +399,7 @@ function CandidateDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -553,7 +570,7 @@ function CandidateDashboard() {
                           )}
                         </div>
                       );
-                    }
+                    },
                   )}
                 </div>
               </div>
@@ -758,6 +775,7 @@ function CandidateDashboard() {
                                         className="btn-close"
                                         data-bs-dismiss="modal"
                                         aria-label="Close"
+                                        onClick={resetApplyModal}
                                       />
                                     </div>
                                     {/* NOTE: use className, not class */}
@@ -777,7 +795,7 @@ function CandidateDashboard() {
                                           {Array.isArray(resumeList) &&
                                             resumeList.map((resume) => {
                                               const fileName = getFileName(
-                                                resume.url
+                                                resume.url,
                                               );
                                               return (
                                                 <div
@@ -793,7 +811,7 @@ function CandidateDashboard() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "resume",
-                                                      resume.url
+                                                      resume.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -841,7 +859,7 @@ function CandidateDashboard() {
                                           {Array.isArray(coverLetterList) &&
                                             coverLetterList.map((cover) => {
                                               const fileName = getFileName(
-                                                cover.url
+                                                cover.url,
                                               );
                                               return (
                                                 <div
@@ -856,7 +874,7 @@ function CandidateDashboard() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "cover",
-                                                      cover.url
+                                                      cover.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -1063,7 +1081,7 @@ function CandidateDashboard() {
                                                   <h4
                                                     onClick={() =>
                                                       handleViewCompany(
-                                                        company?._id
+                                                        company?._id,
                                                       )
                                                     }
                                                     style={{
@@ -1099,7 +1117,7 @@ function CandidateDashboard() {
                                                               {job.jobTitle}
                                                             </Link>{" "}
                                                           </li>
-                                                        )
+                                                        ),
                                                       )
                                                     ) : (
                                                       <li>No jobs available</li>
@@ -1113,7 +1131,7 @@ function CandidateDashboard() {
                                                     className="default-btn btn"
                                                     onClick={() =>
                                                       handleViewCompany(
-                                                        company?._id
+                                                        company?._id,
                                                       )
                                                     }
                                                   >

@@ -10947,3 +10947,363 @@ text-transform: capitalize;
   }
 }
 
+/*Skill Assessment popup css start here*/
+ 
+ 
+.skills-assessment-test-required-details {
+margin-top: 30px;
+background:#f0f5f7;
+padding: 30px 30px 30px 30px; 
+box-shadow: rgba(0, 0, 0, 0.16) 0px 0px 4px;
+}
+ 
+.skills-assessment-test-icon-content {
+display:flex;  
+}
+ 
+.skills-assessment-icon i {
+color: #fff;
+cursor: pointer;
+font-size: 20px;
+padding: 10px 15px;
+background: #0066CC;
+border-radius: 5px;
+margin-right: 10px;
+border-right: 1px solid #eeee; 
+}
+ 
+.skills-assessment-icon i:hover {
+background: #FF6600; 
+}
+ 
+ 
+.skills-assessment-content h5 {
+font-size: 17px;
+margin-bottom: 0px;  
+}
+ 
+.skills-assessment-content ul {
+margin:0px 0px 0px 0px;
+padding:0px 0px 0px 0px;  
+}
+ 
+.skills-assessment-content ul li {
+width:30%;
+display:inline-block;  
+}
+ 
+.skills-assessment-content ul li i {
+color: #0066CC;
+margin-right:5px; 
+}
+ 
+.skill-assessment-test-allModal-area .modal-title {
+font-size:18px;  
+}
+ 
+.skill-assessment-test-allModal-area .modal-title i {
+color: #fff;
+font-size: 14px;
+padding: 5px 7px;
+margin-right: 5px;
+border-radius: 5px;
+background: #1f86ef;
+}
+ 
+.skill-assessment-javaScript-fundamental {
+background: #f0f5f7;
+padding: 10px 10px;
+border-radius: 5px;
+margin: 20px 0px;
+}
+ 
+.skill-assessment-javaScript-fundamental ul {
+margin:0px 0px 0px 0px;
+padding:0px 0px 0px 0px;    
+}
+ 
+.skill-assessment-javaScript-fundamental ul li {
+margin-right: 15px;
+display: inline-block;
+}
+ 
+.skill-assessment-javaScript-fundamental ul li i {
+color: #0066CC;
+margin-right:5px; 
+}
+ 
+.skill-assessment-important-area {
+padding: 10px;
+border-radius: 5px;
+background: #f0f5f7;
+border: 2px solid #eeee;
+}
+ 
+ 
+.skill-assessment-test-allModal-area .modal-footer {
+justify-content:center;  
+}
+ 
+ 
+.skill-assessment-test-allModal-area .default-btn {
+font-size: 15px;
+padding: 5px 10px;  
+}
+ 
+ 
+.skill-assessment-test-question-list .modal-header {
+display: block;
+position:relative;
+border-bottom: 5px solid #cdcdcd;
+}
+ 
+.skill-assessment-test-question-list .modal-header:after {
+content: "";
+bottom: -5px;
+width: 100px;
+position: absolute;
+border: 3px solid #FF6600;
+}
+ 
+ 
+.skill-assessment-test-question-header {
+display:flex;
+align-items:center;
+justify-content:space-between; 
+}
+ 
+.skill-assessment-test-name-timer span {
+color: #202124;
+font-size: 15px;
+font-weight: 600;
+}
+ 
+.skill-assessment-test-name-timer .test-start-timer-area {
+margin-left: 10px;
+background: #f0f5f7;
+border-radius: 50px;
+padding: 8px 10px;
+font-size: 14px;
+color: #FF6600;
+}
+ 
+.skill-assessment-test-name-timer .test-start-timer-area i {
+margin-right: 5px; 
+}
+ 
+ 
+.skill-assessment-test-tq-close span i {
+margin-left: 10px;
+font-size: 16px; 
+}
+ 
+.skill-assessment-test-question-option {
+margin-top: 15px;
+}
+ 
+.skill-assessment-test-num-level {
+display:flex;
+align-items:center;
+justify-content:space-between;  
+}
+ 
+.skill-assessment-test-level {
+background: #FF6600;
+color: #fff;
+padding: 2px 5px;
+font-size: 12px;
+font-weight: 600;
+letter-spacing: 0.5px;
+border-radius: 5px;  
+}
+ 
+.skill-assessment-test-question-option label {
+display: block;
+font-size: 14px;
+padding: 7px 5px;
+line-height: 20px;
+border-radius: 5px;
+margin-bottom: 10px;
+border: 1px solid #cdcdcd;
+}     
+ 
+.skill-assessment-test-question-option input {
+margin-right: 5px; 
+}
+ 
+.skill-assessment-test-question-option {
+display: none;
+}
+ 
+.skill-assessment-test-question-option.active {
+display: block;
+}
+ 
+ 
+ 
+.skill-assessment-test-score-card-area .modal-body {
+padding: 0px 0px 30px 0px; 
+}
+ 
+.skill-assessment-test-score-NoPassed {
+text-align:center;  
+}
+ 
+ 
+.score-card-top-area {
+background: #cdcdcd4d;
+padding: 40px 0px; 
+}
+ 
+.score-card-top-area i {
+color: #fff;
+margin: auto;
+padding: 10px;
+font-size: 30px;
+margin-bottom:15px;
+text-align: center;
+border-radius: 50px;
+background: #FF6600;
+}
+ 
+.score-card-top-area h5 {
+margin:0px;  
+}
+ 
+.score-card-top-area p {
+font-size: 13px;
+font-weight: 600;
+text-align: center;  
+}
+ 
+.score-card-final-score {
+margin: 20px 0px 30px 0px; 
+}
+ 
+.score-card-final-score h5 {
+margin: 0px;
+color:#0066cc;
+font-size: 40px;
+line-height: 50px;
+}
+ 
+.score-card-number-area {
+display:flex;
+align-items:center;
+justify-content: space-around;  
+}
+ 
+.score-card-total-number {
+background: #cdcdcd6b;
+padding: 0px 10px;
+text-align: center;
+border-radius: 5px; 
+}
+ 
+.score-card-total-number h5 {
+margin:0px;  
+}
+ 
+.score-card-correct-number {
+padding: 0px 10px;
+text-align: center;
+border-radius: 5px; 
+background:#00A300; 
+}
+ 
+.score-card-correct-number h5 {
+margin:0px;  
+color:#fff;
+}
+ 
+.score-card-correct-number p {
+color:#fff; 
+}
+ 
+.score-card-incorrect-number {
+padding: 0px 10px;
+text-align: center;
+border-radius: 5px; 
+background:#D10000;  
+}
+ 
+ 
+.score-card-incorrect-number h5 {
+margin:0px; 
+color:#fff;  
+}
+ 
+.score-card-incorrect-number p {
+color:#fff;  
+}
+ 
+ 
+.skill-assessment-test-score-Passed {
+text-align:center; 
+}
+ 
+ 
+.skill-assessment-test-score-Passed .score-card-top-area{
+background: #00A300;
+text-align: center;
+}
+ 
+ 
+.skill-assessment-test-score-Passed .score-card-top-area h5 {
+margin: 0px;
+color: #fff;
+letter-spacing: 0.5px;
+}
+ 
+.skill-assessment-test-score-Passed .score-card-top-area p {
+color: #fff;
+font-size: 13px;
+font-weight: 600;
+text-align: center;
+letter-spacing: 0.5px;
+}
+ 
+.skill-assessment-test-score-Passed .score-card-final-score {
+text-align:center;  
+}
+ 
+ 
+.continue-application-btn-area {
+margin-top: 40px;
+padding-top: 20px;  
+border-top: 1px solid #cdcdcd;
+}
+ 
+.skills-assessment-test-passed-area {
+display:flex;
+width: 100%;
+justify-content:space-between;  
+}
+ 
+ 
+.test-passed-percentage p {
+font-size:13px;
+color: #FF6600;
+margin-left: 10px;
+padding:5px 10px;
+font-weight: 600;
+border-radius: 50px;
+background: #d1d6d982;
+border: 1px solid #FF6600;
+}
+ 
+.test-passed-percentage p i {
+margin-right:5px;  
+}
+ 
+ 
+.skills-assessment-test-passed-area .skills-assessment-content p {
+color:#FF6600;  
+}
+ 
+.skills-assessment-test-passed-area .skills-assessment-content p i {
+margin-right:5px;  
+}
+ 
+ 
+/*Skill Assessment popup css end here*/

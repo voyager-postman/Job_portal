@@ -30,7 +30,7 @@ function CompanyDetailsPage() {
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setCompany(res?.data?.company);
       console.log(res.data?.company);
@@ -110,7 +110,7 @@ function CompanyDetailsPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -219,7 +219,15 @@ function CompanyDetailsPage() {
       console.error("Apply job error:", error);
 
       // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -239,7 +247,7 @@ function CompanyDetailsPage() {
 
   // ✅ Decode the careerDetail content
   const decodedCareerDetail = decodeHtml(
-    decodeHtml(company?.careerDetail || "")
+    decodeHtml(company?.careerDetail || ""),
   );
   const handleCopy = async (e, linkUrl, jobId) => {
     console.log(linkUrl);
@@ -515,7 +523,7 @@ function CompanyDetailsPage() {
                                       year: "numeric",
                                       hour: "2-digit",
                                       minute: "2-digit",
-                                    }
+                                    },
                                   )}
                                 </li>
                                 <li>
@@ -666,7 +674,7 @@ function CompanyDetailsPage() {
                                           {Array.isArray(resumeList) &&
                                             resumeList.map((resume) => {
                                               const fileName = getFileName(
-                                                resume.url
+                                                resume.url,
                                               );
                                               return (
                                                 <div
@@ -682,7 +690,7 @@ function CompanyDetailsPage() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "resume",
-                                                      resume.url
+                                                      resume.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -730,7 +738,7 @@ function CompanyDetailsPage() {
                                           {Array.isArray(coverLetterList) &&
                                             coverLetterList.map((cover) => {
                                               const fileName = getFileName(
-                                                cover.url
+                                                cover.url,
                                               );
                                               return (
                                                 <div
@@ -745,7 +753,7 @@ function CompanyDetailsPage() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "cover",
-                                                      cover.url
+                                                      cover.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -909,8 +917,8 @@ function CompanyDetailsPage() {
                                       !job?.link
                                         ? "Link not available"
                                         : copiedJobId === job?._id
-                                        ? "Copied!"
-                                        : "Copy link"
+                                          ? "Copied!"
+                                          : "Copy link"
                                     }
                                   >
                                     {job?.link ? (

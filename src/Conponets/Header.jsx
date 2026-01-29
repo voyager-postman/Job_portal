@@ -721,7 +721,7 @@ function Header({ bgColor }) {
                                         ) {
                                           Swal.fire({
                                             title: "Company Not Verified",
-                                            text: "Your company is not verified by the admin. Please complete verification to access the employer section.",
+                                            text: "Your account is not verified by the admin. Please contact support..",
                                             icon: "warning",
                                             confirmButtonText: "OK",
                                           });
