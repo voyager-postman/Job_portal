@@ -386,7 +386,7 @@ function EmployerCandinateList() {
                 </button>
               </div>
             </div>
-            {/* <div className="col-lg-2 col-sm-6">
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Search By Keyword</h3>
@@ -401,8 +401,8 @@ function EmployerCandinateList() {
                   </form>
                 </div>
               </div>
-            </div> */}
-            <div className="col-lg-6 col-sm-12">
+            </div>
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
@@ -434,6 +434,73 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Experience level</h3>
+                  <form>
+                    <div className="form-group">
+                      <select
+                        className="form-select form-control"
+                        aria-label="Default select example"
+                      >
+                        <option selected>Choose Experience level</option>
+                        <option value={1}>Fresher</option>
+                        <option value={1}>0 - 2 Years</option>
+                        <option value={2}>2 - 4 Years</option>
+                        <option value={3}>5 - 7 Years</option>
+                        <option value={4}>8 - 10 Years</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Education</h3>
+                  <form>
+                    <div className="form-group">
+                      <select
+                        className="form-select form-control"
+                        aria-label="Default select example"
+                      >
+                        <option selected>Choose Education</option>
+                        <option value={1}>Certified</option>
+                        <option value={2}>Diploma</option>
+                        <option value={3}>Associate Degree</option>
+                        <option value={4}>Bachelor Degree</option>
+                        <option value={4}>Master’s Degree</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Salary Range</h3>
+                  <form>
+                    <div className="form-group">
+                      <select
+                        className="form-select form-control"
+                        aria-label="Default select example"
+                      >
+                        <option selected>Choose Salary Range</option>
+                        <option value={1}>$1200 - $1400</option>
+                        <option value={2}>$400 - $600</option>
+                        <option value={3}>$1000 - $1200</option>
+                        <option value={4}>$800 - $1000</option>
+                        <option value={5}>$600 - $800</option>
+                        <option value={5}>$1200 - $1400</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
             {/* <div className="col-lg-3 col-sm-12">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword ">
@@ -453,7 +520,7 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div> */}
-            <div className="col-lg-6 col-sm-12">
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Location</h3>

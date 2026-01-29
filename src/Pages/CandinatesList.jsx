@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -17,6 +17,8 @@ function CandinatesList() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedEducation, setSelectedEducation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState([]);
+  const [perPage, setPerPage] = useState(6); // default
+  const [totalResults, setTotalResults] = useState(0);
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
   const educationLevels = [
@@ -64,7 +66,7 @@ function CandinatesList() {
   const handleSelectLocation = (city) => {
     setSelectedLocation(city.name); // ✅ NAME
     setLocationSearchTerm(
-      `${city.name}, ${city.state_name}, ${city.country_name}`
+      `${city.name}, ${city.state_name}, ${city.country_name}`,
     );
     setLocationSuggestions([]);
   };
@@ -77,7 +79,7 @@ function CandinatesList() {
   const visibleEducation = showAllEducation
     ? educationLevels
     : educationLevels.slice(0, 5);
-  const fetchCandidates = async (page = 1) => {
+  const fetchCandidates = async (page = 1, limit = perPage) => {
     try {
       setLoading(true);
 
@@ -90,21 +92,17 @@ function CandinatesList() {
           },
           params: {
             page,
-
-            // ✅ Convert to comma-separated values
+            limit, // 🔥 send per page
             location: selectedLocation || "",
-
-            education:
-              selectedEducation.length > 0 ? selectedEducation.join(",") : "",
-
-            experience:
-              selectedExperience.length > 0 ? selectedExperience.join(",") : "",
+            education: selectedEducation.join(","),
+            experience: selectedExperience.join(","),
           },
-        }
+        },
       );
 
       setCandidates(response.data.data || []);
       setTotalPages(response.data.totalPages || 1);
+      setTotalResults(response.data.totalResults || 0); // 🔥 NEW
     } catch (err) {
       console.error(err);
     } finally {
@@ -113,8 +111,14 @@ function CandinatesList() {
   };
 
   useEffect(() => {
-    fetchCandidates(1);
-  }, [selectedEducation, selectedExperience, selectedLocation]);
+    fetchCandidates(currentPage, perPage);
+  }, [
+    currentPage,
+    perPage,
+    selectedEducation,
+    selectedExperience,
+    selectedLocation,
+  ]);
 
   const JobListLoader = () => (
     <div className="text-center py-5">
@@ -137,7 +141,7 @@ function CandinatesList() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Show message from backend
@@ -157,7 +161,7 @@ function CandinatesList() {
   };
   const toggleEducation = (value) => {
     setSelectedEducation((prev) =>
-      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
     );
   };
 
@@ -210,6 +214,40 @@ function CandinatesList() {
               <div className="row">
                 <div className="col-lg-3">
                   <div className="sidebar candidate-list-filter">
+                    <div className="single-sidebar-widget keyword">
+                      <h3>Search By Keyword</h3>
+                      <form>
+                        <div className="form-group">
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Keywords / Job Title"
+                          />
+                        </div>
+                      </form>
+                    </div>
+                    <div className="single-sidebar-widget skills">
+                      <h3>Skills</h3>
+                      <form>
+                        <div className="form-group">
+                          <select
+                            className="form-select form-control"
+                            aria-label="Default select example"
+                          >
+                            <option selected>Choose A Skills</option>
+                            <option value={1}>Digital</option>
+                            <option value={2}>Design</option>
+                            <option value={3}>Developer</option>
+                            <option value={4}>Front End</option>
+                            <option value={5}>Microsoft Excel</option>
+                            <option value={6}>Telemarketing</option>
+                            <option value={7}>Account</option>
+                            <option value={8}>Finance</option>
+                            <option value={9}>Marketing</option>
+                          </select>
+                        </div>
+                      </form>
+                    </div>
                     <div className="single-sidebar-widget">
                       <h3>Experience level</h3>
                       <div className="candidate-list-select-filter">
@@ -226,7 +264,7 @@ function CandinatesList() {
                                   setSelectedExperience((prev) =>
                                     prev.includes(value)
                                       ? prev.filter((i) => i !== value)
-                                      : [...prev, value]
+                                      : [...prev, value],
                                   );
                                 }}
                               />
@@ -369,7 +407,7 @@ function CandinatesList() {
                   </div>
                 </div>
                 <div className="col-lg-9">
-                  {/* <div className="search-job-top-content">
+                  <div className="search-job-top-content">
                     <div className="row align-items-center">
                       <div className="col-lg-6 col-md-4">
                         <div className="shoing-content">
@@ -382,15 +420,16 @@ function CandinatesList() {
                             <div className="col-6">
                               <select
                                 className="form-select form-control"
-                                aria-label="Default select example"
+                                value={perPage}
+                                onChange={(e) => {
+                                  setPerPage(Number(e.target.value));
+                                  setCurrentPage(1); // reset page
+                                }}
                               >
-                                <option selected>06 Per Pages</option>
-                                <option value={1}>01</option>
-                                <option value={2}>02</option>
-                                <option value={3}>03</option>
-                                <option value={4}>04</option>
-                                <option value={5}>05</option>
-                                <option value={6}>06</option>
+                                <option value={6}>6 Per Page</option>
+                                <option value={10}>10 Per Page</option>
+                                <option value={20}>20 Per Page</option>
+                                <option value={50}>50 Per Page</option>
                               </select>
                             </div>
                             <div className="col-6">
@@ -409,7 +448,7 @@ function CandinatesList() {
                         </div>
                       </div>
                     </div>
-                  </div> */}
+                  </div>
 
                   <div className="row">
                     {loading ? (
@@ -501,7 +540,7 @@ function CandinatesList() {
                                           e.stopPropagation(); // 🔥 stop parent navigation
                                           handleBookmark(
                                             user?._id,
-                                            candidate.jobId
+                                            candidate.jobId,
                                           );
                                         }}
                                         style={{ cursor: "pointer" }}
