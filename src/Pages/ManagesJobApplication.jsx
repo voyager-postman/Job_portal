@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios"
+import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import moment from "moment";
@@ -66,7 +66,7 @@ function ManagesJobApplication() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       // Close Bootstrap modal safely
@@ -79,7 +79,7 @@ function ManagesJobApplication() {
       }
 
       toast.success(
-        res?.data?.message || "Application withdrawn successfully!"
+        res?.data?.message || "Application withdrawn successfully!",
       );
 
       if (activeTab === "saved-jobs") {
@@ -92,7 +92,7 @@ function ManagesJobApplication() {
 
       toast.error(
         err?.response?.data?.message ||
-          "Failed to withdraw application. Please try again."
+          "Failed to withdraw application. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -141,7 +141,7 @@ function ManagesJobApplication() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -217,7 +217,7 @@ function ManagesJobApplication() {
   const getCompanyList = async (
     industryIds = [],
     page = 1,
-    limit = pageSize
+    limit = pageSize,
   ) => {
     try {
       const params = {
@@ -296,14 +296,16 @@ function ManagesJobApplication() {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (res.data.success) {
         toast.success("Alert status updated successfully!");
         // ✅ Update UI
         setJobAlerts((prev) =>
-          prev.map((a) => (a._id === alertId ? { ...a, status: newStatus } : a))
+          prev.map((a) =>
+            a._id === alertId ? { ...a, status: newStatus } : a,
+          ),
         );
       } else {
         toast.error(res.data.message || "Failed to update alert");
@@ -317,7 +319,7 @@ function ManagesJobApplication() {
   const handleUpdateAlert = async (
     alertId,
     notifyEvery = null,
-    status = null
+    status = null,
   ) => {
     try {
       const payload = { alertId };
@@ -353,7 +355,7 @@ function ManagesJobApplication() {
       const res = await axios.post(
         `${API_BASE_URL}deleteJobAlert`,
         { alertId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.data.success) {
@@ -388,7 +390,9 @@ function ManagesJobApplication() {
                 <Link to="/candidate-dashboard">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" />
@@ -990,7 +994,7 @@ function ManagesJobApplication() {
                                           alert._id,
                                           alert.status === "Active"
                                             ? "Inactive"
-                                            : "Active"
+                                            : "Active",
                                         )
                                       }
                                     />
@@ -1122,7 +1126,7 @@ function ManagesJobApplication() {
                                                           ...prev,
                                                           [alert._id]:
                                                             e.target.value,
-                                                        })
+                                                        }),
                                                       )
                                                     }
                                                   />
@@ -1145,7 +1149,7 @@ function ManagesJobApplication() {
                                               handleUpdateAlert(
                                                 alert._id,
                                                 selectedNotify[alert._id],
-                                                alert.status
+                                                alert.status,
                                               )
                                             }
                                           >

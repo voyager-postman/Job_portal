@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
-import axios from "axios"
+import axios from "axios";
 import Swal from "sweetalert2";
 
 function Header({ bgColor }) {
@@ -49,13 +49,13 @@ function Header({ bgColor }) {
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       const updatedUser = response.data.company;
       // Update localStorage with latest status
       localStorage.setItem(
         "verifiedByAdmin",
-        updatedUser.verifiedByAdmin ? "true" : "false"
+        updatedUser.verifiedByAdmin ? "true" : "false",
       );
       return updatedUser;
     } catch (error) {
@@ -76,12 +76,12 @@ function Header({ bgColor }) {
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (response.data && response.data.notifications) {
           const list = response.data.notifications.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
           );
 
           setNotifications(list);
@@ -102,7 +102,7 @@ function Header({ bgColor }) {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       // Instantly update UI
@@ -182,7 +182,7 @@ function Header({ bgColor }) {
       profileImage: avatar,
       is_completed: isVerified === "true",
     };
-
+    console.log(avatar);
     // 👉 Save login data
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
@@ -191,6 +191,10 @@ function Header({ bgColor }) {
     localStorage.setItem("first_name", first_name);
     localStorage.setItem("last_name", last_name);
     localStorage.setItem("user_profile", avatar);
+
+    if (typeof updateProfileImage === "function") {
+      updateProfileImage(avatar);
+    }
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
     toast.success("Login Successful!");
@@ -259,7 +263,7 @@ function Header({ bgColor }) {
             headers: {
               Authorization: `Bearer ${tokenResponse.access_token}`,
             },
-          }
+          },
         );
 
         const userInfo = await res.json();
@@ -299,7 +303,7 @@ function Header({ bgColor }) {
         localStorage.setItem("user_profile", user?.profileImage);
         localStorage.setItem(
           "user_name",
-          `${user?.first_name} ${user?.last_name}`
+          `${user?.first_name} ${user?.last_name}`,
         );
 
         // 4️⃣ Fetch Profile Data
@@ -308,14 +312,13 @@ function Header({ bgColor }) {
             `${API_BASE_URL}candidate/profile`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
-
           const profileData = profileRes.data?.profile;
           const profileImg = profileData?.profileImage;
 
           if (profileImg && profileImg.trim() !== "") {
-            const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+            const fullUrl = `${profileImg}`;
             localStorage.setItem("profileImage", fullUrl);
             if (typeof updateProfileImage === "function") {
               updateProfileImage(fullUrl);
@@ -323,7 +326,7 @@ function Header({ bgColor }) {
           } else {
             localStorage.setItem(
               "profileImage",
-              "/jobPortal/assets/images/dashboard/images1.png"
+              "/jobPortal/assets/images/dashboard/images1.png",
             );
           }
 
@@ -387,6 +390,7 @@ function Header({ bgColor }) {
   });
 
   const cleanImageUrl = (url) => {
+    console.log(url);
     if (!url) return "";
 
     // ✅ If default local dashboard image → return as-is
@@ -407,7 +411,7 @@ function Header({ bgColor }) {
     // ✅ Local uploaded image → prepend API_IMAGE_URL
     return `${API_IMAGE_URL}${url}`;
   };
-
+  console.log(profileImage);
   return (
     <>
       <ToastContainer />
@@ -684,7 +688,7 @@ function Header({ bgColor }) {
                                   <p className="mb-3 email">
                                     <a
                                       href={`mailto:${localStorage.getItem(
-                                        "user_email"
+                                        "user_email",
                                       )}`}
                                       className="__cf_email__"
                                     >

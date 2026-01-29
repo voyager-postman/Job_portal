@@ -287,6 +287,7 @@ function ChatMassageSystem() {
                 </ul>
               </div>
             </div>
+            
             <div className="user-header-user-chat-details">
               {!activeUser ? (
                 <div

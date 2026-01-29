@@ -22,15 +22,15 @@ function CompanyDetailsPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
-
   const [selectedId, setSelectedId] = useState(null);
+
   const getCompanyDetails = async () => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setCompany(res?.data?.company);
       console.log(res.data?.company);
@@ -40,6 +40,7 @@ function CompanyDetailsPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (companyId) getCompanyDetails();
   }, [companyId]);
@@ -74,10 +75,12 @@ function CompanyDetailsPage() {
     };
     fetchResume();
   }, []);
+
   const handleSelect = (type, id = null) => {
     setSelectedType(type);
     setSelectedId(id);
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -86,6 +89,7 @@ function CompanyDetailsPage() {
       setSelectedId(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -110,7 +114,7 @@ function CompanyDetailsPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -142,10 +146,12 @@ function CompanyDetailsPage() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+
   const handleLinkClick = (e) => {
     e.preventDefault(); // prevent navigation
     fileInputRef.current.click(); // open file dialog
   };
+
   const isSelectionMade = () => {
     return (
       (selectedType === "resume" && selectedId) ||
@@ -231,6 +237,7 @@ function CompanyDetailsPage() {
       setIsApplying(false); // 🔥 Stop loader
     }
   };
+
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -239,8 +246,9 @@ function CompanyDetailsPage() {
 
   // ✅ Decode the careerDetail content
   const decodedCareerDetail = decodeHtml(
-    decodeHtml(company?.careerDetail || "")
+    decodeHtml(company?.careerDetail || ""),
   );
+
   const handleCopy = async (e, linkUrl, jobId) => {
     console.log(linkUrl);
     e.preventDefault();
@@ -263,6 +271,24 @@ function CompanyDetailsPage() {
     } catch (err) {
       console.error("Failed to copy text:", err);
       toast.error("Failed to copy link");
+    }
+  };
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
     }
   };
 
@@ -515,7 +541,7 @@ function CompanyDetailsPage() {
                                       year: "numeric",
                                       hour: "2-digit",
                                       minute: "2-digit",
-                                    }
+                                    },
                                   )}
                                 </li>
                                 <li>
@@ -541,7 +567,10 @@ function CompanyDetailsPage() {
                                   className="default-btn btn"
                                   data-bs-toggle="modal"
                                   data-bs-target="#exampleModal"
-                                  onClick={() => setJobId(job._id)} // ✅ set job ID here
+                                  onClick={() => {
+                                    setJobId(job._id);
+                                    handleJobClick(job._id);
+                                  }} // ✅ set job ID here
                                 >
                                   Apply Now
                                 </a>
@@ -666,7 +695,7 @@ function CompanyDetailsPage() {
                                           {Array.isArray(resumeList) &&
                                             resumeList.map((resume) => {
                                               const fileName = getFileName(
-                                                resume.url
+                                                resume.url,
                                               );
                                               return (
                                                 <div
@@ -682,7 +711,7 @@ function CompanyDetailsPage() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "resume",
-                                                      resume.url
+                                                      resume.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -730,7 +759,7 @@ function CompanyDetailsPage() {
                                           {Array.isArray(coverLetterList) &&
                                             coverLetterList.map((cover) => {
                                               const fileName = getFileName(
-                                                cover.url
+                                                cover.url,
                                               );
                                               return (
                                                 <div
@@ -745,7 +774,7 @@ function CompanyDetailsPage() {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "cover",
-                                                      cover.url
+                                                      cover.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -909,8 +938,8 @@ function CompanyDetailsPage() {
                                       !job?.link
                                         ? "Link not available"
                                         : copiedJobId === job?._id
-                                        ? "Copied!"
-                                        : "Copy link"
+                                          ? "Copied!"
+                                          : "Copy link"
                                     }
                                   >
                                     {job?.link ? (

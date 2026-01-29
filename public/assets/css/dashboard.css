@@ -4479,11 +4479,19 @@ background:#0066CC;
 }
 
 .view-job-count-btn .default-btn {
+  left: 0;
+  right: 0;
+  bottom: 15px;
   font-size: 14px;
   font-weight: 400;
   padding: 5px 10px;
+  position: absolute;
+  width: 50%;
+  margin: auto;
 }
-
+.responsive-content {
+  min-height: 80vh;
+}
 /*Your job posts option tab form css start here*/
 
 .job-option-branding-input-area {
@@ -4952,12 +4960,14 @@ width:65%;
 .available-company-logo {
   top: 15px;
   left: 15px;
-  max-width: 20%;
+  width: 50px;
   padding: 5px 5px;
-  background: #fff;
+  background: #eee;
   position: absolute;
-  overflow: hidden;
-  height: 40px;
+  /* border-radius: 50%; */
+}
+.available-company-logo img {
+  /* border-radius: 50%; */
 }
 
 .available-company-img img {
@@ -7012,16 +7022,16 @@ width:100%;
 
 .messaging-system-tab-area .nav-tabs .nav-link {
   border: none;
-  padding:10px 10px;
+  padding: 10px 10px;
   border-bottom: 1px solid #eeeeee;
 }
 
 .messaging-system-heading-info {
-padding: 10px 10px 10px 10px;
-border-bottom: 1px solid #eeeeee;
-display: flex;
-align-items: center;
-justify-content: space-between;
+  padding: 10px 10px 10px 10px;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .messaging-system-heading-info h5 {
@@ -7077,10 +7087,10 @@ justify-content: space-between;
 }
 
 .messaging-system-search-icon {
-  width:100%;
-   display: flex;
+  width: 100%;
+  display: flex;
   margin: 5px 0px;
-  padding:8px 8px;
+  padding: 8px 8px;
   align-items: center;
   border-radius: 5px;
   border: 1px solid #cdcd;
@@ -7116,16 +7126,20 @@ justify-content: space-between;
 }
 
 .messaging-system-typeing-send-btn {
-  width: 95%;
+  width: 96%;
   margin: auto;
   display: flex;
   margin-top: 30px;
   border-radius: 5px;
   /* align-items: center; */
   /* padding-right: 20px; */
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   border: 2px solid #eeeeee;
   /* justify-content: space-between; */
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 0px;
 }
 
 .messaging-system-typeing-send-btn .send_chat {
@@ -7226,6 +7240,7 @@ justify-content: space-between;
   height: 400px;
   display: block;
   overflow: auto;
+  position: relative;
 }
 
 .messaging-system-tab-area .nav-tabs .nav-link h5 {
@@ -7247,7 +7262,6 @@ justify-content: space-between;
   font-size: 14px;
   margin-right: 5px;
 }
-
 
 .swiper-button-prev:after,
 .swiper-button-next:after {

@@ -4,8 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 const AccountVerified = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-
   const queryParams = new URLSearchParams(location.search);
   const reason = queryParams.get("reason");
   const email = queryParams.get("email");
@@ -21,37 +19,9 @@ const AccountVerified = () => {
     localStorage.removeItem("isLoggedIn");
   }, [reason, email, role, token]);
 
-  //   console.log(role);
-
-  //   console.log(token);
-  //   console.log(email);
-  //   if (token) {
-  //     localStorage.setItem("token", token);
-  //   }
-  //   if (email) {
-  //     localStorage.setItem("user_email", email);
-  //   }
-  //   if (role) {
-  //     localStorage.setItem("user_role", role);
-  //     localStorage.setItem("isLoggedIn", true);
-  //   }
-  //   // Navigate to login/profile based on role
-  //   if (role == "JobSeeker") {
-  //     console.log("JobSeeker");
-  //     navigate(`/profile-basic-info?token=${token}`);
-  //   } else if (role == "Recruiter" || role == "Company") {
-  //     console.log("Recruiter");
-  //     navigate(`/employer-basic-info?token=${token}`);
-  //   } else {
-  //     console.log("login");
-
-  //     // fallback in case role is missing or invalid
-  //     navigate("/login");
-  //   }
-  // };
+  
   const handleContinue = () => {
     console.log(role, token, email);
-
     if (token) localStorage.setItem("token", token);
     if (email) localStorage.setItem("user_email", email);
     if (role) {

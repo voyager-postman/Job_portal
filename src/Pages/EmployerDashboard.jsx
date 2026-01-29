@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "axios";
 
 import { API_BASE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
@@ -161,7 +161,7 @@ function EmployerDashboard() {
           `${API_BASE_URL}recruiter/dashboardStats`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         console.log("Dashboard Stats:", response.data);
         setStats(response.data.stats);
@@ -182,7 +182,7 @@ function EmployerDashboard() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         const { labels, views, applications } = response.data;
 
@@ -254,7 +254,6 @@ function EmployerDashboard() {
         console.error(error);
       }
     };
-
     fetchFunnelData();
   }, []);
 
@@ -268,7 +267,7 @@ function EmployerDashboard() {
           `${API_BASE_URL}getCandidateEngagementInsights`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         const { uniqueMessageSentPercentage = 0, uniqueReplyPercentage = 0 } =
@@ -334,7 +333,7 @@ function EmployerDashboard() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         // console.log(response);
         setActivity(response.data.data);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"
-
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -63,13 +62,15 @@ function CandinatesList() {
       setIsLocationLoading(false);
     }
   };
+
   const handleSelectLocation = (city) => {
     setSelectedLocation(city.name); // ✅ NAME
     setLocationSearchTerm(
-      `${city.name}, ${city.state_name}, ${city.country_name}`
+      `${city.name}, ${city.state_name}, ${city.country_name}`,
     );
     setLocationSuggestions([]);
   };
+
   const clearLocationFilter = () => {
     setSelectedLocation(null);
     setLocationSearchTerm("");
@@ -102,7 +103,7 @@ function CandinatesList() {
             experience:
               selectedExperience.length > 0 ? selectedExperience.join(",") : "",
           },
-        }
+        },
       );
 
       setCandidates(response.data.data || []);
@@ -139,7 +140,7 @@ function CandinatesList() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Show message from backend
@@ -159,7 +160,7 @@ function CandinatesList() {
   };
   const toggleEducation = (value) => {
     setSelectedEducation((prev) =>
-      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
     );
   };
 
@@ -228,7 +229,7 @@ function CandinatesList() {
                                   setSelectedExperience((prev) =>
                                     prev.includes(value)
                                       ? prev.filter((i) => i !== value)
-                                      : [...prev, value]
+                                      : [...prev, value],
                                   );
                                 }}
                               />
@@ -503,7 +504,7 @@ function CandinatesList() {
                                           e.stopPropagation(); // 🔥 stop parent navigation
                                           handleBookmark(
                                             user?._id,
-                                            candidate.jobId
+                                            candidate.jobId,
                                           );
                                         }}
                                         style={{ cursor: "pointer" }}

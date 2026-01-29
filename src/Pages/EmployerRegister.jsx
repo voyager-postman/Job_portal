@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios"
-
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
-
 import { API_BASE_URL } from "../Url/Url";
 
 function EmployerRegister() {
@@ -20,6 +18,7 @@ function EmployerRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { login, login: authLogin } = useAuth();
+
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
       toast.error("Please fill in all required fields");
@@ -92,6 +91,7 @@ function EmployerRegister() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const success = queryParams.get("success");
@@ -176,6 +176,7 @@ function EmployerRegister() {
     const role = "Company";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
+  
   return (
     <>
       <ToastContainer />
