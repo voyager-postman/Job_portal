@@ -47,6 +47,7 @@ function CandidateProfile() {
     { label: "Full professional", code: "C1" },
     { label: "Native / Bilingual", code: "C2" },
   ];
+  
   const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
   const [languageForm, setLanguageForm] = useState({
     language_id: "", // only when editing

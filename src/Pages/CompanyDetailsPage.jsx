@@ -22,8 +22,8 @@ function CompanyDetailsPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
-
   const [selectedId, setSelectedId] = useState(null);
+
   const getCompanyDetails = async () => {
     try {
       const res = await axios.get(
@@ -40,6 +40,7 @@ function CompanyDetailsPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (companyId) getCompanyDetails();
   }, [companyId]);
@@ -74,10 +75,12 @@ function CompanyDetailsPage() {
     };
     fetchResume();
   }, []);
+
   const handleSelect = (type, id = null) => {
     setSelectedType(type);
     setSelectedId(id);
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -86,6 +89,7 @@ function CompanyDetailsPage() {
       setSelectedId(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -142,10 +146,12 @@ function CompanyDetailsPage() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+
   const handleLinkClick = (e) => {
     e.preventDefault(); // prevent navigation
     fileInputRef.current.click(); // open file dialog
   };
+
   const isSelectionMade = () => {
     return (
       (selectedType === "resume" && selectedId) ||
@@ -239,6 +245,7 @@ function CompanyDetailsPage() {
       setIsApplying(false); // 🔥 Stop loader
     }
   };
+
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -249,6 +256,7 @@ function CompanyDetailsPage() {
   const decodedCareerDetail = decodeHtml(
     decodeHtml(company?.careerDetail || ""),
   );
+
   const handleCopy = async (e, linkUrl, jobId) => {
     console.log(linkUrl);
     e.preventDefault();
@@ -271,6 +279,24 @@ function CompanyDetailsPage() {
     } catch (err) {
       console.error("Failed to copy text:", err);
       toast.error("Failed to copy link");
+    }
+  };
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
     }
   };
 
@@ -549,7 +575,10 @@ function CompanyDetailsPage() {
                                   className="default-btn btn"
                                   data-bs-toggle="modal"
                                   data-bs-target="#exampleModal"
-                                  onClick={() => setJobId(job._id)} // ✅ set job ID here
+                                  onClick={() => {
+                                    setJobId(job._id);
+                                    handleJobClick(job._id);
+                                  }} // ✅ set job ID here
                                 >
                                   Apply Now
                                 </a>

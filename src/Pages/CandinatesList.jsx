@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+
 function CandinatesList() {
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
@@ -63,6 +64,7 @@ function CandinatesList() {
       setIsLocationLoading(false);
     }
   };
+
   const handleSelectLocation = (city) => {
     setSelectedLocation(city.name); // ✅ NAME
     setLocationSearchTerm(
@@ -70,6 +72,7 @@ function CandinatesList() {
     );
     setLocationSuggestions([]);
   };
+
   const clearLocationFilter = () => {
     setSelectedLocation(null);
     setLocationSearchTerm("");

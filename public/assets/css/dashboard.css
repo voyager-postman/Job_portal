@@ -4960,12 +4960,14 @@ width:65%;
 .available-company-logo {
   top: 15px;
   left: 15px;
-  max-width: 20%;
+  width: 50px;
   padding: 5px 5px;
-  background: #fff;
+  background: #eee;
   position: absolute;
-  overflow: hidden;
-  height: 40px;
+  /* border-radius: 50%; */
+}
+.available-company-logo img {
+  /* border-radius: 50%; */
 }
 
 .available-company-img img {
@@ -7002,8 +7004,8 @@ width:100%;
 }
 
 .messaging-system-chat-box {
-  width: 60%;
-  border-right: 1px solid #eeeeee;
+  width: 70%;
+  /* border-right: 1px solid #eeeeee; */
   border-left: 1px solid #eeeeee;
 }
 
@@ -7020,13 +7022,16 @@ width:100%;
 
 .messaging-system-tab-area .nav-tabs .nav-link {
   border: none;
-  padding: 0px 10px;
+  padding: 10px 10px;
   border-bottom: 1px solid #eeeeee;
 }
 
 .messaging-system-heading-info {
-  padding: 0px 20px 10px 10px;
+  padding: 10px 10px 10px 10px;
   border-bottom: 1px solid #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .messaging-system-heading-info h5 {
@@ -7039,13 +7044,15 @@ width:100%;
   display: flex;
   align-items: center;
   padding-left: 0px;
-  padding-top: 15px;
-  padding-bottom: 15px;
 }
 
 .messaging-system-user-img {
   position: relative;
   margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  overflow: hidden;
 }
 
 .messaging-system-user-img img {
@@ -7080,8 +7087,10 @@ width:100%;
 }
 
 .messaging-system-search-icon {
+  width: 100%;
   display: flex;
-  padding: 5px 8px;
+  margin: 5px 0px;
+  padding: 8px 8px;
   align-items: center;
   border-radius: 5px;
   border: 1px solid #cdcd;
@@ -7117,16 +7126,20 @@ width:100%;
 }
 
 .messaging-system-typeing-send-btn {
-  width: 95%;
+  width: 96%;
   margin: auto;
   display: flex;
   margin-top: 30px;
   border-radius: 5px;
   /* align-items: center; */
   /* padding-right: 20px; */
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   border: 2px solid #eeeeee;
   /* justify-content: space-between; */
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: 0px;
 }
 
 .messaging-system-typeing-send-btn .send_chat {
@@ -7157,6 +7170,10 @@ width:100%;
 
 .messaging-system-userImg {
   margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  overflow: hidden;
 }
 .messaging-system-userImg img {
   width: 50px;
@@ -7223,6 +7240,7 @@ width:100%;
   height: 400px;
   display: block;
   overflow: auto;
+  position: relative;
 }
 
 .messaging-system-tab-area .nav-tabs .nav-link h5 {
@@ -7244,6 +7262,7 @@ width:100%;
   font-size: 14px;
   margin-right: 5px;
 }
+
 .swiper-button-prev:after,
 .swiper-button-next:after {
   color: #fff;

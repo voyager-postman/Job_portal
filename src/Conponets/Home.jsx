@@ -4,7 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import React, { useEffect, useRef, useState } from "react";
 import mixitup from "mixitup";
-import axios from "axios"
+import axios from "axios";
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
 import { useInView } from "react-intersection-observer";
@@ -502,7 +502,6 @@ function Home() {
                   <h3>50K+</h3>
                   <span>Assisted Candidate</span>
                 </div>
-
                 <div
                   className="creative-agency d-none"
                   data-aos="fade-down-left"
@@ -521,6 +520,7 @@ function Home() {
         </div>
       </div>
 
+      {/* Companies of the Week */}
       <section className="companies-week-slider-info">
         <div className="container">
           <div className="section-title text-center">
@@ -544,12 +544,11 @@ function Home() {
                           src={
                             company?.logo
                               ? `${API_IMAGE_URL}${company.logo}`
-                              : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                              : "/jobPortal/assets/images/companyLogo.jpg"
                           }
                           alt={company?.brandName || "Company Logo"}
                         />
                       </div>
-
                       {/* ✅ Company Background Image */}
                       <div className="companies-week-img">
                         <img
@@ -557,7 +556,7 @@ function Home() {
                           src={
                             company?.coverPhoto
                               ? `${API_IMAGE_URL}${company.coverPhoto}`
-                              : "/jobPortal/assets/images/company/company-img-1.jpg"
+                              : "/jobPortal/assets/images/company2.jpg"
                           }
                           alt={company?.brandName || "Company Cover"}
                         />
@@ -605,12 +604,15 @@ function Home() {
         </div>
       </section>
 
+      {/* Most Demanded Jobs Categories */}
       <div className="job-categories-area ptb-100">
         <div className="container">
           <div className="section-title">
             <h2>
               {t("header.mostDemandedJobs")}{" "}
-              <label className="oragneColor">{t("header.categories")}</label>{" "}
+              <label className="oragneColor">
+                {t("header.categories")}
+              </label>{" "}
             </h2>
           </div>
 
@@ -630,6 +632,8 @@ function Home() {
           </div>
         </div>
       </div>
+
+      {/* Find Your Best Jobs */}
       <div className="find-job-area pb-100">
         <div className="container">
           <div className="section-title">
@@ -735,6 +739,7 @@ function Home() {
         </div>
       </div>
 
+      {/* count section */}
       <div className="counter-area" ref={ref}>
         <div className="container">
           <div className="counter-overly">
@@ -761,6 +766,8 @@ function Home() {
           </div>
         </div>
       </div>
+
+      {/* Put Your CV In Front Of The Great For Employers To See */}
       <div className="cv-area ptb-100">
         <div className="container">
           <div className="row align-items-center">
@@ -1225,7 +1232,10 @@ function Home() {
                 <div className="section-title style2">
                   <h2>
                     {t("header.readArticleTo")}{" "}
-                    <label class="oragneColor"> {t("header.getTricks")}</label>{" "}
+                    <label class="oragneColor">
+                      {" "}
+                      {t("header.getTricks")}
+                    </label>{" "}
                   </h2>
                 </div>
               </div>

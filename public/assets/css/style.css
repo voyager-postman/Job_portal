@@ -7377,6 +7377,11 @@ Go To Top Style
   padding: 5px 5px;
   background: #fff;
   position: absolute;
+  z-index: 999;
+}
+
+.companies-week-img {
+  position: relative;
 }
 
 .companies-week-logo img {
@@ -8385,14 +8390,14 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
 .candidate-profile-skill-info ul li {
   color: #fff;
-    cursor: pointer;
-    list-style: none;
-    margin-right: 10px;
-    padding: 5px 5px;
-    border-radius: 5px;
-    background: #0066cc;
-    display: inline-block;
-    margin-bottom: 15px;
+  cursor: pointer;
+  list-style: none;
+  margin-right: 10px;
+  padding: 5px 5px;
+  border-radius: 5px;
+  background: #0066cc;
+  display: inline-block;
+  margin-bottom: 15px;
 }
 
 .candidate-profile-review-heading h3 {
@@ -8418,7 +8423,7 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .user-content-main-area {
-width:70%;  
+  width: 70%;
 }
 
 .user-content-main-area h5 {
@@ -9140,10 +9145,10 @@ width:70%;
 }
 
 .company-short-detail-img {
-  width: 150px;
-  height: 100px;
+  width: 100px;
+  /* height: 100px; */
   background: #eee;
-  padding: 0px 10px;
+  padding: 10px 10px;
   margin-right: 20px;
 }
 
@@ -9847,12 +9852,12 @@ width:70%;
 }
 
 .job-card-companies-box {
-height: 450px;
-overflow: auto;
-padding: 10px;
-background: #fff;
-border-radius: 10px;
-border: 1px solid #d7cbcb9e;
+  height: 450px;
+  overflow: auto;
+  padding: 10px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #d7cbcb9e;
 }
 
 .job-card-companies-img {
@@ -9915,11 +9920,11 @@ border: 1px solid #d7cbcb9e;
 }
 
 .job-card-companies-name ul li a {
-color: #666666;
-display: block;
-padding: 0px 5px;
-font-weight: 500;
-font-size: 15px;
+  color: #666666;
+  display: block;
+  padding: 0px 5px;
+  font-weight: 500;
+  font-size: 15px;
 }
 
 .job-card-companies-name ul li a:hover {
@@ -10919,7 +10924,7 @@ text-transform: capitalize;
 
 /* Line */
 .step-line {
-  flex: 1;                /* STRETCH */
+  flex: 1; /* STRETCH */
   height: 4px;
   margin: 0 6px;
 }
@@ -10948,8 +10953,6 @@ text-transform: capitalize;
 }
 
 /*Skill Assessment popup css start here*/
- 
- 
 .skills-assessment-test-required-details {
 margin-top: 30px;
 background:#f0f5f7;

@@ -6,7 +6,8 @@ import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
@@ -74,6 +75,7 @@ function EmployerCandinateList() {
       setSelectedCandidate(null);
     }
   };
+
   const fetchCandidates2 = async () => {
     let query = [];
 
@@ -92,6 +94,7 @@ function EmployerCandinateList() {
     setCandidateCount(data.summary || {});
     setTotalPages(data.totalPages || 1);
   };
+
   useEffect(() => {
     fetchCandidates2();
   }, [page]);
@@ -129,9 +132,11 @@ function EmployerCandinateList() {
       console.error("Error fetching salary ranges:", error);
     }
   };
+
   useEffect(() => {
     fetchExperienceLevels();
   }, []);
+
   useEffect(() => {
     fetchCandidates(selectedStatus);
     fetchCandidates2();
@@ -148,9 +153,11 @@ function EmployerCandinateList() {
       console.error("Error fetching experience levels:", error);
     }
   };
+
   useEffect(() => {
     fetchEducationList();
   }, []);
+
   const handleStatusUpdate = async (e) => {
     const value = e.target.value;
     setNewApplicationStatus(value);
@@ -191,6 +198,7 @@ function EmployerCandinateList() {
       console.error("Error fetching education types:", error);
     }
   };
+
   const handleLocationSearch = async (e) => {
     const value = e.target.value;
     setLocationSearchTerm(value);
@@ -244,6 +252,7 @@ function EmployerCandinateList() {
       location: city.name,
     }));
   };
+
   useEffect(() => {
     if (filters.location) {
       fetchCandidates(); // now always uses updated filter value
@@ -281,6 +290,7 @@ function EmployerCandinateList() {
       fetchCandidates(selectedStatus); // load with current filter
     }
   }, [jobId]);
+
   useEffect(() => {
     fetchCandidates(selectedStatus); // if you have status filter
   }, [filters]);

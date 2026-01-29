@@ -18,6 +18,7 @@ function EmployerRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const { login, login: authLogin } = useAuth();
+
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
       toast.error("Please fill in all required fields");
@@ -90,6 +91,7 @@ function EmployerRegister() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const success = queryParams.get("success");
@@ -174,6 +176,7 @@ function EmployerRegister() {
     const role = "Company";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
+  
   return (
     <>
       <ToastContainer />
