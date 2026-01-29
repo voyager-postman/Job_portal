@@ -78,12 +78,12 @@ const JobList = () => {
 
     // Companies (convert string → object)
     setSelectedCompanies(
-      alert.company?.map((name) => ({ _id: name, brandName: name })) || []
+      alert.company?.map((name) => ({ _id: name, brandName: name })) || [],
     );
 
     // Locations (convert string → object)
     setSelectedLocations(
-      alert.location?.map((name) => ({ _id: name, name })) || []
+      alert.location?.map((name) => ({ _id: name, name })) || [],
     );
 
     // Salary Ranges
@@ -106,7 +106,7 @@ const JobList = () => {
       "",
       "",
       alert.location?.join(","),
-      alert.salaryRange
+      alert.salaryRange,
     );
   }, [alert]);
 
@@ -132,7 +132,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ location
-      updatedRanges // ✅ salary filters
+      updatedRanges, // ✅ salary filters
     );
   };
   const fetchJobTypes = async () => {
@@ -162,7 +162,6 @@ const JobList = () => {
       console.error("Error fetching seniority levels:", error);
     }
   };
-
 
   useEffect(() => {
     fetchSeniorityLevels();
@@ -206,7 +205,7 @@ const JobList = () => {
       updatedFilters.location, // ✅ location
       updatedFilters.category, // ✅ category
       selectedLocations.map((l) => l.name).join(","), // ✅ Filterlocation
-      selectedSalaryRanges // ✅ salary_range
+      selectedSalaryRanges, // ✅ salary_range
     );
   };
 
@@ -227,7 +226,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ still keep locations
-      [] // ✅ cleared salary ranges
+      [], // ✅ cleared salary ranges
     );
   };
 
@@ -278,7 +277,7 @@ const JobList = () => {
     } catch (error) {
       console.error("❌ Error creating job alert:", error.response || error);
       toast.error(
-        error?.response?.data?.message || "Failed to create job alert."
+        error?.response?.data?.message || "Failed to create job alert.",
       );
     } finally {
       setLoading(false);
@@ -295,7 +294,7 @@ const JobList = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log(response.data);
     } catch (error) {
@@ -385,7 +384,7 @@ const JobList = () => {
         filters.location,
         filters.category,
         updated.map((l) => l.name).join(","), // ✅ send all selected location names
-        selectedSalaryRanges
+        selectedSalaryRanges,
       );
     }
 
@@ -411,7 +410,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       updated.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -433,12 +432,12 @@ const JobList = () => {
       "", // clear location search
       filters.category,
       "",
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const [selectedTechStacks, setSelectedTechStacks] = useState(
-    alert?.filterCategory?.map((item) => item._id) || []
+    alert?.filterCategory?.map((item) => item._id) || [],
   );
 
   useEffect(() => {
@@ -452,13 +451,13 @@ const JobList = () => {
   const [searchCategories, setSearchCategories] = useState(""); // for category search
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [selectedSeniority, setSelectedSeniority] = useState(
-    alert?.experience || []
+    alert?.experience || [],
   );
 
   const wrapperRef = useRef(null);
   const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
   const [selectedJobTypes, setSelectedJobTypes] = useState(
-    alert?.jobType || []
+    alert?.jobType || [],
   );
 
   const [options, setOptions] = useState([]); // All industries from API
@@ -488,7 +487,7 @@ const JobList = () => {
       company.brandName
         .toLowerCase()
         .includes(companySearchTerm.toLowerCase()) &&
-      !selectedCompanies.some((c) => c._id === company._id)
+      !selectedCompanies.some((c) => c._id === company._id),
   );
 
   const handleSaveJob = async (jobId) => {
@@ -500,7 +499,7 @@ const JobList = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -553,12 +552,12 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleRemoveCompany = (companyId) => {
     const updatedCompanies = selectedCompanies.filter(
-      (c) => c._id !== companyId
+      (c) => c._id !== companyId,
     );
     setSelectedCompanies(updatedCompanies);
 
@@ -575,7 +574,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -596,7 +595,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ location
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -635,7 +634,7 @@ const JobList = () => {
   }, []);
 
   const filteredOptions = options.filter((industry) =>
-    industry.name.toLowerCase().includes(searchTerm.toLowerCase())
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   // ✅ Fetch categories
   const getCategories = async () => {
@@ -665,7 +664,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      updated
+      updated,
     );
   };
 
@@ -702,7 +701,7 @@ const JobList = () => {
     location = filters.location,
     category = filters.category,
     locationFilter = "",
-    salaryRangesAPI = []
+    salaryRangesAPI = [],
   ) => {
     try {
       setIsLoadingJobs(true); // 🔵 START LOADER
@@ -784,6 +783,17 @@ const JobList = () => {
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
+  const resetApplyModal = () => {
+    setSelectedType("");
+    setSelectedId(null);
+    setSelectedCustomFile(null);
+    setIsApplying(false);
+
+    // reset file input
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -849,7 +859,15 @@ const JobList = () => {
       console.error("Apply job error:", error);
 
       // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -929,7 +947,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -950,7 +968,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -978,7 +996,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleJobTypeChange = (e) => {
@@ -1003,7 +1021,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -1023,7 +1041,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleSeniorityChange = (e) => {
@@ -1048,7 +1066,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -1068,7 +1086,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -1094,7 +1112,7 @@ const JobList = () => {
       filters.location, // location search
       filters.category, // category name
       selectedLocations.map((l) => l.name).join(","), // location filter
-      selectedSalaryRanges // salary filter
+      selectedSalaryRanges, // salary filter
     );
   };
 
@@ -1115,7 +1133,7 @@ const JobList = () => {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   useEffect(() => {
@@ -1368,7 +1386,7 @@ const JobList = () => {
                                 .filter((cat) =>
                                   cat.name
                                     .toLowerCase()
-                                    .includes(searchTech.toLowerCase())
+                                    .includes(searchTech.toLowerCase()),
                                 )
                                 .map((cat, index) => (
                                   <li key={cat._id}>
@@ -1377,7 +1395,7 @@ const JobList = () => {
                                       id={`tech-${index + 3}`}
                                       value={cat._id}
                                       checked={selectedTechStacks.includes(
-                                        cat._id
+                                        cat._id,
                                       )}
                                       onChange={handleTechStackChange}
                                     />
@@ -1460,7 +1478,7 @@ const JobList = () => {
                                     type="checkbox"
                                     value={type._id} // ✅ send ID
                                     checked={selectedJobTypes.includes(
-                                      type._id
+                                      type._id,
                                     )} // ✅ check by ID
                                     onChange={handleJobTypeChange}
                                   />
@@ -1589,7 +1607,7 @@ const JobList = () => {
                                   id={`seniority-${index}`}
                                   value={level._id} // ✅ Use ID instead of name
                                   checked={selectedSeniority.includes(
-                                    level._id
+                                    level._id,
                                   )} // ✅ Compare by ID
                                   onChange={handleSeniorityChange}
                                 />
@@ -1612,7 +1630,7 @@ const JobList = () => {
                                     id={`seniority-${index + 3}`}
                                     value={level._id} // ✅ Use ID
                                     checked={selectedSeniority.includes(
-                                      level._id
+                                      level._id,
                                     )} // ✅ Compare by ID
                                     onChange={handleSeniorityChange}
                                   />
@@ -1680,7 +1698,7 @@ const JobList = () => {
                                   type="checkbox"
                                   value={range.range}
                                   checked={selectedSalaryRanges.includes(
-                                    range.range
+                                    range.range,
                                   )}
                                   onChange={handleSalaryChange}
                                 />
@@ -1700,7 +1718,7 @@ const JobList = () => {
                                     type="checkbox"
                                     value={range.range}
                                     checked={selectedSalaryRanges.includes(
-                                      range.range
+                                      range.range,
                                     )}
                                     onChange={handleSalaryChange}
                                   />
@@ -1789,7 +1807,7 @@ const JobList = () => {
                                       onClick={() => toggleOption(industry)}
                                       className={
                                         selected.some(
-                                          (i) => i._id === industry._id
+                                          (i) => i._id === industry._id,
                                         )
                                           ? "selected"
                                           : ""
@@ -1797,7 +1815,7 @@ const JobList = () => {
                                     >
                                       {industry.name}
                                       {selected.some(
-                                        (i) => i._id === industry._id
+                                        (i) => i._id === industry._id,
                                       ) && <span className="checkmark">✔</span>}
                                     </li>
                                   ))
@@ -1908,12 +1926,12 @@ const JobList = () => {
                                     onClick={() => handleRemoveFilterJob(key)}
                                   />
                                 </span>
-                              )
+                              ),
                             )}
                             {/* ✅ Dynamic selected filters */}
                             {selectedJobTypes.map((id) => {
                               const jobType = jobTypes.find(
-                                (j) => j._id === id
+                                (j) => j._id === id,
                               );
                               return (
                                 <span key={id} className="filter-tag">
@@ -1965,7 +1983,7 @@ const JobList = () => {
 
                             {selectedSeniority.map((id) => {
                               const level = seniorityLevels.find(
-                                (l) => l._id === id
+                                (l) => l._id === id,
                               );
                               return (
                                 <span key={id} className="filter-tag">
@@ -2063,7 +2081,7 @@ const JobList = () => {
                                         // 🔥 Open Set Alert Modal programmatically
                                         const modalEl =
                                           document.getElementById(
-                                            "exampleModal1"
+                                            "exampleModal1",
                                           );
                                         if (modalEl) {
                                           const modalInstance =
@@ -2221,7 +2239,8 @@ const JobList = () => {
 
                                         <li>
                                           <i className="fa-solid fa-users" />{" "}
-                                          Available: {job?.availablePosts || 0}{" "}
+                                          Available:{" "}
+                                          {job?.availablePosts || 0}{" "}
                                         </li>
                                       </ul>
                                     </div>
@@ -2252,12 +2271,12 @@ const JobList = () => {
                                             // 🔥 Open Apply Modal (correct way)
                                             const modalEl =
                                               document.getElementById(
-                                                "exampleModal"
+                                                "exampleModal",
                                               );
                                             if (modalEl) {
                                               const modalInstance =
                                                 new window.bootstrap.Modal(
-                                                  modalEl
+                                                  modalEl,
                                                 );
                                               modalInstance.show();
                                             }
@@ -2291,6 +2310,7 @@ const JobList = () => {
                                         className="btn-close"
                                         data-bs-dismiss="modal"
                                         aria-label="Close"
+                                        onClick={resetApplyModal}
                                       />
                                     </div>
                                     {/* NOTE: use className, not class */}
@@ -2310,7 +2330,7 @@ const JobList = () => {
                                           {Array.isArray(resumeList) &&
                                             resumeList.map((resume) => {
                                               const fileName = getFileName(
-                                                resume.url
+                                                resume.url,
                                               );
                                               return (
                                                 <div
@@ -2326,7 +2346,7 @@ const JobList = () => {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "resume",
-                                                      resume.url
+                                                      resume.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -2374,7 +2394,7 @@ const JobList = () => {
                                           {Array.isArray(coverLetterList) &&
                                             coverLetterList.map((cover) => {
                                               const fileName = getFileName(
-                                                cover.url
+                                                cover.url,
                                               );
                                               return (
                                                 <div
@@ -2389,7 +2409,7 @@ const JobList = () => {
                                                   onClick={() =>
                                                     handleSelect(
                                                       "cover",
-                                                      cover.url
+                                                      cover.url,
                                                     )
                                                   }
                                                   style={{ cursor: "pointer" }}
@@ -2596,7 +2616,7 @@ const JobList = () => {
                                                   <h4
                                                     onClick={() =>
                                                       handleViewCompany(
-                                                        company?._id
+                                                        company?._id,
                                                       )
                                                     }
                                                     style={{
@@ -2632,7 +2652,7 @@ const JobList = () => {
                                                               {job.jobTitle}
                                                             </Link>{" "}
                                                           </li>
-                                                        )
+                                                        ),
                                                       )
                                                     ) : (
                                                       <li>No jobs available</li>
@@ -2646,7 +2666,7 @@ const JobList = () => {
                                                     className="default-btn btn"
                                                     onClick={() =>
                                                       handleViewCompany(
-                                                        company?._id
+                                                        company?._id,
                                                       )
                                                     }
                                                   >
@@ -2753,7 +2773,7 @@ const JobList = () => {
                         <label htmlFor={freq}>{labelText}</label>
                       </span>
                     );
-                  }
+                  },
                 )}
               </div>
             </div>

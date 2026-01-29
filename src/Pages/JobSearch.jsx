@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 // import axios from "../utils/axiosInstance"
-import axios from "axios"
+import axios from "axios";
 import moment from "moment";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -66,11 +66,11 @@ function JobSearch() {
     setSelected(alert.industry || []);
     // Companies (convert string → object)
     setSelectedCompanies(
-      alert.company?.map((name) => ({ _id: name, brandName: name })) || []
+      alert.company?.map((name) => ({ _id: name, brandName: name })) || [],
     );
     // Locations (convert string → object)
     setSelectedLocations(
-      alert.location?.map((name) => ({ _id: name, name })) || []
+      alert.location?.map((name) => ({ _id: name, name })) || [],
     );
     // Salary Ranges
     setSelectedSalaryRanges(alert.salaryRange || []);
@@ -90,7 +90,7 @@ function JobSearch() {
       "",
       "",
       alert.location?.join(","),
-      alert.salaryRange
+      alert.salaryRange,
     );
   }, [alert]);
 
@@ -157,7 +157,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ location
-      updatedRanges // ✅ salary filters
+      updatedRanges, // ✅ salary filters
     );
   };
 
@@ -171,7 +171,7 @@ function JobSearch() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log(response.data);
     } catch (error) {
@@ -200,7 +200,7 @@ function JobSearch() {
         {
           autoClose: 2000,
           theme: "colored",
-        }
+        },
       );
       return; // stop here
     }
@@ -254,9 +254,18 @@ function JobSearch() {
         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
         bootstrapModal?.hide();
       }
+      
     } catch (error) {
       console.error("Apply job error:", error);
-      if (error?.response?.status === 413 || error?.message?.includes("413")) {
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -342,7 +351,7 @@ function JobSearch() {
       updatedFilters.location, // ✅ location
       updatedFilters.category, // ✅ category
       selectedLocations.map((l) => l.name).join(","), // ✅ Filterlocation
-      selectedSalaryRanges // ✅ salary_range
+      selectedSalaryRanges, // ✅ salary_range
     );
   };
 
@@ -363,7 +372,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ still keep locations
-      [] // ✅ cleared salary ranges
+      [], // ✅ cleared salary ranges
     );
   };
 
@@ -414,7 +423,7 @@ function JobSearch() {
     } catch (error) {
       console.error("❌ Error creating job alert:", error.response || error);
       toast.error(
-        error?.response?.data?.message || "Failed to create job alert."
+        error?.response?.data?.message || "Failed to create job alert.",
       );
     } finally {
       setLoading(false);
@@ -468,7 +477,7 @@ function JobSearch() {
         filters.location,
         filters.category,
         updated.map((l) => l.name).join(","), // ✅ send all selected location names
-        selectedSalaryRanges
+        selectedSalaryRanges,
       );
     }
 
@@ -494,7 +503,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       updated.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -516,13 +525,13 @@ function JobSearch() {
       "", // clear location search
       filters.category,
       "",
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const [selectedTechStacks, setSelectedTechStacks] = useState(
-    alert?.filterCategory?.map((item) => item._id) || []
+    alert?.filterCategory?.map((item) => item._id) || [],
   );
 
   useEffect(() => {
@@ -536,13 +545,13 @@ function JobSearch() {
   const [searchCategories, setSearchCategories] = useState(""); // for category search
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [selectedSeniority, setSelectedSeniority] = useState(
-    alert?.experience || []
+    alert?.experience || [],
   );
 
   const wrapperRef = useRef(null);
   const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
   const [selectedJobTypes, setSelectedJobTypes] = useState(
-    alert?.jobType || []
+    alert?.jobType || [],
   );
 
   const [options, setOptions] = useState([]); // All industries from API
@@ -572,7 +581,7 @@ function JobSearch() {
       company.brandName
         .toLowerCase()
         .includes(companySearchTerm.toLowerCase()) &&
-      !selectedCompanies.some((c) => c._id === company._id)
+      !selectedCompanies.some((c) => c._id === company._id),
   );
 
   const handleSaveJob = async (jobId) => {
@@ -584,7 +593,7 @@ function JobSearch() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("✅ API Response:", res.data);
@@ -633,12 +642,12 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleRemoveCompany = (companyId) => {
     const updatedCompanies = selectedCompanies.filter(
-      (c) => c._id !== companyId
+      (c) => c._id !== companyId,
     );
     setSelectedCompanies(updatedCompanies);
 
@@ -655,7 +664,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -676,7 +685,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","), // ✅ location
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -715,7 +724,7 @@ function JobSearch() {
   }, []);
 
   const filteredOptions = options.filter((industry) =>
-    industry.name.toLowerCase().includes(searchTerm.toLowerCase())
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   // ✅ Fetch categories
   const getCategories = async () => {
@@ -727,7 +736,7 @@ function JobSearch() {
       console.error("Error fetching categories:", error);
     }
   };
-  
+
   const handleRemoveSalaryTag = (range) => {
     const updated = selectedSalaryRanges.filter((r) => r !== range);
     setSelectedSalaryRanges(updated);
@@ -746,7 +755,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      updated
+      updated,
     );
   };
 
@@ -775,7 +784,7 @@ function JobSearch() {
         range
           .replace(/\$/g, "") // remove $
           .replace(/\s+/g, "") // remove spaces
-          .replace("-", "-") // keep dash
+          .replace("-", "-"), // keep dash
     );
   };
 
@@ -792,7 +801,7 @@ function JobSearch() {
     location = filters.location,
     category = filters.category,
     locationFilter = "",
-    salaryRangesAPI = []
+    salaryRangesAPI = [],
   ) => {
     try {
       setIsLoadingJobs(true); // 🔵 START LOADER
@@ -870,6 +879,17 @@ function JobSearch() {
     getCategories();
     getAllJobList(pageSize, pageNumber);
   }, [pageNumber, pageSize]);
+  const resetApplyModal = () => {
+    setSelectedType("");
+    setSelectedId(null);
+    setSelectedCustomFile(null);
+    setIsApplying(false);
+
+    // reset file input
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const clearAll = () => {
     const clearedIndustries = [];
@@ -888,7 +908,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -909,7 +929,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -936,7 +956,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleJobTypeChange = (e) => {
@@ -961,7 +981,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -981,7 +1001,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   const handleSeniorityChange = (e) => {
@@ -1006,7 +1026,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -1026,7 +1046,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
 
@@ -1052,7 +1072,7 @@ function JobSearch() {
       filters.location, // location search
       filters.category, // category name
       selectedLocations.map((l) => l.name).join(","), // location filter
-      selectedSalaryRanges // salary filter
+      selectedSalaryRanges, // salary filter
     );
   };
   const isSelectionMade = () => {
@@ -1080,7 +1100,7 @@ function JobSearch() {
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
-      selectedSalaryRanges
+      selectedSalaryRanges,
     );
   };
   useEffect(() => {
@@ -1615,7 +1635,7 @@ function JobSearch() {
                               .filter((cat) =>
                                 cat.name
                                   .toLowerCase()
-                                  .includes(searchTech.toLowerCase())
+                                  .includes(searchTech.toLowerCase()),
                               )
                               .map((cat, index) => (
                                 <li key={cat._id}>
@@ -1624,7 +1644,7 @@ function JobSearch() {
                                     id={`tech-${index + 3}`}
                                     value={cat._id}
                                     checked={selectedTechStacks.includes(
-                                      cat._id
+                                      cat._id,
                                     )}
                                     onChange={handleTechStackChange}
                                   />
@@ -1851,7 +1871,7 @@ function JobSearch() {
                                   id={`seniority-${index + 3}`}
                                   value={level._id} // ✅ Use ID
                                   checked={selectedSeniority.includes(
-                                    level._id
+                                    level._id,
                                   )} // ✅ Compare by ID
                                   onChange={handleSeniorityChange}
                                 />
@@ -1918,7 +1938,7 @@ function JobSearch() {
                                 type="checkbox"
                                 value={range.range}
                                 checked={selectedSalaryRanges.includes(
-                                  range.range
+                                  range.range,
                                 )}
                                 onChange={handleSalaryChange}
                               />
@@ -1938,7 +1958,7 @@ function JobSearch() {
                                   type="checkbox"
                                   value={range.range}
                                   checked={selectedSalaryRanges.includes(
-                                    range.range
+                                    range.range,
                                   )}
                                   onChange={handleSalaryChange}
                                 />
@@ -2024,7 +2044,7 @@ function JobSearch() {
                                     onClick={() => toggleOption(industry)}
                                     className={
                                       selected.some(
-                                        (i) => i._id === industry._id
+                                        (i) => i._id === industry._id,
                                       )
                                         ? "selected"
                                         : ""
@@ -2032,7 +2052,7 @@ function JobSearch() {
                                   >
                                     {industry.name}
                                     {selected.some(
-                                      (i) => i._id === industry._id
+                                      (i) => i._id === industry._id,
                                     ) && <span className="checkmark">✔</span>}
                                   </li>
                                 ))
@@ -2139,7 +2159,7 @@ function JobSearch() {
                                   onClick={() => handleRemoveFilterJob(key)}
                                 />
                               </span>
-                            )
+                            ),
                           )}
 
                           {/* ✅ Dynamic selected filters */}
@@ -2192,7 +2212,7 @@ function JobSearch() {
 
                           {selectedSeniority.map((id) => {
                             const level = seniorityLevels.find(
-                              (l) => l._id === id
+                              (l) => l._id === id,
                             );
                             return (
                               <span key={id} className="filter-tag">
@@ -2417,7 +2437,8 @@ function JobSearch() {
                                       </li>
                                       <li>
                                         <i className="fa-solid fa-users" />{" "}
-                                        Available: {job?.availablePosts || 0}{" "}
+                                        Available:{" "}
+                                        {job?.availablePosts || 0}{" "}
                                       </li>
                                     </ul>
                                   </div>
@@ -2467,6 +2488,7 @@ function JobSearch() {
                                       className="btn-close"
                                       data-bs-dismiss="modal"
                                       aria-label="Close"
+                                      onClick={resetApplyModal}
                                     />
                                   </div>
                                   {/* NOTE: use className, not class */}
@@ -2486,7 +2508,7 @@ function JobSearch() {
                                         {Array.isArray(resumeList) &&
                                           resumeList.map((resume) => {
                                             const fileName = getFileName(
-                                              resume.url
+                                              resume.url,
                                             );
                                             return (
                                               <div
@@ -2501,7 +2523,7 @@ function JobSearch() {
                                                 onClick={() =>
                                                   handleSelect(
                                                     "resume",
-                                                    resume.url
+                                                    resume.url,
                                                   )
                                                 }
                                                 style={{ cursor: "pointer" }}
@@ -2548,7 +2570,7 @@ function JobSearch() {
                                         {Array.isArray(coverLetterList) &&
                                           coverLetterList.map((cover) => {
                                             const fileName = getFileName(
-                                              cover.url
+                                              cover.url,
                                             );
                                             return (
                                               <div
@@ -2563,7 +2585,7 @@ function JobSearch() {
                                                 onClick={() =>
                                                   handleSelect(
                                                     "cover",
-                                                    cover.url
+                                                    cover.url,
                                                   )
                                                 }
                                                 style={{ cursor: "pointer" }}
@@ -2770,7 +2792,7 @@ function JobSearch() {
                                                 <h4
                                                   onClick={() =>
                                                     handleViewCompany(
-                                                      company?._id
+                                                      company?._id,
                                                     )
                                                   }
                                                   style={{
@@ -2816,7 +2838,7 @@ function JobSearch() {
                                                   className="default-btn btn"
                                                   onClick={() =>
                                                     handleViewCompany(
-                                                      company?._id
+                                                      company?._id,
                                                     )
                                                   }
                                                 >
@@ -2950,7 +2972,7 @@ function JobSearch() {
                         <label htmlFor={freq}>{labelText}</label>
                       </span>
                     );
-                  }
+                  },
                 )}
               </div>
             </div>

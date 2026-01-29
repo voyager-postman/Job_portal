@@ -470,6 +470,16 @@ function CandidateProfile() {
   console.log(portfolioLinks);
   console.log(profileData);
   const handleDelete = async () => {
+    if (!reason) {
+      toast.error("Please select a reason");
+      return;
+    }
+
+    if (!comments.trim()) {
+      toast.error("Please enter comments");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
 
@@ -483,18 +493,18 @@ function CandidateProfile() {
         },
       );
 
-      console.log("Account deleted:", res.data);
       const modal = document.getElementById("exampleModaldlt");
       const modalInstance = window.bootstrap.Modal.getInstance(modal);
       modalInstance.hide();
+
       toast.success("Your account has been deleted successfully!");
-      logout(); // clears localStorage + state
-      navigate("/"); // redirect to home or login
+      logout();
+      navigate("/");
     } catch (error) {
-      console.error("Error deleting account:", error);
       toast.error("Failed to delete account.");
     }
   };
+
   const handleUploadCoverLetter = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
@@ -2256,6 +2266,10 @@ function CandidateProfile() {
     }
 
     return email.slice(0, atIndex + 1) + "...";
+  };
+  const resetDeleteForm = () => {
+    setReason("");
+    setComments("");
   };
 
   return (
@@ -5670,109 +5684,111 @@ function CandidateProfile() {
                     <h3>Delete Account</h3>
                   </div>
                   <div className="profile-form">
-                    <form>
-                      <div className="row">
-                        <div className="col-lg-12">
-                          <div className="delete-account">
-                            <p>
-                              If you want to permanently delete your account,
-                              <span>
-                                <a
-                                  herf="#"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#exampleModaldlt"
+                    <div className="row">
+                      <div className="col-lg-12">
+                        <div className="delete-account">
+                          <p>
+                            If you want to permanently delete your account,
+                            <span>
+                              <a
+                                herf="#"
+                                data-bs-toggle="modal"
+                                data-bs-target="#exampleModaldlt"
+                              >
+                                click here.
+                              </a>
+                            </span>
+                          </p>
+                        </div>
+                        {/* Modal */}
+                        <div
+                          className="modal fade"
+                          id="exampleModaldlt"
+                          tabIndex={-1}
+                          aria-labelledby="exampleModaldlt"
+                          aria-hidden="true"
+                        >
+                          <div className="modal-dialog">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5
+                                  className="modal-title"
+                                  id="exampleModaldlt"
                                 >
-                                  click here.
-                                </a>
-                              </span>
-                            </p>
-                          </div>
-                          {/* Modal */}
-                          <div
-                            className="modal fade"
-                            id="exampleModaldlt"
-                            tabIndex={-1}
-                            aria-labelledby="exampleModaldlt"
-                            aria-hidden="true"
-                          >
-                            <div className="modal-dialog">
-                              <div className="modal-content">
-                                <div className="modal-header">
-                                  <h5
-                                    className="modal-title"
-                                    id="exampleModaldlt"
-                                  >
-                                    Delete Account
-                                  </h5>
-                                  <button
-                                    type="button"
-                                    className="btn-close"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close"
-                                  />
-                                </div>
-                                <div className="modal-body">
-                                  <div className="candidate-personal-dlt-details">
-                                    <div className="candidate-personal-dlt-details-heading">
-                                      <h4>We are sorry to see you go!</h4>
-                                      <p>
-                                        Tell us why you would like to delete
-                                        your account.
-                                      </p>
-                                    </div>
+                                  Delete Account
+                                </h5>
+                                <button
+                                  type="button"
+                                  className="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                  onClick={resetDeleteForm}
+                                />
+                              </div>
+                              <div className="modal-body">
+                                <div className="candidate-personal-dlt-details">
+                                  <div className="candidate-personal-dlt-details-heading">
+                                    <h4>We are sorry to see you go!</h4>
                                     <p>
-                                      Please select your favorite Web language:
+                                      Tell us why you would like to delete your
+                                      account.
                                     </p>
-                                    <ul>
-                                      {[
-                                        "I never got a job interview",
-                                        "I have a privacy concern",
-                                        "I have a duplicate account",
-                                        "I'm getting too many emails",
-                                        "Other reason",
-                                      ].map((r, idx) => (
-                                        <li key={idx}>
-                                          <input
-                                            type="radio"
-                                            name="reason"
-                                            value={r}
-                                            onChange={(e) =>
-                                              setReason(e.target.value)
-                                            }
-                                          />
-                                          <label>{r}</label>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                    <div className="form-group">
-                                      <label>Comments</label>
-                                      <textarea
-                                        className="form-control"
-                                        placeholder="write the reason here...."
-                                        rows={3}
-                                        value={comments}
-                                        onChange={(e) =>
-                                          setComments(e.target.value)
-                                        }
-                                      />
-                                    </div>
+                                  </div>
+                                  <p>
+                                    Please select your favorite Web language:
+                                  </p>
+                                  <ul>
+                                    {[
+                                      "I never got a job interview",
+                                      "I have a privacy concern",
+                                      "I have a duplicate account",
+                                      "I'm getting too many emails",
+                                      "Other reason",
+                                    ].map((r, idx) => (
+                                      <li key={idx}>
+                                        <input
+                                          type="radio"
+                                          name="reason"
+                                          value={r}
+                                          checked={reason === r}
+                                          onChange={(e) =>
+                                            setReason(e.target.value)
+                                          }
+                                        />
+
+                                        <label>{r}</label>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <div className="form-group">
+                                    <label>Comments</label>
+                                    <textarea
+                                      className="form-control"
+                                      placeholder="write the reason here...."
+                                      rows={3}
+                                      value={comments}
+                                      onChange={(e) =>
+                                        setComments(e.target.value)
+                                      }
+                                    />
                                   </div>
                                 </div>
-                                <div className="delete-account-popup-btn modal-footer">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleDelete}
-                                  >
-                                    Submit
-                                  </button>
-                                </div>
+                              </div>
+                              <div className="delete-account-popup-btn modal-footer">
+                                <button
+                                  type="button"
+                                  className="default-btn btn"
+                                  onClick={handleDelete}
+                                  disabled={!reason || !comments.trim()}
+                                >
+                                  Submit
+                                </button>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </form>
+                    </div>
                   </div>
                 </div>
               </div>

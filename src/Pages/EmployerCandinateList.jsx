@@ -8,6 +8,8 @@ import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 function EmployerCandinateList() {
   const location = useLocation();
@@ -21,6 +23,7 @@ function EmployerCandinateList() {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [totalPages, setTotalPages] = useState(1);
+  const [atsData, setAtsData] = useState(null);
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -57,7 +60,7 @@ function EmployerCandinateList() {
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
 
     const data = await res.json();
@@ -72,7 +75,7 @@ function EmployerCandinateList() {
       setSelectedCandidate(null);
     }
   };
-  
+
   const fetchCandidates2 = async () => {
     let query = [];
 
@@ -84,7 +87,7 @@ function EmployerCandinateList() {
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     const data = await res.json();
     console.log("Candidate Count Data:-", data.summary);
@@ -95,6 +98,25 @@ function EmployerCandinateList() {
   useEffect(() => {
     fetchCandidates2();
   }, [page]);
+  const fetchATSScore = async (jobId, applicationId) => {
+    if (!jobId || !applicationId) return;
+
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}ats-score/${jobId}/${applicationId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (res.data?.success) {
+        setAtsData(res.data); // ✅ store full response
+      }
+    } catch (error) {
+      console.error("ATS Score Error:", error);
+      setAtsData(null);
+    }
+  };
 
   useEffect(() => {
     fetchSalaryRanges();
@@ -114,7 +136,7 @@ function EmployerCandinateList() {
   useEffect(() => {
     fetchExperienceLevels();
   }, []);
-  
+
   useEffect(() => {
     fetchCandidates(selectedStatus);
     fetchCandidates2();
@@ -152,7 +174,7 @@ function EmployerCandinateList() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       console.log("Status Updated", res.data);
@@ -204,6 +226,21 @@ function EmployerCandinateList() {
       setIsLocationLoading(false);
     }
   };
+  const getLabelStyle = (rating) => {
+    switch (rating) {
+      case 5:
+        return { backgroundColor: "#16a34a", color: "#fff" }; // green
+      case 4:
+        return { backgroundColor: "#22c55e", color: "#fff" };
+      case 3:
+        return { backgroundColor: "#facc15", color: "#000" }; // yellow
+      case 2:
+        return { backgroundColor: "#fb923c", color: "#fff" }; // orange
+      case 1:
+      default:
+        return { backgroundColor: "#ef4444", color: "#fff" }; // red
+    }
+  };
 
   const handleSelectLocation = (city) => {
     setSelectedLocation(city);
@@ -236,12 +273,13 @@ function EmployerCandinateList() {
         `${API_BASE_URL}applicant/details/${applicationId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       const data = await res.json();
       setSelectedCandidate(data.applicant);
       setNewApplicationStatus(data.applicant.status || "");
+      fetchATSScore(data.applicant.jobId, data.applicant._id);
     } catch (err) {
       console.error("Details Fetch Error:", err);
     }
@@ -262,7 +300,7 @@ function EmployerCandinateList() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Show message from backend
@@ -299,6 +337,31 @@ function EmployerCandinateList() {
       ...prev,
       location: "",
     }));
+  };
+
+  const renderStars = (rating) => {
+    const totalStars = 5;
+
+    return (
+      <span>
+        {Array.from({ length: totalStars }).map((_, index) => {
+          const starNumber = index + 1;
+
+          return (
+            <i
+              key={index}
+              className={
+                starNumber <= rating ? "fa-solid fa-star" : "fa-regular fa-star"
+              }
+              style={{
+                color: starNumber <= rating ? "#fbbf24" : "#d1d5db",
+                marginRight: "4px",
+              }}
+            />
+          );
+        })}
+      </span>
+    );
   };
 
   return (
@@ -539,7 +602,7 @@ function EmployerCandinateList() {
                               src={
                                 candidate?.userId?.profileImage
                                   ? candidate.userId.profileImage.startsWith(
-                                      "http"
+                                      "http",
                                     )
                                     ? candidate.userId.profileImage // external URL → use directly
                                     : `${API_IMAGE_URL}${candidate.userId.profileImage}` // local uploads
@@ -596,6 +659,11 @@ function EmployerCandinateList() {
                                       : "Inactive"}
                                   </span>
                                 </li>
+                                <li>
+                                  {candidate?.ats?.rating
+                                    ? renderStars(candidate.ats.rating)
+                                    : "—"}
+                                </li>
                               </ul>
                             </div>
 
@@ -605,7 +673,7 @@ function EmployerCandinateList() {
                                 e.stopPropagation(); // stop parent onClick
                                 handleBookmark(
                                   candidate?.userId?._id,
-                                  candidate.jobId
+                                  candidate.jobId,
                                 );
                               }}
                               style={{ cursor: "pointer" }}
@@ -689,7 +757,7 @@ function EmployerCandinateList() {
                           src={
                             selectedCandidate?.userInfo?.profileImage
                               ? selectedCandidate.userInfo.profileImage.startsWith(
-                                  "http"
+                                  "http",
                                 )
                                 ? selectedCandidate.userInfo.profileImage // external URL → use directly
                                 : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
@@ -725,6 +793,57 @@ function EmployerCandinateList() {
                         <h3>
                           <strong>Address:</strong>{" "}
                           {selectedCandidate?.userInfo?.city}
+                        </h3>
+                        <h3>
+                          <strong>ATS Rating:</strong>{" "}
+                          {atsData ? renderStars(atsData.rating) : "-"}
+                        </h3>
+
+                        <h3>
+                          <strong>Tag:</strong>{" "}
+                          {atsData ? (
+                            <span
+                              style={{
+                                ...getLabelStyle(atsData.rating),
+                                padding: "4px 10px",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                display: "inline-block",
+                              }}
+                            >
+                              {atsData.label}
+                            </span>
+                          ) : (
+                            "N/A"
+                          )}
+                        </h3>
+                        <h3
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                          }}
+                        >
+                          <strong>ATS Score:</strong>
+
+                          <div style={{ width: 40, height: 40 }}>
+                            <CircularProgressbar
+                              value={atsData?.atsPercentage || 0}
+                              text={`${atsData?.atsPercentage || 0}%`}
+                              styles={buildStyles({
+                                textSize: "28px",
+                                pathColor:
+                                  atsData?.atsPercentage >= 75
+                                    ? "#16a34a"
+                                    : atsData?.atsPercentage >= 40
+                                      ? "#facc15"
+                                      : "#ef4444",
+                                textColor: "#111",
+                                trailColor: "#e5e7eb",
+                              })}
+                            />
+                          </div>
                         </h3>
                       </div>
                     </div>

@@ -11,7 +11,7 @@ const AccountVerified = () => {
   const token = queryParams.get("token");
   console.log(role);
   useEffect(() => {
-    localStorage.removeItem("token");
+    // localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("user_id");
     localStorage.removeItem("user_email");
@@ -19,7 +19,6 @@ const AccountVerified = () => {
     localStorage.removeItem("isLoggedIn");
   }, [reason, email, role, token]);
 
-  
   const handleContinue = () => {
     console.log(role, token, email);
     if (token) localStorage.setItem("token", token);
@@ -29,7 +28,6 @@ const AccountVerified = () => {
       localStorage.setItem("isLoggedIn", "true");
     }
 
- 
     if (role === "JobSeeker") {
       window.location.href = `/jobPortal/profile-basic-info?token=${token}`;
     } else if (role === "Recruiter" || role === "Company") {

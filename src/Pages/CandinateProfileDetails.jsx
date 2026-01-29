@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"
+import axios from "axios";
 
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
@@ -32,7 +32,7 @@ function CandinateProfileDetails() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       console.log(res.data?.data[0]);
       setCandidate(res.data?.data[0]); // store the candidate details
@@ -84,11 +84,12 @@ function CandinateProfileDetails() {
         <i
           key={i}
           className={i <= rating ? "fa-solid fa-star" : "fa-regular fa-star"}
-        ></i>
+        ></i>,
       );
     }
-    return stars;
+    return <div className="rating-stars">{stars}</div>;
   };
+
   const truncateText = (text, limit = 100) => {
     if (!text) return "";
     return text.length > limit ? text.substring(0, limit) + "..." : text;
@@ -230,21 +231,21 @@ function CandinateProfileDetails() {
                   <p>
                     {candidate?.career_goals?.DesiredJobTitle?.toLowerCase().replace(
                       /^\w/,
-                      (c) => c.toUpperCase()
+                      (c) => c.toUpperCase(),
                     ) || "Not Provided"}{" "}
                   </p>
                   <h5>Desired Employment Type</h5>
                   <p>
                     {candidate?.career_goals?.DesiredEmploymentType?.toLowerCase().replace(
                       /^\w/,
-                      (c) => c.toUpperCase()
+                      (c) => c.toUpperCase(),
                     ) || "Not Provided"}{" "}
                   </p>
                   <h5>Desired Occupation Type</h5>
                   <p>
                     {candidate?.career_goals?.DesiredOccupationType?.toLowerCase().replace(
                       /^\w/,
-                      (c) => c.toUpperCase()
+                      (c) => c.toUpperCase(),
                     ) || "Not Provided"}{" "}
                   </p>
                   <div className="candidate-profile-divider-line" />
@@ -345,8 +346,8 @@ function CandinateProfileDetails() {
                             {work.currentlyWorkingHere
                               ? "Present"
                               : endDate
-                              ? endDate.toISOString().split("T")[0]
-                              : ""}
+                                ? endDate.toISOString().split("T")[0]
+                                : ""}
                           </p>
 
                           {!work?.keep_employer_anonymous && (
@@ -430,7 +431,7 @@ function CandinateProfileDetails() {
                             <p>
                               {work.University?.toLowerCase().replace(
                                 /^\w/,
-                                (c) => c.toUpperCase()
+                                (c) => c.toUpperCase(),
                               ) || "Not Provided"}
                             </p>
 
@@ -634,7 +635,7 @@ function CandinateProfileDetails() {
                       <span>Year of birth : </span>
                       {candidate?.userId?.date_of_birth
                         ? new Date(
-                            candidate.userId.date_of_birth
+                            candidate.userId.date_of_birth,
                           ).toLocaleDateString("en-GB")
                         : "Not Provided"}
                     </li>
@@ -743,7 +744,7 @@ function CandinateProfileDetails() {
                       headers: {
                         Authorization: `Bearer ${token}`,
                       },
-                    }
+                    },
                   );
                   getReviewsByUser(userId);
                   toast.success("Review submitted successfully!");
