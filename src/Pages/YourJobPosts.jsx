@@ -13,7 +13,7 @@ function YourJobPosts() {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [jobTitle, setJobTitle] = useState("");
   const [jobCategory, setJobCategory] = useState("");
-  const [activeStatus, setActiveStatus] = useState("published");
+  const [activeStatus, setActiveStatus] = useState("all");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

@@ -24,7 +24,7 @@ function CandidateProfile() {
     "Post Doctorate",
     "Professional Degree",
   ];
-
+  const [salaryRanges, setSalaryRanges] = useState([]);
   const { logout, updateProfileImage, updateName } = useAuth();
   const DEFAULT_IMAGE = "assets/images/dashboard/dashboard-img-5.jpg";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -47,13 +47,23 @@ function CandidateProfile() {
     { label: "Full professional", code: "C1" },
     { label: "Native / Bilingual", code: "C2" },
   ];
-  
+
   const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
   const [languageForm, setLanguageForm] = useState({
     language_id: "", // only when editing
     language: "", // language name from dropdown
     proficiency: "",
   });
+  useEffect(() => {
+    fetch(`${API_BASE_URL}getActiveSalaryRangeList`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSalaryRanges(data.data);
+        }
+      })
+      .catch((err) => console.log("Error:", err));
+  }, []);
   const [image, setImage] = useState(DEFAULT_IMAGE);
   console.log(image);
   const [storedImage, setStoredImage] = useState(null); // server stored image
@@ -3841,14 +3851,25 @@ function CandidateProfile() {
 
                                   <div className="col-lg-9 col-md-9">
                                     <div className="form-group">
-                                      <input
-                                        type="number"
+                                      <select
                                         className="form-control mb-2"
-                                        placeholder="Enter your gross minimum desired salary"
                                         name="salaryAmount"
                                         value={careerGoalsData.salaryAmount}
                                         onChange={handleCareerGoalsChange}
-                                      />
+                                      >
+                                        <option value="">
+                                          Select Desired Salary
+                                        </option>
+
+                                        {salaryRanges.map((item) => (
+                                          <option
+                                            key={item._id}
+                                            value={item.range}
+                                          >
+                                            {item.range}
+                                          </option>
+                                        ))}
+                                      </select>
                                     </div>
                                   </div>
 

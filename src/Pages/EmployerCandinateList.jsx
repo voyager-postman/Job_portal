@@ -24,6 +24,8 @@ function EmployerCandinateList() {
   const [startDate, endDate] = dateRange;
   const [totalPages, setTotalPages] = useState(1);
   const [atsData, setAtsData] = useState(null);
+  const [selectedSalaryRange, setSelectedSalaryRange] = useState("");
+  const [selectedEducationDegree, setSelectedEducationDegree] = useState("");
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -42,6 +44,19 @@ function EmployerCandinateList() {
     location: "",
     skills: "",
   });
+  const degreeOptions = [
+    "High School",
+    "Secondary School",
+    "Higher Secondary",
+    "Certificate",
+    "Diploma",
+    "Associate Degree",
+    "Bachelor Degree",
+    "Master’s Degree",
+    "Doctorate (PhD)",
+    "Post Doctorate",
+    "Professional Degree",
+  ];
 
   const fetchCandidates = async (status = "") => {
     let query = [];
@@ -75,6 +90,16 @@ function EmployerCandinateList() {
       setSelectedCandidate(null);
     }
   };
+  useEffect(() => {
+    fetch(`${API_BASE_URL}getActiveSalaryRangeList`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.data)) {
+          setSalaryRanges(data.data);
+        }
+      })
+      .catch((err) => console.log("Error:", err));
+  }, []);
 
   const fetchCandidates2 = async () => {
     let query = [];
@@ -455,11 +480,12 @@ function EmployerCandinateList() {
                         aria-label="Default select example"
                       >
                         <option selected>Choose Experience level</option>
-                        <option value={1}>Fresher</option>
                         <option value={1}>0 - 2 Years</option>
                         <option value={2}>2 - 4 Years</option>
-                        <option value={3}>5 - 7 Years</option>
-                        <option value={4}>8 - 10 Years</option>
+                        <option value={3}>4 - 6 Years</option>
+                        <option value={4}>6 - 8 Years</option>
+                        <option value={5}>8 - 10 Years</option>
+                        <option value={6}>10+ Years</option>
                       </select>
                     </div>
                   </form>
@@ -470,21 +496,25 @@ function EmployerCandinateList() {
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Education</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Choose Education</option>
-                        <option value={1}>Certified</option>
-                        <option value={2}>Diploma</option>
-                        <option value={3}>Associate Degree</option>
-                        <option value={4}>Bachelor Degree</option>
-                        <option value={4}>Master’s Degree</option>
-                      </select>
-                    </div>
-                  </form>
+
+                  <div className="form-group">
+                    <select
+                      className="form-select form-control"
+                      value={selectedEducationDegree}
+                      onChange={(e) => {
+                        setSelectedEducationDegree(e.target.value);
+                        // setCurrentPage(1); // reset pagination
+                      }}
+                    >
+                      <option value="">Choose Education</option>
+
+                      {degreeOptions.map((degree, index) => (
+                        <option key={index} value={degree}>
+                          {degree}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -492,22 +522,25 @@ function EmployerCandinateList() {
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Salary Range</h3>
-                  <form>
-                    <div className="form-group">
-                      <select
-                        className="form-select form-control"
-                        aria-label="Default select example"
-                      >
-                        <option selected>Choose Salary Range</option>
-                        <option value={1}>$1200 - $1400</option>
-                        <option value={2}>$400 - $600</option>
-                        <option value={3}>$1000 - $1200</option>
-                        <option value={4}>$800 - $1000</option>
-                        <option value={5}>$600 - $800</option>
-                        <option value={5}>$1200 - $1400</option>
-                      </select>
-                    </div>
-                  </form>
+
+                  <div className="form-group">
+                    <select
+                      className="form-select form-control"
+                      value={selectedSalaryRange}
+                      onChange={(e) => {
+                        setSelectedSalaryRange(e.target.value);
+                        // setCurrentPage(1); // reset pagination
+                      }}
+                    >
+                      <option value="">Choose Salary Range</option>
+
+                      {salaryRanges.map((item) => (
+                        <option key={item._id} value={item.range}>
+                          {item.range}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
