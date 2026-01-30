@@ -9,6 +9,10 @@ function CandinatesList() {
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [keyword, setKeyword] = useState("");
+  const [skillInput, setSkillInput] = useState("");
+  const [selectedSkills, setSelectedSkills] = useState([]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showAllEducation, setShowAllEducation] = useState(false);
@@ -18,8 +22,9 @@ function CandinatesList() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedEducation, setSelectedEducation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState([]);
-  const [perPage, setPerPage] = useState(6); // default
+  const [perPage, setPerPage] = useState(10); // default
   const [totalResults, setTotalResults] = useState(0);
+  const [sortBy, setSortBy] = useState("");
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
   const educationLevels = [
@@ -95,33 +100,33 @@ function CandinatesList() {
           },
           params: {
             page,
-            limit, // 🔥 send per page
+            limit,
+            skills: selectedSkills.join(","), // ✅ ADD THIS
             location: selectedLocation || "",
             education: selectedEducation.join(","),
             experience: selectedExperience.join(","),
+            keyword: keyword.trim(), // 🔥 ADD THIS
+            sortBy, // 🔥 also missing earlier
           },
         },
       );
 
       setCandidates(response.data.data || []);
       setTotalPages(response.data.totalPages || 1);
-      setTotalResults(response.data.totalResults || 0); // 🔥 NEW
+      setTotalResults(response.data.totalCount || 0);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
+
+  const endResult = Math.min(currentPage * perPage, totalResults);
 
   useEffect(() => {
     fetchCandidates(currentPage, perPage);
-  }, [
-    currentPage,
-    perPage,
-    selectedEducation,
-    selectedExperience,
-    selectedLocation,
-  ]);
+  }, [currentPage, perPage]);
 
   const JobListLoader = () => (
     <div className="text-center py-5">
@@ -129,10 +134,6 @@ function CandinatesList() {
       <p>Loading Candidates Listing, please wait...</p>
     </div>
   );
-
-  useEffect(() => {
-    fetchCandidates(currentPage);
-  }, [currentPage, selectedEducation, selectedExperience, selectedLocation]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -167,6 +168,18 @@ function CandinatesList() {
       prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
     );
   };
+  useEffect(() => {
+    fetchCandidates(1, perPage); // always reset to page 1
+    setCurrentPage(1);
+  }, [
+    keyword,
+    selectedSkills,
+    selectedEducation,
+    selectedExperience,
+    selectedLocation,
+    sortBy,
+    perPage,
+  ]);
 
   const cleanImageUrl = (url) => {
     if (!url) return "";
@@ -197,7 +210,7 @@ function CandinatesList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Candidates Listing</h1>
+            <h1>Candidate Search</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -208,7 +221,7 @@ function CandinatesList() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Candidates Listing
+                <i className="fa-solid fa-angle-right" /> Candidates List
               </li>
             </ol>
           </div>
@@ -225,6 +238,11 @@ function CandinatesList() {
                             className="form-control"
                             type="text"
                             placeholder="Keywords / Job Title"
+                            value={keyword}
+                            onChange={(e) => {
+                              setKeyword(e.target.value);
+                              setCurrentPage(1); // reset page
+                            }}
                           />
                         </div>
                       </form>
@@ -233,21 +251,55 @@ function CandinatesList() {
                       <h3>Skills</h3>
                       <form>
                         <div className="form-group">
-                          <select
-                            className="form-select form-control"
-                            aria-label="Default select example"
-                          >
-                            <option selected>Choose A Skills</option>
-                            <option value={1}>Digital</option>
-                            <option value={2}>Design</option>
-                            <option value={3}>Developer</option>
-                            <option value={4}>Front End</option>
-                            <option value={5}>Microsoft Excel</option>
-                            <option value={6}>Telemarketing</option>
-                            <option value={7}>Account</option>
-                            <option value={8}>Finance</option>
-                            <option value={9}>Marketing</option>
-                          </select>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Type skill and press Enter"
+                            value={skillInput}
+                            onChange={(e) => setSkillInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && skillInput.trim()) {
+                                e.preventDefault();
+
+                                if (
+                                  !selectedSkills.includes(skillInput.trim())
+                                ) {
+                                  setSelectedSkills((prev) => [
+                                    ...prev,
+                                    skillInput.trim(),
+                                  ]);
+                                }
+
+                                setSkillInput("");
+                              }
+                            }}
+                          />
+                          {selectedSkills.length > 0 && (
+                            <div className="mt-2 d-flex flex-wrap gap-2">
+                              {selectedSkills.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="badge bg-primary d-flex align-items-center"
+                                >
+                                  {skill}
+                                  <span
+                                    style={{
+                                      cursor: "pointer",
+                                      marginLeft: "6px",
+                                      padding: "5px",
+                                    }}
+                                    onClick={() =>
+                                      setSelectedSkills((prev) =>
+                                        prev.filter((s) => s !== skill),
+                                      )
+                                    }
+                                  >
+                                    ✕
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </form>
                     </div>
@@ -384,29 +436,29 @@ function CandinatesList() {
                       )}
 
                       {/* Suggestions */}
-                      {!isLocationLoading && locationSuggestions.length > 0 && (
-                        <ul
-                          className="list-group position-absolute w-100"
-                          style={{
-                            zIndex: 1000,
-                            maxHeight: "200px",
-                            overflowY: "auto",
-                          }}
-                        >
-                          {locationSuggestions.map((city) => (
-                            <li
-                              key={city._id}
-                              className="list-group-item list-group-item-action"
-                              style={{ cursor: "pointer" }}
-                              onClick={() => handleSelectLocation(city)}
-                            >
-                              {city.name}, {city.state_name},{" "}
-                              {city.country_name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </div>
+                    {!isLocationLoading && locationSuggestions.length > 0 && (
+                      <ul
+                        className="list-group position-absolute "
+                        style={{
+                          zIndex: 1000,
+                          maxHeight: "200px",
+                          width: "250px",
+                          overflowY: "auto",
+                        }}
+                      >
+                        {locationSuggestions.map((city) => (
+                          <li
+                            key={city._id}
+                            className="list-group-item list-group-item-action"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleSelectLocation(city)}
+                          >
+                            {city.name}, {city.state_name}, {city.country_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
                 <div className="col-lg-9">
@@ -414,7 +466,10 @@ function CandinatesList() {
                     <div className="row align-items-center">
                       <div className="col-lg-6 col-md-4">
                         <div className="shoing-content">
-                          <span>Showing 1 – 6 of 145 results</span>
+                          <span>
+                            Showing {startResult} – {endResult} of{" "}
+                            {totalResults} results
+                          </span>
                         </div>
                       </div>
                       <div className="col-lg-6 col-md-8">
@@ -429,7 +484,6 @@ function CandinatesList() {
                                   setCurrentPage(1); // reset page
                                 }}
                               >
-                                <option value={6}>6 Per Page</option>
                                 <option value={10}>10 Per Page</option>
                                 <option value={20}>20 Per Page</option>
                                 <option value={50}>50 Per Page</option>
@@ -438,13 +492,29 @@ function CandinatesList() {
                             <div className="col-6">
                               <select
                                 className="form-select form-control"
-                                aria-label="Default select example"
+                                value={sortBy}
+                                onChange={(e) => {
+                                  setSortBy(e.target.value);
+                                  setCurrentPage(1); // reset page on sort
+                                }}
                               >
-                                <option selected>Short By</option>
-                                <option value={1}>01</option>
-                                <option value={2}>02</option>
-                                <option value={3}>03</option>
-                                <option value={4}>04</option>
+                                <option value="">Sort By</option>
+                                <option value="latest">Latest</option>
+                                <option value="oldest">Oldest</option>
+                                <option value="experience_desc">
+                                  Experience: High to Low
+                                </option>
+                                <option value="experience_asc">
+                                  Experience: Low to High
+                                </option>
+                                <option value="salary_desc">
+                                  Salary: High to Low
+                                </option>
+                                <option value="salary_asc">
+                                  Salary: Low to High
+                                </option>
+                                <option value="name_asc">Name: A - Z</option>
+                                <option value="name_desc">Name: Z - A</option>
                               </select>
                             </div>
                           </div>

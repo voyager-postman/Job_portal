@@ -63,7 +63,7 @@ function AppliedJobList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Applied jobs List</h1>
+            <h1>Application Management</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>

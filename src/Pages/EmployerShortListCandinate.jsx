@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import axios from "axios"
+import axios from "axios";
 
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
@@ -18,15 +18,10 @@ function EmployerShortListCandinate() {
   const [totalCount, setTotalCount] = useState(0);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
-  // Current page items
-  const currentItems = bookmarkedCandidates.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const [perPage, setPerPage] = useState(10);
 
   // Total pages
-  const totalPages = Math.ceil(bookmarkedCandidates.length / itemsPerPage);
+  const totalPages = Math.ceil(totalCount / perPage);
 
   // Page change handler
   const handlePageChange = (page) => {
@@ -38,20 +33,30 @@ function EmployerShortListCandinate() {
   const token = localStorage.getItem("token");
   useEffect(() => {
     AOS.init({ duration: 1200 });
-    fetchBookmarkedCandidates(); // load bookmark list
   }, []);
+
+  useEffect(() => {
+    fetchBookmarkedCandidates();
+  }, [currentPage, perPage]);
+
+  const pageSizeOptions = [10, 20, 30, 50];
 
   const fetchBookmarkedCandidates = async () => {
     try {
       setLoading(true);
+
       const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          page: currentPage,
+          limit: perPage,
+        },
       });
-      console.log(res);
+
       setBookmarkedCandidates(res.data.bookmarks || []);
-      setTotalCount(res.data.totalCount || 0); // <-- ADD THIS
+      setTotalCount(res.data.totalCount || 0);
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
     } finally {
@@ -71,7 +76,7 @@ function EmployerShortListCandinate() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       // Show message from backend
       toast.success(res.data.message);
@@ -111,7 +116,7 @@ function EmployerShortListCandinate() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Employer BookMark candidates</h1>
+            <h1> Bookmark Resumes</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -122,8 +127,8 @@ function EmployerShortListCandinate() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Employer BookMark
-                candidates
+                <i className="fa-solid fa-angle-right" /> BookMark  Candidates list
+            
               </li>
             </ol>
           </div>
@@ -156,15 +161,17 @@ function EmployerShortListCandinate() {
                     <div className="col-6">
                       <select
                         className="form-select form-control"
-                        aria-label="Default select example"
+                        value={perPage}
+                        onChange={(e) => {
+                          setPerPage(Number(e.target.value));
+                          setCurrentPage(1); // reset page
+                        }}
                       >
-                        <option selected>Show 20</option>
-                        <option value={1}>01</option>
-                        <option value={2}>02</option>
-                        <option value={3}>03</option>
-                        <option value={4}>04</option>
-                        <option value={5}>05</option>
-                        <option value={6}>06</option>
+                        {pageSizeOptions.map((size) => (
+                          <option key={size} value={size}>
+                            Show {size}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -241,7 +248,7 @@ function EmployerShortListCandinate() {
                                     e.stopPropagation(); // ⬅ stop parent card click
                                     handleBookmark(
                                       candidate?._id,
-                                      candidate?.jobId
+                                      candidate?.jobId,
                                     );
                                   }}
                                   style={{ cursor: "pointer" }}

@@ -63,6 +63,8 @@ import AddPlan from "./Pages/AddPlan";
 import ResumeBuilder from "./Pages/ResumeBuilder";
 import AddOnPack from "./Pages/AddOnPack";
 import SendOtp from "./Pages/SendOtp";
+import ManagesApplicants from "./Pages/ManagesApplicants";
+import ApplicantsDetails from "./Pages/ApplicantsDetails";
 
 // "build 04-09-2025"
 console.log("Date:-16-01-2026,time:-18:18");
@@ -82,6 +84,7 @@ function LayoutWrapper() {
     "/manage-applicants",
     "/shortlist-candidates",
     "/candidates-search",
+    "/all-applicants-list",
     "/create-recruiters",
     "/recruiters-list",
     "/messaging-system",
@@ -102,7 +105,7 @@ function LayoutWrapper() {
   ];
 
   const showSidebar = sidebarRoutes.some((route) =>
-    location.pathname.startsWith(route)
+    location.pathname.startsWith(route),
   );
 
   const bgColor = showSidebar ? "#fff" : "#f0f5f7";
@@ -117,17 +120,14 @@ function LayoutWrapper() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verification" element={<Varification />} />
-
         <Route path="/account-verified" element={<AccountVerified />} />
         <Route path="/verified-cancel" element={<VerifiedCancel />} />
-
         <Route path="/register" element={<Register />} />
         <Route path="/recovery-password" element={<RecoveryPassword />} />
         <Route path="/verify-otp" element={<SendOtp />} />
         <Route path="/employer-register" element={<EmployerRegister />} />
         <Route path="/employer-login" element={<EmployerLogin />} />
         <Route path="/email-verification" element={<EmailOTPVerification />} />
-
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivecyPolicy />} />
         <Route path="/terms-condition" element={<TearmCondition />} />
@@ -138,6 +138,7 @@ function LayoutWrapper() {
           path="/employer-candidates-list"
           element={<EmployerCandinateList />}
         />
+        <Route path="/applicants-details" element={<ApplicantsDetails />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/blog" element={<Blog />} />
 
@@ -327,6 +328,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <CandinatesList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/all-applicants-list"
+          element={
+            <PrivateRoute>
+              <ManagesApplicants />
             </PrivateRoute>
           }
         />

@@ -1171,7 +1171,7 @@ function JobSearch() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Job List</h1>
+            <h1>Job List</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>

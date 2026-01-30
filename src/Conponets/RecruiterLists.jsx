@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios"
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -52,7 +52,7 @@ function RecruiterLists() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       toast.success(`Recruiter ${newStatus}`);
@@ -85,7 +85,7 @@ function RecruiterLists() {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            }
+            },
           );
 
           Swal.fire("Deleted!", "Recruiter deleted successfully.", "success");
@@ -96,7 +96,7 @@ function RecruiterLists() {
           Swal.fire(
             "Error!",
             error.response?.data?.message || "Failed to delete recruiter.",
-            "error"
+            "error",
           );
         }
       }
@@ -109,21 +109,7 @@ function RecruiterLists() {
       header: "S.No",
       cell: ({ row }) => row.index + 1, // auto index
     },
-    {
-      accessorKey: "image",
-      header: "Img",
-      cell: ({ row }) => (
-        <div className="recruiterImg-info">
-          <img
-            src={row.original.image}
-            alt="logo"
-            width={40}
-            height={40}
-            style={{ borderRadius: "50%" }}
-          />
-        </div>
-      ),
-    },
+
     {
       accessorKey: "first_name",
       header: "First Name",
@@ -201,7 +187,7 @@ function RecruiterLists() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Recruiters List</h1>
+            <h1>Manage Recruiters</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>

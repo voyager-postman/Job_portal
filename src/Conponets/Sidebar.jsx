@@ -4,6 +4,7 @@ import {
   FaToolbox,
   FaListCheck,
   FaUsersGear,
+  FaUsers,
   FaGoogleWallet,
 } from "react-icons/fa6";
 import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
@@ -193,6 +194,22 @@ function Sidebar() {
                   </i>
                 </span>
                 <span className="menu-title">Application Management</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/all-applicants-list"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  {/* <i className="fa-solid fa-briefcase" /> */}
+                  <i>
+                    <FaUsers />
+                  </i>
+                </span>
+                <span className="menu-title">Applicant Management</span>
               </NavLink>
             </li>
             <li className="nav-item">
