@@ -258,7 +258,7 @@ function MassagingSystem() {
                                             )
                                             ? u.applicant.profileImage
                                             : `${API_IMAGE_URL}${u.userId.profileImage}`
-                                          : "assets/images/freelancers/freelancers-img-1.jpg"
+                                          : "assets/images/userIcon.png"
                                       }
                                       alt="image"
                                     />
