@@ -119,7 +119,6 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user.id);
         localStorage.setItem("extract_id", user?.id);
-
         localStorage.setItem("user_email", user.email);
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("first_name", user.first_name);
@@ -266,7 +265,7 @@ function Login() {
                         />
                       </div>
                       <div className="login-forgot-password">
-                        <Link to="/recovery-password">
+                        <Link to="/recovery-password"  state={{ role: "jobseeker" }}>
                           <i className="fa-solid fa-lock" /> Forgot your
                           password?
                         </Link>

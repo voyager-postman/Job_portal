@@ -108,10 +108,12 @@ function ManagesApplicants() {
             <h1>Application Management</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/employer-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard{" "}
+                </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> All Applicants
@@ -120,7 +122,7 @@ function ManagesApplicants() {
           </div>
           {/* End Breadcrumb Area */}
           <div className="employer-dashboard-common-heading">
-            <h2>All Applicants List</h2>
+            <h2>All Applicants</h2>
           </div>
           {/*Job Applied Candidates List Start Area */}
           <div className="application-management-filter-candidate-list">
@@ -225,7 +227,7 @@ function ManagesApplicants() {
                                   {item.userId?.first_name}{" "}
                                   {item.userId?.last_name}
                                 </h6>
-                                <p >
+                                <p>
                                   <i className="fa-solid fa-briefcase" />{" "}
                                   {item.jobId?.jobTitle ||
                                     "Job title not available"}
@@ -291,8 +293,8 @@ function ManagesApplicants() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Jaba.</span> All Rights
-                    Reserved
+                    <span className="template-name"> Connect Work.ma </span> All
+                    Rights Reserved
                   </p>
                 </div>
               </div>
@@ -301,7 +303,7 @@ function ManagesApplicants() {
                   <p>
                     Designed By{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      HiBootstrap
+                      Webnmobapps Solution Pvt. Ltd
                     </a>
                   </p>
                 </div>

@@ -9,27 +9,31 @@ import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 
 function EmployerShortListCandinate() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   // const [bookmarkCount, setBookMarkCount] = useState("");
   const [itemsPerPage] = useState(6); // show 6 candidates per page
   // Calculate index range
-  const [totalCount, setTotalCount] = useState(0);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const [perPage, setPerPage] = useState(10);
+
+  const totalPages = Math.ceil(totalCount / perPage);
 
   // Total pages
-  const totalPages = Math.ceil(totalCount / perPage);
 
   // Page change handler
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: "smooth" }); // optional
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
   const token = localStorage.getItem("token");
   useEffect(() => {
     AOS.init({ duration: 1200 });
@@ -41,7 +45,7 @@ function EmployerShortListCandinate() {
 
   const pageSizeOptions = [10, 20, 30, 50];
 
-  const fetchBookmarkedCandidates = async () => {
+  const fetchBookmarkedCandidates = async (page = currentPage) => {
     try {
       setLoading(true);
 
@@ -50,8 +54,9 @@ function EmployerShortListCandinate() {
           Authorization: `Bearer ${token}`,
         },
         params: {
-          page: currentPage,
+          page,
           limit: perPage,
+          search: search?.trim() || "", // 👈 THIS
         },
       });
 
@@ -92,6 +97,13 @@ function EmployerShortListCandinate() {
       }
     }
   };
+  useEffect(() => {
+    // whenever search becomes empty, reload full list
+    if (search.trim() === "") {
+      setCurrentPage(1);
+      fetchBookmarkedCandidates(1);
+    }
+  }, [search]);
 
   const cleanImageUrl = (url) => {
     if (!url) return "";
@@ -116,7 +128,7 @@ function EmployerShortListCandinate() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1> Bookmark Resumes</h1>
+            <h1> Bookmark Candidates</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -127,8 +139,8 @@ function EmployerShortListCandinate() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> BookMark  Candidates list
-            
+                <i className="fa-solid fa-angle-right" /> BookMark Candidates
+                list
               </li>
             </ol>
           </div>
@@ -175,6 +187,35 @@ function EmployerShortListCandinate() {
                       </select>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="applied-jobs-search-box-info">
+              <div className="employer-candidate-search-box">
+                <div className="employer-candidate-input-icon">
+                  <div className="employer-candidate-icon">
+                    <i className="fa-solid fa-briefcase" />
+                  </div>
+                  <div className="employer-candidate-input-area">
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Search By: Keywords, Job Title"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="employer-candidate-btn-area">
+                  <button
+                    className="default-btn btn"
+                    onClick={() => {
+                      setCurrentPage(1);
+                      fetchBookmarkedCandidates(1);
+                    }}
+                  >
+                    Find
+                  </button>
                 </div>
               </div>
             </div>
@@ -272,30 +313,52 @@ function EmployerShortListCandinate() {
               })}
           </div>
           {totalPages > 1 && (
-            <div className="paginations style2 mb-30">
+            <div className="paginations mb-30">
               <ul>
-                {/* Prev Button */}
-                <li onClick={() => handlePageChange(currentPage - 1)}>
-                  <a style={{ cursor: "pointer" }}>
+                {/* Previous button */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) {
+                        handlePageChange(currentPage - 1);
+                      }
+                    }}
+                    className={currentPage === 1 ? "disabled" : ""}
+                  >
                     <i className="fa-solid fa-angle-left" />
                   </a>
                 </li>
 
-                {/* Page Numbers */}
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <li key={i} onClick={() => handlePageChange(i + 1)}>
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <li key={i + 1}>
                     <a
+                      href="#"
                       className={currentPage === i + 1 ? "active" : ""}
-                      style={{ cursor: "pointer" }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
                     >
                       {i + 1}
                     </a>
                   </li>
                 ))}
 
-                {/* Next Button */}
-                <li onClick={() => handlePageChange(currentPage + 1)}>
-                  <a style={{ cursor: "pointer" }}>
+                {/* Next button */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) {
+                        handlePageChange(currentPage + 1);
+                      }
+                    }}
+                    className={currentPage === totalPages ? "disabled" : ""}
+                  >
                     <i className="fa-solid fa-angle-right" />
                   </a>
                 </li>

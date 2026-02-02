@@ -176,7 +176,7 @@ function Sidebar() {
                     <IoWalletSharp />
                   </i>
                 </span>
-                <span className="menu-title">Employer Wallet</span>
+                <span className="menu-title">Wallet</span>
               </NavLink>
             </li>
 
@@ -225,7 +225,7 @@ function Sidebar() {
                     <IoBookmark />
                   </i>
                 </span>
-                <span className="menu-title">Bookmark Resumes</span>
+                <span className="menu-title">Bookmark Candidates</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -257,7 +257,7 @@ function Sidebar() {
                     <FaUserTie />
                   </i>
                 </span>
-                <span className="menu-title">Employer Profile</span>
+                <span className="menu-title">Profile</span>
               </NavLink>
             </li>
             <li className="nav-item">

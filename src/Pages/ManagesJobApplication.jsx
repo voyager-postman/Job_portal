@@ -542,7 +542,9 @@ function ManagesJobApplication() {
 
                   {/* Application List */}
                   {applications.length === 0 ? (
-                    <p>No applications found.</p>
+                    <p className="text-center py-5 text-gray-500">
+                      No applications found.
+                    </p>
                   ) : (
                     applications.map((app) => {
                       const job = app?.jobId;
@@ -842,6 +844,9 @@ function ManagesJobApplication() {
                 <div>
                   <div className="my-applications-heading-info">
                     <h2>Saved job</h2>
+                    <p className="text-sm text-gray-400">
+                      Browse jobs and save the ones you like to see them here.
+                    </p>
                   </div>
                   <div className="mannage-job-application-saved-job">
                     {loading ? (
@@ -916,7 +921,9 @@ function ManagesJobApplication() {
                         );
                       })
                     ) : (
-                      <p className="text-center mt-3">No saved jobs found</p>
+                      <p className="text-center py-5 text-gray-500">
+                        No saved jobs found.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -936,7 +943,7 @@ function ManagesJobApplication() {
                     {loading ? (
                       <p>Loading job alerts...</p>
                     ) : jobAlerts.length === 0 ? (
-                      <p>No job alerts found.</p>
+                      <p className="text-center">No job alerts found.</p>
                     ) : (
                       <table className="table table-bordered">
                         <thead>

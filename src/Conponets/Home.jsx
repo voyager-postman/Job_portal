@@ -544,7 +544,7 @@ function Home() {
                           src={
                             company?.logo
                               ? `${API_IMAGE_URL}${company.logo}`
-                              : "/jobPortal/assets/images/companyLogo.jpg"
+                              : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                           }
                           alt={company?.brandName || "Company Logo"}
                         />
@@ -556,7 +556,7 @@ function Home() {
                           src={
                             company?.coverPhoto
                               ? `${API_IMAGE_URL}${company.coverPhoto}`
-                              : "/jobPortal/assets/images/company2.jpg"
+                              : "/jobPortal/assets/images/company/company-img-1.jpg"
                           }
                           alt={company?.brandName || "Company Cover"}
                         />

@@ -91,6 +91,16 @@ function CandinatesList() {
     try {
       setLoading(true);
 
+      // 🔥 split sortBy value
+      let sortField = "";
+      let sortOrder = "";
+
+      if (sortBy) {
+        const [field, order] = sortBy.split("|");
+        sortField = field;
+        sortOrder = order;
+      }
+
       const response = await axios.post(
         `${API_BASE_URL}getCandidateList`,
         {},
@@ -101,12 +111,15 @@ function CandinatesList() {
           params: {
             page,
             limit,
-            skills: selectedSkills.join(","), // ✅ ADD THIS
+            skills: selectedSkills.join(","),
             location: selectedLocation || "",
             education: selectedEducation.join(","),
             experience: selectedExperience.join(","),
-            keyword: keyword.trim(), // 🔥 ADD THIS
-            sortBy, // 🔥 also missing earlier
+            keyword: keyword.trim(),
+
+            // ✅ SORTING PARAMS
+            sortBy: sortField || undefined,
+            order: sortOrder || undefined,
           },
         },
       );
@@ -120,6 +133,7 @@ function CandinatesList() {
       setLoading(false);
     }
   };
+
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
 
   const endResult = Math.min(currentPage * perPage, totalResults);
@@ -498,23 +512,17 @@ function CandinatesList() {
                                   setCurrentPage(1); // reset page on sort
                                 }}
                               >
-                                <option value="">Sort By</option>
-                                <option value="latest">Latest</option>
-                                <option value="oldest">Oldest</option>
-                                <option value="experience_desc">
-                                  Experience: High to Low
-                                </option>
-                                <option value="experience_asc">
+                                <option value="">Sort By (Newest First)</option>
+
+                                <option value="name|asc">Name: A - Z</option>
+                                <option value="name|desc">Name: Z - A</option>
+
+                                <option value="experience|asc">
                                   Experience: Low to High
                                 </option>
-                                <option value="salary_desc">
-                                  Salary: High to Low
+                                <option value="experience|desc">
+                                  Experience: High to Low
                                 </option>
-                                <option value="salary_asc">
-                                  Salary: Low to High
-                                </option>
-                                <option value="name_asc">Name: A - Z</option>
-                                <option value="name_desc">Name: Z - A</option>
                               </select>
                             </div>
                           </div>

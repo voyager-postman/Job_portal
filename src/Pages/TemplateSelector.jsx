@@ -10,7 +10,7 @@ const TemplateSelector = ({ setTemplate }) => {
   return (
     <>
       <div className="manage-jobs-box p-2 align-items-center">
-        <h5 className="mb-4">Select Resume Template</h5>
+        <h5 className="my-2">Select a Resume Template</h5>
       </div>
 
       <div style={{ display: "flex", gap: 20 }}>

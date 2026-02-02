@@ -409,207 +409,214 @@ function ApplicantsDetails() {
               {selectedCandidate ? (
                 <>
                   {/* ================= HEADER SECTION ================= */}
-                  <div className="employer-candidate-detail-new-info">
-                    <div className="employer-candidate-img-content-info">
-                      <div className="employer-candidate-img-info">
-                        <img
-                          crossOrigin="anonymous"
-                          src={
-                            selectedCandidate?.userInfo?.profileImage
-                              ? selectedCandidate.userInfo.profileImage.startsWith(
-                                  "http",
-                                )
-                                ? selectedCandidate.userInfo.profileImage // external URL → use directly
-                                : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                              : "assets/images/freelancers/freelancers-img-1.jpg"
-                          }
-                          alt="Image"
-                        />
-                      </div>
+                  <div className="apply-applicant-profile-details">
+                    <div className="employer-candidate-detail-new-info">
+                      <div className="employer-candidate-img-content-info">
+                        <div className="employer-candidate-img-info">
+                          <img
+                            crossOrigin="anonymous"
+                            src={
+                              selectedCandidate?.userInfo?.profileImage
+                                ? selectedCandidate.userInfo.profileImage.startsWith(
+                                    "http",
+                                  )
+                                  ? selectedCandidate.userInfo.profileImage // external URL → use directly
+                                  : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
+                                : "assets/images/freelancers/freelancers-img-1.jpg"
+                            }
+                            alt="Image"
+                          />
+                        </div>
 
-                      <div className="employers-condidate-content">
-                        <h3>
-                          <strong>Name:</strong>{" "}
-                          {selectedCandidate?.userInfo?.first_name}{" "}
-                          {selectedCandidate?.userInfo?.last_name}
-                        </h3>
+                        <div className="employers-condidate-content">
+                          <h3>
+                            <strong>Name:</strong>{" "}
+                            {selectedCandidate?.userInfo?.first_name}{" "}
+                            {selectedCandidate?.userInfo?.last_name}
+                          </h3>
 
-                        <h3>
-                          <strong>Position:</strong>{" "}
-                          {selectedCandidate?.profile?.aboutRole?.jobTitle ||
-                            "N/A"}
-                        </h3>
+                          <h3>
+                            <strong>Position:</strong>{" "}
+                            {selectedCandidate?.profile?.aboutRole?.jobTitle ||
+                              "N/A"}
+                          </h3>
 
-                        <h3>
-                          <strong>Email:</strong>{" "}
-                          {selectedCandidate?.userInfo?.email}
-                        </h3>
+                          <h3>
+                            <strong>Email:</strong>{" "}
+                            {selectedCandidate?.userInfo?.email}
+                          </h3>
 
-                        <h3>
-                          <strong>Contact:</strong>{" "}
-                          {selectedCandidate?.userInfo?.phone}
-                        </h3>
+                          <h3>
+                            <strong>Contact:</strong>{" "}
+                            {selectedCandidate?.userInfo?.phone}
+                          </h3>
 
-                        <h3>
-                          <strong>Address:</strong>{" "}
-                          {selectedCandidate?.userInfo?.city}
-                        </h3>
-                        <h3>
-                          <strong>ATS Rating:</strong>{" "}
-                          {atsData ? renderStars(atsData.rating) : "-"}
-                        </h3>
+                          <h3>
+                            <strong>Address:</strong>{" "}
+                            {selectedCandidate?.userInfo?.city}
+                          </h3>
+                          <h3>
+                            <strong>ATS Rating:</strong>{" "}
+                            {atsData ? renderStars(atsData.rating) : "-"}
+                          </h3>
 
-                        <h3>
-                          <strong>Tag:</strong>{" "}
-                          {atsData ? (
-                            <span
-                              style={{
+                          <h3>
+                            <strong>Tag:</strong>{" "}
+                            {atsData ? (
+                              <span
+                               style={{
                                 ...getLabelStyle(atsData.rating),
-                                padding: "4px 10px",
-                                borderRadius: "6px",
-                                fontSize: "14px",
+                                padding: "2px 5px",
+                                borderRadius: "5px",
+                                fontSize: "12px",
                                 fontWeight: "600",
                                 display: "inline-block",
                               }}
-                            >
-                              {atsData.label}
-                            </span>
-                          ) : (
-                            "N/A"
-                          )}
-                        </h3>
-                        <h3
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                          }}
-                        >
-                          <strong>ATS Score:</strong>
+                              >
+                                {atsData.label}
+                              </span>
+                            ) : (
+                              "N/A"
+                            )}
+                          </h3>
+                          <h3
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                            }}
+                          >
+                            <strong>ATS Score:</strong>
 
-                          <div style={{ width: 40, height: 40 }}>
-                            <CircularProgressbar
-                              value={atsData?.atsPercentage || 0}
-                              text={`${atsData?.atsPercentage || 0}%`}
-                              styles={buildStyles({
-                                textSize: "28px",
-                                pathColor:
-                                  atsData?.atsPercentage >= 75
-                                    ? "#16a34a"
-                                    : atsData?.atsPercentage >= 40
-                                      ? "#facc15"
-                                      : "#ef4444",
-                                textColor: "#111",
-                                trailColor: "#e5e7eb",
-                              })}
-                            />
-                          </div>
-                        </h3>
+                            <div style={{ width: 40, height: 40 }}>
+                              <CircularProgressbar
+                                value={atsData?.atsPercentage || 0}
+                                text={`${atsData?.atsPercentage || 0}%`}
+                                styles={buildStyles({
+                                  textSize: "28px",
+                                  pathColor:
+                                    atsData?.atsPercentage >= 75
+                                      ? "#16a34a"
+                                      : atsData?.atsPercentage >= 40
+                                        ? "#facc15"
+                                        : "#ef4444",
+                                  textColor: "#111",
+                                  trailColor: "#e5e7eb",
+                                })}
+                              />
+                            </div>
+                          </h3>
+                        </div>
                       </div>
-                    </div>
-                    <div className="employer-candidate-dcv-icons">
-                      <div className="employer-candidate-dcv-btn">
-                        <a
-                          href="#"
-                          className="default-btn btn"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const fileUrl = getResumeUrl();
+                      <div className="employer-candidate-dcv-icons">
+                        <div className="employer-candidate-dcv-btn">
+                          <a
+                            href="#"
+                            className="default-btn btn"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const fileUrl = getResumeUrl();
 
-                            if (!fileUrl) {
-                              toast.error("No resume uploaded");
-                              return;
-                            }
-
-                            // open in new tab
-                            window.open(`${API_IMAGE_URL}${fileUrl}`, "_blank");
-                          }}
-                        >
-                          Download CV
-                        </a>
-                      </div>
-
-                      <div className="employer-candidate-icon-info">
-                        <ul>
-                          {/* LinkedIn */}
-                          <li>
-                            <a
-                              href={
-                                selectedCandidate?.profile?.links?.linkedin ||
-                                "#"
+                              if (!fileUrl) {
+                                toast.error("No resume uploaded");
+                                return;
                               }
-                              target="_blank"
-                              onClick={(e) => {
-                                if (
-                                  !selectedCandidate?.profile?.links?.linkedin
-                                ) {
-                                  e.preventDefault();
-                                  toast.info("LinkedIn link not available");
-                                }
-                                e.stopPropagation(); // prevent parent click
-                              }}
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                          </li>
 
-                          {/* GitHub */}
-                          <li>
-                            <a
-                              href={
-                                selectedCandidate?.profile?.links?.github || "#"
-                              }
-                              target="_blank"
-                              onClick={(e) => {
-                                if (
-                                  !selectedCandidate?.profile?.links?.github
-                                ) {
-                                  e.preventDefault();
-                                  toast.info("GitHub link not available");
-                                }
-                                e.stopPropagation();
-                              }}
-                            >
-                              <i className="fa-brands fa-github" />
-                            </a>
-                          </li>
+                              // open in new tab
+                              window.open(
+                                `${API_IMAGE_URL}${fileUrl}`,
+                                "_blank",
+                              );
+                            }}
+                          >
+                            Download CV
+                          </a>
+                        </div>
 
-                          {/* Portfolio */}
-                          <li>
-                            <a
-                              href={
-                                selectedCandidate?.profile?.links?.portfolio ||
-                                "#"
-                              }
-                              target="_blank"
-                              onClick={(e) => {
-                                if (
-                                  !selectedCandidate?.profile?.links?.portfolio
-                                ) {
-                                  e.preventDefault();
-                                  toast.info("Portfolio link not available");
+                        <div className="employer-candidate-icon-info">
+                          <ul>
+                            {/* LinkedIn */}
+                            <li>
+                              <a
+                                href={
+                                  selectedCandidate?.profile?.links?.linkedin ||
+                                  "#"
                                 }
-                                e.stopPropagation();
-                              }}
-                            >
-                              <i className="fa-solid fa-globe" />
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
+                                target="_blank"
+                                onClick={(e) => {
+                                  if (
+                                    !selectedCandidate?.profile?.links?.linkedin
+                                  ) {
+                                    e.preventDefault();
+                                    toast.info("LinkedIn link not available");
+                                  }
+                                  e.stopPropagation(); // prevent parent click
+                                }}
+                              >
+                                <i className="fa-brands fa-linkedin-in" />
+                              </a>
+                            </li>
 
-                      <div className="new-reviewed-interviewed-rejected-hired">
-                        <select
-                          className="form-select form-control"
-                          aria-label="Default select example"
-                          value={newApplicationStatus}
-                          onChange={handleStatusUpdate}
-                        >
-                          <option value="Applied">New</option>
-                          <option value="Shortlisted">Shortlisted</option>
-                          <option value="Rejected">Rejected</option>
-                          <option value="Hired">Hired</option>
-                        </select>
+                            {/* GitHub */}
+                            <li>
+                              <a
+                                href={
+                                  selectedCandidate?.profile?.links?.github ||
+                                  "#"
+                                }
+                                target="_blank"
+                                onClick={(e) => {
+                                  if (
+                                    !selectedCandidate?.profile?.links?.github
+                                  ) {
+                                    e.preventDefault();
+                                    toast.info("GitHub link not available");
+                                  }
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <i className="fa-brands fa-github" />
+                              </a>
+                            </li>
+
+                            {/* Portfolio */}
+                            <li>
+                              <a
+                                href={
+                                  selectedCandidate?.profile?.links
+                                    ?.portfolio || "#"
+                                }
+                                target="_blank"
+                                onClick={(e) => {
+                                  if (
+                                    !selectedCandidate?.profile?.links
+                                      ?.portfolio
+                                  ) {
+                                    e.preventDefault();
+                                    toast.info("Portfolio link not available");
+                                  }
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <i className="fa-solid fa-globe" />
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div className="new-reviewed-interviewed-rejected-hired">
+                          <select
+                            className="form-select form-control"
+                            aria-label="Default select example"
+                            value={newApplicationStatus}
+                            onChange={handleStatusUpdate}
+                          >
+                            <option value="Applied">New</option>
+                            <option value="Shortlisted">Shortlisted</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Hired">Hired</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>

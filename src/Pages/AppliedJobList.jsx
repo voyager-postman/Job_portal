@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
@@ -12,21 +12,34 @@ function AppliedJobList() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
     }, 500); // waits 500ms after user stops typing
     return () => clearTimeout(handler);
   }, [searchTerm]);
-  const fetchJobs = async (search = "") => {
+  const fetchJobs = async (search = "", page = 1) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+
       const res = await axios.get(`${API_BASE_URL}getCompanyActiveJobs`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { search }, // ✅ pass search as query parameter
+        params: {
+          search,
+          page,
+          limit: perPage,
+        },
       });
+
       setJobs(res.data.jobs || []);
+      setTotalCount(res.data.total || 0);
+      setTotalPages(res.data.totalPages || 1);
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setJobs([]);
@@ -38,6 +51,17 @@ function AppliedJobList() {
   useEffect(() => {
     fetchJobs(debouncedSearch);
   }, [debouncedSearch]);
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs(debouncedSearch, currentPage);
+  }, [debouncedSearch, currentPage, perPage]);
+
   const getImageUrl = (url) => {
     if (!url) return "assets/images/icon/icon-26.png";
 
@@ -74,7 +98,7 @@ function AppliedJobList() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Applied jobs List
+                <i className="fa-solid fa-angle-right" /> Applications
               </li>
             </ol>
           </div>
@@ -82,7 +106,7 @@ function AppliedJobList() {
           {/*Applied jobs list start here */}
           <section className="applied-jobs-list-info">
             <div className="application-management-filter-info">
-              <h5>Applied jobs List</h5>
+              <h5>Job Applications</h5>
             </div>
             <div className="applied-jobs-search-box-info">
               <div className="employer-candidate-search-box">
@@ -177,7 +201,7 @@ function AppliedJobList() {
                         >
                           <span
                             style={{
-                              color: "#7e7e7e",
+                              color: "#f37a47",
                             }}
                           >
                             Send Message
@@ -204,13 +228,64 @@ function AppliedJobList() {
                         tags: job.tags, // 👈 passing tags also
                       }}
                     >
-                      <p>Applicants: {job?.applicantCount || 0}</p>
+                      <p>View Applicants: {job?.applicantCount || 0}</p>
                     </Link>
                   </div>
                 </div>
               ))
             )}
           </section>
+          {totalPages > 1 && (
+            <div className="paginations mb-30">
+              <ul>
+                {/* Previous */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) handlePageChange(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? "disabled" : ""}
+                  >
+                    <i className="fa-solid fa-angle-left" />
+                  </a>
+                </li>
+
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <li key={i + 1}>
+                    <a
+                      href="#"
+                      className={currentPage === i + 1 ? "active" : ""}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </a>
+                  </li>
+                ))}
+
+                {/* Next */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages)
+                        handlePageChange(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? "disabled" : ""}
+                  >
+                    <i className="fa-solid fa-angle-right" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+          )}
+
           {/* Applied jobs list end here */}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">

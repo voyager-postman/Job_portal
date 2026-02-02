@@ -71,7 +71,7 @@ function EmployerCandinateList() {
     if (filters.skills) query.push(`skills=${filters.skills}`);
     if (filters.education) query.push(`education=${filters.education}`);
     if (filters.experienceLevel)
-      query.push(`seniorityLevel=${filters.experienceLevel}`);
+      query.push(`experienceLevel=${filters.experienceLevel}`);
     if (filters.salaryRange) query.push(`salaryRange=${filters.salaryRange}`);
 
     const queryString = `?${query.join("&")}`;
@@ -907,9 +907,9 @@ function EmployerCandinateList() {
                             <span
                               style={{
                                 ...getLabelStyle(atsData.rating),
-                                padding: "4px 10px",
-                                borderRadius: "6px",
-                                fontSize: "14px",
+                                padding: "2px 5px",
+                                borderRadius: "5px",
+                                fontSize: "12px",
                                 fontWeight: "600",
                                 display: "inline-block",
                               }}
