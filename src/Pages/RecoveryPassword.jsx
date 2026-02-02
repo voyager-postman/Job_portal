@@ -71,9 +71,9 @@ function RecoveryPassword() {
       // ✅ Role based redirect
       setTimeout(() => {
         if (role === "employer") {
-          navigate("/jobPortal/employer-login");
+          navigate("/employer-login");
         } else {
-          navigate("/jobPortal/login");
+          navigate("/login");
         }
       }, 1500);
     } catch (error) {
@@ -140,7 +140,7 @@ function RecoveryPassword() {
                           />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group mt-2">
                           <label>New Password</label>
                           <input
                             type="password"
