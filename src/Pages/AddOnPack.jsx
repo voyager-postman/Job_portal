@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios"
+import axios from "axios";
 import { useLocation } from "react-router-dom";
 import StripeCheckout from "react-stripe-checkout";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -10,7 +10,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // Initialize Stripe with your publishable key
 const AddOnPack = () => {
-   const location = useLocation();
+  const location = useLocation();
   const { packId } = location.state || {};
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const AddOnPack = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (res.data.success) {
@@ -88,14 +88,18 @@ const AddOnPack = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        `${API_BASE_URL}/purchase-CompanyAddOn
+        `${API_BASE_URL}purchase-CompanyAddOn
 `,
-        { addOnId: selectedPlan._id,companyPackId: packId ,paymentMode: "Online" },
+        {
+          addOnId: selectedPlan._id,
+          companyPackId: packId,
+          paymentMode: "Online",
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       toast.success(`Plan purchased successfully: ${res.data.packName}`, {
@@ -198,8 +202,8 @@ const AddOnPack = () => {
                       index === 1
                         ? "card-header-orange"
                         : index === 2
-                        ? "card-header-green"
-                        : ""
+                          ? "card-header-green"
+                          : ""
                     }`}
                   >
                     <h4>{plan.name}</h4>
@@ -260,36 +264,51 @@ const AddOnPack = () => {
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="payment-stripe"
                         name="payment"
                         value="Stripe"
                         checked={paymentMethod === "Stripe"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">Stripe</label>
+                      <label
+                        className="form-check-label"
+                        htmlFor="payment-stripe"
+                      >
+                        Stripe
+                      </label>
                     </div>
 
                     <div className="form-check mb-2">
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="payment-paypal"
                         name="payment"
                         value="PayPal"
                         checked={paymentMethod === "PayPal"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">PayPal</label>
+                      <label
+                        className="form-check-label"
+                        htmlFor="payment-paypal"
+                      >
+                        PayPal
+                      </label>
                     </div>
 
                     <div className="form-check">
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="payment-cmi"
                         name="payment"
                         value="CMI"
                         checked={paymentMethod === "CMI"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">CMI</label>
+                      <label className="form-check-label" htmlFor="payment-cmi">
+                        CMI
+                      </label>
                     </div>
                   </>
                 )}
