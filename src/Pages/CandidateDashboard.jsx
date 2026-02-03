@@ -336,6 +336,7 @@ function CandidateDashboard() {
       setIsApplying(false); // 🔥 Stop loader
     }
   };
+  const isJobEmpty = !jobList || jobList.length === 0;
 
   // const handleApplyJob = async () => {
   //   if (!jobId) {
@@ -584,7 +585,6 @@ function CandidateDashboard() {
               </div>
             </div>
           </section>
-
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
           <section className="dashboard-heading-job-profile-info">
@@ -597,7 +597,7 @@ function CandidateDashboard() {
                 <div className="row">
                   <div className="col-lg-8 col-md-6">
                     <div className="dashboard-recent-job-post-info">
-                      {jobList.length > 0 ? (
+                      {!isJobEmpty ? (
                         <>
                           {jobChunks.map((chunk, chunkIndex) => (
                             <React.Fragment key={chunkIndex}>
@@ -1156,41 +1156,50 @@ function CandidateDashboard() {
                           ))}
                         </>
                       ) : (
-                        <p className="text-center mt-3">No jobs found</p>
+                        <div className="text-center py-5">
+                         
+                          <h4>No jobs found</h4>
+                          <p className="text-muted">
+                            Try adjusting your search or filters to find more
+                            opportunities.
+                          </p>
+                        </div>
                       )}
                     </div>
-                    <Stack
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                      justifyContent="center"
-                      sx={{ mt: 3 }}
-                    >
-                      <Pagination
-                        count={totalPages}
-                        page={pageNumber}
-                        onChange={(e, value) => setPageNumber(value)}
-                        variant="outlined"
-                        shape="rounded"
-                        color="secondary"
-                        siblingCount={2}
-                        boundaryCount={1}
-                      />
-
-                      <Select
-                        value={pageSize}
-                        onChange={(e) => {
-                          setPageSize(e.target.value);
-                          setPageNumber(1); // reset to page 1
-                        }}
-                        size="small"
+                    {!isJobEmpty && (
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        justifyContent="center"
+                        sx={{ mt: 3 }}
                       >
-                        <MenuItem value={15}>15 / page</MenuItem>
-                        <MenuItem value={25}>25 / page</MenuItem>
-                        <MenuItem value={50}>50 / page</MenuItem>
-                        <MenuItem value={100}>100 / page</MenuItem>
-                      </Select>
-                    </Stack>
+                        <Pagination
+                          count={totalPages}
+                          page={pageNumber}
+                          onChange={(e, value) => setPageNumber(value)}
+                          variant="outlined"
+                          shape="rounded"
+                          color="secondary"
+                          siblingCount={2}
+                          boundaryCount={1}
+                        />
+
+                        <Select
+                          value={pageSize}
+                          onChange={(e) => {
+                            setPageSize(e.target.value);
+                            setPageNumber(1); // reset to page 1
+                          }}
+                          size="small"
+                        >
+                          <MenuItem value={15}>15 / page</MenuItem>
+                          <MenuItem value={25}>25 / page</MenuItem>
+                          <MenuItem value={50}>50 / page</MenuItem>
+                          <MenuItem value={100}>100 / page</MenuItem>
+                        </Select>
+                      </Stack>
+                    )}
                   </div>
                   <div className="col-lg-4 col-md-6">
                     <div className="dashboard-profile-visibility-other-info">
@@ -1247,23 +1256,30 @@ function CandidateDashboard() {
                       </div>
                       <div className="recent-notifications-box">
                         <h3>Recruiter Messages</h3>
+
                         <ul>
-                          {unreadChat.map((chat, index) => (
-                            <li key={index}>
-                              <div className="icon">
-                                <i className="flaticon-portfolio" />
+                          {unreadChat && unreadChat.length > 0 ? (
+                            unreadChat.map((chat, index) => (
+                              <li key={index}>
+                                <div className="icon">
+                                  <i className="flaticon-portfolio" />
+                                </div>
+                                <span>{chat?.otherUser?.brandName}</span>{" "}
+                                Applied For A Job{" "}
+                                <strong>{chat.jobTitle}</strong>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="no-messages">
+                              <div className="text-center">
+                                <h5>No messages yet</h5>
+                                <p>
+                                  Recruiters haven’t contacted you. Messages
+                                  will appear here.
+                                </p>
                               </div>
-                              <span>{chat?.otherUser?.brandName}</span> Applied
-                              For A Job <strong>{chat.jobTitle}</strong>
                             </li>
-                          ))}
-                          {/* <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Kaedyn Fraser</span> Applied For A Job{" "}
-                            <strong>Web Developer</strong>
-                          </li> */}
+                          )}
                         </ul>
                       </div>
                     </div>
