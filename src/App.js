@@ -68,7 +68,7 @@ import ApplicantsDetails from "./Pages/ApplicantsDetails";
 import ChangePassword from "./Pages/ChangePassword";
 
 // "build 04-09-2025"
-console.log("Date:-16-01-2026,time:-18:18");
+console.log("Date:-03-02-2026,time:-11:30");
 function LayoutWrapper() {
   const location = useLocation();
 
@@ -89,6 +89,7 @@ function LayoutWrapper() {
     "/create-recruiters",
     "/recruiters-list",
     "/messaging-system",
+    "/change-password",
     "/employer-profile",
     "/job-details-form",
     "/job-details-list",

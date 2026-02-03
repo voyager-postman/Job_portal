@@ -517,7 +517,7 @@ function ApplicantsDetails() {
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: "12px",
+                              // gap: "12px",
                             }}
                           >
                             <strong>Chat:</strong>

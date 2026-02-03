@@ -758,7 +758,7 @@ function Header({ bgColor }) {
                                       >
                                         <span className="icon">
                                           <img
-                                            src="assets/images/svg-icon/icon-6.svg"
+                                            src="assets/images/svg-icon/icon-9.svg"
                                             alt="Image"
                                           />
                                         </span>
