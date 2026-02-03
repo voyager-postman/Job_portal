@@ -183,7 +183,7 @@ a {
 }
 
 .form-control {
-  height: 50px;
+  /* height: 50px; */
   border: 1px solid #e2e2e2;
   padding-left: 15px;
   font-weight: 500;
@@ -11329,7 +11329,7 @@ text-transform: capitalize;
 
 .application-management-Icon i {
   color: #f65e00;
-  font-size: 20px;
+  font-size:15px;
   padding-right: 15px;
 }
 
@@ -11438,9 +11438,9 @@ text-transform: capitalize;
 
 .application-management-status span {
   color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 2px 10px;
+  font-size:11px;
+  font-weight:700;
+  padding: 2px 5px;
   border-radius: 5px;
   background: #f65e00;
   letter-spacing: 0.5px;
@@ -11463,11 +11463,14 @@ text-transform: capitalize;
   margin-top: 0px;
   padding: 0px 0px;
 }
+
 .application-management-user-Img img {
-  width: 400px;
-  height: 160px;
-  object-fit: cover;
+width: 300px;
+height: 170px;
+object-fit: cover;
+border-radius: 10px;
 }
+
 .apply-applicant-profile-details {
   margin-top: 50px;
 }
@@ -11497,3 +11500,50 @@ text-transform: capitalize;
   width: 3em !important;
   height: 3em !important;
 }
+.employer-candidate-info-area {
+  min-height: calc(100vh - 120px); /* adjust if header height differs */
+  display: flex;
+  align-items: center;
+}
+
+
+/*other page breadcrumb css start here*/
+
+    .breadcrumb-main-list-area{
+    display: flex;
+    align-items: center;
+    margin-top: 30px;
+    /* box-shadow: 0px 0px 5px 0px #ccc; */
+    padding: 15px 10px;
+   }
+
+   .breadcrumb-main-list-area h4 {
+     margin: 0px;
+    font-size: 18px;
+   }
+
+   .breadcrumb-main-list-area ul {
+    display: flex;
+    list-style: none;
+    margin: 0px;
+    padding-left: 15px;
+   }
+
+
+  .breadcrumb-main-list-area ul li a {
+   color: #666666;
+   }
+
+
+    .breadcrumb-main-list-area i {
+    padding: 0px 10px;   
+    }
+
+    .breadcrumb-main-list-area li:last-child {
+    margin-right: 0;
+    color: #1967d2;
+}
+
+
+
+/*other page breadcrumb css end here*/

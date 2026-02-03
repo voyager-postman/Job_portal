@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -120,6 +120,36 @@ function CandinateProfileDetails() {
   );
   return (
     <>
+      <section className="inner-breadcrumb-main-area ">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area mt-0">
+                <h4>Candidate Details</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+
+                  <li>
+                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+
+                  <li>
+                    <Link to="/candidates-search">Candidates List</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+
+                  <li>Candidate Details</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">
@@ -215,6 +245,7 @@ function CandinateProfileDetails() {
           </div>
         </div>
       </div>
+
       <div className="candidates-details-area pt-100 pb-70">
         <div className="container">
           <div className="row">

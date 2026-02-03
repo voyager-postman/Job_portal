@@ -93,12 +93,16 @@ function CreateRecruiters() {
           <div className="breadcrumb-area">
             <h1>Create Recruiters</h1>
             <ol className="breadcrumb">
-              <li className="item">
+               <li className="item">
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+              <Link to="/employer-dashboard">  <i className="fa-solid fa-angle-right" />Dashboard </Link>
+              </li>
+              <li className="item">
+                <Link to="/recruiters-list">
+                  <i className="fa-solid fa-angle-right" />Recruiters
+
                 </Link>
               </li>
               <li className="item">

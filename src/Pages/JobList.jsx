@@ -1233,7 +1233,7 @@ const JobList = () => {
     Object.keys(appliedFilters).length > 0; // 🔥 key line
   return (
     <>
-      <ToastContainer />
+      <ToastContainer /> 
       <section className="job-card-list-info-area">
         <div className="container">
           <div className="row">
@@ -2594,7 +2594,7 @@ const JobList = () => {
                                                     src={
                                                       company?.coverPhoto
                                                         ? `${API_IMAGE_URL}${company.coverPhoto}`
-                                                        : "/jobPortal/assets/images/company/company-img-3.jpg"
+                                                        : "/jobPortal/assets/images/company/company-img-1.jpg"
                                                     }
                                                     crossOrigin="anonymous"
                                                   />

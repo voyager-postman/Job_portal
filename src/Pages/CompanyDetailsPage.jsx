@@ -326,7 +326,7 @@ function CompanyDetailsPage() {
                     src={
                       company?.logo
                         ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
-                        : "assets/images/logo.png" // default image
+                        : "assets/images/partner-logo/partner-logo-2.png" // default image
                     }
                     alt={company?.name || "Company Logo"}
                   />

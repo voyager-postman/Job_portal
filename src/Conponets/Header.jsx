@@ -138,9 +138,11 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
+
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}auth/github`;
   };
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -247,10 +249,12 @@ function Header({ bgColor }) {
     // Case 3: Local server file — prepend base URL
     return `${API_IMAGE_URL}${url}`;
   };
+
   const handleLinkedinLogin = () => {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
+  
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
