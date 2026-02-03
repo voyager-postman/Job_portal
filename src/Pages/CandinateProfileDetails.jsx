@@ -130,7 +130,7 @@ function CandinateProfileDetails() {
                     crossOrigin="anonymous"
                     src={
                       cleanImageUrl(candidate?.userId?.profileImage) ||
-                      "assets/images/candidate-img/candidate1.jpg"
+                      "assets/images/userIcon.png"
                     }
                     alt="Image"
                   />

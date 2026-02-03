@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios"
+import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { Modal, Typography, Card, Divider, Box } from "@mui/material";
@@ -13,7 +13,7 @@ function YourJobPosts() {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [jobTitle, setJobTitle] = useState("");
   const [jobCategory, setJobCategory] = useState("");
-  const [activeStatus, setActiveStatus] = useState("published");
+  const [activeStatus, setActiveStatus] = useState("all");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,7 +34,7 @@ function YourJobPosts() {
       const response = await axios.post(
         `${API_BASE_URL}createJob`,
         { jobTitle: tempTitle, jobCategory: tempCategory },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       console.log("Job Created:", response.data);
@@ -118,7 +118,7 @@ function YourJobPosts() {
         `${API_BASE_URL}getRecruiterJobList?status=${status}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setJobs(res.data.jobs || []);
       console.log(res.data.jobs || []);
@@ -180,7 +180,7 @@ function YourJobPosts() {
         data,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       // ✅ Show success message
       toast.success(response.data?.message || "Draft copied successfully!");
@@ -189,7 +189,7 @@ function YourJobPosts() {
     } catch (error) {
       console.error("Copy Draft Error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to copy draft. Try again."
+        error.response?.data?.message || "Failed to copy draft. Try again.",
       );
     }
   };
@@ -206,7 +206,7 @@ function YourJobPosts() {
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       // ✅ Show success message
       toast.success(response.data?.message || "Archived Job successfully!");
@@ -215,7 +215,7 @@ function YourJobPosts() {
     } catch (error) {
       console.error("Archived Job Error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to Archived Job. Try again."
+        error.response?.data?.message || "Failed to Archived Job. Try again.",
       );
     }
   };
@@ -278,7 +278,7 @@ function YourJobPosts() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Your Job Posts</h1>
+            <h1>Manage Job Posts</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -290,7 +290,7 @@ function YourJobPosts() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Your Job Posts
+                <i className="fa-solid fa-angle-right" /> Job Posts
               </li>
             </ol>
           </div>
@@ -315,7 +315,7 @@ function YourJobPosts() {
                         <h4>All Jobs</h4>
                         <h5>{dashboardStats?.allJobs?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.allJobs?.weeklyChange ?? 0
+                          dashboardStats?.allJobs?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -336,7 +336,7 @@ function YourJobPosts() {
                         <h4>Published Jobs</h4>
                         <h5>{dashboardStats?.published?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.published?.weeklyChange ?? 0
+                          dashboardStats?.published?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -355,7 +355,7 @@ function YourJobPosts() {
                         <h4>Draft Job </h4>
                         <h5>{dashboardStats?.draft?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.draft?.weeklyChange ?? 0
+                          dashboardStats?.draft?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -374,7 +374,7 @@ function YourJobPosts() {
                         <h4>Archived Job</h4>
                         <h5>{dashboardStats?.archived?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.archived?.weeklyChange ?? 0
+                          dashboardStats?.archived?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -395,7 +395,7 @@ function YourJobPosts() {
                         <h4>Unpublished Job</h4>
                         <h5>{dashboardStats?.unpublished?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.unpublished?.weeklyChange ?? 0
+                          dashboardStats?.unpublished?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -414,7 +414,7 @@ function YourJobPosts() {
                         <h4>Expired Job</h4>
                         <h5>{dashboardStats?.expired?.count ?? 0}</h5>
                         {renderWeeklyChange(
-                          dashboardStats?.expired?.weeklyChange ?? 0
+                          dashboardStats?.expired?.weeklyChange ?? 0,
                         )}
                       </div>
                     </div>
@@ -624,7 +624,7 @@ function YourJobPosts() {
                               }}
                               onClick={() =>
                                 setMenuOpen((prev) =>
-                                  prev === job._id ? null : job._id
+                                  prev === job._id ? null : job._id,
                                 )
                               }
                               className="job-short-detail-crud-info"
@@ -648,7 +648,7 @@ function YourJobPosts() {
                                       copyDraft(
                                         job._id,
                                         job.jobTitle,
-                                        job.jobCategory
+                                        job.jobCategory,
                                       )
                                     }
                                   >
@@ -781,7 +781,7 @@ function YourJobPosts() {
               <p>
                 <strong>Country:</strong>{" "}
                 {countryList.find(
-                  (country) => country._id === viewData?.jobDetails?.country
+                  (country) => country._id === viewData?.jobDetails?.country,
                 )?.name || "Not provided"}
               </p>
             </Typography>

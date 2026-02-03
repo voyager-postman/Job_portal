@@ -254,7 +254,6 @@ function JobSearch() {
         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
         bootstrapModal?.hide();
       }
-      
     } catch (error) {
       console.error("Apply job error:", error);
       if (error?.response?.data?.message) {
@@ -1171,7 +1170,7 @@ function JobSearch() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Job List</h1>
+            <h1>Job Search</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -1182,7 +1181,8 @@ function JobSearch() {
                 </Link>{" "}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Search Job List
+                <i className="fa-solid fa-angle-right" />
+                Job Search
               </li>
             </ol>
           </div>

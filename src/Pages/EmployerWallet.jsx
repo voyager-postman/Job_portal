@@ -50,7 +50,7 @@ const EmployerWallet = () => {
         <div className="responsive-content">
           {/* <!-- Breadcrumb Area --> */}
           <div className="breadcrumb-area">
-            <h1>User Wallet</h1>
+            <h1>My Wallet</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -62,7 +62,7 @@ const EmployerWallet = () => {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right"></i> User Wallet
+                <i className="fa-solid fa-angle-right"></i>My Wallet
               </li>
             </ol>
           </div>

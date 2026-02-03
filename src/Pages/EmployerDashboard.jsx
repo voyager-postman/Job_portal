@@ -368,7 +368,7 @@ function EmployerDashboard() {
           {/* employer dashboard  start here */}
           <section className="employer-dashboard-info-area">
             <div className="employer-dashboard-common-heading">
-              <h2>Recruiter Dashboard</h2>
+              <h2> Dashboard</h2>
             </div>
             <div className="employer-dashboard-box">
               <div className="row">
@@ -390,7 +390,7 @@ function EmployerDashboard() {
                   </Link>
                 </div>
                 <div className="col-md-3 mb-3">
-                  <Link to="/candidates-search">
+                  <Link to="/all-applicants-list">
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
                         <i className="fa-solid fa-file" />
@@ -407,37 +407,37 @@ function EmployerDashboard() {
                   </Link>
                 </div>
                 <div className="col-md-3 mb-3">
-                  <Link to="/jobs">
-                    <div className="employer-dashboard-box-icon-content">
-                      <div className="employer-box-icon">
-                        <i className="fa-solid fa-envelope" />
-                      </div>
-                      <div className="employer-box-content">
-                        <h4>Interview Invitations </h4>
-                        <h5>0</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" /> 0% this week
-                        </p>
-                      </div>
+                  {/* <Link to="/jobs"> */}
+                  <div className="employer-dashboard-box-icon-content">
+                    <div className="employer-box-icon">
+                      <i className="fa-solid fa-envelope" />
                     </div>
-                  </Link>
+                    <div className="employer-box-content">
+                      <h4>Interview Invitations </h4>
+                      <h5>0</h5>
+                      <p>
+                        <i className="fa-solid fa-arrow-up" /> 0% this week
+                      </p>
+                    </div>
+                  </div>
+                  {/* </Link> */}
                 </div>
                 <div className="col-md-3 mb-3">
-                  <Link to="/jobs">
-                    <div className="employer-dashboard-box-icon-content">
-                      <div className="employer-box-icon">
-                        <i className="fa-solid fa-bookmark" />
-                      </div>
-                      <div className="employer-box-content">
-                        <h4>Shortlist</h4>
-                        <h5>{stats.totalShortlisted || 0}</h5>
-                        <p>
-                          <i className="fa-solid fa-arrow-up" />{" "}
-                          {stats?.weekly?.shortlisted?.percent || 0}% this week
-                        </p>
-                      </div>
+                  {/* <Link to="/jobs"> */}
+                  <div className="employer-dashboard-box-icon-content">
+                    <div className="employer-box-icon">
+                      <i className="fa-solid fa-bookmark" />
                     </div>
-                  </Link>
+                    <div className="employer-box-content">
+                      <h4>Shortlist</h4>
+                      <h5>{stats.totalShortlisted || 0}</h5>
+                      <p>
+                        <i className="fa-solid fa-arrow-up" />{" "}
+                        {stats?.weekly?.shortlisted?.percent || 0}% this week
+                      </p>
+                    </div>
+                  </div>
+                  {/* </Link> */}
                 </div>
               </div>
             </div>

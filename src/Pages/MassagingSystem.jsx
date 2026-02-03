@@ -324,8 +324,14 @@ function MassagingSystem() {
                               <div className="messaging-system-user-img">
                                 <img
                                   crossOrigin="anonymous"
-                                  src={activeUser?.image}
-                                  alt={activeUser?.name}
+                                  src={
+                                    activeUser?.image
+                                      ? activeUser.image.startsWith("http")
+                                        ? activeUser.image
+                                        : "assets/images/userIcon.png"
+                                      : "assets/images/userIcon.png"
+                                  }
+                                  alt={activeUser?.name || "User"}
                                 />
                               </div>
                               <div className="messaging-system-user-name">

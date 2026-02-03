@@ -14,17 +14,16 @@ import "react-circular-progressbar/dist/styles.css";
 function EmployerCandinateList() {
   const location = useLocation();
   const token = localStorage.getItem("token");
+  const [seniorityLevels, setSeniorityLevels] = useState([]);
   const jobId = location.state?.jobId;
   const jobTags = location.state?.tags || [];
   const [candidateList, setCandidateList] = useState([]);
   const [candidateListSummary, setCandidateListSummary] = useState({});
   const [page, setPage] = useState(1);
   const [limit] = useState(10); // you can change to 20, 50 etc.
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
+  const [searchInput, setSearchInput] = useState("");
   const [totalPages, setTotalPages] = useState(1);
   const [atsData, setAtsData] = useState(null);
-
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [salaryRanges, setSalaryRanges] = useState([]);
@@ -41,7 +40,24 @@ function EmployerCandinateList() {
     search: "",
     location: "",
     skills: "",
+    education: "",
+    experienceLevel: "",
+    salaryRange: "",
   });
+
+  const degreeOptions = [
+    "High School",
+    "Secondary School",
+    "Higher Secondary",
+    "Certificate",
+    "Diploma",
+    "Associate Degree",
+    "Bachelor Degree",
+    "Master’s Degree",
+    "Doctorate (PhD)",
+    "Post Doctorate",
+    "Professional Degree",
+  ];
 
   const fetchCandidates = async (status = "") => {
     let query = [];
@@ -50,9 +66,13 @@ function EmployerCandinateList() {
     query.push(`limit=${limit}`);
 
     if (status) query.push(`status=${status}`);
-    if (filters.search.trim()) query.push(`search=${filters.search}`);
-    if (filters.location.trim()) query.push(`location=${filters.location}`);
-    if (filters.skills.trim()) query.push(`skills=${filters.skills}`);
+    if (filters.search) query.push(`search=${filters.search}`);
+    if (filters.location) query.push(`location=${filters.location}`);
+    if (filters.skills) query.push(`skills=${filters.skills}`);
+    if (filters.education) query.push(`education=${filters.education}`);
+    if (filters.experienceLevel)
+      query.push(`experienceLevel=${filters.experienceLevel}`);
+    if (filters.salaryRange) query.push(`salaryRange=${filters.salaryRange}`);
 
     const queryString = `?${query.join("&")}`;
 
@@ -75,7 +95,33 @@ function EmployerCandinateList() {
       setSelectedCandidate(null);
     }
   };
+  useEffect(() => {
+    fetch(`${API_BASE_URL}getActiveSalaryRangeList`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.data)) {
+          setSalaryRanges(data.data);
+        }
+      })
+      .catch((err) => console.log("Error:", err));
+  }, []);
+  useEffect(() => {
+    const fetchSeniorityLevels = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}getActiveSeniorityLevelList`,
+        );
 
+        if (res.data.success && Array.isArray(res.data.levels)) {
+          setSeniorityLevels(res.data.levels);
+        }
+      } catch (error) {
+        console.error("Error fetching seniority levels:", error);
+      }
+    };
+
+    fetchSeniorityLevels();
+  }, []);
   const fetchCandidates2 = async () => {
     let query = [];
 
@@ -117,6 +163,12 @@ function EmployerCandinateList() {
       setAtsData(null);
     }
   };
+  useEffect(() => {
+    if (searchInput === "") {
+      setPage(1);
+      setFilters((prev) => ({ ...prev, search: "" }));
+    }
+  }, [searchInput]);
 
   useEffect(() => {
     fetchSalaryRanges();
@@ -291,10 +343,6 @@ function EmployerCandinateList() {
     }
   }, [jobId]);
 
-  useEffect(() => {
-    fetchCandidates(selectedStatus); // if you have status filter
-  }, [filters]);
-
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -363,6 +411,9 @@ function EmployerCandinateList() {
       </span>
     );
   };
+  useEffect(() => {
+    fetchCandidates(selectedStatus);
+  }, [filters]);
 
   return (
     <>
@@ -380,39 +431,29 @@ function EmployerCandinateList() {
                     className="form-control"
                     type="text"
                     placeholder="Search By: Keywords, Job Title"
-                    value={filters.search}
-                    onChange={(e) =>
-                      setFilters({ ...filters, search: e.target.value })
-                    }
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
               </div>
               <div className="employer-candidate-btn-area">
                 <button
                   className="default-btn btn"
-                  onClick={() => fetchCandidates()}
+                  onClick={() => {
+                    setPage(1); // reset pagination
+
+                    setFilters((prev) => ({
+                      ...prev,
+                      search: searchInput.trim(), // 👈 empty string allowed
+                    }));
+                  }}
                 >
                   Find
                 </button>
               </div>
             </div>
-            {/* <div className="col-lg-2 col-sm-6">
-              <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword">
-                  <h3>Search By Keyword</h3>
-                  <form>
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Keywords / Job Title"
-                      />
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div> */}
-            <div className="col-lg-6 col-sm-12">
+
+            <div className="col-lg-3 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Skills</h3>
@@ -444,26 +485,87 @@ function EmployerCandinateList() {
                 </div>
               </div>
             </div>
-            {/* <div className="col-lg-3 col-sm-12">
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
-                <div className="single-sidebar-widget keyword ">
-                  <h3>Date</h3>
-                  <div className="form-group position-relative date_flex_area text-center">
-                    <DatePicker
-                      selectsRange
-                      startDate={startDate}
-                      endDate={endDate}
-                      onChange={(update) => setDateRange(update)}
-                      monthsShown={2}
-                      dateFormat="dd-MM-yyyy"
-                      placeholderText="dd-mm-yyyy to dd-mm-yyyy"
-                      className="form-control Date_Input"
-                    />
+                <div className="single-sidebar-widget keyword">
+                  <h3>Experience level</h3>
+                  <form>
+                    <div className="form-group">
+                      <select
+                        className="form-select form-control"
+                        value={filters.experienceLevel}
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            experienceLevel: e.target.value, // 👈 seniorityLevelId
+                          })
+                        }
+                      >
+                        <option value="">Choose Experience level</option>
+
+                        {seniorityLevels.map((level) => (
+                          <option key={level._id} value={level.name}>
+                            {level.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Education</h3>
+
+                  <div className="form-group">
+                    <select
+                      className="form-select form-control"
+                      value={filters.education}
+                      onChange={(e) =>
+                        setFilters({ ...filters, education: e.target.value })
+                      }
+                    >
+                      <option value="">Choose Education</option>
+
+                      {degreeOptions.map((degree, index) => (
+                        <option key={index} value={degree}>
+                          {degree}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
-            </div> */}
-            <div className="col-lg-6 col-sm-12">
+            </div>
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>Salary Range</h3>
+
+                  <div className="form-group">
+                    <select
+                      className="form-select form-control"
+                      value={filters.salaryRange}
+                      onChange={(e) =>
+                        setFilters({ ...filters, salaryRange: e.target.value })
+                      }
+                    >
+                      <option value="">Choose Salary Range</option>
+
+                      {salaryRanges.map((item) => (
+                        <option key={item._id} value={item.range}>
+                          {item.range}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-3 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>Location</h3>
@@ -606,7 +708,7 @@ function EmployerCandinateList() {
                                     )
                                     ? candidate.userId.profileImage // external URL → use directly
                                     : `${API_IMAGE_URL}${candidate.userId.profileImage}` // local uploads
-                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                                  : "assets/images/userIcon.png"
                               }
                               alt="Image"
                             />
@@ -635,7 +737,7 @@ function EmployerCandinateList() {
                                   Years
                                 </li>
                                 <li>
-                                  <i className="fa-solid fa-money-bill" />$
+                                  <i className="fa-solid fa-money-bill" />
                                   {candidate?.userId?.candidateProfile
                                     ?.career_goals?.MinimumDesiredSalary
                                     ?.amount ?? "0"}
@@ -761,7 +863,7 @@ function EmployerCandinateList() {
                                 )
                                 ? selectedCandidate.userInfo.profileImage // external URL → use directly
                                 : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                              : "assets/images/freelancers/freelancers-img-1.jpg"
+                              : "assets/images/userIcon.png"
                           }
                           alt="Image"
                         />
@@ -805,9 +907,9 @@ function EmployerCandinateList() {
                             <span
                               style={{
                                 ...getLabelStyle(atsData.rating),
-                                padding: "4px 10px",
-                                borderRadius: "6px",
-                                fontSize: "14px",
+                                padding: "2px 5px",
+                                borderRadius: "5px",
+                                fontSize: "12px",
                                 fontWeight: "600",
                                 display: "inline-block",
                               }}

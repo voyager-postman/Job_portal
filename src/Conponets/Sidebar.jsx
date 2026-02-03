@@ -4,6 +4,7 @@ import {
   FaToolbox,
   FaListCheck,
   FaUsersGear,
+  FaUsers,
   FaGoogleWallet,
 } from "react-icons/fa6";
 import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
@@ -175,7 +176,7 @@ function Sidebar() {
                     <IoWalletSharp />
                   </i>
                 </span>
-                <span className="menu-title">Employer Wallet</span>
+                <span className="menu-title">Wallet</span>
               </NavLink>
             </li>
 
@@ -197,6 +198,22 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
+                to="/all-applicants-list"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  {/* <i className="fa-solid fa-briefcase" /> */}
+                  <i>
+                    <FaUsers />
+                  </i>
+                </span>
+                <span className="menu-title">Applicant Management</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
                 to="/shortlist-candidates"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
@@ -208,7 +225,7 @@ function Sidebar() {
                     <IoBookmark />
                   </i>
                 </span>
-                <span className="menu-title">Bookmark Resumes</span>
+                <span className="menu-title">Bookmark Candidates</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -240,7 +257,7 @@ function Sidebar() {
                     <FaUserTie />
                   </i>
                 </span>
-                <span className="menu-title">Employer Profile</span>
+                <span className="menu-title">Profile</span>
               </NavLink>
             </li>
             <li className="nav-item">

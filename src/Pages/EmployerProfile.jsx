@@ -1069,7 +1069,7 @@ function EmployerProfile() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Employer Profile</h1>
+            <h1>Company Profile</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -1080,7 +1080,7 @@ function EmployerProfile() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Employer Profile
+                <i className="fa-solid fa-angle-right" />Profile
               </li>
             </ol>
           </div>
@@ -1101,7 +1101,7 @@ function EmployerProfile() {
                         onClick={() => setActiveTab("menu1")}
                         data-bs-toggle="tab"
                       >
-                        Company Profile
+                        Profile
                       </a>
                     </li>
                     <li className="nav-item" role="presentation">

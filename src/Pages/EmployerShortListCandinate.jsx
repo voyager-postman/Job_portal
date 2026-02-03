@@ -3,55 +3,65 @@ import React, { useEffect, useState } from "react";
 import { FaBookmark } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import axios from "axios"
+import axios from "axios";
 
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 
 function EmployerShortListCandinate() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   // const [bookmarkCount, setBookMarkCount] = useState("");
   const [itemsPerPage] = useState(6); // show 6 candidates per page
   // Calculate index range
-  const [totalCount, setTotalCount] = useState(0);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  // Current page items
-  const currentItems = bookmarkedCandidates.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const totalPages = Math.ceil(totalCount / perPage);
 
   // Total pages
-  const totalPages = Math.ceil(bookmarkedCandidates.length / itemsPerPage);
 
   // Page change handler
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: "smooth" }); // optional
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
   const token = localStorage.getItem("token");
   useEffect(() => {
     AOS.init({ duration: 1200 });
-    fetchBookmarkedCandidates(); // load bookmark list
   }, []);
 
-  const fetchBookmarkedCandidates = async () => {
+  useEffect(() => {
+    fetchBookmarkedCandidates();
+  }, [currentPage, perPage]);
+
+  const pageSizeOptions = [10, 20, 30, 50];
+
+  const fetchBookmarkedCandidates = async (page = currentPage) => {
     try {
       setLoading(true);
+
       const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          page,
+          limit: perPage,
+          search: search?.trim() || "", // 👈 THIS
+        },
       });
-      console.log(res);
+
       setBookmarkedCandidates(res.data.bookmarks || []);
-      setTotalCount(res.data.totalCount || 0); // <-- ADD THIS
+      setTotalCount(res.data.totalCount || 0);
     } catch (error) {
       console.error("Error fetching bookmarked candidates:", error);
     } finally {
@@ -71,7 +81,7 @@ function EmployerShortListCandinate() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       // Show message from backend
       toast.success(res.data.message);
@@ -87,6 +97,13 @@ function EmployerShortListCandinate() {
       }
     }
   };
+  useEffect(() => {
+    // whenever search becomes empty, reload full list
+    if (search.trim() === "") {
+      setCurrentPage(1);
+      fetchBookmarkedCandidates(1);
+    }
+  }, [search]);
 
   const cleanImageUrl = (url) => {
     if (!url) return "";
@@ -111,7 +128,7 @@ function EmployerShortListCandinate() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Employer BookMark candidates</h1>
+            <h1> Bookmark Candidates</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -122,8 +139,8 @@ function EmployerShortListCandinate() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Employer BookMark
-                candidates
+                <i className="fa-solid fa-angle-right" /> BookMark Candidates
+                list
               </li>
             </ol>
           </div>
@@ -156,18 +173,49 @@ function EmployerShortListCandinate() {
                     <div className="col-6">
                       <select
                         className="form-select form-control"
-                        aria-label="Default select example"
+                        value={perPage}
+                        onChange={(e) => {
+                          setPerPage(Number(e.target.value));
+                          setCurrentPage(1); // reset page
+                        }}
                       >
-                        <option selected>Show 20</option>
-                        <option value={1}>01</option>
-                        <option value={2}>02</option>
-                        <option value={3}>03</option>
-                        <option value={4}>04</option>
-                        <option value={5}>05</option>
-                        <option value={6}>06</option>
+                        {pageSizeOptions.map((size) => (
+                          <option key={size} value={size}>
+                            Show {size}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="applied-jobs-search-box-info">
+              <div className="employer-candidate-search-box">
+                <div className="employer-candidate-input-icon">
+                  <div className="employer-candidate-icon">
+                    <i className="fa-solid fa-briefcase" />
+                  </div>
+                  <div className="employer-candidate-input-area">
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Search By: Keywords, Job Title"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="employer-candidate-btn-area">
+                  <button
+                    className="default-btn btn"
+                    onClick={() => {
+                      setCurrentPage(1);
+                      fetchBookmarkedCandidates(1);
+                    }}
+                  >
+                    Find
+                  </button>
                 </div>
               </div>
             </div>
@@ -203,7 +251,7 @@ function EmployerShortListCandinate() {
                                 crossOrigin="anonymous"
                                 src={
                                   cleanImageUrl(candidate?.profileImage) ||
-                                  "assets/images/freelancers/freelancers-img-1.jpg"
+                                  "assets/images/userIcon.png"
                                 }
                                 alt="Profile"
                               />
@@ -241,7 +289,7 @@ function EmployerShortListCandinate() {
                                     e.stopPropagation(); // ⬅ stop parent card click
                                     handleBookmark(
                                       candidate?._id,
-                                      candidate?.jobId
+                                      candidate?.jobId,
                                     );
                                   }}
                                   style={{ cursor: "pointer" }}
@@ -265,30 +313,52 @@ function EmployerShortListCandinate() {
               })}
           </div>
           {totalPages > 1 && (
-            <div className="paginations style2 mb-30">
+            <div className="paginations mb-30">
               <ul>
-                {/* Prev Button */}
-                <li onClick={() => handlePageChange(currentPage - 1)}>
-                  <a style={{ cursor: "pointer" }}>
+                {/* Previous button */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) {
+                        handlePageChange(currentPage - 1);
+                      }
+                    }}
+                    className={currentPage === 1 ? "disabled" : ""}
+                  >
                     <i className="fa-solid fa-angle-left" />
                   </a>
                 </li>
 
-                {/* Page Numbers */}
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <li key={i} onClick={() => handlePageChange(i + 1)}>
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <li key={i + 1}>
                     <a
+                      href="#"
                       className={currentPage === i + 1 ? "active" : ""}
-                      style={{ cursor: "pointer" }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
                     >
                       {i + 1}
                     </a>
                   </li>
                 ))}
 
-                {/* Next Button */}
-                <li onClick={() => handlePageChange(currentPage + 1)}>
-                  <a style={{ cursor: "pointer" }}>
+                {/* Next button */}
+                <li>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) {
+                        handlePageChange(currentPage + 1);
+                      }
+                    }}
+                    className={currentPage === totalPages ? "disabled" : ""}
+                  >
                     <i className="fa-solid fa-angle-right" />
                   </a>
                 </li>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -76,7 +76,7 @@ function EmployerLogin() {
         localStorage.setItem("companyId", user?.companyId);
         localStorage.setItem("verifiedByAdmin", user?.verifiedByAdmin);
         localStorage.setItem("profileImage", user?.company?.logo);
-        
+
         login(); // call auth context
 
         toast.success("Login successfully!");
@@ -105,7 +105,7 @@ function EmployerLogin() {
 
       if (error.response?.status === 429) {
         toast.error(
-          "Too many login attempts. Please wait a moment and try again."
+          "Too many login attempts. Please wait a moment and try again.",
         );
       } else if (
         error.response?.status === 403 &&
@@ -120,7 +120,7 @@ function EmployerLogin() {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
         toast.error(
-          error.response?.data?.message || "Login failed. Please try again."
+          error.response?.data?.message || "Login failed. Please try again.",
         );
       }
     } finally {
@@ -287,9 +287,11 @@ function EmployerLogin() {
                           onChange={() => setCaptchaVerified(true)}
                         />
                       </div>
-
                       <div className="login-forgot-password">
-                        <Link to="/recovery-password">
+                        <Link
+                          to="/recovery-password"
+                          state={{ role: "employer" }}
+                        >
                           <i className="fa-solid fa-lock" /> Forgot your
                           password?
                         </Link>
