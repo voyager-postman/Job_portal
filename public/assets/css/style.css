@@ -11491,7 +11491,7 @@ text-transform: capitalize;
 }
 
 .otp-gap {
-  width: 1em; /* ⬅️ spacing between boxes */
+  width: 25px; /* ⬅️ spacing between boxes */
 }
 .otp-box {
   width: 3em !important;

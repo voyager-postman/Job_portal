@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios"
+import axios from "axios";
 
 import StripeCheckout from "react-stripe-checkout";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
@@ -86,7 +86,7 @@ const AddPlan = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       toast.success(`Plan purchased successfully: ${res.data.packName}`, {
@@ -163,8 +163,8 @@ const AddPlan = () => {
                       index === 1
                         ? "card-header-orange"
                         : index === 2
-                        ? "card-header-green"
-                        : ""
+                          ? "card-header-green"
+                          : ""
                     }`}
                   >
                     <h4>{plan.packName}</h4>
@@ -225,36 +225,45 @@ const AddPlan = () => {
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="stripe"
                         name="payment"
                         value="Stripe"
                         checked={paymentMethod === "Stripe"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">Stripe</label>
+                      <label className="form-check-label" htmlFor="stripe">
+                        Stripe
+                      </label>
                     </div>
 
                     <div className="form-check mb-2">
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="paypal"
                         name="payment"
                         value="PayPal"
                         checked={paymentMethod === "PayPal"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">PayPal</label>
+                      <label className="form-check-label" htmlFor="paypal">
+                        PayPal
+                      </label>
                     </div>
 
                     <div className="form-check">
                       <input
                         type="radio"
                         className="form-check-input"
+                        id="cmi"
                         name="payment"
                         value="CMI"
                         checked={paymentMethod === "CMI"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                       />
-                      <label className="form-check-label">CMI</label>
+                      <label className="form-check-label" htmlFor="cmi">
+                        CMI
+                      </label>
                     </div>
                   </>
                 )}
