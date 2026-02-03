@@ -708,7 +708,7 @@ function EmployerCandinateList() {
                                     )
                                     ? candidate.userId.profileImage // external URL → use directly
                                     : `${API_IMAGE_URL}${candidate.userId.profileImage}` // local uploads
-                                  : "assets/images/freelancers/freelancers-img-1.jpg"
+                                  : "assets/images/userIcon.png"
                               }
                               alt="Image"
                             />
@@ -863,7 +863,7 @@ function EmployerCandinateList() {
                                 )
                                 ? selectedCandidate.userInfo.profileImage // external URL → use directly
                                 : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                              : "assets/images/freelancers/freelancers-img-1.jpg"
+                              : "assets/images/userIcon.png"
                           }
                           alt="Image"
                         />

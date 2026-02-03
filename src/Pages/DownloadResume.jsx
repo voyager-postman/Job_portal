@@ -19,21 +19,20 @@ const DownloadResume = () => {
     pdf.save("resume.pdf");
   };
 
-
   const downloadDOCX = async () => {
     const element = document.querySelector(".resume-preview");
     const html = element.outerHTML;
     const docx = HTMLDocx.asBlob(html);
-    saveAs(docx, 'resume.docx');
-  }
+    saveAs(docx, "resume.docx");
+  };
 
   return (
     <>
       <div className="manage-jobs-box">
         <div className="p-4 px-4">
           <button onClick={downloadPDF} className="default-btn btn">
-            Download PDF{" "}
-          </button>
+            Download PDF
+          </button>{" "}
           <button onClick={downloadDOCX} className="default-btn btn">
             Download Docx
           </button>

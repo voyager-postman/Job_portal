@@ -214,7 +214,7 @@ function ManagesApplicants() {
                                 crossOrigin="anonymous"
                                 src={
                                   cleanImageUrl(item.userId?.profileImage) ||
-                                  "assets/images/freelancers/freelancers-img-1.jpg"
+                                  "assets/images/userIcon.png"
                                 }
                                 alt="candidate"
                               />

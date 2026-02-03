@@ -559,7 +559,7 @@ function CandinatesList() {
                                       <img
                                         src={
                                           cleanImageUrl(user?.profileImage) ||
-                                          "assets/images/freelancers/freelancers-img-1.jpg"
+                                         "assets/images/userIcon.png"
                                         }
                                         crossOrigin="anonymous"
                                         alt="Profile"

@@ -10,6 +10,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { LuMessagesSquare } from "react-icons/lu";
+import { TbMessages } from "react-icons/tb";
 
 function ApplicantsDetails() {
   const location = useLocation();
@@ -273,7 +275,7 @@ function ApplicantsDetails() {
         return { backgroundColor: "#fb923c", color: "#fff" }; // orange
       case 1:
       default:
-        return { backgroundColor: "#ef4444", color: "#fff" }; // red
+        return { backgroundColor: "#f70b0b", color: "#fff" }; // red
     }
   };
 
@@ -422,7 +424,7 @@ function ApplicantsDetails() {
                                   )
                                   ? selectedCandidate.userInfo.profileImage // external URL → use directly
                                   : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                                : "assets/images/freelancers/freelancers-img-1.jpg"
+                                : "assets/images/userIcon.png"
                             }
                             alt="Image"
                           />
@@ -464,14 +466,15 @@ function ApplicantsDetails() {
                             <strong>Tag:</strong>{" "}
                             {atsData ? (
                               <span
-                               style={{
-                                ...getLabelStyle(atsData.rating),
-                                padding: "2px 5px",
-                                borderRadius: "5px",
-                                fontSize: "12px",
-                                fontWeight: "600",
-                                display: "inline-block",
-                              }}
+                                style={{
+                                  ...getLabelStyle(atsData.rating),
+                                  padding: "2px 5px",
+                                  borderRadius: "5px",
+                                  fontSize: "10px",
+                                  fontWeight: "700",
+                                  display: "inline-block",
+                                  letterSpacing: "0.5px",
+                                }}
                               >
                                 {atsData.label}
                               </span>
@@ -488,12 +491,14 @@ function ApplicantsDetails() {
                           >
                             <strong>ATS Score:</strong>
 
-                            <div style={{ width: 40, height: 40 }}>
+                            <div
+                              style={{ width: 30, height: 30, fontWeight: 700 }}
+                            >
                               <CircularProgressbar
                                 value={atsData?.atsPercentage || 0}
                                 text={`${atsData?.atsPercentage || 0}%`}
                                 styles={buildStyles({
-                                  textSize: "28px",
+                                  textSize: "33px",
                                   pathColor:
                                     atsData?.atsPercentage >= 75
                                       ? "#16a34a"
@@ -502,10 +507,60 @@ function ApplicantsDetails() {
                                         : "#ef4444",
                                   textColor: "#111",
                                   trailColor: "#e5e7eb",
+                                  fontWeight: 700,
                                 })}
                               />
                             </div>
                           </h3>
+
+                          <h3
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                            }}
+                          >
+                            <strong>Chat:</strong>
+                            <span
+                              style={{
+                                padding: "2px 5px",
+                                borderRadius: "5px",
+                                fontSize: "10px",
+                                fontWeight: "700",
+                                display: "inline-block",
+                                letterSpacing: "0.5px",
+                                background: "#f05a1c",
+                                color: "#fff",
+                              }}
+                            >
+                              <Link
+                                to="/messaging-system"
+                                state={{ jobId: selectedCandidate.jobId }}
+                                style={{
+                                  color: "#fff",
+                                }}
+                              >
+                                Send Message
+                              </Link>
+                            </span>
+                          </h3>
+                          {/* <span>
+                            <Link
+                              to="/messaging-system"
+                              state={{ jobId: selectedCandidate.jobId }}
+                              style={{
+                                border: "none",
+                                backgroundColor: "#f35c1b",
+                                color: "#fff",
+                                borderRadius: "10px",
+                                padding: "5px 10px",
+                                fontWeight: "600",
+                                marginBottom: "10px",
+                              }}
+                            >
+                              💬 Send Message
+                            </Link>
+                          </span> */}
                         </div>
                       </div>
                       <div className="employer-candidate-dcv-icons">
@@ -530,7 +585,12 @@ function ApplicantsDetails() {
                             }}
                           >
                             Download CV
-                          </a>
+                          </a>{" "}
+                          {/* <Link to="#" className="default-btn btn">
+                            <i>
+                              <TbMessages />
+                            </i>
+                          </Link> */}
                         </div>
 
                         <div className="employer-candidate-icon-info">
@@ -601,6 +661,16 @@ function ApplicantsDetails() {
                                 <i className="fa-solid fa-globe" />
                               </a>
                             </li>
+                            {/* <li>
+                              <Link
+                                to="/messaging-system"
+                                state={{ jobId: selectedCandidate.jobId }}
+                              >
+                                <i>
+                                  <TbMessages />
+                                </i>
+                              </Link>
+                            </li> */}
                           </ul>
                         </div>
 

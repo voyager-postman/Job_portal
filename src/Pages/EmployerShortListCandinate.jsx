@@ -251,7 +251,7 @@ function EmployerShortListCandinate() {
                                 crossOrigin="anonymous"
                                 src={
                                   cleanImageUrl(candidate?.profileImage) ||
-                                  "assets/images/freelancers/freelancers-img-1.jpg"
+                                  "assets/images/userIcon.png"
                                 }
                                 alt="Profile"
                               />

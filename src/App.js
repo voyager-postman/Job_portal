@@ -65,6 +65,7 @@ import AddOnPack from "./Pages/AddOnPack";
 import SendOtp from "./Pages/SendOtp";
 import ManagesApplicants from "./Pages/ManagesApplicants";
 import ApplicantsDetails from "./Pages/ApplicantsDetails";
+import ChangePassword from "./Pages/ChangePassword";
 
 // "build 04-09-2025"
 console.log("Date:-16-01-2026,time:-18:18");
@@ -368,6 +369,15 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <EmployerProfile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/change-password"
+          element={
+            <PrivateRoute>
+              <ChangePassword />
             </PrivateRoute>
           }
         />
