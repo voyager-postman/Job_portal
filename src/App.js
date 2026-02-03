@@ -120,7 +120,7 @@ function LayoutWrapper() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verification" element={<Varification />} />
-        <Route path="/account-verified" element={<AccountVerified />} />
+        <Route path="/account-verified" element={<AccountVerified />} />candidate-dashboard
         <Route path="/verified-cancel" element={<VerifiedCancel />} />
         <Route path="/register" element={<Register />} />
         <Route path="/recovery-password" element={<RecoveryPassword />} />

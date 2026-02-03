@@ -584,7 +584,6 @@ function CandidateDashboard() {
               </div>
             </div>
           </section>
-
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
           <section className="dashboard-heading-job-profile-info">
@@ -1247,23 +1246,30 @@ function CandidateDashboard() {
                       </div>
                       <div className="recent-notifications-box">
                         <h3>Recruiter Messages</h3>
+
                         <ul>
-                          {unreadChat.map((chat, index) => (
-                            <li key={index}>
-                              <div className="icon">
-                                <i className="flaticon-portfolio" />
+                          {unreadChat && unreadChat.length > 0 ? (
+                            unreadChat.map((chat, index) => (
+                              <li key={index}>
+                                <div className="icon">
+                                  <i className="flaticon-portfolio" />
+                                </div>
+                                <span>{chat?.otherUser?.brandName}</span>{" "}
+                                Applied For A Job{" "}
+                                <strong>{chat.jobTitle}</strong>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="no-messages">
+                              <div className="text-center">
+                                <h5>No messages yet</h5>
+                                <p>
+                                  Recruiters haven’t contacted you. Messages
+                                  will appear here.
+                                </p>
                               </div>
-                              <span>{chat?.otherUser?.brandName}</span> Applied
-                              For A Job <strong>{chat.jobTitle}</strong>
                             </li>
-                          ))}
-                          {/* <li>
-                            <div className="icon">
-                              <i className="flaticon-portfolio" />
-                            </div>
-                            <span>Kaedyn Fraser</span> Applied For A Job{" "}
-                            <strong>Web Developer</strong>
-                          </li> */}
+                          )}
                         </ul>
                       </div>
                     </div>
