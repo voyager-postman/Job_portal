@@ -7403,3 +7403,9 @@ margin-right:5px;
 margin-bottom: 15px;
 }
 /*user profile dropdown page css end here*/
+
+.no-users {
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+}

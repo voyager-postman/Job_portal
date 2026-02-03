@@ -211,241 +211,260 @@ function ChatMassageSystem() {
 
           {/* Chat Messaging System Section Start Area */}
           <section className="chat-messaging-system-area">
-           <div className="chat-messaging-system-info">
-            <div className="search-box-user-list-area">
-              <div className="user-message-list-search">
-                <div className="user-message-search-box-icon-info">
-                  <div className="user-message-search-box">
-                    <input type="text" placeholder="Search.." />
-                  </div>
-                  <div className="user-message-search-box-icon">
-                    <i className="fa-solid fa-magnifying-glass" />
+            <div className="chat-messaging-system-info">
+              <div className="search-box-user-list-area">
+                <div className="user-message-list-search">
+                  <div className="user-message-search-box-icon-info">
+                    <div className="user-message-search-box">
+                      <input type="text" placeholder="Search.." />
+                    </div>
+                    <div className="user-message-search-box-icon">
+                      <i className="fa-solid fa-magnifying-glass" />
+                    </div>
                   </div>
                 </div>
-              </div>
-              {/* ---------------- USER LIST ---------------- */}
-              <div className="user-message-list">
-                <ul className="nav nav-tabs" role="tablist">
-                  {users.map((u) => (
-                    <li
-                      className="nav-item"
-                      role="presentation"
-                      key={u?.otherUser?.id}
-                      onClick={() => {
-                        loadChat(u);
-                        fetchCandidates();
-                        checkUnreadCount(u.groupId);
-                        // update unread count
-                        setUsers((prevUsers) =>
-                          prevUsers.map((item) =>
-                            item.groupId === u.groupId
-                              ? { ...item, unreadCount: 0 }
-                              : item,
-                          ),
-                        );
-                      }}
-                    >
-                      <a className="nav-link" data-bs-toggle="tab">
-                        <div className="user-img-name-chat-count-time-massage">
-                          <div className="user-img-chat-count">
-                            <img
-                              crossOrigin="anonymous"
-                              src={
-                                u?.otherUser?.logo
-                                  ? u.otherUser.logo.startsWith("http")
-                                    ? u.otherUser.logo
-                                    : `${API_IMAGE_URL}${u.otherUser.logo}`
-                                  : "assets/images/freelancers/freelancers-img-1.jpg"
-                              }
-                              alt="image"
-                            />
-                            {u?.unreadCount > 0 && (
-                              <>
-                                <span className="chat-count">
-                                  {u.unreadCount}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                          <div className="user-name-chat-time-massage">
-                            <div className="user-name-time-info">
-                              <h6>{u?.otherUser?.brandName}</h6>
-                              {/* <p>Tap to chat</p> */}
-                            </div>
-                            <div className="user-short-massage">
-                              <p>
-                                {u?.lastMessage?.length > 40
-                                  ? u.lastMessage.substring(0, 40) + "..."
-                                  : u?.lastMessage}
-                              </p>
-                            </div>
-                          </div>
+                {/* ---------------- USER LIST ---------------- */}
+                <div className="user-message-list">
+                  <ul className="nav nav-tabs" role="tablist">
+                    {users.length === 0 ? (
+                      <li className="nav-item w-100 text-center py-4">
+                        <div className="no-users">
+                          No Recruiter & Company available
                         </div>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            
-            <div className="user-header-user-chat-details">
-              {!activeUser ? (
-                <div
-                  className="no-chat-selected"
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexDirection: "column",
-                    color: "#999",
-                    background: "#a9a9a921",
-                  }}
-                >
-                  {/* Optional Image */}
-                  <img
-                    src={image1}
-                    alt="No chat selected"
-                    style={{
-                      width: "50%",
-                      height: "100%",
-                      margin: "20px 0px",
-                      opacity: 0.7,
-                    }}
-                  />
-                  {/* <h5>Select a user to start chatting</h5> */}
-                </div>
-              ) : (
-                // ================= ACTIVE CHAT =================
-                <>
-                  {/* ---------- HEADER ---------- */}
-                  <div className="user-name-message-dlt-info">
-                    <div className="user-img-name-status-info">
-                      <div className="user-message-img">
-                        <img
-                          crossOrigin="anonymous"
-                          src={activeUser?.image}
-                          alt={activeUser?.name}
-                        />
-                      </div>
-                      <div className="user-name-status">
-                        <h6>{activeUser ? activeUser.name : "Select User"}</h6>
-                        <span>{activeUser?.online}</span>
-                      </div>
-                    </div>
-                    <div className="user-message-dlt">
-                      <span>
-                        <i className="fa-solid fa-trash" />
-                        Delete Conversation
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ---------- MESSAGES ---------- */}
-                  <div className="user-message-list-massage-detail">
-                    <div className="job-seeker-employer-message-detail">
-                      {/* Tab Panes */}
-                      <div className="tab-content">
-                        <div className="tab-pane fade show active">
-                          {(chatStore[activeUser?.id] || []).map(
-                            (msg, index) =>
-                              String(msg.sender) === String(CURRENT_USER_ID) ? (
-                                // RIGHT SIDE (JOB SEEKER - YOU)
-                                <div
-                                  key={index}
-                                  className="user-message-chat-details employer-info-main-area"
-                                >
-                                  <div className="job-seeker-message-detail-text">
-                                    <p>{msg.message}</p>
-                                    <div className="job-seeker-message-time">
-                                      <p>
-                                        {new Date(
-                                          msg.created_at,
-                                        ).toLocaleTimeString([], {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        })}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="job-seeker-message-name-img-time">
-                                    <div className="job-seeker-message-img">
-                                      <img
-                                        crossOrigin="anonymous"
-                                        src={
-                                          profileImage
-                                            ? profileImage.startsWith("http")
-                                              ? profileImage
-                                              : `${API_IMAGE_URL}${profileImage}`
-                                            : "assets/images/freelancers/freelancers-img-1.jpg"
-                                        }
-                                        alt="rectruiter"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  key={index}
-                                  className="user-message-chat-details"
-                                >
-                                  <div className="job-seeker-message-name-img-time">
-                                    <div className="job-seeker-message-img">
-                                      <img
-                                        crossOrigin="anonymous"
-                                        src={activeUser?.image}
-                                        alt={activeUser?.name}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="job-seeker-message-detail-text">
-                                    <p>{msg.message}</p>
-                                    <div className="job-seeker-message-time">
-                                      <p>
-                                        {new Date(
-                                          msg.created_at,
-                                        ).toLocaleTimeString([], {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        })}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
+                      </li>
+                    ) : (
+                      users.map((u) => (
+                        <li
+                          className="nav-item"
+                          role="presentation"
+                          key={u?.otherUser?.id}
+                          onClick={() => {
+                            loadChat(u);
+                            fetchCandidates();
+                            checkUnreadCount(u.groupId);
+                            // update unread count
+                            setUsers((prevUsers) =>
+                              prevUsers.map((item) =>
+                                item.groupId === u.groupId
+                                  ? { ...item, unreadCount: 0 }
+                                  : item,
                               ),
-                          )}
-                          <div ref={bottomRef}></div>
+                            );
+                          }}
+                        >
+                          <a className="nav-link" data-bs-toggle="tab">
+                            <div className="user-img-name-chat-count-time-massage">
+                              <div className="user-img-chat-count">
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={
+                                    u?.otherUser?.logo
+                                      ? u.otherUser.logo.startsWith("http")
+                                        ? u.otherUser.logo
+                                        : `${API_IMAGE_URL}${u.otherUser.logo}`
+                                      : "assets/images/userIcon.png"
+                                  }
+                                  alt="image"
+                                />
+                                {u?.unreadCount > 0 && (
+                                  <>
+                                    <span className="chat-count">
+                                      {u.unreadCount}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="user-name-chat-time-massage">
+                                <div className="user-name-time-info">
+                                  <h6>{u?.otherUser?.brandName}</h6>
+                                  {/* <p>Tap to chat</p> */}
+                                </div>
+                                <div className="user-short-massage">
+                                  <p>
+                                    {u?.lastMessage?.length > 40
+                                      ? u.lastMessage.substring(0, 40) + "..."
+                                      : u?.lastMessage}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="user-header-user-chat-details">
+                {!activeUser ? (
+                  <div
+                    className="no-chat-selected"
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexDirection: "column",
+                      color: "#999",
+                      background: "#a9a9a921",
+                    }}
+                  >
+                    {/* Optional Image */}
+                    <img
+                      src={image1}
+                      alt="No chat selected"
+                      style={{
+                        width: "50%",
+                        height: "100%",
+                        margin: "20px 0px",
+                        opacity: 0.7,
+                      }}
+                    />
+                    {/* <h5>Select a user to start chatting</h5> */}
+                  </div>
+                ) : (
+                  // ================= ACTIVE CHAT =================
+                  <>
+                    {/* ---------- HEADER ---------- */}
+                    <div className="user-name-message-dlt-info">
+                      <div className="user-img-name-status-info">
+                        <div className="user-message-img">
+                          <img
+                            crossOrigin="anonymous"
+                            src={
+                              activeUser?.image
+                                ? activeUser.image.startsWith("http")
+                                  ? activeUser.image
+                                  : "assets/images/userIcon.png"
+                                : "assets/images/userIcon.png"
+                            }
+                            alt={activeUser?.name}
+                          />
                         </div>
-                        {/* ---------------- INPUT ---------------- */}
-                        <div className="chat-messaging-typeing-function-btn">
-                          <div className="chat-messaging-typeing-box">
-                            <textarea
-                              className="form-control"
-                              placeholder="Type message..."
-                              rows={1}
-                              value={text}
-                              onChange={(e) => setText(e.target.value)}
-                              onKeyDown={(e) =>
-                                e.key === "Enter" && sendMessage()
-                              }
-                            />
+                        <div className="user-name-status">
+                          <h6>
+                            {activeUser ? activeUser.name : "Select User"}
+                          </h6>
+                          <span>{activeUser?.online}</span>
+                        </div>
+                      </div>
+                      <div className="user-message-dlt">
+                        <span>
+                          <i className="fa-solid fa-trash" />
+                          Delete Conversation
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* ---------- MESSAGES ---------- */}
+                    <div className="user-message-list-massage-detail">
+                      <div className="job-seeker-employer-message-detail">
+                        {/* Tab Panes */}
+                        <div className="tab-content">
+                          <div className="tab-pane fade show active">
+                            {(chatStore[activeUser?.id] || []).map(
+                              (msg, index) =>
+                                String(msg.sender) ===
+                                String(CURRENT_USER_ID) ? (
+                                  // RIGHT SIDE (JOB SEEKER - YOU)
+                                  <div
+                                    key={index}
+                                    className="user-message-chat-details employer-info-main-area"
+                                  >
+                                    <div className="job-seeker-message-detail-text">
+                                      <p>{msg.message}</p>
+                                      <div className="job-seeker-message-time">
+                                        <p>
+                                          {new Date(
+                                            msg.created_at,
+                                          ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="job-seeker-message-name-img-time">
+                                      <div className="job-seeker-message-img">
+                                        <img
+                                          crossOrigin="anonymous"
+                                          src={
+                                            profileImage
+                                              ? profileImage.startsWith("http")
+                                                ? profileImage
+                                                : `${API_IMAGE_URL}${profileImage}`
+                                              : "assets/images/userIcon.png"
+                                          }
+                                          alt="rectruiter"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div
+                                    key={index}
+                                    className="user-message-chat-details"
+                                  >
+                                    <div className="job-seeker-message-name-img-time">
+                                      <div className="job-seeker-message-img">
+                                        src=
+                                        {activeUser?.image
+                                          ? activeUser.image.startsWith("http")
+                                            ? activeUser.image
+                                            : "assets/images/userIcon.png"
+                                          : "assets/images/userIcon.png"}
+                                      </div>
+                                    </div>
+
+                                    <div className="job-seeker-message-detail-text">
+                                      <p>{msg.message}</p>
+                                      <div className="job-seeker-message-time">
+                                        <p>
+                                          {new Date(
+                                            msg.created_at,
+                                          ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ),
+                            )}
+                            <div ref={bottomRef}></div>
                           </div>
-                          <div
-                            onClick={sendMessage}
-                            className="chat-messaging-send-btn"
-                          >
-                            <i className="fa-solid fa-paper-plane" />
-                            Send
+                          {/* ---------------- INPUT ---------------- */}
+                          <div className="chat-messaging-typeing-function-btn">
+                            <div className="chat-messaging-typeing-box">
+                              <textarea
+                                className="form-control"
+                                placeholder="Type message..."
+                                rows={1}
+                                value={text}
+                                onChange={(e) => setText(e.target.value)}
+                                onKeyDown={(e) =>
+                                  e.key === "Enter" && sendMessage()
+                                }
+                              />
+                            </div>
+                            <div
+                              onClick={sendMessage}
+                              className="chat-messaging-send-btn"
+                            >
+                              <i className="fa-solid fa-paper-plane" />
+                              Send
+                            </div>
+                            <div className="chat-messaging-typeing-function"></div>
                           </div>
-                          <div className="chat-messaging-typeing-function"></div>
+                           <div ref={bottomRef}></div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
             </div>
           </section>
 

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
 import { toast } from "react-toastify";
 
@@ -206,6 +205,31 @@ function CandinateProfileDetails() {
                         ?.toLowerCase()
                         .replace(/^\w/, (c) => c.toUpperCase()) ||
                         "Not Provided"}{" "}
+                    </h3>
+                    <h3>
+                      <strong>Chat:</strong>{" "}
+                      <span
+                        style={{
+                          padding: "2px 5px",
+                          borderRadius: "5px",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          display: "inline-block",
+                          letterSpacing: "0.5px",
+                          background: "#f05a1c",
+                          color: "#fff",
+                        }}
+                      >
+                        <Link
+                          to="/messaging-system"
+                          state={{ jobId: candidate?.userId?._id }}
+                          style={{
+                            color: "#fff",
+                          }}
+                        >
+                          Send Message
+                        </Link>
+                      </span>
                     </h3>
                   </div>
                 </div>

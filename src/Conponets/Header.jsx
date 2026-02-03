@@ -62,6 +62,7 @@ function Header({ bgColor }) {
       console.error(error);
     }
   };
+
   useEffect(() => {
     fetchCompanyProfile();
   }, []);
@@ -138,7 +139,6 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
-
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}auth/github`;
   };
@@ -518,7 +518,7 @@ function Header({ bgColor }) {
                       className={({ isActive }) =>
                         "nav-link" + (isActive ? " active" : "")
                       }
-                    >
+                  >
                       {t("header.contactUs")}
                     </NavLink>
                   </li>

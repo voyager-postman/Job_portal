@@ -10,6 +10,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { TbMessages } from "react-icons/tb";
 
 function EmployerCandinateList() {
   const location = useLocation();
@@ -1078,6 +1079,34 @@ function EmployerCandinateList() {
                           <option value="Rejected">Rejected</option>
                           <option value="Hired">Hired</option>
                         </select>
+                      </div>
+
+                      <div className="employer-candidate-dcv-btn mt-4">
+                        <Link
+                          to="/messaging-system"
+                          // className="default-btn btn"
+                          state={{ jobId: selectedCandidate.jobId }}
+                          style={{
+                            padding: "5px 3px",
+                            borderRadius: "5px",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                            display: "inline-block",
+                            letterSpacing: "0.5px",
+                            background: "#f05a1c",
+                            color: "#fff",
+                          }}
+                        >
+                          <i
+                            style={{
+                              fontWeight: "700",
+                              fontSize: "15px",
+                            }}
+                          >
+                            <TbMessages />
+                          </i>{" "}
+                          Send Message
+                        </Link>
                       </div>
                     </div>
                   </div>

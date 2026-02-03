@@ -10,7 +10,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { LuMessagesSquare } from "react-icons/lu";
 import { TbMessages } from "react-icons/tb";
 
 function ApplicantsDetails() {
@@ -541,14 +540,13 @@ function ApplicantsDetails() {
                             </div>
                           </h3>
 
-                          <h3
+                          {/* <h3
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              // gap: "12px",
                             }}
                           >
-                            <strong>Chat:</strong>
+                            <strong></strong>
                             <span
                               style={{
                                 padding: "2px 5px",
@@ -571,7 +569,7 @@ function ApplicantsDetails() {
                                 Send Message
                               </Link>
                             </span>
-                          </h3>
+                          </h3> */}
                           {/* <span>
                             <Link
                               to="/messaging-system"
@@ -614,11 +612,6 @@ function ApplicantsDetails() {
                           >
                             Download CV
                           </a>{" "}
-                          {/* <Link to="#" className="default-btn btn">
-                            <i>
-                              <TbMessages />
-                            </i>
-                          </Link> */}
                         </div>
 
                         <div className="employer-candidate-icon-info">
@@ -714,6 +707,33 @@ function ApplicantsDetails() {
                             <option value="Rejected">Rejected</option>
                             <option value="Hired">Hired</option>
                           </select>
+                        </div>
+                        <div className="employer-candidate-dcv-btn mt-4">
+                          <Link
+                            to="/messaging-system"
+                            // className="default-btn btn"
+                            state={{ jobId: selectedCandidate.jobId }}
+                            style={{
+                              padding: "5px 5px",
+                              borderRadius: "5px",
+                              fontSize: "12px",
+                              fontWeight: "700",
+                              display: "inline-block",
+                              letterSpacing: "0.5px",
+                              background: "#f05a1c",
+                              color: "#fff",
+                            }}
+                          >
+                            <i
+                              style={{
+                                fontWeight: "700",
+                                fontSize:"15px"
+                              }}
+                            >
+                              <TbMessages />
+                            </i>{" "}
+                            Send Message
+                          </Link>
                         </div>
                       </div>
                     </div>

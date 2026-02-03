@@ -86,6 +86,7 @@ function MassagingSystem() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       console.log(res.data);
+      fetchCandidates();
     } catch (error) {
       console.error(error);
     }
@@ -154,6 +155,7 @@ function MassagingSystem() {
       }));
 
       setMessages(res.data.data);
+      fetchCandidates();
     } catch (err) {
       console.log("History Load Failed", err);
     }
@@ -236,56 +238,65 @@ function MassagingSystem() {
                       {/* ---------------- USER LIST ---------------- */}
                       <div>
                         <ul className="nav nav-tabs" role="tablist">
-                          {users.map((u) => (
-                            <li
-                              className="nav-item"
-                              role="presentation"
-                              key={u.applicant.userId}
-                              onClick={() => {
-                                loadChat(u);
-                                checkUnreadCount(u.chat.groupId || 1);
-                              }}
-                            >
-                              <a className="nav-link" data-bs-toggle="tab">
-                                <div className="messaging-system-img-user-info">
-                                  <div className="messaging-system-user-img">
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={
-                                        u?.applicant?.profileImage
-                                          ? u.applicant.profileImage.startsWith(
-                                              "http",
-                                            )
-                                            ? u.applicant.profileImage
-                                            : `${API_IMAGE_URL}${u.userId.profileImage}`
-                                          : "assets/images/userIcon.png"
-                                      }
-                                      alt="image"
-                                    />
-                                    {u?.chat?.unreadCount > 0 && (
-                                      <>
-                                        <span className="chat-count">
-                                          {u?.chat?.unreadCount}
-                                        </span>
-                                      </>
-                                    )}
-                                  </div>
-                                  <div className="messaging-system-user-info">
-                                    <h5>
-                                      {u.applicant?.first_name}{" "}
-                                      {u.applicant?.last_name}
-                                    </h5>
-                                    <p>
-                                      {u?.chat?.lastMessage?.length > 40
-                                        ? u.chat.lastMessage.substring(0, 40) +
-                                          "..."
-                                        : u?.chat?.lastMessage}
-                                    </p>
-                                  </div>
-                                </div>
-                              </a>
+                          {users.length === 0 ? (
+                            <li className="nav-item w-100 text-center py-4">
+                              <div className="no-users">No Job Seeker available</div>
                             </li>
-                          ))}
+                          ) : (
+                            users.map((u) => (
+                              <li
+                                className="nav-item"
+                                role="presentation"
+                                key={u.applicant.userId}
+                                onClick={() => {
+                                  loadChat(u);
+                                  fetchCandidates();
+                                  checkUnreadCount(u.chat.groupId || 1);
+                                }}
+                              >
+                                <a className="nav-link" data-bs-toggle="tab">
+                                  <div className="messaging-system-img-user-info">
+                                    <div className="messaging-system-user-img">
+                                      <img
+                                        crossOrigin="anonymous"
+                                        src={
+                                          u?.applicant?.profileImage
+                                            ? u.applicant.profileImage.startsWith(
+                                                "http",
+                                              )
+                                              ? u.applicant.profileImage
+                                              : `${API_IMAGE_URL}${u.userId.profileImage}`
+                                            : "assets/images/userIcon.png"
+                                        }
+                                        alt="image"
+                                      />
+                                      {u?.chat?.unreadCount > 0 && (
+                                        <>
+                                          <span className="chat-count">
+                                            {u?.chat?.unreadCount}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <div className="messaging-system-user-info">
+                                      <h5>
+                                        {u.applicant?.first_name}{" "}
+                                        {u.applicant?.last_name}
+                                      </h5>
+                                      <p>
+                                        {u?.chat?.lastMessage?.length > 40
+                                          ? u.chat.lastMessage.substring(
+                                              0,
+                                              40,
+                                            ) + "..."
+                                          : u?.chat?.lastMessage}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </a>
+                              </li>
+                            ))
+                          )}
                         </ul>
                       </div>
                     </div>
@@ -384,7 +395,7 @@ function MassagingSystem() {
                                                   )
                                                   ? profileImage
                                                   : `${API_IMAGE_URL}${profileImage}`
-                                                : "assets/images/freelancers/freelancers-img-1.jpg"
+                                                : "assets/images/userIcon.png"
                                             }
                                             alt="rectruiter"
                                           />
@@ -396,10 +407,23 @@ function MassagingSystem() {
                                     <>
                                       <div className="messaging-system-user-messaging">
                                         <div className="messaging-system-userImg">
-                                          <img
+                                          {/* <img
                                             crossOrigin="anonymous"
                                             src={activeUser?.image}
                                             alt={activeUser?.name}
+                                          /> */}
+                                          <img
+                                            crossOrigin="anonymous"
+                                            src={
+                                              activeUser?.image
+                                                ? activeUser.image.startsWith(
+                                                    "http",
+                                                  )
+                                                  ? activeUser.image
+                                                  : "assets/images/userIcon.png"
+                                                : "assets/images/userIcon.png"
+                                            }
+                                            alt={activeUser?.name || "User"}
                                           />
                                         </div>
                                         <div className="messaging-system-user-message">
@@ -445,6 +469,7 @@ function MassagingSystem() {
                               </div>
                               <div className="chat-messaging-typeing-function"></div>
                             </div>
+                            <div ref={bottomRef}></div>
                           </div>
                         </>
                       )}
