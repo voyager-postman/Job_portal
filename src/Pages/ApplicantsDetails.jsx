@@ -214,6 +214,10 @@ function ApplicantsDetails() {
       );
 
       console.log("Status Updated", res.data);
+      toast.success(`Candidate status updated to ${value}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
       fetchCandidates2();
       fetchCandidates();
       // Refresh candidate details

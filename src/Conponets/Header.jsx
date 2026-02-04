@@ -30,7 +30,7 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  localStorage.setItem("verifiedByAdmin", "true");
+  // localStorage.setItem("verifiedByAdmin", "true");
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -881,27 +881,34 @@ function Header({ bgColor }) {
                                 </ul>
                               </div>
                             )}
-                            
-                            {isLoggedIn && isCompleted && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <Link
-                                      to="/change-password"
-                                      className="nav-link"
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </Link>
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
+
+                            {localStorage.getItem("is_completed") === "true" &&
+                              localStorage.getItem("isLoggedIn") === "true" &&
+                              (localStorage.getItem("user_role") ===
+                                "JobSeeker" ||
+                                (localStorage.getItem("user_role") ===
+                                  "Company" &&
+                                  localStorage.getItem("verifiedByAdmin") ===
+                                    "true")) && (
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item">
+                                      <Link
+                                        to="/change-password"
+                                        className="nav-link"
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="/jobPortal/assets/images/svg-icon/icon-9.svg"
+                                            alt="Image"
+                                          />
+                                        </span>
+                                        <span>Change Password</span>
+                                      </Link>
+                                    </li>
+                                  </ul>
+                                </div>
+                              )}
 
                             {/* {localStorage.getItem("is_completed") ===
                               "true" && (

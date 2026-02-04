@@ -51,15 +51,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("isLoggedIn", "true");
     setIsLoggedIn(true);
 
-    // Refresh values from localStorage
-    setProfileImage(
-      localStorage.getItem("profileImage") ||
-        "/jobPortal/assets/images/dashboard/images1.png",
-    );
+    // ✅ Use role-based safe image
+    const img = localStorage.getItem("profileImage");
+    setProfileImage(getSafeProfileImage(img));
 
     setFirstName(localStorage.getItem("first_name") || "");
     setLastName(localStorage.getItem("last_name") || "");
   };
+
   console.log(profileImage);
   // 🔥 Logout function
   const logout = () => {
@@ -73,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_role");
     localStorage.removeItem("profileImage");
-    setProfileImage("/jobPortal/assets/images/dashboard/images1.png");
+    setProfileImage(getRoleDefaultImage(user_role));
     setFirstName("");
     setLastName("");
     setIsLoggedIn(false);

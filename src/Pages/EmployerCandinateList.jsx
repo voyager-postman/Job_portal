@@ -14,6 +14,8 @@ import { TbMessages } from "react-icons/tb";
 
 function EmployerCandinateList() {
   const location = useLocation();
+  const [selectedApplicationId, setSelectedApplicationId] = useState(null);
+
   const token = localStorage.getItem("token");
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const jobId = location.state?.jobId;
@@ -91,7 +93,17 @@ function EmployerCandinateList() {
     setTotalPages(data.totalPages || 1);
 
     if (data.applicants?.length > 0) {
-      fetchApplicantDetails(data.applicants[0]._id);
+      const stillExists = data.applicants.find(
+        (c) => c._id === selectedApplicationId,
+      );
+
+      if (stillExists) {
+        fetchApplicantDetails(stillExists._id); // ✅ keep same candidate
+      } else {
+        // fallback only if selected one is gone
+        fetchApplicantDetails(data.applicants[0]._id);
+        setSelectedApplicationId(data.applicants[0]._id);
+      }
     } else {
       setSelectedCandidate(null);
     }
@@ -231,10 +243,17 @@ function EmployerCandinateList() {
       );
 
       console.log("Status Updated", res.data);
+      toast.success(`Candidate status updated to ${value}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // ✅ KEEP selection + refresh
+      setSelectedApplicationId(selectedCandidate?._id);
+      fetchCandidates(selectedStatus);
       fetchCandidates2();
-      fetchCandidates();
+
       // Refresh candidate details
-      fetchApplicantDetails(selectedCandidate?.userInfo?._id);
     } catch (error) {
       console.error("Update Status Error:", error);
     }
@@ -720,7 +739,10 @@ function EmployerCandinateList() {
                     <div
                       className="candidate-list-info single-freelancer-card"
                       key={candidate._id}
-                      onClick={() => fetchApplicantDetails(candidate._id)}
+                      onClick={() => {
+                        setSelectedApplicationId(candidate._id); // ⭐ THIS WAS MISSING
+                        fetchApplicantDetails(candidate._id);
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <div className="row align-items-center">
