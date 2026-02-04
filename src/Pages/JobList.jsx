@@ -1233,7 +1233,7 @@ const JobList = () => {
     Object.keys(appliedFilters).length > 0; // 🔥 key line
   return (
     <>
-      <ToastContainer /> 
+      <ToastContainer />
       <section className="job-card-list-info-area">
         <div className="container">
           <div className="row">

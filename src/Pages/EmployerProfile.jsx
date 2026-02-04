@@ -169,16 +169,40 @@ function EmployerProfile() {
       </div>
     ),
   }));
+  const TOAST_OPTIONS = {
+    containerId: "verify-email-toast",
+    autoClose: 3000,
+  };
+  const isEditorEmpty1 = (html) => {
+    if (!html) return true;
+
+    const text = html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, "")
+      .trim();
+
+    return text.length === 0;
+  };
+  const FIELD_LABELS = {
+    brand_name: "Company name",
+    industry: "Industry",
+    number_of_employees: "Number of employees",
+    phone_number: "Phone number",
+    country_code: "Country code",
+    company_address: "City",
+    city: "Street address",
+    region: "State",
+    Country: "Country",
+  };
+
   const validateRecruiterForm = () => {
     const requiredFields = [
       "brand_name",
-      // "vat",
       "industry",
       "number_of_employees",
       "phone_number",
       "country_code",
       "company_address",
-      "aboutCompany",
       "city",
       "region",
       "Country",
@@ -186,23 +210,32 @@ function EmployerProfile() {
 
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].toString().trim() === "") {
-        toast.error(`${field.replace(/_/g, " ")} is required`);
+        toast.error(
+          `${FIELD_LABELS[field] || field} is required`,
+          TOAST_OPTIONS,
+        );
         return false;
       }
     }
 
+    if (isEditorEmpty1(formData.aboutCompany)) {
+      toast.error("About Company is required", TOAST_OPTIONS);
+      return false;
+    }
+
     if (isNaN(formData.phone_number)) {
-      toast.error("Phone number must be numeric");
+      toast.error("Phone number must be numeric", TOAST_OPTIONS);
       return false;
     }
 
     if (isNaN(formData.country_code)) {
-      toast.error("Country code must be numeric");
+      toast.error("Country code must be numeric", TOAST_OPTIONS);
       return false;
     }
 
     return true;
   };
+
   const fetchCompanyDetails = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -388,7 +421,10 @@ function EmployerProfile() {
         localStorage.setItem("last_name", userDetails.last_name);
         localStorage.setItem("is_completed", userDetails?.is_completed);
         fetchCompanyDetails();
-        toast.success("Profile Updated Successfully!");
+        toast.success("Profile Updated Successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 3000,
+        });
         setActiveTab("menu2");
       } else {
         toast.error(response.data?.message || "Failed to update profile");
@@ -419,7 +455,7 @@ function EmployerProfile() {
   const handleSubmitMultipleImage = async (e) => {
     e.preventDefault();
     if (images.length === 0) {
-      toast.info("No new images to upload", {
+      toast.error("No new images to upload", {
         containerId: "verify-email-toast",
       });
       return;
@@ -682,7 +718,7 @@ function EmployerProfile() {
     e.preventDefault();
 
     if (videos.length === 0) {
-      toast.info("No new videos to upload", {
+      toast.error("No new videos to upload", {
         containerId: "verify-email-toast",
       });
       return;
@@ -970,9 +1006,21 @@ function EmployerProfile() {
 
   //   // axios.post('/api/upload', formData)
   // };
+  const isEditorEmpty = (html) => {
+    const text = html
+      .replace(/<[^>]*>/g, "") // remove HTML tags
+      .replace(/&nbsp;/g, "") // remove non-breaking spaces
+      .trim();
+
+    return text.length === 0;
+  };
+
   const handleUpdateCareerDetail = async () => {
-    if (!careerDetail.trim()) {
-      toast.error("Please enter career details");
+    if (isEditorEmpty(careerDetail)) {
+      toast.error("Please enter career details", {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -992,7 +1040,10 @@ function EmployerProfile() {
 
       if (response.data.success) {
         fetchCompanyDetails();
-        toast.success("Career detail updated successfully!");
+        toast.success("Career detail updated successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 3000,
+        });
         setActiveTab("menu3");
       } else {
         toast.error(response.data.message || "Failed to update career detail");
@@ -1007,6 +1058,7 @@ function EmployerProfile() {
       setIsCareerUpdating(false);
     }
   };
+
   const handleChangeOfSocial = (e) => {
     const { name, value } = e.target;
     setSocialLinks((prev) => ({ ...prev, [name]: value }));
@@ -1040,7 +1092,10 @@ function EmployerProfile() {
 
       console.log("Response:", response.data);
       fetchCompanyDetails();
-      toast.success("Social links submitted successfully!");
+      toast.success("Social links submitted successfully!", {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
       navigate("/employer-dashboard");
     } catch (error) {
       const errorMessage =
@@ -1080,7 +1135,8 @@ function EmployerProfile() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />Profile
+                <i className="fa-solid fa-angle-right" />
+                Profile
               </li>
             </ol>
           </div>
@@ -1399,19 +1455,7 @@ function EmployerProfile() {
                                 ></textarea>
                               </div>
                             </div>
-                            {/* <div className="col-lg-12 col-md-12">
-                              <div className="form-group">
-                                <label>About the company</label>
-                                <textarea
-                                  className="form-control"
-                                  placeholder="About the company here.."
-                                  name="aboutCompany"
-                                  value={formData.aboutCompany}
-                                  onChange={handleChange}
-                                  rows={4}
-                                />
-                              </div>
-                            </div> */}
+
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
                                 <label>About the Company</label>
@@ -1454,7 +1498,7 @@ function EmployerProfile() {
                                 type="button"
                                 className="default-btn btn"
                                 onClick={handleCreateRecruiterProfile}
-                                disabled={loading}
+                                // disabled={loading}
                               >
                                 {loading ? "Submitting..." : "Submit"}
                               </button>
@@ -1472,9 +1516,9 @@ function EmployerProfile() {
                     >
                       <div className="profile-form">
                         {/*                                <h4>Career Details</h4> */}
-                        <form>
-                          <div className="row">
-                            {/* <div className="col-lg-12 col-md-12">
+
+                        <div className="row">
+                          {/* <div className="col-lg-12 col-md-12">
                               <div className="form-group">
                                 <label>Career Details</label>
                                 <textarea
@@ -1488,33 +1532,32 @@ function EmployerProfile() {
                                 />
                               </div>
                             </div> */}
-                            <div className="col-lg-12 col-md-12">
-                              <div className="form-group">
-                                <label>Career Details</label>
-                                <CKEditor
-                                  editor={ClassicEditor}
-                                  data={careerDetail}
-                                  onChange={(event, editor) => {
-                                    const data = editor.getData();
-                                    setCareerDetail(data);
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="employer-personal-info-btn">
-                              <button
-                                className="default-btn btn"
-                                onClick={handleUpdateCareerDetail}
-                                disabled={isCareerUpdating}
-                              >
-                                {isCareerUpdating
-                                  ? "Updating..."
-                                  : "Update Career Detail"}
-                              </button>
+                          <div className="col-lg-12 col-md-12">
+                            <div className="form-group">
+                              <label>Career Details</label>
+                              <CKEditor
+                                editor={ClassicEditor}
+                                data={careerDetail}
+                                onChange={(event, editor) => {
+                                  const data = editor.getData();
+                                  setCareerDetail(data);
+                                }}
+                              />
                             </div>
                           </div>
-                        </form>
+
+                          <div className="employer-personal-info-btn">
+                            <button
+                              className="default-btn btn"
+                              onClick={handleUpdateCareerDetail}
+                              disabled={isCareerUpdating}
+                            >
+                              {isCareerUpdating
+                                ? "Updating..."
+                                : "Update Career Detail"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div

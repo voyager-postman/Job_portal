@@ -1156,13 +1156,29 @@ function CandidateDashboard() {
                           ))}
                         </>
                       ) : (
-                        <div className="text-center py-5">
-                         
+                        <div className="text-center py-2">
+                          <img
+                            crossOrigin="anonymous"
+                            src="/jobPortal/assets/images/recent_job.png"
+                            alt="No jobs found"
+                            className="mb-4"
+                            style={{ maxWidth: "650px", opacity: 0.8 }}
+                          />
+
                           <h4>No jobs found</h4>
-                          <p className="text-muted">
+
+                          <p className="text-muted mb-4">
                             Try adjusting your search or filters to find more
                             opportunities.
                           </p>
+
+                          <button
+                          className="default-btn btn"
+                            // className="btn btn-primary px-4"
+                            onClick={() => navigate("/job-search")}
+                          >
+                            🔍 Search Jobs
+                          </button>
                         </div>
                       )}
                     </div>
