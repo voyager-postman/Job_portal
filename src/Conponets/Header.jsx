@@ -508,28 +508,41 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
+  const DEFAULT_JOBSEEKER_IMG = "/jobPortal/assets/images/dashboard/images.png";
 
-    // ✅ If default local dashboard image → return as-is
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+  const DEFAULT_COMPANY_IMG = "/jobPortal/assets/images/dashboard/images1.png";
+
+  const user_role = localStorage.getItem("user_role");
+  // "JobSeeker" | "Company"
+
+  const cleanImageUrl = (url) => {
+    // ✅ If empty, return role-based default
+    if (!url || url === "null" || url === "undefined") {
+      return user_role === "Company"
+        ? DEFAULT_COMPANY_IMG
+        : DEFAULT_JOBSEEKER_IMG;
+    }
+
+    // ✅ If already a default dashboard image → return as-is
+    if (url === DEFAULT_JOBSEEKER_IMG || url === DEFAULT_COMPANY_IMG) {
       return url;
     }
 
-    // ✅ If URL wrongly contains "/uploads/https"
+    // ✅ Fix wrongly stored upload URLs
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External URL (Google, GitHub, etc.)
+    // ✅ External image
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
-    // ✅ Local uploaded image → prepend API_IMAGE_URL
+    // ✅ Backend uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
-const isCompleted = localStorage.getItem("is_completed") === "true";
+
+  const isCompleted = localStorage.getItem("is_completed") === "true";
   return (
     <>
       <ToastContainer />

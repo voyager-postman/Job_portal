@@ -1162,7 +1162,7 @@ function CandidateDashboard() {
                             src="/jobPortal/assets/images/recent_job.png"
                             alt="No jobs found"
                             className="mb-4"
-                            style={{ maxWidth: "650px", opacity: 0.8 }}
+                            style={{ maxWidth: "100%", opacity: 0.8 }}
                           />
 
                           <h4>No jobs found</h4>
@@ -1290,8 +1290,7 @@ function CandidateDashboard() {
                               <div className="text-center">
                                 <h5>No messages yet</h5>
                                 <p>
-                                  Recruiters haven’t contacted you. Messages
-                                  will appear here.
+                                  Recruiters haven’t contacted you.
                                 </p>
                               </div>
                             </li>

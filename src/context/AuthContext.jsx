@@ -4,33 +4,41 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
+    localStorage.getItem("isLoggedIn") === "true",
   );
-  const DEFAULT_PROFILE_IMAGE =
-    "/jobPortal/assets/images/dashboard/images1.png";
+  const DEFAULT_JOBSEEKER_IMG = "/jobPortal/assets/images/dashboard/images.png";
+
+  const DEFAULT_COMPANY_IMG = "/jobPortal/assets/images/dashboard/images1.png";
+
+  const user_role = localStorage.getItem("user_role");
+  // "JobSeeker" | "Company"
+
+  const getRoleDefaultImage = (role) => {
+    return role === "Company" ? DEFAULT_COMPANY_IMG : DEFAULT_JOBSEEKER_IMG;
+  };
 
   const getSafeProfileImage = (img) => {
     if (!img || img === "null" || img === "undefined") {
-      return DEFAULT_PROFILE_IMAGE;
+      return getRoleDefaultImage(user_role);
     }
     return img;
   };
 
   const [profileImage, setProfileImage] = useState(() =>
-    getSafeProfileImage(localStorage.getItem("profileImage"))
+    getSafeProfileImage(localStorage.getItem("profileImage")),
   );
 
   const [firstName, setFirstName] = useState(
-    localStorage.getItem("first_name") || ""
+    localStorage.getItem("first_name") || "",
   );
   const [lastName, setLastName] = useState(
-    localStorage.getItem("last_name") || ""
+    localStorage.getItem("last_name") || "",
   );
 
   useEffect(() => {
     if (isLoggedIn) {
       setProfileImage(
-        getSafeProfileImage(localStorage.getItem("profileImage"))
+        getSafeProfileImage(localStorage.getItem("profileImage")),
       );
 
       setFirstName(localStorage.getItem("first_name") || "");
@@ -46,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     // Refresh values from localStorage
     setProfileImage(
       localStorage.getItem("profileImage") ||
-        "/jobPortal/assets/images/dashboard/images1.png"
+        "/jobPortal/assets/images/dashboard/images1.png",
     );
 
     setFirstName(localStorage.getItem("first_name") || "");
