@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
-import axios from "axios"
+import axios from "axios";
 
 function JobDetailsForm() {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ function JobDetailsForm() {
   }));
 
   const [selectedCities, setSelectedCities] = useState(
-    Array.isArray(jobFromState.city) ? jobFromState.city : []
+    Array.isArray(jobFromState.city) ? jobFromState.city : [],
   );
 
   // ---- Fetch if page was refreshed (no state) but we have an id
@@ -120,7 +120,7 @@ function JobDetailsForm() {
     const fetchSeniorityLevels = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}getActiveSeniorityLevelList`
+          `${API_BASE_URL}getActiveSeniorityLevelList`,
         );
         if (res.data.success && Array.isArray(res.data.levels)) {
           setSeniorityLevels(res.data.levels);
@@ -176,7 +176,7 @@ function JobDetailsForm() {
   const [citySearchTerm, setCitySearchTerm] = useState("");
 
   const filteredCities = cityList.filter((city) =>
-    city.name.toLowerCase().includes(citySearchTerm.toLowerCase())
+    city.name.toLowerCase().includes(citySearchTerm.toLowerCase()),
   );
 
   const updateCities = (updatedCities) => {
@@ -196,7 +196,7 @@ function JobDetailsForm() {
     updateCities(
       selectedCities.includes(cityName)
         ? selectedCities.filter((c) => c !== cityName)
-        : [...selectedCities, cityName]
+        : [...selectedCities, cityName],
     );
   };
 
@@ -258,7 +258,7 @@ function JobDetailsForm() {
         if (!nextPane) return;
 
         const nextTabLink = document.querySelector(
-          `.nav-link[href="#${nextPane.id}"]`
+          `.nav-link[href="#${nextPane.id}"]`,
         );
 
         if (nextTabLink) {
@@ -284,7 +284,7 @@ function JobDetailsForm() {
         if (!prevPane) return;
 
         const prevTabLink = document.querySelector(
-          `.nav-link[href="#${prevPane.id}"]`
+          `.nav-link[href="#${prevPane.id}"]`,
         );
 
         if (prevTabLink) {
@@ -393,7 +393,7 @@ function JobDetailsForm() {
   const fetchCitiesByCountry = async (countryId) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}getCitiesByCountry?countryId=${countryId}`
+        `${API_BASE_URL}getCitiesByCountry?countryId=${countryId}`,
       );
       const cities = response.data?.cities || [];
       setCityList(cities);
@@ -401,7 +401,7 @@ function JobDetailsForm() {
       // ✅ If editing, keep previously selected cities (if they still exist in the list)
       if (formData.city?.length) {
         const validCities = formData.city.filter((cityName) =>
-          cities.some((c) => c.name === cityName)
+          cities.some((c) => c.name === cityName),
         );
         setSelectedCities(validCities);
       }
@@ -431,7 +431,7 @@ function JobDetailsForm() {
   useEffect(() => {
     if (jobFromState?.country && countryList.length > 0) {
       const matchedCountry = countryList.find(
-        (c) => c._id === jobFromState.country
+        (c) => c._id === jobFromState.country,
       );
       if (matchedCountry?.id) {
         fetchCitiesByCountry(matchedCountry.id);
@@ -468,7 +468,7 @@ function JobDetailsForm() {
     data = formData,
     // isPublish = false,
     statusType = "draft",
-    scheduleDate = null
+    scheduleDate = null,
   ) => {
     try {
       const token = localStorage.getItem("token");
@@ -498,18 +498,18 @@ function JobDetailsForm() {
       formDataToSend.append("confidentialJobPost", data.confidentialJobPost);
       formDataToSend.append(
         "enableRemovalRelevantJobs",
-        data.enableRemovalRelevantJobs
+        data.enableRemovalRelevantJobs,
       );
       formDataToSend.append("enableHighlightedJob", data.enableHighlightedJob);
       formDataToSend.append(
         "enableHomePageVisibility",
-        data.enableHomePageVisibility
+        data.enableHomePageVisibility,
       );
       formDataToSend.append("enableFeaturedJob", data.enableFeaturedJob);
       formDataToSend.append("referenceId", data.referenceId || "");
       formDataToSend.append(
         "enableEmailNotification",
-        data.enableEmailNotification
+        data.enableEmailNotification,
       );
       formDataToSend.append("availablePosts", data.availablePosts || "");
       formDataToSend.append("minSalary", data.minSalary || "");
@@ -540,7 +540,7 @@ function JobDetailsForm() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       console.log("✅ Job Updated:", response.data);
@@ -586,6 +586,11 @@ function JobDetailsForm() {
               <li className="item">
                 <Link to="/employer-dashboard">
                   <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
+              </li>
+              <li className="item">
+                <Link to="/your-job-posts">
+                  <i className="fa-solid fa-angle-right" /> Job Post
                 </Link>
               </li>
               <li className="item">
@@ -937,12 +942,12 @@ function JobDetailsForm() {
                                           padding: "6px 10px",
                                           cursor: "pointer",
                                           background: selectedCities.includes(
-                                            city.name
+                                            city.name,
                                           )
                                             ? "#007bff"
                                             : "transparent",
                                           color: selectedCities.includes(
-                                            city.name
+                                            city.name,
                                           )
                                             ? "white"
                                             : "black",
@@ -1531,7 +1536,7 @@ function JobDetailsForm() {
                           <br />
                           {/* {formData.region || "Not provided"},{" "} */}
                           {countryList.find(
-                            (country) => country._id === formData.Country
+                            (country) => country._id === formData.Country,
                           )?.name || "Not provided"}
                         </p>
                       </div>
@@ -1540,14 +1545,14 @@ function JobDetailsForm() {
                           <h4>Minimum level</h4>
                           <p>
                             {seniorityLevels.find(
-                              (level) => level._id === formData.minimumLevel
+                              (level) => level._id === formData.minimumLevel,
                             )?.name || "Not provided"}
                           </p>
                           <div className="divder-space-line" />
                           <h4>Location</h4>
                           <p>
                             {countryList.find(
-                              (country) => country._id === formData.Country
+                              (country) => country._id === formData.Country,
                             )?.name || "Not provided"}
                           </p>
                         </div>
@@ -1555,14 +1560,14 @@ function JobDetailsForm() {
                           <h4>Employment type</h4>
                           <p>
                             {jobTypes.find(
-                              (type) => type._id === formData.employmentType
+                              (type) => type._id === formData.employmentType,
                             )?.name || "Not provided"}
                           </p>
                           <div className="divder-space-line" />
                           <h4>Job category</h4>
                           <p>
                             {categoryList.find(
-                              (cat) => cat._id === formData.jobCategory
+                              (cat) => cat._id === formData.jobCategory,
                             )?.name || "Not provided"}
                           </p>
                         </div>
@@ -1629,7 +1634,7 @@ function JobDetailsForm() {
                                 handlePublishJob(
                                   formData,
                                   "scheduled",
-                                  scheduleDate
+                                  scheduleDate,
                                 )
                               }
                             >

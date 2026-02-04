@@ -236,7 +236,8 @@ function CandinatesList() {
               </li>
               <li className="item">
                 <Link to="/candidates-search">
-                  <i className="fa-solid fa-angle-right" />Candidate Search
+                  <i className="fa-solid fa-angle-right" />
+                  Candidate Search
                 </Link>
               </li>
             </ol>
@@ -553,7 +554,10 @@ function CandinatesList() {
                             <div className="candidate-list-info single-freelancer-card">
                               <Link
                                 to="/candidates-details"
-                                state={{ userId: user._id }}
+                                state={{
+                                  userId: user._id,
+                                  from: "/candidates-search",
+                                }}
                               >
                                 <div className="row align-items-center">
                                   <div className="col-lg-4">

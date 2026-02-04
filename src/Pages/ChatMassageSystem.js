@@ -408,12 +408,19 @@ function ChatMassageSystem() {
                                   >
                                     <div className="job-seeker-message-name-img-time">
                                       <div className="job-seeker-message-img">
-                                        src=
-                                        {activeUser?.image
-                                          ? activeUser.image.startsWith("http")
-                                            ? activeUser.image
-                                            : "assets/images/userIcon.png"
-                                          : "assets/images/userIcon.png"}
+                                        <img
+                                          crossOrigin="anonymous"
+                                          src={
+                                            activeUser?.image
+                                              ? activeUser.image.startsWith(
+                                                  "http",
+                                                )
+                                                ? activeUser.image
+                                                : "assets/images/userIcon.png"
+                                              : "assets/images/userIcon.png"
+                                          }
+                                          alt="rectruiter"
+                                        />
                                       </div>
                                     </div>
 
@@ -452,13 +459,16 @@ function ChatMassageSystem() {
                             <div
                               onClick={sendMessage}
                               className="chat-messaging-send-btn"
+                              style={{
+                                cursor: "pointer",
+                              }}
                             >
                               <i className="fa-solid fa-paper-plane" />
                               Send
                             </div>
                             <div className="chat-messaging-typeing-function"></div>
                           </div>
-                           <div ref={bottomRef}></div>
+                          <div ref={bottomRef}></div>
                         </div>
                       </div>
                     </div>

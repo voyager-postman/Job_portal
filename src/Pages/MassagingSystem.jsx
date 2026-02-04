@@ -240,7 +240,9 @@ function MassagingSystem() {
                         <ul className="nav nav-tabs" role="tablist">
                           {users.length === 0 ? (
                             <li className="nav-item w-100 text-center py-4">
-                              <div className="no-users">No Job Seeker available</div>
+                              <div className="no-users">
+                                No Job Seeker available
+                              </div>
                             </li>
                           ) : (
                             users.map((u) => (
@@ -445,32 +447,32 @@ function MassagingSystem() {
                                   ),
                               )}
                             </div>
-                            {/* ---------------- INPUT ---------------- */}
-                            <div className="messaging-system-typeing-send-btn">
-                              <>
-                                <textarea
-                                  className="form-control"
-                                  placeholder="Write Brief Bio Or Introduction"
-                                  rows={1}
-                                  value={text}
-                                  onChange={(e) => setText(e.target.value)}
-                                  onKeyDown={(e) =>
-                                    e.key === "Enter" && sendMessage()
-                                  }
-                                />
-                              </>
-
-                              <div
-                                onClick={sendMessage}
-                                className="send_chat cusror-pointer"
-                              >
-                                <i className="fa-solid fa-paper-plane" />
-                                Send
-                              </div>
-                              <div className="chat-messaging-typeing-function"></div>
-                            </div>
-                            <div ref={bottomRef}></div>
                           </div>
+                          {/* ---------------- INPUT ---------------- */}
+                          <div className="messaging-system-typeing-send-btn">
+                            <>
+                              <textarea
+                                className="form-control"
+                                placeholder="Write Brief Bio Or Introduction"
+                                rows={1}
+                                value={text}
+                                onChange={(e) => setText(e.target.value)}
+                                onKeyDown={(e) =>
+                                  e.key === "Enter" && sendMessage()
+                                }
+                              />
+                            </>
+
+                            <div
+                              onClick={sendMessage}
+                              className="send_chat cusror-pointer"
+                            >
+                              <i className="fa-solid fa-paper-plane" />
+                              Send
+                            </div>
+                            <div className="chat-messaging-typeing-function"></div>
+                          </div>
+                          <div ref={bottomRef}></div>
                         </>
                       )}
                     </div>

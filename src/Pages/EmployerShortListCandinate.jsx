@@ -243,7 +243,7 @@ function EmployerShortListCandinate() {
                     <div className="candidate-list-info single-freelancer-card">
                       <Link
                         to={`/candidates-details`}
-                        state={{ userId: candidate?._id }}
+                        state={{ userId: candidate?._id, from: "/bookmark-candidate" }}
                       >
                         <div className="row align-items-center">
                           <div className="col-lg-4">

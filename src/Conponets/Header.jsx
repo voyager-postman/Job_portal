@@ -530,7 +530,7 @@ function Header({ bgColor }) {
     // ✅ Local uploaded image → prepend API_IMAGE_URL
     return `${API_IMAGE_URL}${url}`;
   };
-const isCompleted = localStorage.getItem("is_completed") === "true";
+  const isCompleted = localStorage.getItem("is_completed") === "true";
   return (
     <>
       <ToastContainer />
@@ -868,7 +868,7 @@ const isCompleted = localStorage.getItem("is_completed") === "true";
                                 </ul>
                               </div>
                             )}
-                            
+
                             {isLoggedIn && isCompleted && (
                               <div className="dropdown-body">
                                 <ul className="profile-nav p-0 pt-3">

@@ -16,6 +16,11 @@ function CandinateProfileDetails() {
   const [hover, setHover] = useState(0); // star hover effect
   const [review, setReview] = useState("");
   const [reviews, setReviews] = useState([]);
+  const from = location.state?.from || {};
+
+  const breadcrumbLabel =
+    from === "/bookmark-candidate" ? "Bookmark Candidates" : "Candidate Search";
+
   useEffect(() => {
     if (userId) {
       fetchCandidateDetails(userId);
@@ -135,7 +140,7 @@ function CandinateProfileDetails() {
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/candidates-search">Candidates Search</Link>
+                    <Link to={from}>{breadcrumbLabel}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>Candidate Details</li>

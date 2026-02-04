@@ -136,6 +136,7 @@ function CandidateDashboard() {
       state: { companyId: company }, // 👈 send ID as prop-like data
     });
   };
+
   const handleToggleVisibility = async (e) => {
     const newValue = e.target.checked;
     setProfileVisible(newValue); // update UI instantly
@@ -241,6 +242,7 @@ function CandidateDashboard() {
       (selectedType === "custom" && selectedCustomFile)
     );
   };
+
   const resetApplyModal = () => {
     setSelectedType("");
     setSelectedId(null);
@@ -386,6 +388,7 @@ function CandidateDashboard() {
   // ⚡ Example total count (replace with value from API if available)
   // const totalJobs = 7700;
   // const totalPages = Math.ceil(totalJobs / pageSize);
+
   const totalPages = totalJobData?.totalPages;
   const jobChunks = [];
   for (let i = 0; i < jobList.length; i += 10) {
@@ -585,6 +588,7 @@ function CandidateDashboard() {
               </div>
             </div>
           </section>
+
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
           <section className="dashboard-heading-job-profile-info">
@@ -1173,7 +1177,7 @@ function CandidateDashboard() {
                           </p>
 
                           <button
-                          className="default-btn btn"
+                            className="default-btn btn"
                             // className="btn btn-primary px-4"
                             onClick={() => navigate("/job-search")}
                           >
