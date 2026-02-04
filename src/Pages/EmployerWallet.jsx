@@ -6,6 +6,7 @@ import axios from "axios";
 const EmployerWallet = () => {
   const [credits, setCredits] = useState("");
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const fetchcreditStatus = async () => {
       try {
@@ -62,7 +63,9 @@ const EmployerWallet = () => {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right"></i>My Wallet
+                <Link to="/employer-wallet">
+                  <i className="fa-solid fa-angle-right"></i>My Wallet
+                </Link>
               </li>
             </ol>
           </div>

@@ -214,7 +214,7 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/shortlist-candidates"
+                to="/bookmark-candidate"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
@@ -246,7 +246,7 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/employer-profile"
+                to="/company-profile"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
@@ -262,7 +262,7 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/recruiters-list"
+                to="/manage-recruiter"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }

@@ -105,7 +105,7 @@ function ManagesApplicants() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Application Management</h1>
+            <h1>Applicant Management</h1>
             <ol className="breadcrumb">
               <li className="item">
                 <Link to="/">Home </Link>
@@ -116,7 +116,9 @@ function ManagesApplicants() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> All Applicants
+              <Link to="/all-applicants-list">
+                <i className="fa-solid fa-angle-right" /> Applicant Management
+              </Link>
               </li>
             </ol>
           </div>

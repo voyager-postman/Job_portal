@@ -2770,7 +2770,7 @@ function JobSearch() {
                                                   src={
                                                     company?.coverPhoto
                                                       ? `${API_IMAGE_URL}${company.coverPhoto}`
-                                                      : "/jobPortal/assets/images/company/company-img-3.jpg"
+                                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
                                                   }
                                                   crossOrigin="anonymous"
                                                 />

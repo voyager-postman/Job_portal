@@ -68,8 +68,10 @@ const ChangePassword = () => {
                   </Link>
                 </li>
                 <li className="item">
+                <Link to="/change-password">
                   <i className="fa-solid fa-angle-right" />
                   Change Password
+                </Link>
                 </li>
               </ol>
             </div>

@@ -139,10 +139,10 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
+  
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}auth/github`;
   };
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -518,7 +518,7 @@ function Header({ bgColor }) {
                       className={({ isActive }) =>
                         "nav-link" + (isActive ? " active" : "")
                       }
-                    >
+                  >
                       {t("header.contactUs")}
                     </NavLink>
                   </li>
@@ -705,103 +705,75 @@ function Header({ bgColor }) {
 
                             {localStorage.getItem("is_completed") ===
                               "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item active">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
-                                          });
-                                          return;
-                                        }
+                              <>
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item active">
+                                      <button
+                                        className="nav-link"
+                                        onClick={async () => {
+                                          const role =
+                                            localStorage.getItem("user_role");
+                                          const updatedUser =
+                                            await fetchCompanyProfile();
+                                          const verified =
+                                            updatedUser?.verifiedByAdmin;
+                                          // If employer is not verified → show popup & block access
+                                          if (
+                                            (role === "Recruiter" ||
+                                              role === "Company") &&
+                                            !verified
+                                          ) {
+                                            Swal.fire({
+                                              title: "Company Not Verified",
+                                              text: "Your account is not verified by the admin. Please contact support..",
+                                              icon: "warning",
+                                              confirmButtonText: "OK",
+                                            });
+                                            return;
+                                          }
 
-                                        if (role === "JobSeeker") {
-                                          navigate("/candidate-dashboard");
-                                        } else {
-                                          navigate("/employer-dashboard");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-1.svg"
-                                          alt="Dashboard"
-                                        />
-                                      </span>
-                                      <span className="menu-title">
-                                        {t("header.dashboard")}
-                                      </span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
+                                          if (role === "JobSeeker") {
+                                            navigate("/candidate-dashboard");
+                                          } else {
+                                            navigate("/employer-dashboard");
+                                          }
+                                        }}
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="/jobPortal/assets/images/svg-icon/icon-1.svg"
+                                            alt="Dashboard"
+                                          />
+                                        </span>
+                                        <span className="menu-title">
+                                          {t("header.dashboard")}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item">
+                                      <Link
+                                        to="/change-password"
+                                        className="nav-link"
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="assets/images/svg-icon/icon-9.svg"
+                                            alt="Image"
+                                          />
+                                        </span>
+                                        <span>Change Password</span>
+                                      </Link>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </>
                             )}
 
-                            {localStorage.getItem("is_completed") ===
-                              "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
-                                          });
-                                          return;
-                                        }
-
-                                        if (role === "JobSeeker") {
-                                          navigate("/change-password");
-                                        } else {
-                                          navigate("/change-password");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
                             <div className="dropdown-footer">
                               <ul className="profile-nav">
                                 <li className="nav-item">

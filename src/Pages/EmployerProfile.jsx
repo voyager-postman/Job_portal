@@ -169,16 +169,29 @@ function EmployerProfile() {
       </div>
     ),
   }));
+  const TOAST_OPTIONS = {
+    containerId: "verify-email-toast",
+    autoClose: 3000,
+  };
+  const isEditorEmpty1 = (html) => {
+    if (!html) return true;
+
+    const text = html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, "")
+      .trim();
+
+    return text.length === 0;
+  };
+
   const validateRecruiterForm = () => {
     const requiredFields = [
       "brand_name",
-      // "vat",
       "industry",
       "number_of_employees",
       "phone_number",
       "country_code",
       "company_address",
-      "aboutCompany",
       "city",
       "region",
       "Country",
@@ -186,23 +199,30 @@ function EmployerProfile() {
 
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].toString().trim() === "") {
-        toast.error(`${field.replace(/_/g, " ")} is required`);
+        toast.error(`${field.replace(/_/g, " ")} is required`, TOAST_OPTIONS);
         return false;
       }
     }
 
+    // ✅ CKEditor validation
+    if (isEditorEmpty1(formData.aboutCompany)) {
+      toast.error("About Company is required", TOAST_OPTIONS);
+      return false;
+    }
+
     if (isNaN(formData.phone_number)) {
-      toast.error("Phone number must be numeric");
+      toast.error("Phone number must be numeric", TOAST_OPTIONS);
       return false;
     }
 
     if (isNaN(formData.country_code)) {
-      toast.error("Country code must be numeric");
+      toast.error("Country code must be numeric", TOAST_OPTIONS);
       return false;
     }
 
     return true;
   };
+
   const fetchCompanyDetails = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -970,8 +990,17 @@ function EmployerProfile() {
 
   //   // axios.post('/api/upload', formData)
   // };
+  const isEditorEmpty = (html) => {
+    const text = html
+      .replace(/<[^>]*>/g, "") // remove HTML tags
+      .replace(/&nbsp;/g, "") // remove non-breaking spaces
+      .trim();
+
+    return text.length === 0;
+  };
+
   const handleUpdateCareerDetail = async () => {
-    if (!careerDetail.trim()) {
+    if (isEditorEmpty(careerDetail)) {
       toast.error("Please enter career details");
       return;
     }
@@ -1007,6 +1036,7 @@ function EmployerProfile() {
       setIsCareerUpdating(false);
     }
   };
+
   const handleChangeOfSocial = (e) => {
     const { name, value } = e.target;
     setSocialLinks((prev) => ({ ...prev, [name]: value }));
@@ -1080,7 +1110,10 @@ function EmployerProfile() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />Profile
+                <Link to="/company-profile">
+                  <i className="fa-solid fa-angle-right" />
+                  Company Profile
+                </Link>
               </li>
             </ol>
           </div>
@@ -1399,19 +1432,7 @@ function EmployerProfile() {
                                 ></textarea>
                               </div>
                             </div>
-                            {/* <div className="col-lg-12 col-md-12">
-                              <div className="form-group">
-                                <label>About the company</label>
-                                <textarea
-                                  className="form-control"
-                                  placeholder="About the company here.."
-                                  name="aboutCompany"
-                                  value={formData.aboutCompany}
-                                  onChange={handleChange}
-                                  rows={4}
-                                />
-                              </div>
-                            </div> */}
+
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
                                 <label>About the Company</label>
@@ -1454,7 +1475,7 @@ function EmployerProfile() {
                                 type="button"
                                 className="default-btn btn"
                                 onClick={handleCreateRecruiterProfile}
-                                disabled={loading}
+                                // disabled={loading}
                               >
                                 {loading ? "Submitting..." : "Submit"}
                               </button>
@@ -1472,9 +1493,9 @@ function EmployerProfile() {
                     >
                       <div className="profile-form">
                         {/*                                <h4>Career Details</h4> */}
-                        <form>
-                          <div className="row">
-                            {/* <div className="col-lg-12 col-md-12">
+
+                        <div className="row">
+                          {/* <div className="col-lg-12 col-md-12">
                               <div className="form-group">
                                 <label>Career Details</label>
                                 <textarea
@@ -1488,33 +1509,32 @@ function EmployerProfile() {
                                 />
                               </div>
                             </div> */}
-                            <div className="col-lg-12 col-md-12">
-                              <div className="form-group">
-                                <label>Career Details</label>
-                                <CKEditor
-                                  editor={ClassicEditor}
-                                  data={careerDetail}
-                                  onChange={(event, editor) => {
-                                    const data = editor.getData();
-                                    setCareerDetail(data);
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="employer-personal-info-btn">
-                              <button
-                                className="default-btn btn"
-                                onClick={handleUpdateCareerDetail}
-                                disabled={isCareerUpdating}
-                              >
-                                {isCareerUpdating
-                                  ? "Updating..."
-                                  : "Update Career Detail"}
-                              </button>
+                          <div className="col-lg-12 col-md-12">
+                            <div className="form-group">
+                              <label>Career Details</label>
+                              <CKEditor
+                                editor={ClassicEditor}
+                                data={careerDetail}
+                                onChange={(event, editor) => {
+                                  const data = editor.getData();
+                                  setCareerDetail(data);
+                                }}
+                              />
                             </div>
                           </div>
-                        </form>
+
+                          <div className="employer-personal-info-btn">
+                            <button
+                              className="default-btn btn"
+                              onClick={handleUpdateCareerDetail}
+                              disabled={isCareerUpdating}
+                            >
+                              {isCareerUpdating
+                                ? "Updating..."
+                                : "Update Career Detail"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div

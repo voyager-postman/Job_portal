@@ -98,7 +98,9 @@ function AppliedJobList() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Applications
+                <Link to="/applied-jobs-list">
+                  <i className="fa-solid fa-angle-right" /> Application Management
+                </Link>
               </li>
             </ol>
           </div>
@@ -222,7 +224,7 @@ function AppliedJobList() {
                     }}
                   >
                     <Link
-                      to="/employer-candidates-list"
+                      to="/applied-candidate-list"
                       state={{
                         jobId: job._id,
                         tags: job.tags, // 👈 passing tags also

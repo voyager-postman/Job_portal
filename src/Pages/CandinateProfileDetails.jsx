@@ -119,6 +119,33 @@ function CandinateProfileDetails() {
   );
   return (
     <>
+      <section className="inner-breadcrumb-main-area ">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area mt-0">
+                <h4>Candidate Details</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/candidates-search">Candidates Search</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>Candidate Details</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="candidates-details-banner-area candidate-banner-info bg-f0f4fc">
         <div className="container">
           <div className="row align-items-center">
@@ -176,7 +203,7 @@ function CandinateProfileDetails() {
                         .replace(/^\w/, (c) => c.toUpperCase()) ||
                         "Not Provided"}{" "}
                     </h3>
-                    <h3>
+                    {/* <h3>
                       <strong>Chat:</strong>{" "}
                       <span
                         style={{
@@ -200,7 +227,7 @@ function CandinateProfileDetails() {
                           Send Message
                         </Link>
                       </span>
-                    </h3>
+                    </h3> */}
                   </div>
                 </div>
               </div>
@@ -239,6 +266,7 @@ function CandinateProfileDetails() {
           </div>
         </div>
       </div>
+
       <div className="candidates-details-area pt-100 pb-70">
         <div className="container">
           <div className="row">

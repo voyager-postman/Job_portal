@@ -235,7 +235,9 @@ function CandinatesList() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Candidates List
+                <Link to="/candidates-search">
+                  <i className="fa-solid fa-angle-right" />Candidate Search
+                </Link>
               </li>
             </ol>
           </div>
@@ -550,7 +552,7 @@ function CandinatesList() {
                           >
                             <div className="candidate-list-info single-freelancer-card">
                               <Link
-                                to="/candidates-profile-details"
+                                to="/candidates-details"
                                 state={{ userId: user._id }}
                               >
                                 <div className="row align-items-center">
@@ -559,7 +561,7 @@ function CandinatesList() {
                                       <img
                                         src={
                                           cleanImageUrl(user?.profileImage) ||
-                                         "assets/images/userIcon.png"
+                                          "assets/images/userIcon.png"
                                         }
                                         crossOrigin="anonymous"
                                         alt="Profile"

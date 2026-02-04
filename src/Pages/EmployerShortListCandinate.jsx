@@ -139,8 +139,9 @@ function EmployerShortListCandinate() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> BookMark Candidates
-                list
+                <Link to="/bookmark-candidate">
+                  <i className="fa-solid fa-angle-right" /> Bookmark Candidates
+                </Link>
               </li>
             </ol>
           </div>
@@ -241,7 +242,7 @@ function EmployerShortListCandinate() {
                   >
                     <div className="candidate-list-info single-freelancer-card">
                       <Link
-                        to={`/candidates-profile-details`}
+                        to={`/candidates-details`}
                         state={{ userId: candidate?._id }}
                       >
                         <div className="row align-items-center">

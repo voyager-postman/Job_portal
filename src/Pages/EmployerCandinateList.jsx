@@ -419,6 +419,32 @@ function EmployerCandinateList() {
   return (
     <>
       <ToastContainer />
+      <section className="inner-breadcrumb-main-area">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area">
+                <h4>Applied Candidate List</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/applied-jobs-list">Application Management</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>Applied Candidate List</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="employer-candidate-filter-info-area">
         <div className="container">
           <div className="row">

@@ -259,6 +259,7 @@ function EmployerDashboard() {
 
   const ZERO_COLOR = "#b2bacf"; // light gray
   const NORMAL_COLORS = ["#3b82f6", "#34d399"]; // Messages, Replies
+  
   useEffect(() => {
     const fetchInsight = async () => {
       try {

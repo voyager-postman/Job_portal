@@ -385,6 +385,7 @@ function ApplicantsDetails() {
               className={
                 starNumber <= rating ? "fa-solid fa-star" : "fa-regular fa-star"
               }
+              apply-applicant-profile-details
               style={{
                 color: starNumber <= rating ? "#fbbf24" : "#d1d5db",
                 marginRight: "4px",
@@ -402,6 +403,34 @@ function ApplicantsDetails() {
   return (
     <>
       <ToastContainer />
+
+      <section className="inner-breadcrumb-main-area">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area">
+                <h4>Applicant Details</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/all-applicants-list">Applicant Management</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>Applicant Details</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="employer-candidate-info-area">
         <div className="container">
           <div className="row">
@@ -698,7 +727,7 @@ function ApplicantsDetails() {
                             <i
                               style={{
                                 fontWeight: "700",
-                                fontSize:"15px"
+                                fontSize: "15px",
                               }}
                             >
                               <TbMessages />
@@ -895,7 +924,12 @@ function ApplicantsDetails() {
                   </div>
                 </>
               ) : (
-                <p>No Data details...</p>
+                <div className="candidate-empty-state">
+                  <h3 className="text-center">Loading...</h3>
+                  <p className="text-center">
+                    Candidate information is on the way.
+                  </p>
+                </div>
               )}
             </div>
           </div>
