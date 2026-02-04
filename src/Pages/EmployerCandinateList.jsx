@@ -424,7 +424,7 @@ function EmployerCandinateList() {
           <div className="row">
             <div className="col-lg-12 col-sm-12">
               <div className="breadcrumb-main-list-area">
-                <h4>Employer-candidates-list</h4>
+                <h4>Applied Candidate List</h4>
                 <ul>
                   <li>
                     <Link to="/">Home</Link>
@@ -438,7 +438,7 @@ function EmployerCandinateList() {
                     <Link to="/applied-jobs-list">Application Management</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-                  <li>employer-candidates-list</li>
+                  <li>Applied Candidate List</li>
                 </ul>
               </div>
             </div>

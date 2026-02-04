@@ -116,7 +116,9 @@ function ManagesApplicants() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> All Applicants
+              <Link to="/all-applicants-list">
+                <i className="fa-solid fa-angle-right" /> Applicant Management
+              </Link>
               </li>
             </ol>
           </div>

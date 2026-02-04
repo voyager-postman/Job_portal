@@ -23,6 +23,8 @@ function Header({ bgColor }) {
     updateProfileImage,
     updateName,
   } = useAuth();
+  console.log(updateProfileImage);
+  console.log(profileImage);
   const userRole = localStorage.getItem("user_role");
   const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
@@ -30,7 +32,7 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  localStorage.setItem("verifiedByAdmin", "true");
+  // localStorage.setItem("verifiedByAdmin", "true");
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -60,33 +62,35 @@ function Header({ bgColor }) {
       console.error(error);
     }
   };
+
   useEffect(() => {
     fetchCompanyProfile();
   }, []);
 
   // Fetch notifications from API
   const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        `${API_BASE_URL}get/notifications`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      if (response.data && response.data.notifications) {
-        const list = response.data.notifications.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}get/notifications`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
         );
 
-        setNotifications(list);
-        setUnreadCount(response.data.unreadCount);
+        if (response.data && response.data.notifications) {
+          const list = response.data.notifications.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+          );
+
+          setNotifications(list);
+          setUnreadCount(response.data.unreadCount);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
       }
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
     }
   };
 
@@ -135,10 +139,10 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
+  
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}auth/github`;
   };
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -180,7 +184,7 @@ function Header({ bgColor }) {
       profileImage: avatar,
       is_completed: isVerified === "true",
     };
-
+    console.log(avatar);
     // 👉 Save login data
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
@@ -189,6 +193,10 @@ function Header({ bgColor }) {
     localStorage.setItem("first_name", first_name);
     localStorage.setItem("last_name", last_name);
     localStorage.setItem("user_profile", avatar);
+
+    if (typeof updateProfileImage === "function") {
+      updateProfileImage(avatar);
+    }
     localStorage.setItem("user_name", `${first_name} ${last_name}`);
     localStorage.setItem("is_completed", user.is_completed);
     toast.success("Login Successful!");
@@ -241,135 +249,11 @@ function Header({ bgColor }) {
     // Case 3: Local server file — prepend base URL
     return `${API_IMAGE_URL}${url}`;
   };
+
   const handleLinkedinLogin = () => {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
-
-  // const login = useGoogleLogin({
-  //   onSuccess: async (tokenResponse) => {
-  //     try {
-  //       console.log("Google Access Token:", tokenResponse.access_token);
-
-  //       // 1️⃣ Fetch Google User Info
-  //       const res = await fetch(
-  //         "https://www.googleapis.com/oauth2/v3/userinfo",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${tokenResponse.access_token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const userInfo = await res.json();
-  //       console.log("Google User Info:", userInfo);
-
-  //       const payload = {
-  //         googleId: userInfo.sub,
-  //         email: userInfo.email,
-  //         first_name: userInfo.given_name,
-  //         last_name: userInfo.family_name,
-  //         profileImage: userInfo.picture,
-  //       };
-
-  //       console.log("Sending to Backend:", payload);
-
-  //       // 2️⃣ Send to Backend API
-  //       const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload);
-  //       console.log("Backend Response:", apiRes.data);
-
-  //       if (!apiRes.data?.success) {
-  //         toast.error(apiRes.data?.message || "Invalid credentials");
-  //         return;
-  //       }
-
-  //       const { token, user } = apiRes.data;
-
-  //       localStorage.setItem("token", token);
-  //       localStorage.setItem("user", JSON.stringify(user));
-  //       localStorage.setItem("user_id", user?._id);
-  //       localStorage.setItem("user_email", user?.email);
-  //       localStorage.setItem("user_role", user?.role);
-  //       localStorage.setItem("first_name", user?.first_name);
-  //       localStorage.setItem("last_name", user?.last_name);
-  //       localStorage.setItem("is_completed", user?.is_completed);
-  //       localStorage.setItem("user_profile", user?.profileImage);
-  //       localStorage.setItem(
-  //         "user_name",
-  //         `${user?.first_name} ${user?.last_name}`
-  //       );
-
-  //       // 4️⃣ Fetch Profile Data
-  //       try {
-  //         const profileRes = await axios.get(
-  //           `${API_BASE_URL}candidate/profile`,
-  //           {
-  //             headers: { Authorization: `Bearer ${token}` },
-  //           }
-  //         );
-
-  //         const profileData = profileRes.data?.profile;
-  //         const profileImg = profileData?.profileImage;
-
-  //         if (profileImg && profileImg.trim() !== "") {
-  //           const fullUrl = `${API_IMAGE_URL}${profileImg}`;
-  //           localStorage.setItem("profileImage", fullUrl);
-  //           if (typeof updateProfileImage === "function") {
-  //             updateProfileImage(fullUrl);
-  //           }
-  //         } else {
-  //           localStorage.setItem(
-  //             "profileImage",
-  //             "/jobPortal/assets/images/dashboard/images1.png"
-  //           );
-  //         }
-
-  //         if (profileData) {
-  //           updateName(profileData.first_name, profileData.last_name);
-  //         }
-  //       } catch (profileErr) {
-  //         console.error("Profile fetch error:", profileErr);
-  //       }
-  //       authLogin();
-  //       toast.success("Login successful!");
-  //       console.log(user?.is_completed);
-  //       // 7️⃣ Navigation
-  //       if (user?.is_completed) {
-  //         console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-dashboard");
-  //         } else {
-  //           console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-  //           navigate("/candidate-profile");
-  //         }
-  //       } else {
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-basic-info");
-  //         } else {
-  //           navigate("/profile-basic-info");
-  //         }
-  //       }
-
-  //       // 8️⃣ Close Login Modal
-  //       const modal = document.getElementById("exampleModalLogin");
-  //       if (modal) {
-  //         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-  //         bootstrapModal?.hide();
-  //       }
-  //     } catch (error) {
-  //       console.error("Google Login Error:", error.response?.data || error);
-  //       toast.error("Google login failed!");
-  //     }
-  //   },
-
-  //   onError: () => {
-  //     console.log("Google Login Failed");
-  //     toast.error("Google login failed. Try again.");
-  //   },
-
-  //   flow: "implicit",
-  // });
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -434,12 +318,11 @@ function Header({ bgColor }) {
               headers: { Authorization: `Bearer ${token}` },
             },
           );
-
           const profileData = profileRes.data?.profile;
           const profileImg = profileData?.profileImage;
 
           if (profileImg && profileImg.trim() !== "") {
-            const fullUrl = `${API_IMAGE_URL}${profileImg}`;
+            const fullUrl = `${profileImg}`;
             localStorage.setItem("profileImage", fullUrl);
             if (typeof updateProfileImage === "function") {
               updateProfileImage(fullUrl);
@@ -509,41 +392,30 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  const DEFAULT_JOBSEEKER_IMG = "/jobPortal/assets/images/dashboard/images.png";
-
-  const DEFAULT_COMPANY_IMG = "/jobPortal/assets/images/dashboard/images1.png";
-
-  const user_role = localStorage.getItem("user_role");
-  // "JobSeeker" | "Company"
 
   const cleanImageUrl = (url) => {
-    // ✅ If empty, return role-based default
-    if (!url || url === "null" || url === "undefined") {
-      return user_role === "Company"
-        ? DEFAULT_COMPANY_IMG
-        : DEFAULT_JOBSEEKER_IMG;
-    }
+    console.log(url);
+    if (!url) return "";
 
-    // ✅ If already a default dashboard image → return as-is
-    if (url === DEFAULT_JOBSEEKER_IMG || url === DEFAULT_COMPANY_IMG) {
+    // ✅ If default local dashboard image → return as-is
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
       return url;
     }
 
-    // ✅ Fix wrongly stored upload URLs
+    // ✅ If URL wrongly contains "/uploads/https"
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External image
+    // ✅ External URL (Google, GitHub, etc.)
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
-    // ✅ Backend uploaded image
+    // ✅ Local uploaded image → prepend API_IMAGE_URL
     return `${API_IMAGE_URL}${url}`;
   };
-
-  const isCompleted = localStorage.getItem("is_completed") === "true";
+  console.log(profileImage);
   return (
     <>
       <ToastContainer />
@@ -646,7 +518,7 @@ function Header({ bgColor }) {
                       className={({ isActive }) =>
                         "nav-link" + (isActive ? " active" : "")
                       }
-                    >
+                  >
                       {t("header.contactUs")}
                     </NavLink>
                   </li>
@@ -757,17 +629,16 @@ function Header({ bgColor }) {
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">
-                          <a
-                            href="#"
-                            className="dropdown-bs-toggle"
-                            role="button"
+                          <button
+                            type="button"
+                            className="dropdown-bs-toggle bg-transparent border-0"
                             data-bs-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false"
                           >
                             <div className="menu-profile">
                               <img
-                                crossorigin="anonymous"
+                                crossOrigin="anonymous"
                                 src={cleanImageUrl(profileImage)}
                                 className="rounded-circle"
                                 alt="Profile"
@@ -777,7 +648,8 @@ function Header({ bgColor }) {
                                 <i className="fa-solid fa-angle-down" />
                               </span>
                             </div>
-                          </a>
+                          </button>
+
                           <div className="dropdown-menu">
                             <div className="dropdown-header d-flex flex-column align-items-center">
                               <div className="figure mb-3">
@@ -833,124 +705,74 @@ function Header({ bgColor }) {
 
                             {localStorage.getItem("is_completed") ===
                               "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item active">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
-                                          });
-                                          return;
-                                        }
+                              <>
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item active">
+                                      <button
+                                        className="nav-link"
+                                        onClick={async () => {
+                                          const role =
+                                            localStorage.getItem("user_role");
+                                          const updatedUser =
+                                            await fetchCompanyProfile();
+                                          const verified =
+                                            updatedUser?.verifiedByAdmin;
+                                          // If employer is not verified → show popup & block access
+                                          if (
+                                            (role === "Recruiter" ||
+                                              role === "Company") &&
+                                            !verified
+                                          ) {
+                                            Swal.fire({
+                                              title: "Company Not Verified",
+                                              text: "Your account is not verified by the admin. Please contact support..",
+                                              icon: "warning",
+                                              confirmButtonText: "OK",
+                                            });
+                                            return;
+                                          }
 
-                                        if (role === "JobSeeker") {
-                                          navigate("/candidate-dashboard");
-                                        } else {
-                                          navigate("/employer-dashboard");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-1.svg"
-                                          alt="Dashboard"
-                                        />
-                                      </span>
-                                      <span className="menu-title">
-                                        {t("header.dashboard")}
-                                      </span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
+                                          if (role === "JobSeeker") {
+                                            navigate("/candidate-dashboard");
+                                          } else {
+                                            navigate("/employer-dashboard");
+                                          }
+                                        }}
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="/jobPortal/assets/images/svg-icon/icon-1.svg"
+                                            alt="Dashboard"
+                                          />
+                                        </span>
+                                        <span className="menu-title">
+                                          {t("header.dashboard")}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item">
+                                      <Link
+                                        to="/change-password"
+                                        className="nav-link"
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="assets/images/svg-icon/icon-9.svg"
+                                            alt="Image"
+                                          />
+                                        </span>
+                                        <span>Change Password</span>
+                                      </Link>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </>
                             )}
-                            
-                            {isLoggedIn && isCompleted && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <Link
-                                      to="/change-password"
-                                      className="nav-link"
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </Link>
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
-
-                            {/* {localStorage.getItem("is_completed") ===
-                              "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
-                                          });
-                                          return;
-                                        }
-
-                                        if (role === "JobSeeker") {
-                                          navigate("/change-password");
-                                        } else {
-                                          navigate("/change-password");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
-                            )} */}
 
                             <div className="dropdown-footer">
                               <ul className="profile-nav">

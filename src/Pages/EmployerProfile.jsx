@@ -183,17 +183,6 @@ function EmployerProfile() {
 
     return text.length === 0;
   };
-  const FIELD_LABELS = {
-    brand_name: "Company name",
-    industry: "Industry",
-    number_of_employees: "Number of employees",
-    phone_number: "Phone number",
-    country_code: "Country code",
-    company_address: "City",
-    city: "Street address",
-    region: "State",
-    Country: "Country",
-  };
 
   const validateRecruiterForm = () => {
     const requiredFields = [
@@ -210,14 +199,12 @@ function EmployerProfile() {
 
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].toString().trim() === "") {
-        toast.error(
-          `${FIELD_LABELS[field] || field} is required`,
-          TOAST_OPTIONS,
-        );
+        toast.error(`${field.replace(/_/g, " ")} is required`, TOAST_OPTIONS);
         return false;
       }
     }
 
+    // ✅ CKEditor validation
     if (isEditorEmpty1(formData.aboutCompany)) {
       toast.error("About Company is required", TOAST_OPTIONS);
       return false;
@@ -1017,10 +1004,7 @@ function EmployerProfile() {
 
   const handleUpdateCareerDetail = async () => {
     if (isEditorEmpty(careerDetail)) {
-      toast.error("Please enter career details", {
-        containerId: "verify-email-toast",
-        autoClose: 3000,
-      });
+      toast.error("Please enter career details");
       return;
     }
 
@@ -1135,8 +1119,10 @@ function EmployerProfile() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />
-                Profile
+                <Link to="/company-profile">
+                  <i className="fa-solid fa-angle-right" />
+                  Company Profile
+                </Link>
               </li>
             </ol>
           </div>

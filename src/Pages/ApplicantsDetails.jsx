@@ -412,7 +412,7 @@ function ApplicantsDetails() {
                 <h4>Applicant Details</h4>
                 <ul>
                   <li>
-                   <Link to="/">Home</Link>
+                    <Link to="/">Home</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
@@ -727,7 +727,7 @@ function ApplicantsDetails() {
                             <i
                               style={{
                                 fontWeight: "700",
-                                fontSize:"15px"
+                                fontSize: "15px",
                               }}
                             >
                               <TbMessages />

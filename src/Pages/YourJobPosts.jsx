@@ -290,7 +290,9 @@ function YourJobPosts() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Job Posts
+                <Link to="/your-job-posts">
+                  <i className="fa-solid fa-angle-right" /> Job Posts
+                </Link>
               </li>
             </ol>
           </div>
@@ -303,7 +305,7 @@ function YourJobPosts() {
             <div className="employer-dashboard-box">
               <div className="row">
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${activeStatus === "all" ? "active" : ""}`}
                     onClick={() => setActiveStatus("all")}
                   >
@@ -319,10 +321,10 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${
                       activeStatus === "published" ? "active" : ""
                     }`}
@@ -340,10 +342,10 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${activeStatus === "draft" ? "active" : ""}`}
                     onClick={() => setActiveStatus("draft")}
                   >
@@ -359,10 +361,10 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${activeStatus === "archived" ? "active" : ""}`}
                     onClick={() => setActiveStatus("archived")}
                   >
@@ -378,10 +380,10 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${
                       activeStatus === "unpublished" ? "active" : ""
                     }`}
@@ -399,10 +401,10 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
                 <div className="col-md-4 mb-3">
-                  <a
+                  <Link
                     className={`${activeStatus === "expired" ? "active" : ""}`}
                     onClick={() => setActiveStatus("expired")}
                   >
@@ -418,7 +420,7 @@ function YourJobPosts() {
                         )}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -522,74 +524,74 @@ function YourJobPosts() {
 
                   <ul className="nav nav-tabs" role="tablist">
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "all" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("all")}
                       >
                         <i className="fas fa-tasks"></i> All
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "published" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("published")}
                       >
                         <i className="fa-solid fa-upload"></i> Published
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "draft" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("draft")}
                       >
                         <i className="fa-solid fa-pencil"></i> Draft
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "expired" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("expired")}
                       >
                         <i className="fas fa-calendar-alt"></i> Expired
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "unpublished" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("unpublished")}
                       >
                         <i className="fas fa-file-word"></i> Unpublished
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "archived" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("archived")}
                       >
                         <i className="fas fa-archive"></i> Archived
-                      </a>
+                      </Link>
                     </li>
                     <li className="nav-item">
-                      <a
+                      <Link
                         className={`nav-link ${
                           activeStatus === "scheduled" ? "active" : ""
                         }`}
                         onClick={() => setActiveStatus("scheduled")}
                       >
                         <i className="fas fa-archive"></i> Scheduled
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </div>

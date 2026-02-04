@@ -7,13 +7,12 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 function RecruiterLists() {
   const navigate = useNavigate();
-
   const [data, setData] = useState([]);
   const getRecruiterList = () => {
     const token = localStorage.getItem("token");
-
     axios
       .get(`${API_BASE_URL}getRecruiterList`, {
         headers: {
@@ -198,7 +197,8 @@ function RecruiterLists() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Recruiters List
+                <i className="fa-solid fa-angle-right" />
+                Manage Recruiters
               </li>
             </ol>
           </div>

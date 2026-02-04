@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 // import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios"
+import axios from "axios";
 
 function CreateRecruiters() {
   const location = useLocation();
@@ -73,10 +73,10 @@ function CreateRecruiters() {
       toast.success(
         isEditMode
           ? "Recruiter updated successfully!"
-          : "Recruiter added successfully!"
+          : "Recruiter added successfully!",
       );
 
-      navigate("/recruiters-list");
+      navigate("/manage-recruiter");
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong!");
     } finally {
@@ -91,22 +91,26 @@ function CreateRecruiters() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Create Recruiters</h1>
+            <h1>Create Recruiter</h1>
             <ol className="breadcrumb">
                <li className="item">
                 <Link to="/">Home </Link>
               </li>
               <li className="item">
-              <Link to="/employer-dashboard">  <i className="fa-solid fa-angle-right" />Dashboard </Link>
-              </li>
-              <li className="item">
-                <Link to="/recruiters-list">
-                  <i className="fa-solid fa-angle-right" />Recruiters
-
+                <Link to="/employer-dashboard">
+                  {" "}
+                  <i className="fa-solid fa-angle-right" />
+                  Dashboard{" "}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Create Recruiters
+                <Link to="/manage-recruiter">
+                  <i className="fa-solid fa-angle-right" />
+                  Manage Recruiter
+                </Link>
+              </li>
+              <li className="item">
+                <i className="fa-solid fa-angle-right" /> Create Recruiter
               </li>
             </ol>
           </div>
@@ -114,7 +118,7 @@ function CreateRecruiters() {
           {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Create Recruiters</h3>
+              <h3>Create Recruiter</h3>
               <div className="profile-form">
                 <form onSubmit={handleSubmit}>
                   <div className="row">
@@ -182,8 +186,8 @@ function CreateRecruiters() {
                       {loading
                         ? "Submitting..."
                         : isEditMode
-                        ? "Update Recruiter"
-                        : "Create Recruiter"}
+                          ? "Update Recruiter"
+                          : "Create Recruiter"}
                     </button>
                   </div>
                 </form>

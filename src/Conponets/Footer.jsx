@@ -112,7 +112,7 @@ function Footer() {
                         <Link
                           to={
                             localStorage.getItem("token")
-                              ? "/shortlist-candidates"
+                              ? "/bookmark-candidate"
                               : "/employer-login"
                           }
                         >

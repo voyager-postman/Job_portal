@@ -130,17 +130,14 @@ function CandinateProfileDetails() {
                     <Link to="/">Home</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-
                   <li>
                     <Link to="/employer-dashboard">Dashboard</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-
                   <li>
-                    <Link to="/candidates-search">Candidates List</Link>
+                    <Link to="/candidates-search">Candidates Search</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-
                   <li>Candidate Details</li>
                 </ul>
               </div>
@@ -206,7 +203,7 @@ function CandinateProfileDetails() {
                         .replace(/^\w/, (c) => c.toUpperCase()) ||
                         "Not Provided"}{" "}
                     </h3>
-                    <h3>
+                    {/* <h3>
                       <strong>Chat:</strong>{" "}
                       <span
                         style={{
@@ -230,7 +227,7 @@ function CandinateProfileDetails() {
                           Send Message
                         </Link>
                       </span>
-                    </h3>
+                    </h3> */}
                   </div>
                 </div>
               </div>

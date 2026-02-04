@@ -1572,7 +1572,7 @@ Navbar Area Style
   display: block;
   color: #202124;
   margin-bottom: 2px;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 500;
 }
 .desktop-nav
@@ -11329,7 +11329,7 @@ text-transform: capitalize;
 
 .application-management-Icon i {
   color: #f65e00;
-  font-size:15px;
+  font-size: 15px;
   padding-right: 15px;
 }
 
@@ -11438,8 +11438,8 @@ text-transform: capitalize;
 
 .application-management-status span {
   color: #fff;
-  font-size:11px;
-  font-weight:700;
+  font-size: 11px;
+  font-weight: 700;
   padding: 2px 5px;
   border-radius: 5px;
   background: #f65e00;
@@ -11465,10 +11465,10 @@ text-transform: capitalize;
 }
 
 .application-management-user-Img img {
-width: 300px;
-height: 170px;
-object-fit: cover;
-border-radius: 10px;
+  width: 300px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .apply-applicant-profile-details {
@@ -11506,44 +11506,39 @@ border-radius: 10px;
   align-items: center;
 }
 
-
 /*other page breadcrumb css start here*/
 
-    .breadcrumb-main-list-area{
-    display: flex;
-    align-items: center;
-    margin-top: 30px;
-    /* box-shadow: 0px 0px 5px 0px #ccc; */
-    padding: 15px 10px;
-   }
-
-   .breadcrumb-main-list-area h4 {
-     margin: 0px;
-    font-size: 18px;
-   }
-
-   .breadcrumb-main-list-area ul {
-    display: flex;
-    list-style: none;
-    margin: 0px;
-    padding-left: 15px;
-   }
-
-
-  .breadcrumb-main-list-area ul li a {
-   color: #666666;
-   }
-
-
-    .breadcrumb-main-list-area i {
-    padding: 0px 10px;   
-    }
-
-    .breadcrumb-main-list-area li:last-child {
-    margin-right: 0;
-    color: #1967d2;
+.breadcrumb-main-list-area {
+  display: flex;
+  align-items: center;
+  margin-top: 30px;
+  /* box-shadow: 0px 0px 5px 0px #ccc; */
+  padding: 15px 10px;
 }
 
+.breadcrumb-main-list-area h4 {
+  margin: 0px;
+  font-size: 18px;
+}
 
+.breadcrumb-main-list-area ul {
+  display: flex;
+  list-style: none;
+  margin: 0px;
+  padding-left: 15px;
+}
+
+.breadcrumb-main-list-area ul li a {
+  color: #666666;
+}
+
+.breadcrumb-main-list-area i {
+  padding: 0px 10px;
+}
+
+.breadcrumb-main-list-area li:last-child {
+  margin-right: 0;
+  color: #1967d2;
+}
 
 /*other page breadcrumb css end here*/

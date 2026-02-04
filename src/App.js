@@ -83,14 +83,14 @@ function LayoutWrapper() {
     "/employer-wallet",
     "/employer-dashboard",
     "/manage-applicants",
-    "/shortlist-candidates",
+    "/bookmark-candidate",
     "/candidates-search",
     "/all-applicants-list",
     "/create-recruiters",
-    "/recruiters-list",
+    "/manage-recruiter",
     "/messaging-system",
     "/change-password",
-    "/employer-profile",
+    "/company-profile",
     "/job-details-form",
     "/job-details-list",
     "/resume-builder",
@@ -100,7 +100,7 @@ function LayoutWrapper() {
     "/chat-messaging-system",
     "/applied-jobs-list",
     "/activity-timeline",
-    // "/candidates-profile-details",
+    // "/candidates-details",
     "/manage-job-application",
     "/application-management",
     "/job-alert",
@@ -137,7 +137,7 @@ function LayoutWrapper() {
         <Route path="/employers" element={<Employers />} />
         <Route path="/faq" element={<Faq />} />
         <Route
-          path="/employer-candidates-list"
+          path="/applied-candidate-list"
           element={<EmployerCandinateList />}
         />
         <Route path="/applicants-details" element={<ApplicantsDetails />} />
@@ -318,7 +318,7 @@ function LayoutWrapper() {
           }
         />
         <Route
-          path="/shortlist-candidates"
+          path="/bookmark-candidate"
           element={
             <PrivateRoute>
               <EmployerShortListCandinate />
@@ -350,7 +350,7 @@ function LayoutWrapper() {
           }
         />
         <Route
-          path="/recruiters-list"
+          path="/manage-recruiter"
           element={
             <PrivateRoute>
               <RecruiterLists />
@@ -366,7 +366,7 @@ function LayoutWrapper() {
           }
         />
         <Route
-          path="/employer-profile"
+          path="/company-profile"
           element={
             <PrivateRoute>
               <EmployerProfile />
@@ -383,7 +383,7 @@ function LayoutWrapper() {
           }
         />
         <Route
-          path="/candidates-profile-details"
+          path="/candidates-details"
           element={
             <PrivateRoute>
               <CandinateProfileDetails />
