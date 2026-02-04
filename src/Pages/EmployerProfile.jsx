@@ -408,7 +408,10 @@ function EmployerProfile() {
         localStorage.setItem("last_name", userDetails.last_name);
         localStorage.setItem("is_completed", userDetails?.is_completed);
         fetchCompanyDetails();
-        toast.success("Profile Updated Successfully!");
+        toast.success("Profile Updated Successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 3000,
+        });
         setActiveTab("menu2");
       } else {
         toast.error(response.data?.message || "Failed to update profile");
@@ -439,7 +442,7 @@ function EmployerProfile() {
   const handleSubmitMultipleImage = async (e) => {
     e.preventDefault();
     if (images.length === 0) {
-      toast.info("No new images to upload", {
+      toast.error("No new images to upload", {
         containerId: "verify-email-toast",
       });
       return;
@@ -702,7 +705,7 @@ function EmployerProfile() {
     e.preventDefault();
 
     if (videos.length === 0) {
-      toast.info("No new videos to upload", {
+      toast.error("No new videos to upload", {
         containerId: "verify-email-toast",
       });
       return;
@@ -1021,7 +1024,10 @@ function EmployerProfile() {
 
       if (response.data.success) {
         fetchCompanyDetails();
-        toast.success("Career detail updated successfully!");
+        toast.success("Career detail updated successfully!", {
+          containerId: "verify-email-toast",
+          autoClose: 3000,
+        });
         setActiveTab("menu3");
       } else {
         toast.error(response.data.message || "Failed to update career detail");
@@ -1070,7 +1076,10 @@ function EmployerProfile() {
 
       console.log("Response:", response.data);
       fetchCompanyDetails();
-      toast.success("Social links submitted successfully!");
+      toast.success("Social links submitted successfully!", {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
       navigate("/employer-dashboard");
     } catch (error) {
       const errorMessage =

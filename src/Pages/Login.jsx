@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -129,7 +129,7 @@ function Login() {
             `${API_BASE_URL}candidate/profile`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           const profileImg = profileRes.data?.profile?.profileImage;
           const profileData = profileRes.data?.profile;
@@ -143,7 +143,7 @@ function Login() {
           } else {
             localStorage.setItem(
               "profileImage",
-              "/jobPortal/assets/images/dashboard/images1.png"
+              "/jobPortal/assets/images/dashboard/images.png",
             );
           }
           if (profileData) {
@@ -185,13 +185,13 @@ function Login() {
       } else if (error.response?.status === 429) {
         // Handle Too Many Requests
         toast.error(
-          "Too many login attempts. Please wait a moment and try again."
+          "Too many login attempts. Please wait a moment and try again.",
         );
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
         toast.error(
-          error.response?.data?.message || "Login failed. Please try again."
+          error.response?.data?.message || "Login failed. Please try again.",
         );
       }
     } finally {
@@ -265,7 +265,10 @@ function Login() {
                         />
                       </div>
                       <div className="login-forgot-password">
-                        <Link to="/recovery-password"  state={{ role: "jobseeker" }}>
+                        <Link
+                          to="/recovery-password"
+                          state={{ role: "jobseeker" }}
+                        >
                           <i className="fa-solid fa-lock" /> Forgot your
                           password?
                         </Link>
