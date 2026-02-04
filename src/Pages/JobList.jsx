@@ -1233,7 +1233,7 @@ const JobList = () => {
     Object.keys(appliedFilters).length > 0; // 🔥 key line
   return (
     <>
-      <ToastContainer /> 
+      <ToastContainer />
       <section className="job-card-list-info-area">
         <div className="container">
           <div className="row">
@@ -1317,14 +1317,14 @@ const JobList = () => {
                     <div className="job-filter-main-info sidebar-scroll-touch-footer">
                       <div className="job-filter-heading-area">
                         <h4>
-                          <Link to="/companies-list" className="active">
+                          <Link to="/jobs" className="active">
                             <i className="fa-regular fa-file" /> Job offers
                           </Link>
                         </h4>
                       </div>
                       <div className="job-filter-heading-area">
                         <h4>
-                          <Link to="/companies-list">
+                          <Link to="/employers">
                             <i className="fa-regular fa-building" /> Companies
                           </Link>
                         </h4>

@@ -30,7 +30,7 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  localStorage.setItem("verifiedByAdmin", "true");
+  // localStorage.setItem("verifiedByAdmin", "true");
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -509,27 +509,40 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
+  const DEFAULT_JOBSEEKER_IMG = "/jobPortal/assets/images/dashboard/images.png";
 
-    // ✅ If default local dashboard image → return as-is
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+  const DEFAULT_COMPANY_IMG = "/jobPortal/assets/images/dashboard/images1.png";
+
+  const user_role = localStorage.getItem("user_role");
+  // "JobSeeker" | "Company"
+
+  const cleanImageUrl = (url) => {
+    // ✅ If empty, return role-based default
+    if (!url || url === "null" || url === "undefined") {
+      return user_role === "Company"
+        ? DEFAULT_COMPANY_IMG
+        : DEFAULT_JOBSEEKER_IMG;
+    }
+
+    // ✅ If already a default dashboard image → return as-is
+    if (url === DEFAULT_JOBSEEKER_IMG || url === DEFAULT_COMPANY_IMG) {
       return url;
     }
 
-    // ✅ If URL wrongly contains "/uploads/https"
+    // ✅ Fix wrongly stored upload URLs
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External URL (Google, GitHub, etc.)
+    // ✅ External image
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
-    // ✅ Local uploaded image → prepend API_IMAGE_URL
+    // ✅ Backend uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
+
   const isCompleted = localStorage.getItem("is_completed") === "true";
   return (
     <>
@@ -869,26 +882,33 @@ function Header({ bgColor }) {
                               </div>
                             )}
 
-                            {isLoggedIn && isCompleted && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <Link
-                                      to="/change-password"
-                                      className="nav-link"
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </Link>
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
+                            {localStorage.getItem("is_completed") === "true" &&
+                              localStorage.getItem("isLoggedIn") === "true" &&
+                              (localStorage.getItem("user_role") ===
+                                "JobSeeker" ||
+                                (localStorage.getItem("user_role") ===
+                                  "Company" &&
+                                  localStorage.getItem("verifiedByAdmin") ===
+                                    "true")) && (
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item">
+                                      <Link
+                                        to="/change-password"
+                                        className="nav-link"
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="/jobPortal/assets/images/svg-icon/icon-9.svg"
+                                            alt="Image"
+                                          />
+                                        </span>
+                                        <span>Change Password</span>
+                                      </Link>
+                                    </li>
+                                  </ul>
+                                </div>
+                              )}
 
                             {/* {localStorage.getItem("is_completed") ===
                               "true" && (

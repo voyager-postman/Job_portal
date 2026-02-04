@@ -1650,6 +1650,7 @@ function CandidateProfile() {
           aboutRole: payload,
         }));
 
+        fetchProfile();
         // ✅ Success toast
         toast.success(
           response.data.message || "About role updated successfully!",
