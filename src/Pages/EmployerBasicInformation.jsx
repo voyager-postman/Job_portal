@@ -504,7 +504,7 @@ const EmployerBasicInformation = () => {
                     <label>Phone number</label>
                     <input
                       className="form-control"
-                      type="text"
+                      type="number"
                       placeholder="Phone number"
                       name="phone_number"
                       value={formData.phone_number}

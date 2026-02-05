@@ -14,6 +14,7 @@ import Swal from "sweetalert2";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
+  console.log(i18n);
   const {
     isLoggedIn,
     profileImage,
@@ -50,6 +51,7 @@ function Header({ bgColor }) {
         },
       );
       const updatedUser = response.data.company;
+      console.log(updatedUser, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
       // Update localStorage with latest status
       localStorage.setItem(
         "verifiedByAdmin",
@@ -145,13 +147,14 @@ function Header({ bgColor }) {
   useEffect(() => {
     const handleSocialLogin = async () => {
       const queryParams = new URLSearchParams(window.location.search);
-
+      console.log(queryParams, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
       const success = queryParams.get("success");
       const token = queryParams.get("token");
       const message = queryParams.get("message");
 
       // ❌ Backend error
       if (success === "false") {
+        console.log("Login failed!");
         toast.error(message || "Login failed!");
         window.history.replaceState({}, document.title, "/jobPortal");
         return;
@@ -164,6 +167,7 @@ function Header({ bgColor }) {
       const email = queryParams.get("email");
       const name = queryParams.get("name") || "";
       const avatar = queryParams.get("avatar");
+      const companyId = queryParams.get("companyId");
 
       const is_completed = queryParams.get("is_completed") === "true";
       const verifiedByAdmin = queryParams.get("verifiedByAdmin") === "true";
@@ -177,25 +181,33 @@ function Header({ bgColor }) {
         last_name,
         is_completed,
         verifiedByAdmin,
+        companyId,
       };
 
       // 💾 Save SAME as normal login
       localStorage.setItem("token", token);
+      localStorage.setItem("user_email", email);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("user_role", role);
       localStorage.setItem("first_name", first_name);
       localStorage.setItem("last_name", last_name);
       localStorage.setItem("is_completed", is_completed);
       localStorage.setItem("verifiedByAdmin", verifiedByAdmin);
-      localStorage.setItem(
-        "profileImage",
-        avatar || "/jobPortal/assets/images/dashboard/images.png",
-      );
+      localStorage.setItem("companyId", companyId);
+      const defaultProfileImage =
+        role === "Company" || role === "Recruiter"
+          ? DEFAULT_COMPANY_IMG
+          : DEFAULT_JOBSEEKER_IMG;
+
+      localStorage.setItem("profileImage", avatar || defaultProfileImage);
 
       authLogin(); // AuthContext login
 
       // 🔒 Block unverified Company (EXACT same as normal login)
       if (role === "Company" && is_completed && !verifiedByAdmin) {
+        console.log(
+          "our account is not verified by the admin. Please contact support",
+        );
         await Swal.fire({
           title: "Account Not Verified",
           text: "Your account is not verified by the admin. Please contact support.",
@@ -210,12 +222,14 @@ function Header({ bgColor }) {
 
       // 🚀 Redirect (same rules as email login)
       if (is_completed) {
+        console.log("completed profile");
         if (role === "Recruiter" || role === "Company") {
           navigate("/employer-dashboard");
         } else {
           navigate("/candidate-profile");
         }
       } else {
+        console.log("not completed profile");
         if (role === "Recruiter" || role === "Company") {
           navigate("/employer-basic-info");
         } else {
@@ -224,9 +238,6 @@ function Header({ bgColor }) {
       }
 
       // 🧹 Clean URL AFTER navigation
-      setTimeout(() => {
-        window.history.replaceState({}, document.title, "/jobPortal");
-      }, 0);
     };
 
     handleSocialLogin();
