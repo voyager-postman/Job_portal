@@ -25,9 +25,17 @@ function CompanyDetailsPage() {
   const [selectedId, setSelectedId] = useState(null);
   const from = location.state?.from || "/companies-list";
 
-  const breadcrumbLabel = from.includes("/manage-job-application")
+  // const breadcrumbLabel = from.includes("/manage-job-application")
+  //   ? "Manage Job Application"
+  //   : "Search Company List";
+
+  const breadcrumbLabel = from?.includes("/manage-job-application")
     ? "Manage Job Application"
-    : "Search Company List";
+    : from?.includes("/companies-list")
+      ? "Search Company List"
+      : from?.includes("/employers")
+        ? "Companies"
+        : "Search Company List";
 
   const getCompanyDetails = async () => {
     try {

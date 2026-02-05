@@ -7274,7 +7274,7 @@ Go To Top Style
 }
 
 .inner-banners-title-info {
-  z-index: 9;
+  /* z-index: 9; */
   width: 100%;
   bottom: 120px;
   position: absolute;

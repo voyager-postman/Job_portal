@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios"
+import axios from "axios";
 
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
@@ -23,7 +23,7 @@ const Employers = () => {
   const getCompanyList = async (
     industryIds = [],
     page = 1,
-    limit = pageSize
+    limit = pageSize,
   ) => {
     try {
       const params = {
@@ -57,9 +57,9 @@ const Employers = () => {
   useEffect(() => {
     getCompanyList();
   }, []);
-  const handleViewCompany = (company) => {
+  const handleViewCompany = (company, from) => {
     navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
+      state: { companyId: company, from }, // 👈 send ID as prop-like data
     });
   };
 
@@ -77,7 +77,7 @@ const Employers = () => {
     getCompanyList(selectedIndustryIds);
   };
   const filteredOptions = options.filter((industry) =>
-    industry.name.toLowerCase().includes(searchTerm.toLowerCase())
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   useEffect(() => {
     const fetchIndustries = async () => {
@@ -226,7 +226,7 @@ const Employers = () => {
                               >
                                 {industry?.name}
                                 {selected.some(
-                                  (i) => i._id === industry._id
+                                  (i) => i._id === industry._id,
                                 ) && <span className="checkmark">✔</span>}
                               </li>
                             ))
@@ -330,7 +330,7 @@ const Employers = () => {
                                 <button
                                   className="default-btn btn"
                                   onClick={() =>
-                                    handleViewCompany(company?._id)
+                                    handleViewCompany(company?._id, "/employers")
                                   }
                                 >
                                   View Company

@@ -2117,6 +2117,9 @@ const JobList = () => {
                                 <Link
                                   key={job._id}
                                   to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                                  state={{
+                                    from: "/jobs",
+                                  }}
                                   className="job-link"
                                 >
                                   {" "}

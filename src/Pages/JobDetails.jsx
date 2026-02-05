@@ -34,9 +34,13 @@ function JobDetails() {
   const from = location.state?.from || "/job-search";
   console.log(id);
 
-  const breadcrumbLabel = from.includes("/manage-job-application")
+  const breadcrumbLabel = from?.includes("/manage-job-application")
     ? "Manage Job Application"
-    : "Job Search";
+    : from?.includes("/job-search")
+      ? "Job Search"
+      : from?.includes("/jobs")
+        ? "Jobs"
+        : "Job Search";
 
   const fetchJobDetails = async () => {
     try {
@@ -369,7 +373,7 @@ function JobDetails() {
   //     setIsApplying(false); // 🔥 Stop loader
   //   }
   // };
-  
+
   const handleSaveJob2 = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
@@ -467,7 +471,13 @@ function JobDetails() {
                     <Link to={from}>{breadcrumbLabel}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-                  <li>{loading ? "Loading..." : job?.jobDetails?.jobTitle || job?.jobTitle || "Job Details"}</li>
+                  <li>
+                    {loading
+                      ? "Loading..."
+                      : job?.jobDetails?.jobTitle ||
+                        job?.jobTitle ||
+                        "Job Details"}
+                  </li>
                 </ul>
               </div>
             </div>
