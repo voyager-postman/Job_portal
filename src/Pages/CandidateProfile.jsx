@@ -26,7 +26,7 @@ function CandidateProfile() {
   ];
   const [salaryRanges, setSalaryRanges] = useState([]);
   const { logout, updateProfileImage, updateName } = useAuth();
-  const DEFAULT_IMAGE = "assets/images/dashboard/images.png";
+  const DEFAULT_IMAGE = "jobPortal/assets/images/dashboard/images.png";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [jobTypes, setJobTypes] = useState([]);
   const [open, setOpen] = useState(false);
