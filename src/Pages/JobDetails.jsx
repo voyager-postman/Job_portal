@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import companyLogo from "../../src/images/images1.png";
+
 function JobDetails() {
   const location = useLocation();
   const userRole = localStorage.getItem("user_role");
@@ -30,7 +31,12 @@ function JobDetails() {
   const [job, setJob] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const from = location.state?.from || "/job-search";
   console.log(id);
+
+  const breadcrumbLabel = from.includes("/manage-job-application")
+    ? "Manage Job Application"
+    : "Job Search";
 
   const fetchJobDetails = async () => {
     try {
@@ -363,6 +369,7 @@ function JobDetails() {
   //     setIsApplying(false); // 🔥 Stop loader
   //   }
   // };
+  
   const handleSaveJob2 = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
@@ -437,9 +444,37 @@ function JobDetails() {
     decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
   );
   console.log(job?.jobDetails);
+
   return (
     <>
       <ToastContainer />
+      <section className="inner-breadcrumb-main-area ">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area mt-4">
+                <h4>Job Details</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/candidate-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to={from}>{breadcrumbLabel}</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>{loading ? "Loading..." : job?.jobDetails?.jobTitle || job?.jobTitle || "Job Details"}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="job-details-main-info-area">
         <div className="container">
           <div className="row">
@@ -631,8 +666,7 @@ function JobDetails() {
                       >
                         Apply Now
                       </a>
-                    )}
-                    {" "}
+                    )}{" "}
                     <a
                       href="#"
                       className="default-btn btn"

@@ -20,6 +20,10 @@ function YourJobPosts() {
   const [viewData, setViewData] = useState("");
   const [viewOpen, setViewOpen] = useState(false);
   const [countryList, setCountryList] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [perPage, setPerPage] = useState(10); // default
 
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
@@ -110,17 +114,19 @@ function YourJobPosts() {
   }, []);
 
   // Fetch jobs based on status
-  const fetchJobs = async (status) => {
+  const fetchJobs = async (status, page = currentPage, limit = perPage) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `${API_BASE_URL}getRecruiterJobList?status=${status}`,
+        `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
       setJobs(res.data.jobs || []);
+      setTotalPages(res?.data?.pagination?.totalPages || 1);
+      setTotalResults(res?.data?.pagination?.totalJobs || 0);
       console.log(res.data.jobs || []);
     } catch (err) {
       console.error("Error fetching jobs:", err);
@@ -130,10 +136,24 @@ function YourJobPosts() {
     }
   };
 
+  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
+  const endResult = Math.min(currentPage * perPage, totalResults);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   useEffect(() => {
     fetchCategoryList();
+    setCurrentPage(1);
     fetchJobs(activeStatus);
   }, [activeStatus]);
+
+  useEffect(() => {
+    fetchJobs(activeStatus, currentPage, perPage);
+  }, [currentPage]);
 
   const getEmptyMessage = () => {
     switch (activeStatus) {
@@ -262,6 +282,7 @@ function YourJobPosts() {
         console.error(error);
       });
   };
+
   const renderWeeklyChange = (value) => (
     <p>
       <i
@@ -297,6 +318,7 @@ function YourJobPosts() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+
           {/* employer dashboard  start here */}
           <section className="employer-dashboard-info-area">
             <div className="employer-dashboard-common-heading">
@@ -426,6 +448,7 @@ function YourJobPosts() {
             </div>
           </section>
           {/* employer dashboard end here */}
+
           {/* Your Job Posts Info*/}
           <div className="your-job-post-main-info">
             <div className="row">
@@ -694,9 +717,59 @@ function YourJobPosts() {
                     )}
                   </div>
                 </div>
+                <div className="paginations mb-30">
+                  <ul>
+                    {/* Previous button */}
+                    <li>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1)
+                            handlePageChange(currentPage - 1);
+                        }}
+                        className={currentPage === 1 ? "disabled" : ""}
+                      >
+                        <i className="fa-solid fa-angle-left" />
+                      </a>
+                    </li>
+                    {/* Page numbers */}
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <li key={i + 1}>
+                        <a
+                          href="#"
+                          className={currentPage === i + 1 ? "active" : ""}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </a>
+                      </li>
+                    ))}
+
+                    {/* Next button */}
+                    <li>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages)
+                            handlePageChange(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages ? "disabled" : ""}
+                      >
+                        {" "}
+                        <i className="fa-solid fa-angle-right" />
+                      </a>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
+
           {/* Your Job Posts Info */}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">

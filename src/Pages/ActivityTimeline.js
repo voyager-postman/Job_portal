@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { TableView } from "../Conponets/DataTable";
 import { API_BASE_URL } from "../Url/Url";
-import axios from "axios"
-
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 function ActivityTimeline() {
   const [globalFilter, setGlobalFilter] = useState("");
-
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -71,6 +70,21 @@ function ActivityTimeline() {
       <div className="responsive-content">
         <div className="breadcrumb-area">
           <h1>Activity Timeline</h1>
+          <ol className="breadcrumb">
+            <li className="item">
+              <Link to="/">Home </Link>
+            </li>
+            <li className="item">
+              <Link to="/candidate-dashboard">
+                <i className="fa-solid fa-angle-right" /> Dashboard
+              </Link>
+            </li>
+            <li className="item">
+              <Link to="/activity-timeline">
+                <i className="fa-solid fa-angle-right" /> Activity Timeline
+              </Link>
+            </li>
+          </ol>
         </div>
 
         <div className="my-profile-area">

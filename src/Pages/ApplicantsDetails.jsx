@@ -266,6 +266,7 @@ function ApplicantsDetails() {
       setIsLocationLoading(false);
     }
   };
+
   const getLabelStyle = (rating) => {
     switch (rating) {
       case 5:
@@ -302,7 +303,6 @@ function ApplicantsDetails() {
   const handleSortChange = (e) => {
     const status = e.target.value;
     setSelectedStatus(status);
-
     fetchCandidates(status); // 🔥 Fetch filtered list
   };
 
@@ -341,7 +341,6 @@ function ApplicantsDetails() {
 
       // Show message from backend
       toast.success(res.data.message);
-
       fetchCandidates();
     } catch (err) {
       console.error("Error bookmarking candidate:", err);
@@ -718,9 +717,9 @@ function ApplicantsDetails() {
                             // className="default-btn btn"
                             state={{ jobId: selectedCandidate.jobId }}
                             style={{
-                              padding: "5px 5px",
+                              padding: "3px 3px",
                               borderRadius: "5px",
-                              fontSize: "12px",
+                              fontSize: "10px",
                               fontWeight: "700",
                               display: "inline-block",
                               letterSpacing: "0.5px",
@@ -730,13 +729,13 @@ function ApplicantsDetails() {
                           >
                             <i
                               style={{
-                                fontWeight: "700",
+                                fontWeight: "800",
                                 fontSize: "15px",
                               }}
                             >
                               <TbMessages />
                             </i>{" "}
-                            Send Message
+                           Send Message
                           </Link>
                         </div>
                       </div>

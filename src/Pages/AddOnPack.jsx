@@ -18,20 +18,16 @@ const AddOnPack = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [startPayment, setStartPayment] = useState(false);
+
   useEffect(() => {
     const fetchActivePacks = async () => {
       try {
         const token = localStorage.getItem("token");
-
-        const res = await axios.get(
-          `${API_BASE_URL}get/ActiveAddOns
-`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const res = await axios.get(`${API_BASE_URL}get/ActiveAddOns`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         if (res.data.success) {
           setPlans(res.data.data || []);
@@ -42,9 +38,9 @@ const AddOnPack = () => {
         setLoading(false);
       }
     };
-
     fetchActivePacks();
   }, []);
+
   const resetPaymentState = () => {
     setShowPaymentModal(false);
     setStartPayment(false);
@@ -160,6 +156,9 @@ const AddOnPack = () => {
                   <ul>
                     <li className="menu-divide-arrow">
                       <Link to="/">Home</Link>
+                    </li>
+                    <li className="menu-divide-arrow">
+                      <Link to="/employer-wallet">Employer Ewallet</Link>
                     </li>
                     <li>Add On Plan</li>
                   </ul>
