@@ -14,6 +14,7 @@ import Swal from "sweetalert2";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
+  console.log(i18n);
   const {
     isLoggedIn,
     profileImage,
