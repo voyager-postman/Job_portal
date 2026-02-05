@@ -92,85 +92,85 @@ function EmployerRegister() {
     }
   };
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const success = queryParams.get("success");
-    const token = queryParams.get("token");
-    const message = queryParams.get("message"); // backend error message
-    const provider = queryParams.get("provider"); // optional (github/linkedin)
-    console.log(queryParams);
-    // ❌ Backend error handling
-    if (success === "false") {
-      toast.error(message || "Login failed!");
-      console.error(`Login failed from ${provider}:`, message);
-      // clean URL
-      window.history.replaceState({}, document.title, "/jobPortal");
-      return;
-    }
+  // useEffect(() => {
+  //   const queryParams = new URLSearchParams(window.location.search);
+  //   const success = queryParams.get("success");
+  //   const token = queryParams.get("token");
+  //   const message = queryParams.get("message"); // backend error message
+  //   const provider = queryParams.get("provider"); // optional (github/linkedin)
+  //   console.log(queryParams);
+  //   // ❌ Backend error handling
+  //   if (success === "false") {
+  //     toast.error(message || "Login failed!");
+  //     console.error(`Login failed from ${provider}:`, message);
+  //     // clean URL
+  //     window.history.replaceState({}, document.title, "/jobPortal");
+  //     return;
+  //   }
 
-    // No login → ignore
-    if (!success || !token) return;
+  //   // No login → ignore
+  //   if (!success || !token) return;
 
-    // ✔ SUCCESS CASE BELOW
+  //   // ✔ SUCCESS CASE BELOW
 
-    const email = queryParams.get("email");
-    const name = queryParams.get("name");
-    const avatar = queryParams.get("avatar");
-    const role = queryParams.get("role");
-    const isVerified = queryParams.get("isVerified");
-    const companyId = queryParams.get("companyId");
-    // Split GitHub or LinkedIn name
-    const [first_name = "", last_name = ""] = name?.split(" ") || [];
+  //   const email = queryParams.get("email");
+  //   const name = queryParams.get("name");
+  //   const avatar = queryParams.get("avatar");
+  //   const role = queryParams.get("role");
+  //   const isVerified = queryParams.get("isVerified");
+  //   const companyId = queryParams.get("companyId");
+  //   // Split GitHub or LinkedIn name
+  //   const [first_name = "", last_name = ""] = name?.split(" ") || [];
 
-    const user = {
-      email,
-      role,
-      first_name,
-      last_name,
-      companyId,
-      profileImage: avatar,
-      is_completed: isVerified === "true",
-    };
+  //   const user = {
+  //     email,
+  //     role,
+  //     first_name,
+  //     last_name,
+  //     companyId,
+  //     profileImage: avatar,
+  //     is_completed: isVerified === "true",
+  //   };
 
-    // 👉 Save login data
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("user_email", email);
-    localStorage.setItem("user_role", role);
-    localStorage.setItem("first_name", first_name);
-    localStorage.setItem("last_name", last_name);
-    localStorage.setItem("user_profile", avatar);
-    localStorage.setItem("user_name", `${first_name} ${last_name}`);
-    localStorage.setItem("is_completed", user.is_completed);
-    toast.success("Login Successful!");
-    const loginModal = document.getElementById("exampleModalLogin");
-    const registerModal = document.getElementById("exampleModalRegister");
-    if (loginModal?.classList.contains("show")) {
-      const modalInstance = window.bootstrap.Modal.getInstance(loginModal);
-      modalInstance?.hide();
-    }
-    if (registerModal?.classList.contains("show")) {
-      const modalInstance = window.bootstrap.Modal.getInstance(registerModal);
-      modalInstance?.hide();
-    }
-    authLogin();
-    if (user.is_completed) {
-      if (role === "Recruiter" || role === "Company") {
-        navigate("/employer-dashboard");
-      } else {
-        navigate("/candidate-profile");
-      }
-    } else {
-      if (role === "Recruiter" || role === "Company") {
-        navigate("/employer-basic-info");
-      } else {
-        navigate("/profile-basic-info");
-      }
-    }
+  //   // 👉 Save login data
+  //   localStorage.setItem("token", token);
+  //   localStorage.setItem("user", JSON.stringify(user));
+  //   localStorage.setItem("user_email", email);
+  //   localStorage.setItem("user_role", role);
+  //   localStorage.setItem("first_name", first_name);
+  //   localStorage.setItem("last_name", last_name);
+  //   localStorage.setItem("user_profile", avatar);
+  //   localStorage.setItem("user_name", `${first_name} ${last_name}`);
+  //   localStorage.setItem("is_completed", user.is_completed);
+  //   toast.success("Login Successful!");
+  //   const loginModal = document.getElementById("exampleModalLogin");
+  //   const registerModal = document.getElementById("exampleModalRegister");
+  //   if (loginModal?.classList.contains("show")) {
+  //     const modalInstance = window.bootstrap.Modal.getInstance(loginModal);
+  //     modalInstance?.hide();
+  //   }
+  //   if (registerModal?.classList.contains("show")) {
+  //     const modalInstance = window.bootstrap.Modal.getInstance(registerModal);
+  //     modalInstance?.hide();
+  //   }
+  //   authLogin();
+  //   if (user.is_completed) {
+  //     if (role === "Recruiter" || role === "Company") {
+  //       navigate("/employer-dashboard");
+  //     } else {
+  //       navigate("/candidate-profile");
+  //     }
+  //   } else {
+  //     if (role === "Recruiter" || role === "Company") {
+  //       navigate("/employer-basic-info");
+  //     } else {
+  //       navigate("/profile-basic-info");
+  //     }
+  //   }
 
-    // Clean URL
-    window.history.replaceState({}, document.title, "/jobPortal");
-  }, []);
+  //   // Clean URL
+  //   window.history.replaceState({}, document.title, "/jobPortal");
+  // }, []);
 
   const handleLinkedinLogin = () => {
     const role = "Company";

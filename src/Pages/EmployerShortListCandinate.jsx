@@ -124,6 +124,7 @@ function EmployerShortListCandinate() {
   console.log(totalCount);
   return (
     <>
+      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
