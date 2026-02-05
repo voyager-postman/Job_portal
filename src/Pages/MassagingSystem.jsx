@@ -466,6 +466,9 @@ function MassagingSystem() {
                             <div
                               onClick={sendMessage}
                               className="send_chat cusror-pointer"
+                              style={{
+                                cursor: "pointer",
+                              }}
                             >
                               <i className="fa-solid fa-paper-plane" />
                               Send

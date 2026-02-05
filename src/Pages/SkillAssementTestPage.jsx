@@ -101,8 +101,10 @@ function SkillAssementTestPage() {
                 </Link>{" "}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Skill Assessments
-                &amp; Tests
+                <Link to="/skill-assessments-tests">
+                  <i className="fa-solid fa-angle-right" /> Skill Assessments
+                  &amp; Tests
+                </Link>
               </li>
             </ol>
           </div>
@@ -250,7 +252,7 @@ function SkillAssementTestPage() {
                                       />{" "}
                                       {opt}
                                     </label>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>

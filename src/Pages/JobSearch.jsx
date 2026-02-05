@@ -1181,8 +1181,10 @@ function JobSearch() {
                 </Link>{" "}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />
-                Job Search
+                <Link to="/job-search">
+                  <i className="fa-solid fa-angle-right" />
+                  Job Search
+                </Link>
               </li>
             </ol>
           </div>
@@ -2324,13 +2326,16 @@ function JobSearch() {
                               <Link
                                 key={job._id}
                                 to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                                state={{
+                                  from: "/job-search",
+                                }}
                                 className="job-link"
                               >
                                 {" "}
                                 <div className="available-job-posts-box">
                                   <div className="available-job-company-name-save-job">
                                     <div className="available-job-company-name">
-                                      <a href="job-details.html">
+                                      <a href="#">
                                         <h4>
                                           <img
                                             crossorigin="anonymous"

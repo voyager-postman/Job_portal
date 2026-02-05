@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios"
+import axios from "axios";
 
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
@@ -23,7 +23,7 @@ function Companies() {
   const getCompanyList = async (
     industryIds = [],
     page = 1,
-    limit = pageSize
+    limit = pageSize,
   ) => {
     try {
       const params = {
@@ -57,9 +57,9 @@ function Companies() {
   useEffect(() => {
     getCompanyList();
   }, []);
-  const handleViewCompany = (company) => {
+  const handleViewCompany = (company, from) => {
     navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
+      state: { companyId: company, from }, // 👈 send ID as prop-like data
     });
   };
 
@@ -77,7 +77,7 @@ function Companies() {
     getCompanyList(selectedIndustryIds);
   };
   const filteredOptions = options.filter((industry) =>
-    industry.name.toLowerCase().includes(searchTerm.toLowerCase())
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   useEffect(() => {
     const fetchIndustries = async () => {
@@ -122,16 +122,20 @@ function Companies() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Job List</h1>
+            <h1>Search Company List</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">Home </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <Link to="/candidate-dashboard">
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Companies List
+                <Link to="/companies-list">
+                  <i className="fa-solid fa-angle-right" /> Search Company List
+                </Link>
               </li>
             </ol>
           </div>
@@ -216,7 +220,7 @@ function Companies() {
                                 >
                                   {industry?.name}
                                   {selected.some(
-                                    (i) => i._id === industry._id
+                                    (i) => i._id === industry._id,
                                   ) && <span className="checkmark">✔</span>}
                                 </li>
                               ))
@@ -324,7 +328,10 @@ function Companies() {
                                   <button
                                     className="default-btn btn"
                                     onClick={() =>
-                                      handleViewCompany(company?._id)
+                                      handleViewCompany(
+                                        company?._id,
+                                        "/companies-list",
+                                      )
                                     }
                                   >
                                     View Company

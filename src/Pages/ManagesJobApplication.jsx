@@ -112,6 +112,7 @@ function ManagesJobApplication() {
     setActiveTab(tab);
     navigate(`/manage-job-application?tab=${tab}`);
   };
+
   useEffect(() => {
     if (activeTab === "saved-jobs") {
       fetchSavedJobs();
@@ -132,6 +133,7 @@ function ManagesJobApplication() {
       fetchApplications(statusFilter);
     }
   }, [statusFilter]);
+
   const handleSaveJob = async (jobId) => {
     try {
       const res = await axios.post(
@@ -246,9 +248,9 @@ function ManagesJobApplication() {
     getCompanyList(selectedIndustryIds, pageNumber, pageSize);
   }, [pageNumber, pageSize, selected]);
 
-  const handleViewCompany = (company) => {
+  const handleViewCompany = (company, from) => {
     navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
+      state: { companyId: company, from }, // 👈 send ID as prop-like data
     });
   };
 
@@ -257,6 +259,7 @@ function ManagesJobApplication() {
   useEffect(() => {
     getCompanyList();
   }, []);
+
   useEffect(() => {
     if (activeTab === "job-alerts") {
       fetchJobAlerts();
@@ -395,8 +398,10 @@ function ManagesJobApplication() {
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" />
-                Manage Job Application
+                <Link to={`/manage-job-application?tab=${activeTab}`}>
+                  <i className="fa-solid fa-angle-right" />
+                  Manage Job Application
+                </Link>
               </li>
             </ol>
           </div>
@@ -554,7 +559,12 @@ function ManagesJobApplication() {
                         <div className="available-job-posts-box" key={app._id}>
                           <div className="available-job-company-name-save-job">
                             <div className="available-job-company-name">
-                              <Link to={`/job-details/${job?._id}`}>
+                              <Link
+                                to={`/job-details/${job?._id}`}
+                                state={{
+                                  from: `/manage-job-application?tab=${activeTab}`,
+                                }}
+                              >
                                 <h4>
                                   <img
                                     crossOrigin="anonymous"
@@ -597,7 +607,12 @@ function ManagesJobApplication() {
                             </div>
                           </div>
 
-                          <Link to={`/job-details/${job?._id}`}>
+                          <Link
+                            to={`/job-details/${job?._id}`}
+                            state={{
+                              from: `/manage-job-application?tab=${activeTab}`,
+                            }}
+                          >
                             <div className="available-job-type-details">
                               <h5>
                                 {company?.brandName} - {job?.jobTitle}
@@ -859,7 +874,12 @@ function ManagesJobApplication() {
                             key={jobData._id}
                             className="available-job-posts-box mb-3"
                           >
-                            <Link to={`/job-details/${jobData._id}`}>
+                            <Link
+                              to={`/job-details/${jobData._id}`}
+                              state={{
+                                from: `/manage-job-application?tab=${activeTab}`,
+                              }}
+                            >
                               <div className="available-job-company-name-save-job">
                                 <div className="available-job-company-name">
                                   <h4>
@@ -1192,6 +1212,7 @@ function ManagesJobApplication() {
                   </div>
                 </div>
               )}
+
               {activeTab === "companies" && (
                 <div>
                   <div className="my-applications-heading-info">
@@ -1262,7 +1283,10 @@ function ManagesJobApplication() {
                                   <button
                                     className="default-btn btn"
                                     onClick={() =>
-                                      handleViewCompany(company?._id)
+                                      handleViewCompany(
+                                        company?._id,
+                                        `/manage-job-application?tab=${activeTab}`,
+                                      )
                                     }
                                   >
                                     View Company

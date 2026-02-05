@@ -122,6 +122,9 @@ const AddPlan = () => {
                     <li className="menu-divide-arrow">
                       <Link to="/">Home</Link>
                     </li>
+                    <li className="menu-divide-arrow">
+                      <Link to="/employer-wallet">Employer Ewallet</Link>
+                    </li>
                     <li>Add Plan</li>
                   </ul>
                 </div>

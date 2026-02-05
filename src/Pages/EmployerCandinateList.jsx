@@ -1109,9 +1109,9 @@ function EmployerCandinateList() {
                           // className="default-btn btn"
                           state={{ jobId: selectedCandidate.jobId }}
                           style={{
-                            padding: "5px 3px",
+                            padding: "3px 3px",
                             borderRadius: "5px",
-                            fontSize: "12px",
+                            fontSize: "10px",
                             fontWeight: "700",
                             display: "inline-block",
                             letterSpacing: "0.5px",

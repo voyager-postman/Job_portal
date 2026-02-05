@@ -23,6 +23,11 @@ function CompanyDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const from = location.state?.from || "/companies-list";
+
+  const breadcrumbLabel = from.includes("/manage-job-application")
+    ? "Manage Job Application"
+    : "Search Company List";
 
   const getCompanyDetails = async () => {
     try {
@@ -44,6 +49,7 @@ function CompanyDetailsPage() {
   useEffect(() => {
     if (companyId) getCompanyDetails();
   }, [companyId]);
+
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -303,6 +309,39 @@ function CompanyDetailsPage() {
   return (
     <>
       <ToastContainer />
+      <section className="inner-breadcrumb-main-area ">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-sm-12">
+              <div className="breadcrumb-main-list-area mt-4">
+                <h4>Job Details</h4>
+                <ul>
+                  <li>
+                    <Link to="/">Home</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to="/candidate-dashboard">Dashboard</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    <Link to={from}>{breadcrumbLabel}</Link>
+                    <i className="fa-solid fa-angle-right"></i>
+                  </li>
+                  <li>
+                    {loading
+                      ? "Loading..."
+                      : company?.brandName ||
+                        company?.brandName ||
+                        "Company Details"}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="company-detail-info-area">
         <div className="container">
           <div className="row">
