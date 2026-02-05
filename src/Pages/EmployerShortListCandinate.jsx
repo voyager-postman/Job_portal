@@ -233,6 +233,8 @@ function EmployerShortListCandinate() {
               bookmarkedCandidates.length > 0 &&
               bookmarkedCandidates.map((item, index) => {
                 const candidate = item.candidateId;
+                const role = candidate?.candidateProfile?.aboutRole;
+                const careerGoals = candidate?.candidateProfile?.career_goals;
                 return (
                   <div
                     className="col-lg-6 col-sm-6"
@@ -243,7 +245,10 @@ function EmployerShortListCandinate() {
                     <div className="candidate-list-info single-freelancer-card">
                       <Link
                         to={`/candidates-details`}
-                        state={{ userId: candidate?._id, from: "/bookmark-candidate" }}
+                        state={{
+                          userId: candidate?._id,
+                          from: "/bookmark-candidate",
+                        }}
                       >
                         <div className="row align-items-center">
                           <div className="col-lg-4">
@@ -272,12 +277,35 @@ function EmployerShortListCandinate() {
                               <div className="info">
                                 <ul>
                                   <li>
-                                    <i className="fa-solid fa-location-dot" />{" "}
-                                    {candidate?.city}
+                                    <i className="fa-solid fa-file" />{" "}
+                                    {role?.yearOfExperience
+                                      ? `${role.yearOfExperience} Years`
+                                      : "N/A"}
                                   </li>
                                   <li>
-                                    <i className="fa-solid fa-envelope" />{" "}
-                                    {candidate?.email}
+                                    <i className="fa-solid fa-money-bill" />
+                                    {careerGoals?.MinimumDesiredSalary?.amount
+                                      ? `$${careerGoals.MinimumDesiredSalary.amount}/${careerGoals.MinimumDesiredSalary.type}`
+                                      : "Salary not specified"}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-location-dot" />
+                                    {candidate?.city ||
+                                      "Location not available"}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-graduation-cap" />
+                                    {careerGoals?.DesiredEmploymentType ||
+                                      "Not specified"}
+                                  </li>
+                                  <li>
+                                    <i className="fa-solid fa-gear" />
+                                    <span className="candidate-active">
+                                      {candidate?.candidateProfile
+                                        ?.profileVisible
+                                        ? "Active"
+                                        : "Inactive"}
+                                    </span>
                                   </li>
                                 </ul>
                               </div>

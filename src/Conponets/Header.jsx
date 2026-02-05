@@ -246,131 +246,6 @@ function Header({ bgColor }) {
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
 
-  // const login = useGoogleLogin({
-  //   onSuccess: async (tokenResponse) => {
-  //     try {
-  //       console.log("Google Access Token:", tokenResponse.access_token);
-
-  //       // 1️⃣ Fetch Google User Info
-  //       const res = await fetch(
-  //         "https://www.googleapis.com/oauth2/v3/userinfo",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${tokenResponse.access_token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const userInfo = await res.json();
-  //       console.log("Google User Info:", userInfo);
-
-  //       const payload = {
-  //         googleId: userInfo.sub,
-  //         email: userInfo.email,
-  //         first_name: userInfo.given_name,
-  //         last_name: userInfo.family_name,
-  //         profileImage: userInfo.picture,
-  //       };
-
-  //       console.log("Sending to Backend:", payload);
-
-  //       // 2️⃣ Send to Backend API
-  //       const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload);
-  //       console.log("Backend Response:", apiRes.data);
-
-  //       if (!apiRes.data?.success) {
-  //         toast.error(apiRes.data?.message || "Invalid credentials");
-  //         return;
-  //       }
-
-  //       const { token, user } = apiRes.data;
-
-  //       localStorage.setItem("token", token);
-  //       localStorage.setItem("user", JSON.stringify(user));
-  //       localStorage.setItem("user_id", user?._id);
-  //       localStorage.setItem("user_email", user?.email);
-  //       localStorage.setItem("user_role", user?.role);
-  //       localStorage.setItem("first_name", user?.first_name);
-  //       localStorage.setItem("last_name", user?.last_name);
-  //       localStorage.setItem("is_completed", user?.is_completed);
-  //       localStorage.setItem("user_profile", user?.profileImage);
-  //       localStorage.setItem(
-  //         "user_name",
-  //         `${user?.first_name} ${user?.last_name}`
-  //       );
-
-  //       // 4️⃣ Fetch Profile Data
-  //       try {
-  //         const profileRes = await axios.get(
-  //           `${API_BASE_URL}candidate/profile`,
-  //           {
-  //             headers: { Authorization: `Bearer ${token}` },
-  //           }
-  //         );
-
-  //         const profileData = profileRes.data?.profile;
-  //         const profileImg = profileData?.profileImage;
-
-  //         if (profileImg && profileImg.trim() !== "") {
-  //           const fullUrl = `${API_IMAGE_URL}${profileImg}`;
-  //           localStorage.setItem("profileImage", fullUrl);
-  //           if (typeof updateProfileImage === "function") {
-  //             updateProfileImage(fullUrl);
-  //           }
-  //         } else {
-  //           localStorage.setItem(
-  //             "profileImage",
-  //             "/jobPortal/assets/images/dashboard/images1.png"
-  //           );
-  //         }
-
-  //         if (profileData) {
-  //           updateName(profileData.first_name, profileData.last_name);
-  //         }
-  //       } catch (profileErr) {
-  //         console.error("Profile fetch error:", profileErr);
-  //       }
-  //       authLogin();
-  //       toast.success("Login successful!");
-  //       console.log(user?.is_completed);
-  //       // 7️⃣ Navigation
-  //       if (user?.is_completed) {
-  //         console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-dashboard");
-  //         } else {
-  //           console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-  //           navigate("/candidate-profile");
-  //         }
-  //       } else {
-  //         if (user.role === "Recruiter" || user.role === "Company") {
-  //           navigate("/employer-basic-info");
-  //         } else {
-  //           navigate("/profile-basic-info");
-  //         }
-  //       }
-
-  //       // 8️⃣ Close Login Modal
-  //       const modal = document.getElementById("exampleModalLogin");
-  //       if (modal) {
-  //         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-  //         bootstrapModal?.hide();
-  //       }
-  //     } catch (error) {
-  //       console.error("Google Login Error:", error.response?.data || error);
-  //       toast.error("Google login failed!");
-  //     }
-  //   },
-
-  //   onError: () => {
-  //     console.log("Google Login Failed");
-  //     toast.error("Google login failed. Try again.");
-  //   },
-
-  //   flow: "implicit",
-  // });
-
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -543,7 +418,6 @@ function Header({ bgColor }) {
     return `${API_IMAGE_URL}${url}`;
   };
 
-  const isCompleted = localStorage.getItem("is_completed") === "true";
   return (
     <>
       <ToastContainer />
@@ -910,54 +784,7 @@ function Header({ bgColor }) {
                                 </div>
                               )}
 
-                            {/* {localStorage.getItem("is_completed") ===
-                              "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
-                                          });
-                                          return;
-                                        }
-
-                                        if (role === "JobSeeker") {
-                                          navigate("/change-password");
-                                        } else {
-                                          navigate("/change-password");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-9.svg"
-                                          alt="Image"
-                                        />
-                                      </span>
-                                      <span>Change Password</span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
-                            )} */}
+                        
 
                             <div className="dropdown-footer">
                               <ul className="profile-nav">
