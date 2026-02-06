@@ -508,8 +508,10 @@ function CandidateProfile() {
       modalInstance.hide();
 
       toast.success("Your account has been deleted successfully!");
-      logout();
-      navigate("/");
+      setTimeout(() => {
+        logout();
+        navigate("/");
+      }, 1500);
     } catch (error) {
       toast.error("Failed to delete account.");
     }
@@ -2243,25 +2245,25 @@ function CandidateProfile() {
     }
   };
   const cleanImageUrl = (url) => {
-    console.log(url);
     if (!url) return "";
 
-    // ✅ If local dashboard asset → return as-is (NO API_IMAGE_URL)
-    if (url.startsWith("assets/images/dashboard/")) {
-      return url;
+    // ✅ Dashboard default images
+    if (url.includes("assets/images/dashboard/")) {
+      // ensure absolute path
+      return url.startsWith("/") ? url : `/${url}`;
     }
 
-    // ✅ If URL wrongly contains "/uploads/https"
+    // ✅ Fix wrongly stored upload URLs
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External URL (Google, GitHub, etc.)
+    // ✅ External URLs
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
-    // ✅ Local uploaded image → prepend API base URL
+    // ✅ Backend uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
 

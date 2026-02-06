@@ -99,7 +99,8 @@ function AppliedJobList() {
               </li>
               <li className="item">
                 <Link to="/applied-jobs-list">
-                  <i className="fa-solid fa-angle-right" /> Application Management
+                  <i className="fa-solid fa-angle-right" /> Application
+                  Management
                 </Link>
               </li>
             </ol>
