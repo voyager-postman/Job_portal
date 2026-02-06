@@ -31,7 +31,7 @@ function JobDetails() {
   const [job, setJob] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const from = location.state?.from || "/job-search";
+  const from = location.state?.from || "/";
   console.log(id);
 
   const breadcrumbLabel = from?.includes("/manage-job-application")
@@ -452,38 +452,42 @@ function JobDetails() {
   return (
     <>
       <ToastContainer />
-      <section className="inner-breadcrumb-main-area ">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-sm-12">
-              <div className="breadcrumb-main-list-area mt-4">
-                <h4>Job Details</h4>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/candidate-dashboard">Dashboard</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to={from}>{breadcrumbLabel}</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    {loading
-                      ? "Loading..."
-                      : job?.jobDetails?.jobTitle ||
-                        job?.jobTitle ||
-                        "Job Details"}
-                  </li>
-                </ul>
+      {from !== "/" && (
+        <section className="inner-breadcrumb-main-area ">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-sm-12">
+                <div className="breadcrumb-main-list-area mt-4">
+                  <h4>Job Details</h4>
+                  <ul>
+                    <li>
+                      <Link to="/">Home</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    {from !== "/jobs" && (
+                      <li>
+                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
+                    )}
+                    <li>
+                      <Link to={from}>{breadcrumbLabel}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    <li>
+                      {loading
+                        ? "Loading..."
+                        : job?.jobDetails?.jobTitle ||
+                          job?.jobTitle ||
+                          "Job Details"}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="job-details-main-info-area">
         <div className="container">

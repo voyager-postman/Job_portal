@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
@@ -8,6 +8,7 @@ import { API_IMAGE_URL } from "../Url/Url";
 
 function YourJobPosts() {
   const navigate = useNavigate();
+  const location = useLocation();
   // const [isPost, setIsPost] = useState("");
   const [cateroryList, setCategoryList] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
@@ -24,6 +25,14 @@ function YourJobPosts() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [perPage, setPerPage] = useState(10); // default
+
+  useEffect(() => {
+    if (location.state?.openModal) {
+      const modalElement = document.getElementById("exampleModal");
+      const modal = new window.bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }, [location.state]);
 
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
@@ -239,6 +248,7 @@ function YourJobPosts() {
       );
     }
   };
+
   const fetchJobDashboardStats = async () => {
     try {
       const token = localStorage.getItem("token");

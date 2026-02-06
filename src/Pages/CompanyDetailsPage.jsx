@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, Link } from "react-router-dom";
 import axios from "axios";
-
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -12,7 +11,6 @@ function CompanyDetailsPage() {
   const [jobId, setJobId] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
   const [resumeList, setResumeList] = useState([]);
-
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
@@ -23,8 +21,7 @@ function CompanyDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
-  const from = location.state?.from || "/companies-list";
-
+  const from = location.state?.from || "/";
   // const breadcrumbLabel = from.includes("/manage-job-application")
   //   ? "Manage Job Application"
   //   : "Search Company List";
@@ -33,9 +30,11 @@ function CompanyDetailsPage() {
     ? "Manage Job Application"
     : from?.includes("/companies-list")
       ? "Search Company List"
-      : from?.includes("/employers")
+      : from?.includes("/companies")
         ? "Companies"
-        : "Search Company List";
+        : // : from?.includes("/")
+          //   ? "Home"
+          "Search Company List";
 
   const getCompanyDetails = async () => {
     try {
@@ -71,6 +70,7 @@ function CompanyDetailsPage() {
     txt.innerHTML = html;
     return txt.value;
   }
+
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -317,38 +317,42 @@ function CompanyDetailsPage() {
   return (
     <>
       <ToastContainer />
-      <section className="inner-breadcrumb-main-area ">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-sm-12">
-              <div className="breadcrumb-main-list-area mt-4">
-                <h4>Job Details</h4>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/candidate-dashboard">Dashboard</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to={from}>{breadcrumbLabel}</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    {loading
-                      ? "Loading..."
-                      : company?.brandName ||
-                        company?.brandName ||
-                        "Company Details"}
-                  </li>
-                </ul>
+      {from !== "/" && (
+        <section className="inner-breadcrumb-main-area ">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-sm-12">
+                <div className="breadcrumb-main-list-area mt-4">
+                  <h4>Job Details</h4>
+                  <ul>
+                    <li>
+                      <Link to="/">Home</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    {from !== "/companies" && (
+                      <li>
+                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
+                    )}
+                    <li>
+                      <Link to={from}>{breadcrumbLabel}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    <li>
+                      {loading
+                        ? "Loading..."
+                        : company?.brandName ||
+                          company?.brandName ||
+                          "Company Details"}
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="company-detail-info-area">
         <div className="container">

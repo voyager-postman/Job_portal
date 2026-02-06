@@ -71,7 +71,7 @@ function Footer() {
                         <Link to="/jobs">Browse Jobs </Link>
                       </li>
                       <li>
-                        <Link to="/employers">Browse Companies </Link>
+                        <Link to="/companies">Browse Companies </Link>
                       </li>
                       <li>
                         <Link

@@ -31,6 +31,9 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const isJobSeeker = userRole === "JobSeeker";
+  const isEmployer = userRole === "Recruiter" || userRole === "Company";
+  const isGuest = !userRole;
   // localStorage.setItem("verifiedByAdmin", "true");
 
   useEffect(() => {
@@ -133,17 +136,32 @@ function Header({ bgColor }) {
     // do login logic...
     navigate("/login"); // redirect to dashboard
   };
+
   const handleRegister = () => {
     // do login logic...
     navigate("/register"); // redirect to dashboard
   };
+
+  const handlePostJob = () => {
+    navigate("/your-job-posts", {
+      state: { openModal: true },
+      replace: true,
+    });
+
+    const modalElement = document.getElementById("exampleModal");
+    const modal = window.bootstrap.Modal.getInstance(modalElement);
+    modal?.hide();
+  };
+
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}auth/github`;
   };
+
   const handleLinkedinLogin = () => {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
+
   useEffect(() => {
     const handleSocialLogin = async () => {
       const queryParams = new URLSearchParams(window.location.search);
@@ -703,27 +721,31 @@ function Header({ bgColor }) {
                       {t("header.aboutUs")}
                     </NavLink>
                   </li>
+                  {(isJobSeeker || isGuest) && (
+                    <li className="nav-item">
+                      <NavLink
+                        to="/jobs"
+                        className={({ isActive }) =>
+                          "nav-link" + (isActive ? " active" : "")
+                        }
+                      >
+                        {t("header.jobs")}
+                      </NavLink>
+                    </li>
+                  )}
+                  {(isJobSeeker || isGuest) && (
+                    <li className="nav-item">
+                      <NavLink
+                        to="/companies"
+                        className={({ isActive }) =>
+                          "nav-link" + (isActive ? " active" : "")
+                        }
+                      >
+                        {t("header.employers")}
+                      </NavLink>
+                    </li>
+                  )}
 
-                  <li className="nav-item">
-                    <NavLink
-                      to="/jobs"
-                      className={({ isActive }) =>
-                        "nav-link" + (isActive ? " active" : "")
-                      }
-                    >
-                      {t("header.jobs")}
-                    </NavLink>
-                  </li>
-                  <li className="nav-item">
-                    <NavLink
-                      to="/employers"
-                      className={({ isActive }) =>
-                        "nav-link" + (isActive ? " active" : "")
-                      }
-                    >
-                      {t("header.employers")}
-                    </NavLink>
-                  </li>
                   {userRole === "Recruiter" && (
                     <li className="nav-item">
                       <NavLink
@@ -778,7 +800,6 @@ function Header({ bgColor }) {
                               </span>
                             )}
                           </button>
-
                           <ul
                             className="dropdown-menu dropdown-menu-end"
                             aria-labelledby="notificationDropdown"
@@ -850,6 +871,18 @@ function Header({ bgColor }) {
                           </ul>
                         </div>
                       </div>
+
+                      {isEmployer && (
+                        <div className="option-item post-job-employers-btn">
+                          <button
+                            onClick={handlePostJob}
+                            className="default-btn btn"
+                            type="button"
+                          >
+                            Post New Job
+                          </button>
+                        </div>
+                      )}
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">
@@ -1045,9 +1078,9 @@ function Header({ bgColor }) {
                         </div>
                       </div>
                       <div className="option-item post-job-employers-btn">
-                        <Link to="/" className="default-btn btn">
+                        {/* <Link to="/" className="default-btn btn">
                           Post New Job
-                        </Link>
+                        </Link> */}
                         <Link to="/" className="default-btn btn">
                           For Jobseeker
                         </Link>
@@ -1075,9 +1108,9 @@ function Header({ bgColor }) {
                         </div>
 
                         <div className="option-item post-job-employers-btn">
-                          <Link to="/" className="default-btn btn">
+                          {/* <Link to="/" className="default-btn btn">
                             Post New Job
-                          </Link>
+                          </Link> */}
                           <Link to="/employer-home" className="default-btn btn">
                             For Employers
                           </Link>
@@ -1086,7 +1119,7 @@ function Header({ bgColor }) {
                     </>
                   )}
                 </div>
-                <div className="header-language-toggle">
+                {/* <div className="header-language-toggle">
                   <select
                     className="form-select"
                     value={i18n.language}
@@ -1095,7 +1128,7 @@ function Header({ bgColor }) {
                     <option value="en">Eng</option>
                     <option value="fr">Fr</option>
                   </select>
-                </div>
+                </div> */}
               </div>
             </nav>
           </div>
@@ -1202,7 +1235,6 @@ function Header({ bgColor }) {
                       </div>
                     </button>
                   </div>
-
                   <div className="already-have-account-content">
                     <p>Don't have an account yet?</p>
                     <span

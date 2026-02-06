@@ -134,7 +134,7 @@ function LayoutWrapper() {
         <Route path="/privacy-policy" element={<PrivecyPolicy />} />
         <Route path="/terms-condition" element={<TearmCondition />} />
 
-        <Route path="/employers" element={<Employers />} />
+        <Route path="/companies" element={<Employers />} />
         <Route path="/faq" element={<Faq />} />
         <Route
           path="/applied-candidate-list"
