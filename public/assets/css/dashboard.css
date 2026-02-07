@@ -1852,8 +1852,8 @@ Dashboard Area CSS
   padding-left: 30px;
 }
 .my-profile-area .profile-form-content .profile-form {
-  padding: 30px;
-  padding-top: 20px;
+  /* padding: 30px;
+  padding-top: 20px; */
 }
 .my-profile-area .profile-form-content .profile-form .my-profile-img {
   padding-top: 6px;
