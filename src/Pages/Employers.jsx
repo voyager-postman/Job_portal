@@ -160,7 +160,7 @@ const Employers = () => {
                 <div className="divder-line-info"></div>
                 <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
-                    <Link to="/employers">
+                    <Link to="/companies">
                       <i className="fa-regular fa-building"></i> Companies
                     </Link>
                   </h4>
@@ -330,7 +330,7 @@ const Employers = () => {
                                 <button
                                   className="default-btn btn"
                                   onClick={() =>
-                                    handleViewCompany(company?._id, "/employers")
+                                    handleViewCompany(company?._id, "/companies")
                                   }
                                 >
                                   View Company

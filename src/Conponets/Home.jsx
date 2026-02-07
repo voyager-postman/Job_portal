@@ -17,6 +17,7 @@ import OwlCarousel from "react-owl-carousel3";
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
+
 const NextArrow = ({ onClick }) => (
   <button className="custom-arrow next-arrow" onClick={onClick}>
     <FaArrowRight />
@@ -39,6 +40,7 @@ const categories1 = [
   { icon: "flaticon-office-building", label: "Corporate Job (47)" },
   { icon: "flaticon-business", label: "Business Policy (69)" },
 ];
+
 const reviews = [
   {
     name: "Nikolas Brooten",
@@ -57,6 +59,7 @@ const reviews = [
   },
   // repeat or map more if needed
 ];
+
 function Home() {
   const { t, i18n } = useTranslation("global");
   const userRole = localStorage.getItem("user_role");
@@ -126,16 +129,19 @@ function Home() {
   useEffect(() => {
     getCompanyList();
   }, []);
+
   const containerRef = useRef(null);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
     triggerOnce: true,
   });
-  const handleViewCompany = (company) => {
+
+  const handleViewCompany = (company, from) => {
     navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
+      state: { companyId: company, from }, // 👈 send ID as prop-like data
     });
   };
+
   const stats = [
     { icon: "flaticon-bag", count: 15000, label: "Jobs Added", showPlus: true },
     { icon: "flaticon-office-building", count: 123842, label: "Companies" },
@@ -586,7 +592,7 @@ function Home() {
                       <div className="available-company-btn">
                         <button
                           className="default-btn btn"
-                          onClick={() => handleViewCompany(company?._id)}
+                          onClick={() => handleViewCompany(company?._id, "/")}
                         >
                           {t("header.viewCompany")}
                         </button>
@@ -659,7 +665,12 @@ function Home() {
                 >
                   <div className="single-job-card">
                     <div className="job-image">
-                      <Link to={`/job-details/${job._id}`}>
+                      <Link
+                        to={`/job-details/${job._id}`}
+                        state={{
+                          from: "/",
+                        }}
+                      >
                         <img
                           crossorigin="anonymous"
                           src={
@@ -1224,6 +1235,8 @@ function Home() {
           </div>
         </div>
       </div> */}
+
+      {/* Read Our Article To Get Tricks */}
       <div className="blog-area pt-100 pb-70">
         <div className="container">
           <div className="blog-top-content">
@@ -1265,12 +1278,12 @@ function Home() {
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="blog-details.html">
+                      <Link to="#">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-1.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                     <div className="blog-content">
                       <div className="info-list">
@@ -1286,17 +1299,17 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="blog-details.html">
+                        <Link to="#">
                           The Internet Is A Job Seeker Most Crucial Success
-                        </a>
+                        </Link>
                       </h2>
                       <p>
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="blog-details.html" className="read-more">
+                      <Link to="#" className="read-more">
                         Read More
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -1308,12 +1321,12 @@ function Home() {
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="blog-details.html">
+                      <Link to="#">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-2.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                     <div className="blog-content">
                       <div className="info-list">
@@ -1329,17 +1342,17 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="blog-details.html">
+                        <Link to="#">
                           Today From Connecting With Potential Employers
-                        </a>
+                        </Link>
                       </h2>
                       <p>
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="blog-details.html" className="read-more">
+                      <Link to="#" className="read-more">
                         Read More
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -1351,12 +1364,12 @@ function Home() {
                 >
                   <div className="single-blog-card">
                     <div className="blog-img">
-                      <a href="blog-details.html">
+                      <Link to="#">
                         <img
                           src="/jobPortal/assets/images/blog/blog-img-6.jpg"
                           alt="Image"
                         />
-                      </a>
+                      </Link>
                     </div>
                     <div className="blog-content">
                       <div className="info-list">
@@ -1372,17 +1385,17 @@ function Home() {
                         </ul>
                       </div>
                       <h2>
-                        <a href="blog-details.html">
+                        <Link to="#">
                           Today From Connecting With Potential Employers
-                        </a>
+                        </Link>
                       </h2>
                       <p>
                         Lorem ipsum dolor sit amet, constetur adipiscing elit,
                         sed do eiusmod tempor incididunt.
                       </p>
-                      <a href="blog-details.html" className="read-more">
+                      <Link to="#" className="read-more">
                         Read More
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>

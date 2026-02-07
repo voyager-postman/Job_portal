@@ -1324,7 +1324,7 @@ const JobList = () => {
                       </div>
                       <div className="job-filter-heading-area">
                         <h4>
-                          <Link to="/employers">
+                          <Link to="/companies">
                             <i className="fa-regular fa-building" /> Companies
                           </Link>
                         </h4>
