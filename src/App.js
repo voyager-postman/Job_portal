@@ -66,6 +66,9 @@ import SendOtp from "./Pages/SendOtp";
 import ManagesApplicants from "./Pages/ManagesApplicants";
 import ApplicantsDetails from "./Pages/ApplicantsDetails";
 import ChangePassword from "./Pages/ChangePassword";
+import ManagesAssement from "./Conponets/ManagesAssement";
+import CreateAssement from "./Conponets/CreateAssement";
+import AssessmentDetails from "./Pages/AssessmentDetails";
 
 // "build 04-09-2025"
 console.log("Date:-03-02-2026,time:-11:30");
@@ -87,10 +90,13 @@ function LayoutWrapper() {
     "/candidates-search",
     "/all-applicants-list",
     "/create-recruiters",
+    "/create-assessment",
     "/manage-recruiter",
+    "/manage-assessment",
     "/messaging-system",
     "/change-password",
     "/company-profile",
+    "/assessment-details",
     "/job-details-form",
     "/job-details-list",
     "/resume-builder",
@@ -350,10 +356,27 @@ function LayoutWrapper() {
           }
         />
         <Route
+          path="/create-assessment"
+          element={
+            <PrivateRoute>
+              <CreateAssement />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/manage-recruiter"
           element={
             <PrivateRoute>
               <RecruiterLists />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/manage-assessment"
+          element={
+            <PrivateRoute>
+              <ManagesAssement />
             </PrivateRoute>
           }
         />
@@ -370,6 +393,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <EmployerProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/assessment-details"
+          element={
+            <PrivateRoute>
+              <AssessmentDetails />
             </PrivateRoute>
           }
         />

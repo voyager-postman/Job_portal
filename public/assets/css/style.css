@@ -4663,9 +4663,7 @@ Partner Style
   display: inline-block;
   overflow: hidden;
   transition: all ease 0.5s;
-  object-fit:  scale-down;
-;
-
+  object-fit: scale-down;
 }
 .parner-logo img:hover {
   opacity: 1;
@@ -11594,3 +11592,245 @@ text-transform: capitalize;
 }
 
 /*other page breadcrumb css end here*/
+/*Skill Assessment Form css start here*/
+
+.skill-assessments-from-main-area .form-control {
+  height: 40px;
+}
+
+.questions-category-main .dropdown-content.show {
+  display: block;
+}
+
+.questions-category-main .dropdown {
+  position: relative;
+  border-radius: unset;
+  background-color: #f0f5f7;
+}
+
+.questions-category-main .dropdown-btn {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.questions-category-main .dropdown-content {
+  display: none;
+  position: absolute;
+  width: 100%;
+  border: 1px solid #ccc;
+  background: #fff;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.questions-category-main .dropdown-content label {
+  display: block;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin: 0px !important;
+  font-size: 15px !important;
+}
+
+.questions-category-main .dropdown-content label:hover {
+  background-color: #f2f2f2;
+}
+
+.questions-category-main .dropdown-content input {
+  margin-right: 5px;
+}
+
+.manually-add-dlt-question-area {
+  display: flex;
+  justify-content: space-between;
+}
+
+.manually-add-dlt-question-area .form-group {
+  width: 95%;
+}
+
+.manually-add-dlt-Icon i {
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 12px 12px;
+  background: #f65e00;
+  border-radius: 5px;
+}
+
+.number-questions-category .form-control {
+  margin-bottom: 15px;
+}
+
+.question-bank-question-area {
+  margin-bottom: 20px;
+}
+
+.question-bank-question-list {
+  display: flex;
+  margin-bottom: 10px;
+  justify-content: space-between;
+}
+
+.question-bank-question {
+  width: 95%;
+}
+
+.question-bank-question h5 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-right: 0px;
+}
+
+.question-bank-question h5 span {
+  color: #f65e00;
+  font-size: 18px;
+  font-weight: 800;
+  margin-right: 10px;
+}
+
+.question-bank-question-dltIcon i {
+  color: #fff;
+  cursor: pointer;
+  background: #f65e00;
+  padding: 10px 10px;
+  border-radius: 5px;
+}
+
+.manually-add-mcq-filed .form-group {
+  margin-bottom: 15px;
+}
+
+.skill-assessment-btn-area {
+  text-align: center;
+  padding: 30px 0px;
+}
+
+.skill-assessments-test-btn .default-btn {
+  padding: 5px 10px;
+}
+.add-question-button {
+  outline: none;
+  border: none;
+  font-size: 30px;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 5px;
+  line-height: 20px;
+  background: #0066cc;
+  padding: 4px 10px 10px 10px;
+}
+
+.add-question-button:hover {
+  background: #ff6600;
+}
+.custom-question-area {
+  width: 100%;
+  color: inherit;
+  outline: none;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 5px;
+  padding: 8px 10px;
+  letter-spacing: 0.5px;
+  border: 1px solid #cdcdcd;
+}
+/*Skill Assessment Form css end here*/
+/*create skill assessment test details page css start here*/
+
+.skill-assessment-detail-main {
+  background: #fff;
+  padding: 15px 15px;
+  margin: 0px 0px 20px 0px;
+}
+
+.skill-assessment-detail-main h5 {
+  font-size: 17px;
+}
+
+.skill-assessment-detail-main h5 span {
+  color: #6a6666;
+}
+
+.skill-assessment-question-bank-question {
+  margin-top: 15px;
+}
+
+.skill-assessment-question-bank-question h5 {
+  width: 100%;
+  font-size: 16px;
+  padding: 7px 5px;
+  background: #f0f5f7;
+  display: inline-block;
+}
+
+.skill-assessment-question-bank-question h5 span {
+  color: #f65e00;
+  font-size: 18px;
+  font-weight: 800;
+  margin-right: 5px;
+}
+
+.skill-assessment-manually-add-question h5 {
+  margin: 10px 0px;
+}
+
+.skill-assessment-manually-add-question h5 span {
+  color: #f65e00;
+  font-size: 18px;
+  font-weight: 800;
+  margin-right: 5px;
+}
+
+.skill-assessment-manually-add-question ul li {
+  color: #202124;
+  margin-bottom: 15px;
+  margin-left: 30px;
+  display: inline-block;
+}
+
+.skill-assessment-manually-add-question ul li span {
+  color: #6a6666;
+}
+
+.skill-assessment-detail-main h4 {
+  font-size: 17px;
+}
+
+.skill-assessment-detail-main h4 span {
+  color: #f65e00;
+}
+
+.category-name-no-questions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-name-area {
+  width: 50%;
+}
+
+.number-questions-per-category {
+  width: 50%;
+  text-align: center;
+}
+
+.category-name-area h4 {
+  margin-top: 15px;
+}
+
+.number-questions-per-category h5 {
+  margin-top: 15px;
+}
+
+.total-Duration-Questions-passing-percentage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.total-dqpp-main-area {
+  width: 33%;
+}
