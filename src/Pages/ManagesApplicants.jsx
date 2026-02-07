@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import moment from "moment";
+
 function ManagesApplicants() {
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
@@ -20,12 +21,14 @@ function ManagesApplicants() {
   const [totalResults, setTotalResults] = useState(0);
   const [sortBy, setSortBy] = useState("");
   const [jobs, setJobs] = useState([]);
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
       <p>Loading Candidates Listing, please wait...</p>
     </div>
   );
+
   const fetchJobs = async () => {
     try {
       setLoading(true);
@@ -45,6 +48,7 @@ function ManagesApplicants() {
   useEffect(() => {
     fetchJobs();
   }, []);
+
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
@@ -66,6 +70,7 @@ function ManagesApplicants() {
     // ✅ Local uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
+
   const fetchApplicants = async (page = 1) => {
     try {
       setLoading(true);
@@ -123,6 +128,7 @@ function ManagesApplicants() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+
           <div className="employer-dashboard-common-heading">
             <h2>All Applicants</h2>
           </div>

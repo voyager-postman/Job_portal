@@ -5999,7 +5999,7 @@ width:100%;
 }
 
 .user-name-status span {
-  color: green;
+  color: #959b95;
   font-size: 12px;
   padding: 1px 4px;
   /* background: #39da8a; */
@@ -6011,7 +6011,7 @@ width:100%;
 }
 
 .user-message-dlt span i {
-  color: #ff6600;
+  color: red;
   margin-right: 5px;
 }
 
@@ -6040,7 +6040,7 @@ width:100%;
 
 .user-message-list .nav-link.active {
   border-radius: 0px;
-  background: #ff6600;
+  background: #1868ca;
 }
 
 .user-img-name-chat-count-time-massage {
@@ -6127,11 +6127,11 @@ width:100%;
   width: 50%;
   padding: 10px 20px;
   border-radius: 5px;
-  background: #ff6600;
+  background: #d3e6ff;
 }
 
 .job-seeker-message-detail-text p {
-  color: #fff;
+  color: #322c2c;
   margin-bottom: 0px;
   font-size: 14px;
 }
@@ -6188,7 +6188,7 @@ width:100%;
 .chat-messaging-send-btn {
   /* text-align: center;  */
   width: 13%;
-  background: #f9601a;
+  background: #1868ca;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6221,7 +6221,7 @@ width:100%;
 }
 
 .employer-info-main-area .job-seeker-message-detail-text {
-  background: #0066cc;
+  background: #ebebeb;;
 }
 
 .search-box-user-list-area {
@@ -7082,7 +7082,7 @@ width:100%;
 
 .messaging-system-user-name p {
   font-size: 13px;
-  color: green;
+  color: #a2a6a2;
   font-weight: 700;
 }
 
@@ -7099,7 +7099,7 @@ width:100%;
 
 .messaging-system-tab-area .nav-tabs .nav-link.active {
   border-radius: 0px;
-  background: #ff6600;
+  background: #1868ca;
 }
 
 .messaging-system-tab-area .nav-tabs .nav-link.active h5 {
@@ -7145,7 +7145,7 @@ width:100%;
 .messaging-system-typeing-send-btn .send_chat {
   /* text-align: center; */
   width: 20%;
-  background: #f9601a;
+  background: #1868ca;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7188,7 +7188,7 @@ width:100%;
   max-width: 65%;
   padding: 10px 10px;
   border-radius: 5px;
-  background: #ff6600;
+  background: #d8e9ff;
 }
 
 .messaging-system-message-time {
@@ -7206,7 +7206,7 @@ width:100%;
 }
 
 .messaging-system-user-message p {
-  color: #fff;
+  color: #463f3f;
 }
 
 .messaging-system-recruiter-messaging {
@@ -7228,7 +7228,7 @@ width:100%;
 }
 
 .messaging-system-user-message.bg-color {
-  background: #0066cc;
+  background: #ebebeb;
   margin-right: 10px;
 }
 
@@ -7372,35 +7372,34 @@ width:100%;
 
 /*Plan price page css end here*/
 
-
 /*user profile drowpdown page css start here*/
-.user-profile-drowpdown-list .figure img{
-width: 50px !important;
-height: 50px !important;
+.user-profile-drowpdown-list .figure img {
+  width: 50px !important;
+  height: 50px !important;
 }
 .user-profile-drowpdown-list ul {
-padding-left:0px;
+  padding-left: 0px;
 }
 .user-profile-drowpdown-list li {
-padding: 10px 0px;
-border-bottom: 1px solid #efefef;
+  padding: 10px 0px;
+  border-bottom: 1px solid #efefef;
 }
 .user-profile-drowpdown-list li:last-child {
-border:none;  
+  border: none;
 }
 .user-profile-drowpdown-list li a {
-color: #66666a;
-font-size: 15px;
+  color: #66666a;
+  font-size: 15px;
 }
 .user-profile-drowpdown-list li a:hover {
-color:#FF6600;  
+  color: #ff6600;
 }
 .user-profile-drowpdown-list li i {
-color: #FF6600;
-margin-right:5px;
+  color: #ff6600;
+  margin-right: 5px;
 }
 .user-profile-drowpdown-list .text-center {
-margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 /*user profile dropdown page css end here*/
 

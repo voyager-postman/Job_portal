@@ -263,6 +263,21 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
+                to="/manage-assessment"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <i>
+                    <FaClipboardCheck />
+                  </i>
+                </span>
+                <span className="menu-title"> Manage Assessments</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
                 to="/manage-recruiter"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
@@ -277,21 +292,7 @@ function Sidebar() {
                 <span className="menu-title">Manage Recruiters</span>
               </NavLink>
             </li>
-            <li className="nav-item">
-              <NavLink
-                to="/manage-assessment"
-                className={({ isActive }) =>
-                  "nav-link" + (isActive ? " active" : "")
-                }
-              >
-                <span className="icon">
-                  <i>
-                    <FaClipboardCheck />
-                  </i>
-                </span>
-                <span className="menu-title"> Manage Assessments</span>
-              </NavLink>
-            </li>
+
             {/* <li className="nav-item">
               <NavLink
                 to="/messaging-system"

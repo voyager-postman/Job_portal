@@ -119,7 +119,7 @@ function ChatMassageSystem() {
       });
       return `last seen ${date}`;
     };
-
+    const isOnline = user?.otherUser?.isOnline === "true";
     setActiveUser({
       id: userId,
       name: user?.otherUser?.brandName || "Null",
@@ -129,10 +129,10 @@ function ChatMassageSystem() {
           : `${API_IMAGE_URL}${user.otherUser.logo}`
         : "assets/images/freelancers/freelancers-img-1.jpg",
       jobId: user.jobId,
-      online:
-        user?.otherUser?.isOnline === "true"
-          ? "Online"
-          : getLastSeenText(user?.otherUser?.lastActiveAt),
+      online: isOnline
+        ? "Online"
+        : getLastSeenText(user?.otherUser?.lastActiveAt),
+      isOnline, // 👈 add this
       groupId: groupId,
       unreadCount: user.unreadCount,
     });
@@ -184,6 +184,16 @@ function ChatMassageSystem() {
 
     setMessages((prev) => [...prev, payload]); // instantly show in UI
     setText("");
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return "assets/images/userIcon.png";
+
+    if (url.includes("http") && url.includes("uploads/http")) {
+      return url.replace(`${API_IMAGE_URL}`, "");
+    }
+
+    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
   };
 
   return (
@@ -257,13 +267,14 @@ function ChatMassageSystem() {
                               <div className="user-img-chat-count">
                                 <img
                                   crossOrigin="anonymous"
-                                  src={
-                                    u?.otherUser?.logo
-                                      ? u.otherUser.logo.startsWith("http")
-                                        ? u.otherUser.logo
-                                        : `${API_IMAGE_URL}${u.otherUser.logo}`
-                                      : "assets/images/userIcon.png"
-                                  }
+                                  // src={
+                                  //   u?.otherUser?.logo
+                                  //     ? u.otherUser.logo.startsWith("http")
+                                  //       ? u.otherUser.logo
+                                  //       : `${API_IMAGE_URL}${u.otherUser.logo}`
+                                  //     : "assets/images/userIcon.png"
+                                  // }
+                                  src={getImageUrl(u?.otherUser?.logo)}
                                   alt="image"
                                 />
                                 {u?.unreadCount > 0 && (
@@ -332,13 +343,14 @@ function ChatMassageSystem() {
                         <div className="user-message-img">
                           <img
                             crossOrigin="anonymous"
-                            src={
-                              activeUser?.image
-                                ? activeUser.image.startsWith("http")
-                                  ? activeUser.image
-                                  : "assets/images/userIcon.png"
-                                : "assets/images/userIcon.png"
-                            }
+                            // src={
+                            //   activeUser?.image
+                            //     ? activeUser.image.startsWith("http")
+                            //       ? activeUser.image
+                            //       : "assets/images/userIcon.png"
+                            //     : "assets/images/userIcon.png"
+                            // }
+                            src={getImageUrl(activeUser?.image)}
                             alt={activeUser?.name}
                           />
                         </div>
@@ -346,7 +358,14 @@ function ChatMassageSystem() {
                           <h6>
                             {activeUser ? activeUser.name : "Select User"}
                           </h6>
-                          <span>{activeUser?.online}</span>
+                          <span
+                            style={{
+                              color: activeUser?.isOnline ? "green" : "#a2a6a2",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {activeUser?.online}
+                          </span>
                         </div>
                       </div>
                       <div className="user-message-dlt">
@@ -389,13 +408,14 @@ function ChatMassageSystem() {
                                       <div className="job-seeker-message-img">
                                         <img
                                           crossOrigin="anonymous"
-                                          src={
-                                            profileImage
-                                              ? profileImage.startsWith("http")
-                                                ? profileImage
-                                                : `${API_IMAGE_URL}${profileImage}`
-                                              : "assets/images/userIcon.png"
-                                          }
+                                          // src={
+                                          //   profileImage
+                                          //     ? profileImage.startsWith("http")
+                                          //       ? profileImage
+                                          //       : `${API_IMAGE_URL}${profileImage}`
+                                          //     : "assets/images/userIcon.png"
+                                          // }
+                                          src={getImageUrl(profileImage)}
                                           alt="rectruiter"
                                         />
                                       </div>
@@ -410,15 +430,16 @@ function ChatMassageSystem() {
                                       <div className="job-seeker-message-img">
                                         <img
                                           crossOrigin="anonymous"
-                                          src={
-                                            activeUser?.image
-                                              ? activeUser.image.startsWith(
-                                                  "http",
-                                                )
-                                                ? activeUser.image
-                                                : "assets/images/userIcon.png"
-                                              : "assets/images/userIcon.png"
-                                          }
+                                          // src={
+                                          //   activeUser?.image
+                                          //     ? activeUser.image.startsWith(
+                                          //         "http",
+                                          //       )
+                                          //       ? activeUser.image
+                                          //       : "assets/images/userIcon.png"
+                                          //     : "assets/images/userIcon.png"
+                                          // }
+                                          src={getImageUrl(activeUser?.image)}
                                           alt="rectruiter"
                                         />
                                       </div>

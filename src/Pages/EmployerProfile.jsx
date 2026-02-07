@@ -11,9 +11,9 @@ import { useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useAuth } from "../context/AuthContext";
+
 function EmployerProfile() {
   const { updateProfileImage } = useAuth();
-
   const [careerDetail, setCareerDetail] = useState("");
   const [isCareerUpdating, setIsCareerUpdating] = useState(false);
   const [companyData, setCompanyData] = useState(null);

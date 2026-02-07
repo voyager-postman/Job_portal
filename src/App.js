@@ -66,12 +66,17 @@ import SendOtp from "./Pages/SendOtp";
 import ManagesApplicants from "./Pages/ManagesApplicants";
 import ApplicantsDetails from "./Pages/ApplicantsDetails";
 import ChangePassword from "./Pages/ChangePassword";
+import CategoryManagement from "./Pages/assesment/ManageAssesment";
+import ApplyTest from "./Pages/ApplyTest";
+import { elements } from "chart.js";
+import StartTest from "./Pages/StartTest";
+import TestResult from "./Pages/TestResult";
 import ManagesAssement from "./Conponets/ManagesAssement";
 import CreateAssement from "./Conponets/CreateAssement";
 import AssessmentDetails from "./Pages/AssessmentDetails";
 
 // "build 04-09-2025"
-console.log("Date:-03-02-2026,time:-11:30");
+console.log("Date:-07-02-2026,time:-02:30");
 function LayoutWrapper() {
   const location = useLocation();
 
@@ -101,7 +106,6 @@ function LayoutWrapper() {
     "/job-details-list",
     "/resume-builder",
     // "/job-details",
-
     "/candidate-dashboard",
     "/chat-messaging-system",
     "/applied-jobs-list",
@@ -426,6 +430,31 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <JobSearch />
+            </PrivateRoute>
+          }
+        ></Route>
+        <Route
+          path="/apply-test"
+          element={
+            <PrivateRoute>
+              <ApplyTest />
+            </PrivateRoute>
+          }
+        ></Route>
+        <Route
+          path="/start-test"
+          element={
+            <PrivateRoute>
+              <StartTest />
+            </PrivateRoute>
+          }
+        ></Route>
+
+        <Route
+          path="/test-result"
+          element={
+            <PrivateRoute>
+              <TestResult />
             </PrivateRoute>
           }
         ></Route>

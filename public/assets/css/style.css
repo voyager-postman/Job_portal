@@ -188,6 +188,7 @@ a {
   padding-left: 15px;
   font-weight: 500;
   color: #666666;
+  /* font-size: small; */
 }
 .form-control::-moz-placeholder {
   color: #666666;
@@ -209,6 +210,11 @@ a {
 }
 .form-control:focus::placeholder {
   color: transparent;
+}
+.form-group label {
+  /* margin-top: 10px; */
+  /* font-size: small; */
+  font-weight: 600;
 }
 
 textarea {
@@ -11592,6 +11598,17 @@ text-transform: capitalize;
 }
 
 /*other page breadcrumb css end here*/
+
+.test-header h4 i {
+  color: #1967d2;
+}
+
+.start-header {
+  border: 2px solid #fafafa;
+  padding: 20px;
+  /* border-radius: 20px; */
+  box-shadow: small;
+}
 /*Skill Assessment Form css start here*/
 
 .skill-assessments-from-main-area .form-control {
