@@ -71,6 +71,9 @@ import ApplyTest from "./Pages/ApplyTest";
 import { elements } from "chart.js";
 import StartTest from "./Pages/StartTest";
 import TestResult from "./Pages/TestResult";
+import ManagesAssement from "./Conponets/ManagesAssement";
+import CreateAssement from "./Conponets/CreateAssement";
+import AssessmentDetails from "./Pages/AssessmentDetails";
 
 // "build 04-09-2025"
 console.log("Date:-07-02-2026,time:-02:30");
@@ -92,10 +95,13 @@ function LayoutWrapper() {
     "/candidates-search",
     "/all-applicants-list",
     "/create-recruiters",
+    "/create-assessment",
     "/manage-recruiter",
+    "/manage-assessment",
     "/messaging-system",
     "/change-password",
     "/company-profile",
+    "/assessment-details",
     "/job-details-form",
     "/job-details-list",
     "/resume-builder",
@@ -108,7 +114,6 @@ function LayoutWrapper() {
     "/manage-job-application",
     "/application-management",
     "/job-alert",
-    "/manage-assesment",
   ];
 
   const showSidebar = sidebarRoutes.some((route) =>
@@ -355,10 +360,27 @@ function LayoutWrapper() {
           }
         />
         <Route
+          path="/create-assessment"
+          element={
+            <PrivateRoute>
+              <CreateAssement />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/manage-recruiter"
           element={
             <PrivateRoute>
               <RecruiterLists />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/manage-assessment"
+          element={
+            <PrivateRoute>
+              <ManagesAssement />
             </PrivateRoute>
           }
         />
@@ -378,6 +400,15 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/assessment-details"
+          element={
+            <PrivateRoute>
+              <AssessmentDetails />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/change-password"
           element={
@@ -424,14 +455,6 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <TestResult />
-            </PrivateRoute>
-          }
-        ></Route>
-        <Route
-          path="/manage-assesment"
-          element={
-            <PrivateRoute>
-              <CategoryManagement />
             </PrivateRoute>
           }
         ></Route>

@@ -6,6 +6,7 @@ import {
   FaUsersGear,
   FaUsers,
   FaGoogleWallet,
+  FaClipboardCheck,
 } from "react-icons/fa6";
 import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
@@ -262,18 +263,17 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/manage-assesment"
+                to="/manage-assessment"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-users-gear" /> */}
                   <i>
-                    <FaUsersGear />
+                    <FaClipboardCheck />
                   </i>
                 </span>
-                <span className="menu-title">Manage Assesment</span>
+                <span className="menu-title"> Manage Assessments</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -292,6 +292,7 @@ function Sidebar() {
                 <span className="menu-title">Manage Recruiters</span>
               </NavLink>
             </li>
+
             {/* <li className="nav-item">
               <NavLink
                 to="/messaging-system"
