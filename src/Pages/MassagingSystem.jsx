@@ -124,15 +124,13 @@ function MassagingSystem() {
       });
       return `last seen ${date}`;
     };
+    const isOnline = user?.applicant?.isOnline === "true";
     setActiveUser({
       id: userId,
       name: `${user.applicant.first_name} ${user.applicant.last_name}`,
       image: user.applicant.profileImage,
       jobId: user.jobId,
-      online:
-        user?.applicant?.isOnline === "true"
-          ? "Online"
-          : getLastSeenText(user?.chat?.lastMessageAt),
+      online: isOnline ? "Online" : getLastSeenText(user?.chat?.lastMessageAt),
       groupId: groupId,
       unreadCount: user?.chat?.unreadCount || 0,
     });
@@ -178,14 +176,22 @@ function MassagingSystem() {
     };
     console.log(payload);
     socketRef.current.send(JSON.stringify(payload));
-
     // setChatStore((prev) => ({
     //   ...prev,
     //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
     // }));
-
     setMessages((prev) => [...prev, payload]);
     setText("");
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return "assets/images/userIcon.png";
+
+    if (url.includes("http") && url.includes("uploads/http")) {
+      return url.replace(`${API_IMAGE_URL}`, "");
+    }
+
+    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
   };
 
   return (
@@ -261,17 +267,11 @@ function MassagingSystem() {
                                     <div className="messaging-system-user-img">
                                       <img
                                         crossOrigin="anonymous"
-                                        src={
-                                          u?.applicant?.profileImage
-                                            ? u.applicant.profileImage.startsWith(
-                                                "http",
-                                              )
-                                              ? u.applicant.profileImage
-                                              : `${API_IMAGE_URL}${u.userId.profileImage}`
-                                            : "assets/images/userIcon.png"
-                                        }
-                                        alt="image"
+                                        src={getImageUrl(
+                                          u?.applicant?.profileImage,
+                                        )}
                                       />
+
                                       {u?.chat?.unreadCount > 0 && (
                                         <>
                                           <span className="chat-count">
@@ -337,13 +337,7 @@ function MassagingSystem() {
                               <div className="messaging-system-user-img">
                                 <img
                                   crossOrigin="anonymous"
-                                  src={
-                                    activeUser?.image
-                                      ? activeUser.image.startsWith("http")
-                                        ? activeUser.image
-                                        : "assets/images/userIcon.png"
-                                      : "assets/images/userIcon.png"
-                                  }
+                                  src={getImageUrl(activeUser?.image)}
                                   alt={activeUser?.name || "User"}
                                 />
                               </div>
@@ -351,7 +345,16 @@ function MassagingSystem() {
                                 <h5>
                                   {activeUser ? activeUser.name : "Select User"}
                                 </h5>
-                                <p>{activeUser?.online}</p>
+                                <p
+                                  style={{
+                                    color: activeUser?.isOnline
+                                      ? "green"
+                                      : "#a2a6a2",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {activeUser?.online}
+                                </p>
                               </div>
                             </div>
                             <div class="user-message-dlt">
@@ -390,15 +393,16 @@ function MassagingSystem() {
                                         <div className="messaging-system-userImg">
                                           <img
                                             crossOrigin="anonymous"
-                                            src={
-                                              profileImage
-                                                ? profileImage.startsWith(
-                                                    "http",
-                                                  )
-                                                  ? profileImage
-                                                  : `${API_IMAGE_URL}${profileImage}`
-                                                : "assets/images/userIcon.png"
-                                            }
+                                            // src={
+                                            //   profileImage
+                                            //     ? profileImage.startsWith(
+                                            //         "http",
+                                            //       )
+                                            //       ? profileImage
+                                            //       : `${API_IMAGE_URL}${profileImage}`
+                                            //     : "assets/images/userIcon.png"
+                                            // }
+                                            src={getImageUrl(profileImage)}
                                             alt="rectruiter"
                                           />
                                         </div>
@@ -409,22 +413,18 @@ function MassagingSystem() {
                                     <>
                                       <div className="messaging-system-user-messaging">
                                         <div className="messaging-system-userImg">
-                                          {/* <img
-                                            crossOrigin="anonymous"
-                                            src={activeUser?.image}
-                                            alt={activeUser?.name}
-                                          /> */}
                                           <img
                                             crossOrigin="anonymous"
-                                            src={
-                                              activeUser?.image
-                                                ? activeUser.image.startsWith(
-                                                    "http",
-                                                  )
-                                                  ? activeUser.image
-                                                  : "assets/images/userIcon.png"
-                                                : "assets/images/userIcon.png"
-                                            }
+                                            // src={
+                                            //   activeUser?.image
+                                            //     ? activeUser.image.startsWith(
+                                            //         "http",
+                                            //       )
+                                            //       ? activeUser.image
+                                            //       : "assets/images/userIcon.png"
+                                            //     : "assets/images/userIcon.png"
+                                            // }
+                                            src={getImageUrl(activeUser?.image)}
                                             alt={activeUser?.name || "User"}
                                           />
                                         </div>

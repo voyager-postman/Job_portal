@@ -118,6 +118,7 @@ function YourJobPosts() {
       console.error("Error fetching countries:", error);
     }
   };
+
   useEffect(() => {
     fetchCountryList();
   }, []);
@@ -265,6 +266,7 @@ function YourJobPosts() {
       console.error("Dashboard Stats Error:", error);
     }
   };
+
   useEffect(() => {
     fetchJobDashboardStats();
   }, []);
@@ -506,7 +508,7 @@ function YourJobPosts() {
                         </div>
                         <div className="modal-body">
                           <div>
-                            <div className="form-group">
+                            <div className="form-group mb-4">
                               <label>Job Title</label>
                               <span className="text-danger">*</span>
                               <input
@@ -517,7 +519,7 @@ function YourJobPosts() {
                                 onChange={(e) => setJobTitle(e.target.value)}
                               />
                             </div>
-                            <div className="form-group">
+                            <div className="form-group mb-4">
                               <label>Job Category</label>
                               <span className="text-danger">*</span>
                               <select
@@ -706,7 +708,14 @@ function YourJobPosts() {
                             <ul>
                               <li>
                                 <i className="fa-solid fa-location-dot"></i>{" "}
-                                {job.city?.join(", ") || "Not provided"}
+                                {job.city?.length
+                                  ? (() => {
+                                      const cityText = job.city.join(", ");
+                                      return cityText.length > 30
+                                        ? cityText.slice(0, 30) + "..."
+                                        : cityText;
+                                    })()
+                                  : "Not provided"}
                               </li>
                               <li>
                                 <i className="fa-solid fa-calendar-days"></i>{" "}

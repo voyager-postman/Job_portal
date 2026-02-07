@@ -390,6 +390,7 @@ function JobDetailsForm() {
       return updated;
     });
   };
+  
   const fetchCitiesByCountry = async (countryId) => {
     try {
       const response = await axios.get(

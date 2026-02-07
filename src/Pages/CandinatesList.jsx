@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
@@ -12,19 +12,26 @@ function CandinatesList() {
   const [keyword, setKeyword] = useState("");
   const [skillInput, setSkillInput] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
-
+  const debounceTimer = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showAllEducation, setShowAllEducation] = useState(false);
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const cityDropdownRef = useRef(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedEducation, setSelectedEducation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState([]);
   const [perPage, setPerPage] = useState(10); // default
   const [totalResults, setTotalResults] = useState(0);
   const [sortBy, setSortBy] = useState("");
+  const [country, setCountry] = useState([]);
+  const [cityList, setCityList] = useState([]);
+  const [citySearchTerm, setCitySearchTerm] = useState("");
+  const [showCityOptions, setShowCityOptions] = useState(false);
+  const [selectedCities, setSelectedCities] = useState([]);
 
   const candidatesPerPage = 6; // ✅ show 6 candidates per page
   const educationLevels = [
@@ -87,6 +94,7 @@ function CandinatesList() {
   const visibleEducation = showAllEducation
     ? educationLevels
     : educationLevels.slice(0, 5);
+
   const fetchCandidates = async (page = 1, limit = perPage) => {
     try {
       setLoading(true);
@@ -101,6 +109,28 @@ function CandinatesList() {
         sortOrder = order;
       }
 
+      const params = {
+        page,
+        limit,
+        skills:
+          selectedSkills.length > 0 ? selectedSkills.join(",") : undefined,
+        city: selectedCities.length > 0 ? selectedCities.join(",") : undefined,
+        country: selectedCountry || undefined,
+        education:
+          selectedEducation.length > 0
+            ? selectedEducation.join(",")
+            : undefined,
+        experience:
+          selectedExperience.length > 0
+            ? selectedExperience.join(",")
+            : undefined,
+        keyword: keyword.trim() || undefined,
+        sortBy: sortField || undefined,
+        order: sortOrder || undefined,
+      };
+
+      console.log("Candidate Search Parameters:", params);
+
       const response = await axios.post(
         `${API_BASE_URL}getCandidateList`,
         {},
@@ -108,21 +138,10 @@ function CandinatesList() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          params: {
-            page,
-            limit,
-            skills: selectedSkills.join(","),
-            location: selectedLocation || "",
-            education: selectedEducation.join(","),
-            experience: selectedExperience.join(","),
-            keyword: keyword.trim(),
-
-            // ✅ SORTING PARAMS
-            sortBy: sortField || undefined,
-            order: sortOrder || undefined,
-          },
+          params: params,
         },
       );
+      console.log("Candidate Search Results:", response.data);
 
       setCandidates(response.data.data || []);
       setTotalPages(response.data.totalPages || 1);
@@ -154,6 +173,7 @@ function CandinatesList() {
       setCurrentPage(page);
     }
   };
+
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -177,20 +197,90 @@ function CandinatesList() {
       }
     }
   };
+
+  const fetchCountry = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}get/countries`);
+      setCountry(res.data.countries || []);
+      console.log("candidates-search- Country Data", res.data.countries);
+    } catch (error) {
+      console.error("Error While Fetching Country:", error);
+    }
+  };
+
+  const fetchCitiesByCountry = async (countryId) => {
+    if (!countryId) return;
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}getCitiesByCountry?countryId=${countryId}`,
+      );
+      const cities = response.data?.cities || [];
+      setCityList(cities);
+
+      // ✅ If editing, keep previously selected cities (if they still exist in the list)
+      console.log("City data on the behalf of country", cities);
+    } catch (error) {
+      console.error(error);
+      setCityList([]);
+    }
+  };
+
+  const filteredCities = cityList.filter((city) =>
+    city.name.toLowerCase().includes(citySearchTerm.toLowerCase()),
+  );
+
+  const updateCities = (updatedCities) => {
+    setSelectedCities(updatedCities);
+  };
+
+  const toggleCity = (cityName) => {
+    updateCities(
+      selectedCities.includes(cityName)
+        ? selectedCities.filter((c) => c !== cityName)
+        : [...selectedCities, cityName],
+    );
+  };
+
+  const handleRemoveCity = (cityName) => {
+    updateCities(selectedCities.filter((c) => c !== cityName));
+  };
+  useEffect(() => {
+    fetchCountry();
+
+    // Close city dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (
+        cityDropdownRef.current &&
+        !cityDropdownRef.current.contains(event.target)
+      ) {
+        setShowCityOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const toggleEducation = (value) => {
     setSelectedEducation((prev) =>
       prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
     );
   };
+
   useEffect(() => {
-    fetchCandidates(1, perPage); // always reset to page 1
-    setCurrentPage(1);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      fetchCandidates(1, perPage);
+      setCurrentPage(1);
+    }, 500);
   }, [
     keyword,
     selectedSkills,
     selectedEducation,
     selectedExperience,
-    selectedLocation,
+    selectedCities,
+    selectedCountry,
+    // selectedLocation,
     sortBy,
     perPage,
   ]);
@@ -353,7 +443,6 @@ function CandinatesList() {
 
                     <div className="single-sidebar-widget">
                       <h3>Education</h3>
-
                       <div className="candidate-list-select-filter">
                         <ul>
                           {/* First 5 */}
@@ -416,8 +505,173 @@ function CandinatesList() {
                     </div>
 
                     <div className="single-sidebar-widget location-style2">
-                      <h3>Location</h3>
+                      <h3>Country</h3>
+                      <select
+                        className="form-select form-control"
+                        value={selectedCountry || ""}
+                        onChange={(e) => {
+                          const selectedOption =
+                            e.target.options[e.target.selectedIndex];
+                          const countryId =
+                            selectedOption.getAttribute("data-id"); // numeric id
+                          const countryObjectId = e.target.value; // _id (mongo id)
 
+                          setSelectedCountry(countryObjectId);
+                          setSelectedCities([]); // Reset cities when country changes
+                          if (countryId) {
+                            fetchCitiesByCountry(countryId);
+                          } else {
+                            setCityList([]);
+                          }
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <option value="">Select Country</option>
+                        {country.map((count) => (
+                          <option
+                            key={count._id}
+                            value={count.name}
+                            data-id={count.id}
+                          >
+                            {count.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="single-sidebar-widget skills">
+                      <h3>City</h3>
+                      <div className="form-group">
+                        <div
+                          className="multi-select-container"
+                          ref={cityDropdownRef}
+                        >
+                          <div
+                            className="selected-items"
+                            onClick={() => setShowCityOptions(true)}
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              border: "1px solid #ccc",
+                              borderRadius: "6px",
+                              padding: "6px",
+                              cursor: "text",
+                            }}
+                          >
+                            {/* Show selected city tags */}
+                            {selectedCities.map((cityName) => (
+                              <span
+                                key={cityName}
+                                className="tag"
+                                style={{
+                                  background: "#007bff",
+                                  color: "white",
+                                  borderRadius: "4px",
+                                  padding: "3px 6px",
+                                  margin: "2px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                {cityName}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() => handleRemoveCity(cityName)}
+                                />
+                              </span>
+                            ))}
+
+                            {/* Search Input */}
+                            <input
+                              type="text"
+                              placeholder="Search city..."
+                              value={citySearchTerm}
+                              onChange={(e) =>
+                                setCitySearchTerm(e.target.value)
+                              }
+                              onFocus={() => setShowCityOptions(true)}
+                              style={{
+                                flex: 1,
+                                border: "none",
+                                outline: "none",
+                                minWidth: "100px",
+                              }}
+                            />
+                          </div>
+                          {showCityOptions && (
+                            <ul
+                              className="options-list"
+                              style={{
+                                border: "1px solid #ccc",
+                                borderRadius: "6px",
+                                maxHeight: "200px",
+                                overflowY: "auto",
+                                background: "#fff",
+                                position: "absolute",
+                                width: "100%",
+                                zIndex: 1000,
+                                marginTop: "4px",
+                                padding: 0,
+                                listStyle: "none",
+                              }}
+                            >
+                              {filteredCities.length > 0 ? (
+                                filteredCities.map((city) => (
+                                  <li
+                                    key={city._id}
+                                    onClick={() => toggleCity(city.name)}
+                                    className={
+                                      selectedCities.includes(city.name)
+                                        ? "selected"
+                                        : ""
+                                    }
+                                    style={{
+                                      padding: "6px 10px",
+                                      cursor: "pointer",
+                                      background: selectedCities.includes(
+                                        city.name,
+                                      )
+                                        ? "#007bff"
+                                        : "transparent",
+                                      color: selectedCities.includes(city.name)
+                                        ? "white"
+                                        : "black",
+                                    }}
+                                  >
+                                    {city.name}
+                                    {selectedCities.includes(city.name) && (
+                                      <span style={{ float: "right" }}>✔</span>
+                                    )}
+                                  </li>
+                                ))
+                              ) : (
+                                <li
+                                  style={{
+                                    padding: "6px 10px",
+                                    color: "#888",
+                                  }}
+                                >
+                                  No cities found
+                                </li>
+                              )}
+                            </ul>
+                          )}
+                          {/* Dropdown list */}
+                        </div>
+                        {/* <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter city by country"
+                        /> */}
+                      </div>
+                    </div>
+
+                    {/* <div className="single-sidebar-widget location-style2">
+                      <h3>Location</h3>
                       <div className="position-relative">
                         <input
                           type="search"
@@ -426,8 +680,6 @@ function CandinatesList() {
                           value={locationSearchTerm}
                           onChange={handleLocationSearch}
                         />
-
-                        {/* ❌ Clear icon */}
                         {selectedLocation && (
                           <span
                             onClick={clearLocationFilter}
@@ -446,15 +698,11 @@ function CandinatesList() {
                           </span>
                         )}
                       </div>
-
-                      {/* Loading */}
                       {isLocationLoading && (
                         <div className="suggestion-box">Searching...</div>
                       )}
-
-                      {/* Suggestions */}
-                    </div>
-                    {!isLocationLoading && locationSuggestions.length > 0 && (
+                    </div> */}
+                    {/* {!isLocationLoading && locationSuggestions.length > 0 && (
                       <ul
                         className="list-group position-absolute "
                         style={{
@@ -475,7 +723,7 @@ function CandinatesList() {
                           </li>
                         ))}
                       </ul>
-                    )}
+                    )} */}
                   </div>
                 </div>
                 <div className="col-lg-9">

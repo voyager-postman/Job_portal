@@ -112,6 +112,7 @@ function JobDetails() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -130,10 +131,12 @@ function JobDetails() {
     };
     fetchResume();
   }, []);
+
   const handleSelect = (type, id = null) => {
     setSelectedType(type);
     setSelectedId(id);
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -142,6 +145,7 @@ function JobDetails() {
       setSelectedId(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -240,6 +244,7 @@ function JobDetails() {
       fileInputRef.current.value = "";
     }
   };
+
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
@@ -396,7 +401,6 @@ function JobDetails() {
       );
 
       console.log("✅ API Response:", res.data);
-
       // 🧠 Step 3: Handle response
       if (res.data.success) {
         const { message } = res.data;
@@ -411,7 +415,6 @@ function JobDetails() {
         if (id) {
           fetchJobDetails();
         }
-
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
         } else if (message.toLowerCase().includes("unsaved")) {
@@ -427,6 +430,7 @@ function JobDetails() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -437,6 +441,7 @@ function JobDetails() {
   const decodedHtml = decodeHtml(
     decodeHtml(job?.jobDetails?.jobDescription || ""),
   );
+
   function decodeHtml1(html) {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -681,14 +686,18 @@ function JobDetails() {
                         Apply Now
                       </a>
                     )}{" "}
-                    <a
-                      href="#"
+                    <Link
+                      to="/apply-test"
+                      state={{
+                        from: `/job-details/${id}`,
+                        jobTitle: job?.jobDetails?.jobTitle || job?.jobTitle || "Job Details"
+                      }}
                       className="default-btn btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#skillAssessmentModal"
+                      // data-bs-toggle="modal"
+                      // data-bs-target="#skillAssessmentModal"
                     >
                       Apply (Test Required)
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 <div
@@ -982,367 +991,6 @@ function JobDetails() {
               </div>
 
               {/* <!-- skill Assessment Test All Modal Start Area--> */}
-
-              <div className="skill-assessment-test-allModal-area">
-                {/* <!-- Test Required Modal Start Here --> */}
-                <div
-                  className="modal fade"
-                  id="skillAssessmentModal"
-                  tabindex="-1"
-                  aria-labelledby="skillAssessmentModalLabel"
-                  aria-hidden="true"
-                >
-                  <div className="modal-dialog">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1
-                          className="modal-title"
-                          id="skillAssessmentModalLabel"
-                        >
-                          <i className="fa-solid fa-file"></i>Test Required
-                        </h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          data-bs-dismiss="modal"
-                          aria-label="Close"
-                        ></button>
-                      </div>
-                      <div className="modal-body">
-                        <div className="skill-assessment-test-modal-details">
-                          <p>
-                            To apply for senior javascript developer you must
-                            complete a skills assessment
-                          </p>
-                          <div className="skill-assessment-javaScript-fundamental">
-                            <h6>JavaScript Fundamentals</h6>
-                            <p>
-                              Assess your Knowledges of JavaScript core concepts
-                            </p>
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-calendar"></i>5
-                                Minutes
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file"></i>5 Questions
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-percent"></i>Pass
-                                threshold: 70%
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="skill-assessment-important-area">
-                            <h6>Important</h6>
-                            <p>
-                              once started, the timer cannot be paused. Make
-                              sure you have enough time to complete the test.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="modal-footer">
-                        <a
-                          href="#"
-                          className="default-btn btn"
-                          data-bs-dismiss="modal"
-                        >
-                          Close
-                        </a>
-                        <a
-                          href="#"
-                          className="default-btn btn"
-                          data-bs-toggle="modal"
-                          data-bs-target="#startTestModal"
-                        >
-                          Start Test
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* <!-- Test Required Modal End Here --> */}
-
-                {/* <!--Test Question Modal Start Here --> */}
-                <div className="skill-assessment-test-question-list">
-                  <div
-                    className="modal fade"
-                    id="startTestModal"
-                    tabindex="-1"
-                    aria-labelledby="startTestModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <div className="skill-assessment-test-question-header">
-                            <div className="skill-assessment-test-name-timer">
-                              <span>JavaScript Fundamentals</span>
-                              <span className="test-start-timer-area">
-                                <i className="fa-solid fa-calendar"></i>04:59
-                              </span>
-                            </div>
-                            <div className="skill-assessment-test-tq-close">
-                              <span>0/5 Answered</span>
-                              <span>
-                                <i className="fa-solid fa-xmark"></i>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="modal-body">
-                          <div className="skill-assessment-test-question-area">
-                            <div className="skill-assessment-test-num-level">
-                              <span>Question 1 of 5</span>
-                              <span className="skill-assessment-test-level">
-                                Level B
-                              </span>
-                            </div>
-                            <div className="skill-assessment-test-question-option active">
-                              <h6>
-                                What is the output of typeof null in javaScript?
-                              </h6>
-                              <label>
-                                <input type="radio" name="q6" checked />
-                                Class
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Array
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                List
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Type
-                              </label>
-                            </div>
-                            <div className="skill-assessment-test-question-option">
-                              <h6>
-                                Are is the output of typeof null in javaScript?
-                              </h6>
-                              <label>
-                                <input type="radio" name="q6" checked />
-                                Array
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Class
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                List
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Type
-                              </label>
-                            </div>
-                            <div className="skill-assessment-test-question-option">
-                              <h6>
-                                Why is the output of typeof null in javaScript?
-                              </h6>
-                              <label>
-                                <input type="radio" name="q6" />
-                                List
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Class
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" checked />
-                                Array
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Type
-                              </label>
-                            </div>
-                            <div className="skill-assessment-test-question-option">
-                              <h6>
-                                This is the output of typeof null in javaScript?
-                              </h6>
-                              <label>
-                                <input type="radio" name="q6" />
-                                List
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Class
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Array
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" checked />
-                                Type
-                              </label>
-                            </div>
-                            <div className="skill-assessment-test-question-option">
-                              <h6>
-                                React.js is the output of typeof null in
-                                javaScript?
-                              </h6>
-                              <label>
-                                <input type="radio" name="q6" checked />
-                                Class
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Array
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                List
-                              </label>
-                              <label>
-                                <input type="radio" name="q6" />
-                                Type
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="modal-footer">
-                          <span className="default-btn btn" id="prevBtn">
-                            Previous
-                          </span>
-                          <span className="default-btn btn" id="nextBtn">
-                            Next
-                          </span>
-                          <span
-                            className="default-btn btn"
-                            id="finishBtn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#finishTestModal"
-                          >
-                            Finish Test
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* <!--Test Question Modal End Here --> */}
-
-                {/* <!-- Finish Test Modal Start here --> */}
-                <div class="skill-assessment-test-finish-area">
-                  {/* <!-- Modal --> */}
-                  <div
-                    class="modal fade"
-                    id="finishTestModal"
-                    tabindex="-1"
-                    aria-labelledby="finishTestModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-body">
-                          <h5>Finish Test?</h5>
-                          <p>You have answered 5 of 5 questions.</p>
-                        </div>
-                        <div class="modal-footer">
-                          <span class="default-btn btn" id="reviewBtn">
-                            Review Answers
-                          </span>
-                          <span
-                            class="default-btn btn"
-                            id="submitBtn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#scoreCardModal"
-                          >
-                            Submit Test
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* <!-- Finish Test Modal End here --> */}
-
-                {/* <!--Score Card Modal Start Here --> */}
-                <div class="skill-assessment-test-score-card-area">
-                  {/* <!-- Modal --> */}
-                  <div
-                    class="modal fade"
-                    id="scoreCardModal"
-                    tabindex="-1"
-                    aria-labelledby="scoreCardModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-body">
-                          <div class="skill-assessment-test-score-NoPassed">
-                            <div class="score-card-top-area">
-                              <i class="fa-regular fa-circle-xmark"></i>
-                              <h5>Test Not Passed</h5>
-                              <p>You Needed 70% to pass.</p>
-                            </div>
-                            <div class="score-card-final-score">
-                              <h5>40%</h5>
-                              <p>Final Score</p>
-                            </div>
-                            <div class="score-card-number-area">
-                              <div class="score-card-total-number">
-                                <h5>5</h5>
-                                <p>Total</p>
-                              </div>
-                              <div class="score-card-correct-number">
-                                <h5>2</h5>
-                                <p>Correct</p>
-                              </div>
-                              <div class="score-card-incorrect-number">
-                                <h5>3</h5>
-                                <p>Incorrect</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="skill-assessment-test-score-Passed">
-                            <div class="score-card-top-area">
-                              <i class="fa-solid fa-trophy"></i>
-                              <h5>Congratulations!</h5>
-                              <p>
-                                You have successfully passed the assessment.
-                              </p>
-                            </div>
-                            <div class="score-card-final-score">
-                              <h5>100%</h5>
-                              <p>Final Score</p>
-                            </div>
-                            <div class="score-card-number-area">
-                              <div class="score-card-total-number">
-                                <h5>5</h5>
-                                <p>Total</p>
-                              </div>
-                              <div class="score-card-correct-number">
-                                <h5>5</h5>
-                                <p>Correct</p>
-                              </div>
-                              <div class="score-card-incorrect-number">
-                                <h5>0</h5>
-                                <p>Incorrect</p>
-                              </div>
-                            </div>
-                            <div class="continue-application-btn-area">
-                              <a href="#" class="default-btn btn">
-                                Continue Application
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* <!--Score Card Modal End Here --> */}
-              </div>
-              {/* <!-- skill Assessment Test All Modal Start Area--> */}
-
               <div className="job-details-tag-info-area">
                 <div className="job-details-tag-main-area">
                   <div className="job-details-tag-box">

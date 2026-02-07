@@ -262,6 +262,22 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
+                to="/manage-assesment"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  {/* <i className="fa-solid fa-users-gear" /> */}
+                  <i>
+                    <FaUsersGear />
+                  </i>
+                </span>
+                <span className="menu-title">Manage Assesment</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
                 to="/manage-recruiter"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")

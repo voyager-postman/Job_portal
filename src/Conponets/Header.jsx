@@ -24,6 +24,7 @@ function Header({ bgColor }) {
     updateProfileImage,
     updateName,
   } = useAuth();
+
   const userRole = localStorage.getItem("user_role");
   const emailName = localStorage.getItem("user_email");
   const { logout } = useAuth();
@@ -65,6 +66,7 @@ function Header({ bgColor }) {
       console.error(error);
     }
   };
+
   useEffect(() => {
     fetchCompanyProfile();
   }, []);
@@ -122,6 +124,7 @@ function Header({ bgColor }) {
   useEffect(() => {
     fetchNotifications();
   }, []);
+
   const isEmployerPage =
     location.pathname === "/employer-home" ||
     location.pathname === "/employer-login" ||
@@ -872,7 +875,24 @@ function Header({ bgColor }) {
                         </div>
                       </div>
 
-                      {isEmployer && (
+                      {localStorage.getItem("is_completed") === "true" &&
+                        localStorage.getItem("isLoggedIn") === "true" &&
+                        (localStorage.getItem("user_role") === "Recruiter" ||
+                          (localStorage.getItem("user_role") === "Company" &&
+                            localStorage.getItem("verifiedByAdmin") ===
+                              "true")) && (
+                          <div className="option-item post-job-employers-btn">
+                            <button
+                              onClick={handlePostJob}
+                              className="default-btn btn"
+                              type="button"
+                            >
+                              Post New Job
+                            </button>
+                          </div>
+                        )}
+
+                      {/* {isEmployer && (
                         <div className="option-item post-job-employers-btn">
                           <button
                             onClick={handlePostJob}
@@ -882,7 +902,16 @@ function Header({ bgColor }) {
                             Post New Job
                           </button>
                         </div>
-                      )}
+                      )} */}
+
+                      {/* navigate("/your-job-posts", {
+      state: { openModal: true },
+      replace: true,
+    });
+
+    const modalElement = document.getElementById("exampleModal");
+    const modal = window.bootstrap.Modal.getInstance(modalElement);
+    modal?.hide(); */}
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">
