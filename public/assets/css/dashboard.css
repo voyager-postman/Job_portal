@@ -7408,3 +7408,9 @@ width:100%;
   font-size: 14px;
   font-weight: 500;
 }
+/* .full-screen-test {
+  width: 100vw;
+  height: 100vh;
+  background: #ffffff;
+  overflow: hidden;
+} */
