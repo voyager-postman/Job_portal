@@ -45,6 +45,9 @@ function JobDetailsForm() {
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
+    //cities: [], // 👈 this holds multiple cities
+    // cities: Array.isArray(jobFromState.cities) ? jobFromState.cities : [], // ✅ always array    cityInput: "", // ✅ temp input for adding multiple cities
+    // city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
     city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
     region: jobFromState.region || "",
     Country: jobFromState.country || "",
@@ -65,8 +68,6 @@ function JobDetailsForm() {
     coverPhoto: null,
     coverPhotoPreview: null,
     availableJobs: "",
-    isAssessmentRequired: jobFromState.isAssessmentRequired || false,
-    assessment: jobFromState.assessment || jobFromState.assessment || "",
   }));
 
   const [selectedCities, setSelectedCities] = useState(
@@ -110,8 +111,6 @@ function JobDetailsForm() {
             minSalary: job?.privatJobDetails?.minSalary || "",
             maxSalary: job?.privatJobDetails?.maxSalary || "",
             coverPhoto: null,
-            isAssessmentRequired: job.isAssessmentRequired || false,
-            assessment: job.assessment || job.assessment || "",
           }));
           console.log("Job Details Data:", res.data.data);
           setSelectedCities(Array.isArray(job.cities) ? job.cities : []);
@@ -160,69 +159,21 @@ function JobDetailsForm() {
     fetchAssessmentLevels();
   }, []);
 
-  const handleAssessment = async (e) => {
-    const assessmentId = e.target.value;
-    const jobId = id || jobFromState._id;
-
-    setFormData((prev) => ({
-      ...prev,
-      assessment: assessmentId,
-    }));
-
-    if (!assessmentId) return;
-
+  const handleAssessment = async (assessmentId, jobId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_BASE_URL}assignAssessmentToJob`,
-        { assessmentId, jobId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
+        { assessmentId, jobId },
       );
-      // if (response.data.success) {
-      //   toast.success("Assessment assigned successfully");
-      // }
       console.log(response.data);
     } catch (error) {
       console.error("Error while assign job assessment", error);
-      toast.error("Failed to assign assessment");
-    }
-  };
-
-  const handleAssessmentToggle = async (e) => {
-    const { checked } = e.target;
-    const jobId = id || jobFromState._id;
-
-    setFormData((prev) => ({
-      ...prev,
-      isAssessmentRequired: checked,
-      assessment: checked ? prev.assessment : "",
-    }));
-
-    // If disabling, call API with empty assessmentId to unassign
-    if (!checked) {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.post(
-          `${API_BASE_URL}assignAssessmentToJob`,
-          { assessmentId: "", jobId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        // if (response.data.success) {
-        //   toast.success("Assessment disabled");
-        // }
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error while disabling job assessment", error);
-        toast.error("Failed to disable assessment");
-      }
     }
   };
 
@@ -313,7 +264,19 @@ function JobDetailsForm() {
   //   });
   // };
 
+  // Remove individual tag
+  // const handleRemoveCity = (cityName) => {
+  //   const updated = selectedCities.filter((c) => c !== cityName);
+  //   setSelectedCities(updated);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     city: updated, // FIXED here
+  //   }));
+  //    handlePublishJob(updated, false);
+  // };
+
   // Close dropdown when clicked outside
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".multi-select-container")) {
@@ -560,11 +523,6 @@ function JobDetailsForm() {
         return;
       }
 
-      if (data.isAssessmentRequired && !data.assessment) {
-        toast.error("Please select an assessment");
-        return;
-      }
-
       const formDataToSend = new FormData();
       formDataToSend.append("job_id", id || jobFromState._id);
       formDataToSend.append("jobTitle", data.jobTitle || "");
@@ -600,8 +558,7 @@ function JobDetailsForm() {
       formDataToSend.append("availablePosts", data.availablePosts || "");
       formDataToSend.append("minSalary", data.minSalary || "");
       formDataToSend.append("maxSalary", data.maxSalary || "");
-      formDataToSend.append("isAssessmentRequired", data.isAssessmentRequired);
-      formDataToSend.append("assessment", data.assessment || "");
+
       // **Core Logic**
       if (statusType === "published") {
         formDataToSend.append("status", "published");
@@ -1192,30 +1149,32 @@ function JobDetailsForm() {
                       <label className="switch">
                         <input
                           type="checkbox"
-                          name="isAssessmentRequired"
-                          checked={formData.isAssessmentRequired}
-                          onChange={handleAssessmentToggle}
+                          name="jobAssesmentApply"
+                          checked={formData.jobAssesmentApply}
+                          onChange={handleChange}
                         />
                         <span className="slider round" />
                       </label>
                     </div>
                   </div>
 
-                  {formData.isAssessmentRequired && (
+                  {formData.jobAssesmentApply && (
                     <div className="col-lg-12 col-md-12 mt-2">
                       <div className="form-group">
                         <label>Select Job Assessment</label>
                         <span className="text-danger">*</span>
                         <select
                           className="form-select form-control"
-                          name="assessment"
-                          value={formData.assessment}
-                          onChange={handleAssessment}
-                          required
+                          name="jobAssesmentApply"
                         >
-                          <option value="">Select job assessment</option>
+                          <option value="" disabled>
+                            Select job assessment
+                          </option>
                           {jobAssessment.map((assessment) => (
-                            <option key={assessment._id} value={assessment._id}>
+                            <option
+                              key={assessment._id}
+                              value={assessment.assessmentName}
+                            >
                               {assessment.assessmentName}
                             </option>
                           ))}
