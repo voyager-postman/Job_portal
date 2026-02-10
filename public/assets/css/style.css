@@ -9892,6 +9892,16 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 40px;
   height: 40px;
   margin: auto;
+}
+
+/* Assessment failed styling */
+.assessment-failed {
+  background-color: #dc3545 !important; /* Red background */
+  color: #ffffff !important; /* White text for contrast */
+}
+
+.assessment-failed .fa-solid {
+  color: #ffffff !important; /* White icon */
   bottom: -20px;
   padding: 5px 5px;
   overflow: hidden;
@@ -11376,13 +11386,13 @@ text-transform: capitalize;
 
 .test-passed-percentage p {
   font-size: 13px;
-  color: #ff6600;
+  color: #74ad6b;
   margin-left: 10px;
   padding: 5px 10px;
   font-weight: 600;
   border-radius: 50px;
   background: #d1d6d982;
-  border: 1px solid #ff6600;
+  border: 1px solid #74ad6b;
 }
 
 .test-passed-percentage p i {
@@ -11989,6 +11999,10 @@ text-transform: capitalize;
 .assessment-failed i {
   color: #dc3545;
 }
+.assessment-passed{
+  border: 1px solid #eb737e;
+  background-color: #fff5f5;
+}
 .disabled-btn {
   pointer-events: none;
   opacity: 0.6;
@@ -12012,3 +12026,5 @@ text-transform: capitalize;
 .test-passed-tag-area i {
   color: #28a745;
 }
+
+

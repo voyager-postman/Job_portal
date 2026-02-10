@@ -1439,49 +1439,12 @@ function JobDetails() {
                 </div>
               </div>
 
-              {/* <div className="skills-assessment-test-required-details">
-                <div className="skills-assessment-test-icon-content">
-                  <div className="skills-assessment-icon">
-                    <i className="fa-solid fa-file"></i>
-                  </div>
-                  <div className="skills-assessment-test-passed-area">
-                    <div className="skills-assessment-content">
-                      <h5>Skills Assessment Required</h5>
-                      <p>
-                        <i className="fa-solid fa-file"></i>{" "}
-                        {assessmentDetails?.status === "failed" ? (
-                          <>
-                            You did not pass the test on your previous attempt.
-                            <br />
-                            <strong>
-                              You can retry in{" "}
-                              {assessmentDetails?.retry_period_days} days.
-                            </strong>
-                          </>
-                        ) : (
-                          "You have already passed this test! You can apply directly."
-                        )}
-                      </p>
-                    </div>
-                    {!assessmentDetails?.status === "failed" ? (
-                      <div className="test-passed-percentage">
-                        <p>
-                          <i className="fa-solid fa-file"></i> Total Passed
-                          ({assessmentDetails?.scorePercentage}%)
-                        </p>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                </div>
-              </div> */}
               {job?.jobDetails?.isAssessmentRequired && (
                 <div
                   className={`skills-assessment-test-required-details ${
                     assessmentDetails?.status === "failed"
                       ? "assessment-failed"
-                      : ""
+                      : "assessment-passed"
                   }`}
                 >
                   <div className="skills-assessment-test-icon-content">
@@ -1491,8 +1454,17 @@ function JobDetails() {
 
                     <div className="skills-assessment-test-passed-area">
                       <div className="skills-assessment-content">
-                        <h5>Skills Assessment Required</h5>
-
+                        <h5
+                          className={
+                            assessmentDetails?.status === "failed"
+                              ? "text-danger"
+                              : assessmentDetails?.status === "passed"
+                                ? "text-success"
+                                : "text-muted"
+                          }
+                        >
+                          Skills Assessment Required
+                        </h5>
                         <p
                           className={
                             assessmentDetails?.status === "failed"
