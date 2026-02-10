@@ -14,27 +14,7 @@ const ApplyTest = () => {
             <div className="col-lg-12 col-sm-12">
               <div className="breadcrumb-main-list-area mt-4">
                 <h4>Apply Test</h4>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/candidate-dashboard">Dashboard</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/job-search">Job Search</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to={from || "/job-details"}>
-                      {jobTitle || "Job Details"}
-                    </Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>Apply Test</li>
-                </ul>
+               
               </div>
             </div>
           </div>

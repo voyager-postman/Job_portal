@@ -79,7 +79,10 @@ import AssessmentDetails from "./Pages/AssessmentDetails";
 console.log("Date:-07-02-2026,time:-02:30");
 function LayoutWrapper() {
   const location = useLocation();
-
+  const noLayoutRoutes = ["/start-test", "/apply-test", "/test-result"];
+  const hideLayout = noLayoutRoutes.some((route) =>
+    location.pathname.startsWith(route),
+  );
   const sidebarRoutes = [
     "/candidate-profile",
     "/certificates-scores",
@@ -121,12 +124,12 @@ function LayoutWrapper() {
   );
 
   const bgColor = showSidebar ? "#fff" : "#f0f5f7";
-  const showFooter = !showSidebar;
-
+  const showFooter = !hideLayout && !showSidebar;
   return (
     <>
-      <Header bgColor={bgColor} />
+      {!hideLayout && <Header bgColor={bgColor} />}
       {showSidebar && <Sidebar />}
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />

@@ -28,166 +28,252 @@ const StartTest = () => {
     const s = String(sec % 60).padStart(2, "0");
     return `${m}:${s}`;
   };
+  useEffect(() => {
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "auto";
+
+    const backdrop = document.querySelector(".modal-backdrop");
+    if (backdrop) backdrop.remove();
+  }, []);
+  // useEffect(() => {
+  //   if (document.documentElement.requestFullscreen) {
+  //     document.documentElement.requestFullscreen();
+  //   }
+
+  //   return () => {
+  //     if (document.fullscreenElement) {
+  //       document.exitFullscreen();
+  //     }
+  //   };
+  // }, []);
+  const closeAllModals = () => {
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "auto";
+
+    document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+
+    document.querySelectorAll(".modal.show").forEach((modal) => {
+      modal.classList.remove("show");
+      modal.style.display = "none";
+    });
+  };
 
   return (
-    <div>
-      {/* Breadcrumb */}
-      <section className="inner-breadcrumb-main-area">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-sm-12">
-              <div className="breadcrumb-main-list-area mt-4">
-                <h4>Start Test</h4>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/candidate-dashboard">Dashboard</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/apply-test">Apply Test</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>Start Test</li>
-                </ul>
+    <div className="full-screen-test">
+      {/* <!--Test Question Modal Start Here --> */}
+      <div className="skill-assessment-test-form-area">
+        <div className="skill-assessment-test-page-area">
+          {/* Header */}
+
+          <div className="skill-assessment-test-question-header">
+            <div className="skill-assessment-test-name-timer">
+              <span>JavaScript Fundamentals</span>
+              <span className="test-start-timer-area">
+                <i className="fa-solid fa-clock" /> Time Left:{" "}
+                {formatTime(timeLeft)}
+              </span>
+            </div>
+            <div className="skill-assessment-test-tq-close">
+              {/* <span>0/5 Answered</span> */}
+              <div className="display-flex ">
+                <span
+                  className="quit-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#submitTestModal"
+                >
+                  Submit
+                </span>
+
+                <span
+                  className="quit-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#quitTestModal"
+                >
+                  Quit
+                </span>
               </div>
             </div>
           </div>
         </div>
-      </section>
+        {/* Quit Test Modal */}
+        <div className="modal fade" id="quitTestModal" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-body text-center">
+                <h5>Quit Test?</h5>
+                <p>
+                  If you quit now, all your answers will be lost and the test
+                  will end.
+                </p>
+              </div>
 
-      {/* <!--Test Question Modal Start Here --> */}
-      <div className="skill-assessment-test-page-area py-4">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-12">
-              <div className="start-header shadow-sm">
-                {/* Header */}
-                <div className="test-header">
-                  <div className="skill-assessment-test-question-header">
-                    <div className="skill-assessment-test-name-timer">
-                      <span>JavaScript Fundamentals</span>
-                      <span className="test-start-timer-area">
-                        <i className="fa-solid fa-calendar"></i>{" "}
-                        {formatTime(timeLeft)}
-                      </span>
-                    </div>
+              <div className="modal-footer justify-content-center">
+                <button className="default-btn btn" data-bs-dismiss="modal">
+                  Continue Test
+                </button>
 
-                    <div className="skill-assessment-test-tq-close">
-                      <span>
-                        {currentQuestion}/{totalQuestions} Answered
-                      </span>
-                      {/* <span
-                        className="close-test"
-                        onClick={() => navigate("/candidate-dashboard")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i className="fa-solid fa-xmark"></i>
-                      </span> */}
-                    </div>
-                  </div>
-                </div>
+                <button
+                  className="default-btn btn btn-danger"
+                  onClick={() => {
+                    closeAllModals();
 
-                {/* Body */}
-                <div className="test-body">
-                  <div className="skill-assessment-test-num-level">
-                    <span>
-                      Question {currentQuestion + 1} of {totalQuestions}
-                    </span>
-                    <span className="skill-assessment-test-level">Level B</span>
-                  </div>
-
-                  {/* Question */}
-                  <div className="skill-assessment-test-question-option active">
-                    <h6>What is the output of typeof null in JavaScript?</h6>
-
-                    <label>
-                      <input type="radio" name="q1" /> Object
-                    </label>
-                    <label>
-                      <input type="radio" name="q1" /> Array
-                    </label>
-                    <label>
-                      <input type="radio" name="q1" /> Null
-                    </label>
-                    <label>
-                      <input type="radio" name="q1" /> Undefined
-                    </label>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="test-footer">
-                  <button
-                    className="default-btn btn"
-                    disabled={currentQuestion === 0}
-                    onClick={() =>
-                      setCurrentQuestion((q) => Math.max(0, q - 1))
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
                     }
-                  >
-                    Previous
-                  </button>{" "}
-                  {currentQuestion < totalQuestions - 1 ? (
-                    <button
-                      className="default-btn btn"
-                      onClick={() =>
-                        setCurrentQuestion((q) =>
-                          Math.min(totalQuestions - 1, q + 1),
-                        )
-                      }
-                    >
-                      Next
-                    </button>
-                  ) : (
-                    <Link
-                      to="/test-result"
-                      className="default-btn btn"
-                      //   id="finishBtn"
-                      //   data-bs-toggle="modal"
-                      //   data-bs-target="#finishTestModal"
-                    >
-                      Finish Test
-                    </Link>
-                  )}
-                </div>
+
+                    navigate("/skill-assessments-tests");
+                  }}
+                >
+                  Quit Test
+                </button>
               </div>
             </div>
           </div>
+        </div>
+        {/* Submit Test Modal */}
+        <div className="modal fade" id="submitTestModal" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-body text-center">
+                <h5>Submit Test?</h5>
+                <p>
+                  Once you submit, you won’t be able to change your answers.
+                </p>
+              </div>
+
+              <div className="modal-footer justify-content-center">
+                <button className="default-btn btn" data-bs-dismiss="modal">
+                  Cancel
+                </button>
+
+                <button
+                  className="default-btn btn btn-success"
+                  onClick={() => {
+                    closeAllModals();
+
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    }
+
+                    navigate("/test-result", {
+                      state: {
+                        total: totalQuestions,
+                        correct: 4,
+                        incorrect: 1,
+                        score: 80,
+                        testName: "JavaScript Fundamentals",
+                      },
+                    });
+                  }}
+                >
+                  Yes, Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+
+        <div className="skill-assessment-test-num-level">
+          <span>
+            Question {currentQuestion + 1} of {totalQuestions}
+          </span>
+          <span className="skill-assessment-test-level">Level B</span>
+        </div>
+
+        {/* Question */}
+        <div className="skill-assessment-test-question-option active">
+          <h6>What is the output of typeof null in JavaScript?</h6>
+
+          <label>
+            <input type="radio" name="q1" /> Object
+          </label>
+          <label>
+            <input type="radio" name="q1" /> Array
+          </label>
+          <label>
+            <input type="radio" name="q1" /> Null
+          </label>
+          <label>
+            <input type="radio" name="q1" /> Undefined
+          </label>
+        </div>
+
+        {/* Footer */}
+        <div className="test-footer">
+          <button
+            className="default-btn btn"
+            disabled={currentQuestion === 0}
+            onClick={() => setCurrentQuestion((q) => Math.max(0, q - 1))}
+          >
+            Previous
+          </button>{" "}
+          {currentQuestion < totalQuestions - 1 ? (
+            <button
+              className="default-btn btn"
+              onClick={() =>
+                setCurrentQuestion((q) => Math.min(totalQuestions - 1, q + 1))
+              }
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              className="default-btn btn"
+              data-bs-toggle="modal"
+              data-bs-target="#finishTestModal"
+            >
+              Finish Test
+            </button>
+          )}
         </div>
       </div>
+
       {/* <!--Test Question Modal End Here --> */}
 
       {/* <!-- Finish Test Modal Start here --> */}
       <div class="skill-assessment-test-finish-area">
         {/* <!-- Modal --> */}
-        <div
-          class="modal fade"
-          id="finishTestModal"
-          tabindex="-1"
-          aria-labelledby="finishTestModalLabel"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-body">
+        {/* Finish Test Modal */}
+        <div className="modal fade" id="finishTestModal" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-body text-center">
                 <h5>Finish Test?</h5>
-                <p>You have answered 5 of 5 questions.</p>
+                <p>
+                  You have answered {totalQuestions} of {totalQuestions}{" "}
+                  questions.
+                </p>
               </div>
-              <div class="modal-footer">
-                <span class="default-btn btn" id="reviewBtn">
-                  Review Answers
-                </span>
-                <span
-                  class="default-btn btn"
-                  id="submitBtn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#scoreCardModal"
+
+              <div className="modal-footer justify-content-center">
+                <button className="default-btn btn" data-bs-dismiss="modal">
+                  Cancel
+                </button>
+
+                <button
+                  className="default-btn btn btn-success"
+                  onClick={() => {
+                    closeAllModals();
+
+                    if (document.fullscreenElement) {
+                      document.exitFullscreen();
+                    }
+
+                    navigate("/test-result", {
+                      state: {
+                        total: totalQuestions,
+                        correct: 4,
+                        incorrect: 1,
+                        score: 80,
+                        testName: "JavaScript Fundamentals",
+                      },
+                    });
+                  }}
                 >
                   Submit Test
-                </span>
+                </button>
               </div>
             </div>
           </div>

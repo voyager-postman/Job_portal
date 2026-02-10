@@ -4,40 +4,6 @@ import { Link } from "react-router-dom";
 const TestResult = () => {
   return (
     <div>
-      {/* Breadcrumb */}
-      <section className="inner-breadcrumb-main-area">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-sm-12">
-              <div className="breadcrumb-main-list-area mt-4">
-                <h4>Test Result</h4>
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/candidate-dashboard">Dashboard</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/apply-test">Apply Test</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/start-test">Start Test</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <span>Test Result</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Result Page */}
       <section className="skill-assessment-test-score-card-area py-5">
         <div className="container">
@@ -46,7 +12,7 @@ const TestResult = () => {
               <div className="score-card-wrapper text-center p-4">
                 {/* ❌ Not Passed */}
 
-                <div className="skill-assessment-test-score-NoPassed card p-4 text-center">
+                {/* <div className="skill-assessment-test-score-NoPassed card p-4 text-center">
                   <div className="score-card-top-area">
                     <i className="fa-regular fa-circle-xmark text-danger fs-1"></i>
                     <h5 className="mt-3">Test Not Passed</h5>
@@ -72,7 +38,7 @@ const TestResult = () => {
                       <p>Incorrect</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="skill-assessment-test-score-Passed card p-4 text-center">
                   <div className="score-card-top-area">

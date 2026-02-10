@@ -11148,7 +11148,20 @@ text-transform: capitalize;
   margin-left: 10px;
   font-size: 16px;
 }
-
+.skill-assessment-test-tq-close span {
+  background: #1868ca;
+  color: #fff;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.skill-assessment-test-tq-close :hover {
+  background: #f9601a;
+  color: #fff;
+}
 .skill-assessment-test-question-option {
   margin-top: 15px;
 }
@@ -11157,6 +11170,22 @@ text-transform: capitalize;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 20px;
+}
+.full-screen-test {
+  width: 100vw;
+  height: 100vh;
+  background: #f0f5f7;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skill-assessment-test-form-area {
+  width: 80%;
+  background: #fff;
+  padding: 15px;
 }
 
 .skill-assessment-test-level {
@@ -11169,6 +11198,14 @@ text-transform: capitalize;
   border-radius: 5px;
 }
 
+.test-footer {
+  text-align: center;
+}
+
+.test-footer .default-btn {
+  font-size: 15px;
+  padding: 5px 10px;
+}
 .skill-assessment-test-question-option label {
   display: block;
   font-size: 14px;
@@ -11850,4 +11887,15 @@ text-transform: capitalize;
 
 .total-dqpp-main-area {
   width: 33%;
+}
+
+.skill-assessment-javaScript-fundamental span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #f0682f;
+  display: block;
+}
+
+.skill-assessment-javaScript-fundamental p {
+  margin-top: 10px;
 }
