@@ -2356,13 +2356,26 @@ function JobSearch() {
                                           <>
                                             {/* 🟢 PASSED */}
                                             {job?.assessmentResult?.status ===
-                                            "passed" ? (
+                                              "passed" && (
                                               <span className="test-passed-tag-area">
                                                 <i className="fa-solid fa-circle-check"></i>
-                                               Test Passed
+                                                Test Passed
                                               </span>
-                                            ) : (
-                                              /* 🟠 TEST REQUIRED */
+                                            )}
+
+                                            {/* 🔴 FAILED */}
+                                            {job?.assessmentResult?.status ===
+                                              "failed" && (
+                                              <span className="test-failed-tag-area">
+                                                <i className="fa-solid fa-circle-xmark"></i>
+                                                Test Failed
+                                              </span>
+                                            )}
+
+                                            {/* 🟠 NOT ATTEMPTED */}
+                                            {(!job?.assessmentResult ||
+                                              job?.assessmentResult?.status ===
+                                                "not_attempted") && (
                                               <span className="test-required-tag-area">
                                                 <i className="fa-solid fa-clipboard-check"></i>
                                                 Test Required

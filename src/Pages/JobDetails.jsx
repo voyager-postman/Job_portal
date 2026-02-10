@@ -927,7 +927,7 @@ function JobDetails() {
                         <div className="modal-body">
                           <div className="skill-assessment-test-modal-details">
                             <p>
-                              To apply for senior javascript developer you must
+                              To apply for {job?.jobDetails?.jobTitle} you must
                               complete a skills assessment
                             </p>
                             <div className="skill-assessment-javaScript-fundamental">
@@ -1477,16 +1477,20 @@ function JobDetails() {
                 </div>
               </div> */}
               {job?.jobDetails?.isAssessmentRequired && (
-                <div
-                  className={`skills-assessment-test-required-details ${
-                    assessmentDetails?.status === "failed"
-                      ? "assessment-failed"
-                      : ""
-                  }`}
-                >
+                <div className="skills-assessment-test-required-details">
                   <div className="skills-assessment-test-icon-content">
                     <div className="skills-assessment-icon">
-                      <i className="fa-solid fa-file"></i>
+                      <i
+                        className="fa-solid fa-file"
+                        style={{
+                          color:
+                            assessmentDetails?.status === "failed"
+                              ? "#dc3545"
+                              : assessmentDetails?.status === "passed"
+                                ? "#28a745"
+                                : "#6c757d",
+                        }}
+                      ></i>
                     </div>
 
                     <div className="skills-assessment-test-passed-area">
@@ -1494,17 +1498,31 @@ function JobDetails() {
                         <h5>Skills Assessment Required</h5>
 
                         <p
-                          className={
-                            assessmentDetails?.status === "failed"
-                              ? "text-danger"
-                              : assessmentDetails?.status === "passed"
-                                ? "text-success"
-                                : "text-muted"
-                          }
+                          style={{
+                            color:
+                              assessmentDetails?.status === "failed"
+                                ? "#dc3545"
+                                : assessmentDetails?.status === "passed"
+                                  ? "#28a745"
+                                  : "#6c757d",
+                          }}
                         >
-                          <i className="fa-solid fa-file"></i>{" "}
+                          <i
+                            className="fa-solid fa-file"
+                            style={{
+                              color:
+                                assessmentDetails?.status === "failed"
+                                  ? "#dc3545"
+                                  : assessmentDetails?.status === "passed"
+                                    ? "#28a745"
+                                    : "#6c757d",
+                            }}
+                          ></i>{" "}
+                          <></>
                           {/* 🟡 NOT ATTEMPTED */}
-                          {assessmentDetails?.status === "not_attempted" && (
+                          {/* 🟡 NOT ATTEMPTED (assessmentResult is null OR status not present) */}
+                          {(!assessmentDetails ||
+                            assessmentDetails?.status === "not_attempted") && (
                             <>
                               You need to pass a skills assessment before
                               applying for this position.
@@ -1539,8 +1557,12 @@ function JobDetails() {
                       {/* ✅ Show score ONLY when PASSED */}
                       {assessmentDetails?.status === "passed" && (
                         <div className="test-passed-percentage">
-                          <p className="text-success">
-                            <i className="fa-solid fa-file"></i> Total Passed (
+                          <p style={{ color: "#28a745" }}>
+                            <i
+                              className="fa-solid fa-file"
+                              style={{ color: "#28a745" }}
+                            ></i>{" "}
+                            Total Passed (
                             {assessmentDetails?.scorePercentage ?? 0}%)
                           </p>
                         </div>

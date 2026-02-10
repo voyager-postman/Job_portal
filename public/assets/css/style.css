@@ -12012,3 +12012,19 @@ text-transform: capitalize;
 .test-passed-tag-area i {
   color: #28a745;
 }
+.test-failed-tag-area {
+  background: transparent;
+  border: 1.5px solid #dc3545;
+  color: #dc3545;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-failed-tag-area i {
+  color: #dc3545;
+}
