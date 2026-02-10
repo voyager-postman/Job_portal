@@ -894,6 +894,11 @@ function YourJobPosts() {
               </Typography>
             )}
             <Typography>
+              <strong>Job Assessment Required:</strong>{" "}
+              {viewData?.jobDetails?.isAssessmentRequired ? "Yes" : "No"}
+            </Typography>
+            {/* {viewData?.jobDetails} */}
+            <Typography>
               <strong>Confidential JobPost:</strong>{" "}
               {viewData?.jobDetails?.confidentialJobPost ? "Yes" : "No"}
             </Typography>

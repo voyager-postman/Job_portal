@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation, useParams } from "react-router-dom";
@@ -9,7 +9,6 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
-import { data } from "jquery";
 
 function JobDetailsForm() {
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ function JobDetailsForm() {
   const job = location.state?.job || {};
   console.log("job from state:", job);
   const theme = useTheme();
-  const [personName, setPersonName] = React.useState([]);
   const [scheduleDate, setScheduleDate] = useState("");
   const [showScheduleDate, setShowScheduleDate] = useState(false);
   const Title = job?.jobTitle;
@@ -31,6 +29,20 @@ function JobDetailsForm() {
   const [cityList, setCityList] = useState([]);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [jobAssessment, setJobAssessment] = useState([]);
+
+  // Group assessments by source using useMemo
+  const groupedAssessments = useMemo(() => {
+    const groups = {};
+    jobAssessment.forEach((assessment) => {
+      const source = assessment.source || "Other";
+      if (!groups[source]) {
+        groups[source] = [];
+      }
+      groups[source].push(assessment);
+    });
+    return groups;
+  }, [jobAssessment]);
+
   const [jobTypes, setJobTypes] = useState([]);
   // ✅ Job data passed from previous page
   const jobFromState = location.state?.jobData || {};
@@ -67,6 +79,8 @@ function JobDetailsForm() {
     availableJobs: "",
     isAssessmentRequired: jobFromState.isAssessmentRequired || false,
     assessment: jobFromState.assessment || jobFromState.assessment || "",
+    validation_required: jobFromState.validation_required || false,
+    retry_period_days: jobFromState.retry_period_days || "",
   }));
 
   const [selectedCities, setSelectedCities] = useState(
@@ -112,6 +126,8 @@ function JobDetailsForm() {
             coverPhoto: null,
             isAssessmentRequired: job.isAssessmentRequired || false,
             assessment: job.assessment || job.assessment || "",
+            validation_required: job.validation_required || false,
+            retry_period_days: job.retry_period_days || "",
           }));
           console.log("Job Details Data:", res.data.data);
           setSelectedCities(Array.isArray(job.cities) ? job.cities : []);
@@ -215,9 +231,6 @@ function JobDetailsForm() {
             },
           },
         );
-        // if (response.data.success) {
-        //   toast.success("Assessment disabled");
-        // }
         console.log(response.data);
       } catch (error) {
         console.error("Error while disabling job assessment", error);
@@ -602,6 +615,11 @@ function JobDetailsForm() {
       formDataToSend.append("maxSalary", data.maxSalary || "");
       formDataToSend.append("isAssessmentRequired", data.isAssessmentRequired);
       formDataToSend.append("assessment", data.assessment || "");
+      formDataToSend.append("retry_period_days", data.retry_period_days);
+      formDataToSend.append(
+        "validation_required",
+        data.validation_required ? "true" : "false",
+      );
       // **Core Logic**
       if (statusType === "published") {
         formDataToSend.append("status", "published");
@@ -645,8 +663,8 @@ function JobDetailsForm() {
       console.error("❌ Error creating job:", error.response || error);
     }
   };
-  // Add new city to list
 
+  // Add new city to list
   // const openScheduleModal = () => {
   //   const d = prompt("Enter schedule date (YYYY-MM-DD)");
   //   if (d) {
@@ -1163,7 +1181,7 @@ function JobDetailsForm() {
                         <label>External Url</label>
                         <span className="text-danger">*</span>
                         <input
-                          className="form-control"
+                          className="form-control mt-2"
                           type="text"
                           name="ExternalApplyLink"
                           value={formData.ExternalApplyLink}
@@ -1202,24 +1220,83 @@ function JobDetailsForm() {
                   </div>
 
                   {formData.isAssessmentRequired && (
+                    <>
+                      <div className="col-lg-12 col-md-12 mt-2">
+                        <div className="form-group">
+                          <label>Select Job Assessment</label>
+                          <span className="text-danger">*</span>
+                          <select
+                            className="form-select form-control mt-2"
+                            name="assessment"
+                            value={formData.assessment}
+                            onChange={handleAssessment}
+                            required
+                          >
+                            <option value="" disabled>
+                              Select job assessment
+                            </option>
+                            {Object.keys(groupedAssessments).map((source) => (
+                              <optgroup
+                                key={source}
+                                label={`${source} Assessments`}
+                              >
+                                {groupedAssessments[source].map(
+                                  (assessment) => (
+                                    <option
+                                      key={assessment._id}
+                                      value={assessment._id}
+                                    >
+                                      {assessment.assessmentName}
+                                    </option>
+                                  ),
+                                )}
+                              </optgroup>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="job-option-branding-input-area">
+                  <div className="job-option-branding-heading">
+                    <h3>External Retry Period Days</h3>
+                    <span className="heading-small-description">
+                      Set the number of days the system should wait before
+                      retrying an external process.
+                    </span>
+                  </div>
+
+                  <div className="job-option-branding-content-switch">
+                    <div className="job-option-branding-content">
+                      <p>Enable Retry period</p>
+                    </div>
+                    <div className="job-option-branding-switch">
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          name="validation_required"
+                          checked={formData.validation_required}
+                          onChange={handleChange}
+                        />
+                        <span className="slider round" />
+                      </label>
+                    </div>
+                  </div>
+                  {formData.validation_required && (
                     <div className="col-lg-12 col-md-12 mt-2">
                       <div className="form-group">
-                        <label>Select Job Assessment</label>
+                        <label>Retry Period days</label>
                         <span className="text-danger">*</span>
-                        <select
-                          className="form-select form-control"
-                          name="assessment"
-                          value={formData.assessment}
-                          onChange={handleAssessment}
-                          required
-                        >
-                          <option value="">Select job assessment</option>
-                          {jobAssessment.map((assessment) => (
-                            <option key={assessment._id} value={assessment._id}>
-                              {assessment.assessmentName}
-                            </option>
-                          ))}
-                        </select>
+                        <input
+                          className="form-control mt-2"
+                          type="text"
+                          name="retry_period_days"
+                          value={formData.retry_period_days}
+                          onChange={handleChange}
+                          placeholder="Enter the retry period days"
+                        />
                       </div>
                     </div>
                   )}
