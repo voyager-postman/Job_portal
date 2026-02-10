@@ -2350,7 +2350,9 @@ function JobSearch() {
                                         </h4>
                                       </a>
                                     </div>
+
                                     <div className="available-job-save-job">
+                                      <span className="test-required-tag-area">test Required</span>
                                       <i
                                         className={`fa-${
                                           job.isSaved ? "solid" : "regular"

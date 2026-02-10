@@ -16,10 +16,16 @@ function JobDetails() {
   const location = useLocation();
   const userRole = localStorage.getItem("user_role");
   const jobStatus = location.state?.status;
+  const [assessmentDetails, setAssessmentDetails] = useState(null);
+  const [loadingAssessment, setLoadingAssessment] = useState(false);
+  const [assessment, setAssessment] = useState(null);
+
+  const [categoryCount, setCategoryCount] = useState([]);
   console.log("Job Status:", jobStatus);
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const { id } = useParams(); // ✅ Get job ID from URL
   const navigate = useNavigate();
+  console.log(id);
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
@@ -50,6 +56,7 @@ function JobDetails() {
       setJob(res.data?.data || res.data); // Adjust according to your API response
       console.log(res);
       setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
+      setAssessmentDetails(res?.data?.data?.assessmentResult);
     } catch (error) {
       console.error("Error fetching job details:", error);
     } finally {
@@ -204,6 +211,7 @@ function JobDetails() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+  console.log(assessment);
   const [copied, setCopied] = useState(false);
   const handleCopy = async (e, url) => {
     e.preventDefault();
@@ -378,6 +386,22 @@ function JobDetails() {
   //     setIsApplying(false); // 🔥 Stop loader
   //   }
   // };
+  const fetchAssessmentDetails = async (assessmentId) => {
+    try {
+      setLoadingAssessment(true);
+
+      const res = await axios.get(
+        `${API_BASE_URL}getSkillAssessmentFullDetails/${assessmentId}`,
+      );
+
+      setAssessment(res.data.assessmentDetails);
+      setCategoryCount(res.data.categoryQuestionCount);
+    } catch (error) {
+      console.error("Failed to load assessment", error);
+    } finally {
+      setLoadingAssessment(false);
+    }
+  };
 
   const handleSaveJob2 = async (jobId) => {
     try {
@@ -453,6 +477,107 @@ function JobDetails() {
     decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
   );
   console.log(job?.jobDetails);
+  // const handleStartTest = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token");
+
+  //     await axios.post(
+  //       `${API_BASE_URL}startAssessment/${assessment?.assessmentId}/${id}`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     // ✅ Start allowed
+  //     navigate("/start-test", {
+  //       state: {
+  //         assessmentId: assessment?.assessmentId,
+  //         jobId: id,
+  //       },
+  //     });
+  //   } catch (error) {
+  //     const apiResponse = error?.response?.data;
+
+  //     // 🔴 Retake blocked
+  //     if (apiResponse?.status === "FAILED_BLOCKED") {
+  //       toast.error("You cannot retake this assessment after failing");
+
+  //       // navigate("/skill-assessments-tests");
+  //       return;
+  //     }
+
+  //     // 🔴 Already submitted
+  //     if (apiResponse?.message === "Assessment already submitted") {
+  //       toast.warning("You have already submitted this assessment");
+
+  //       navigate("/skill-assessments-tests");
+  //       return;
+  //     }
+
+  //     // 🔴 Generic error
+  //     console.error("Failed to start assessment", error);
+  //     toast.error("Unable to start assessment. Please try again later");
+  //   }
+  // };
+  const handleStartTest = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${API_BASE_URL}startAssessment/${assessment?.assessmentId}/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      // ✅ Assessment required → start test
+      navigate("/start-test", {
+        state: {
+          assessmentId: assessment?.assessmentId,
+          jobId: id,
+        },
+      });
+    } catch (error) {
+      const apiResponse = error?.response?.data;
+
+      // 🟡 Assessment NOT required
+      if (apiResponse?.message === "Assessment is not required for this job") {
+        toast.error("No assessment required. You can apply directly.");
+
+        // 👉 Redirect wherever your normal apply flow is
+
+        return;
+      }
+
+      // 🔴 Retake blocked
+      if (apiResponse?.status === "FAILED_BLOCKED") {
+        toast.error("You cannot retake this assessment after failing");
+        return;
+      }
+
+      // 🟠 Already submitted
+      if (apiResponse?.message === "Assessment already submitted") {
+        toast.error("You have already submitted this assessment");
+
+        return;
+      }
+
+      // 🔴 Fallback
+      console.error("Failed to start assessment", error);
+      toast.error("Unable to start assessment. Please try again later");
+    }
+  };
+  const hasPassedAssessment = assessmentDetails?.status === "passed";
+
+  const isRetryBlocked =
+    assessmentDetails?.status === "failed" &&
+    assessmentDetails?.retry_period_days > 0;
 
   return (
     <>
@@ -529,12 +654,6 @@ function JobDetails() {
                         job?.jobDetails?.companyId?.brandName || "Company Logo"
                       }
                     />
-
-                    {/* <img
-                      crossorigin="anonymous"
-                      src={`${API_IMAGE_URL}${job?.companyId?.logo}`}
-                      alt="logo"
-                    /> */}
                   </div>
                 </div>
                 <div className="job-apply-link-save-btn-info">
@@ -651,7 +770,7 @@ function JobDetails() {
                       </li>
                     </ul>
                   </div>
-                  <div className="job-apply-btn edit-popup-modal">
+                  {/* <div className="job-apply-btn edit-popup-modal">
                     {job?.jobDetails?.isApplied ? (
                       <div className="default-btn btn">
                         {job?.jobDetails?.applicationStatus}
@@ -693,8 +812,93 @@ function JobDetails() {
                     >
                       Apply (Test Required)
                     </a>
+                  </div> */}
+                  <div className="job-apply-btn edit-popup-modal">
+                    {/* 🔒 Already Applied */}
+                    {job?.jobDetails?.isApplied ? (
+                      <div className="default-btn btn">
+                        {job?.jobDetails?.applicationStatus}
+                      </div>
+                    ) : (
+                      <>
+                        {/* 🧪 Assessment Flow */}
+                        {job?.jobDetails?.isAssessmentRequired &&
+                        !hasPassedAssessment ? (
+                          <>
+                            <a
+                              href="#"
+                              className={`default-btn btn ${isRetryBlocked ? "disabled-btn" : ""}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+
+                                // ⛔ Retry blocked
+                                if (isRetryBlocked) return;
+
+                                if (userRole !== "JobSeeker") {
+                                  navigate("/login");
+                                  return;
+                                }
+
+                                fetchAssessmentDetails(
+                                  job?.jobDetails?.assessment,
+                                );
+
+                                const modalEl = document.getElementById(
+                                  "skillAssessmentModal",
+                                );
+                                if (modalEl) {
+                                  const modal = new window.bootstrap.Modal(
+                                    modalEl,
+                                  );
+                                  modal.show();
+                                }
+                              }}
+                              aria-disabled={isRetryBlocked}
+                            >
+                              Apply (Test Required)
+                            </a>
+
+                            {/* ⏳ Retry message */}
+                            {isRetryBlocked && (
+                              <p className="reapply-info-tag">
+                                You can retry in{" "}
+                                {assessmentDetails?.retry_period_days} days
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          /* ✅ Apply directly (passed or no assessment) */
+                          <a
+                            href="#"
+                            className="default-btn btn"
+                            onClick={(e) => {
+                              e.preventDefault();
+
+                              if (userRole !== "JobSeeker") {
+                                navigate("/login");
+                                return;
+                              }
+
+                              setJobId(job?.jobDetails?._id);
+
+                              const modalEl =
+                                document.getElementById("exampleModal");
+                              if (modalEl) {
+                                const modal = new window.bootstrap.Modal(
+                                  modalEl,
+                                );
+                                modal.show();
+                              }
+                            }}
+                          >
+                            Apply Now
+                          </a>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
+
                 <div className="skill-assessment-test-allModal-area">
                   {/* <!-- Test Required Modal Start Here --> */}
                   <div
@@ -727,26 +931,32 @@ function JobDetails() {
                               complete a skills assessment
                             </p>
                             <div className="skill-assessment-javaScript-fundamental">
-                              <h6>JavaScript Fundamentals</h6>
-                              <span>Java Questions:10</span>
-                              <span>React.js Questions: 10</span>
-                              <span>Node.js Questions: 10</span>
-                              <p>
-                                Assess your Knowledges of JavaScript core
-                                concepts
-                              </p>
+                              <h6>{assessment?.assessmentName}</h6>
+                              {/* <span>Java Questions:10</span> */}
+                              {categoryCount?.map((cat) => (
+                                <span key={cat.categoryName}>
+                                  {cat.categoryName} Questions:{" "}
+                                  {cat.numberOfQuestions} Questions
+                                </span>
+                              ))}
+
                               <ul>
                                 <li>
-                                  <i className="fa-solid fa-calendar"></i>5
-                                  Minutes
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-file"></i>30
+                                  <i className="fa-solid fa-file"></i>
+                                  {assessment?.totalQuestions}
+                                  {""} {""}
                                   Questions
                                 </li>
                                 <li>
+                                  <i className="fa-solid fa-calendar"></i>
+                                  {assessment?.totalDuration}
+                                  {""} {""}
+                                  Minutes
+                                </li>
+
+                                <li>
                                   <i className="fa-solid fa-percent"></i>Pass
-                                  threshold: 70%
+                                  threshold: {assessment?.passingPercentage}%
                                 </li>
                               </ul>
                             </div>
@@ -767,9 +977,12 @@ function JobDetails() {
                           >
                             Cancel
                           </a>
-                          <Link to="/start-test" className="default-btn btn" >
+                          <button
+                            className="default-btn btn"
+                            onClick={handleStartTest}
+                          >
                             Start Test
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -981,80 +1194,7 @@ function JobDetails() {
                   {/* <!-- Finish Test Modal End here --> */}
 
                   {/* <!--Score Card Modal Start Here --> */}
-                  <div class="skill-assessment-test-score-card-area">
-                    {/* <!-- Modal --> */}
-                    <div
-                      class="modal fade"
-                      id="scoreCardModal"
-                      tabindex="-1"
-                      aria-labelledby="scoreCardModalLabel"
-                      aria-hidden="true"
-                    >
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-body">
-                            <div class="skill-assessment-test-score-NoPassed">
-                              <div class="score-card-top-area">
-                                <i class="fa-regular fa-circle-xmark"></i>
-                                <h5>Test Not Passed</h5>
-                                <p>You Needed 70% to pass.</p>
-                              </div>
-                              <div class="score-card-final-score">
-                                <h5>40%</h5>
-                                <p>Final Score</p>
-                              </div>
-                              <div class="score-card-number-area">
-                                <div class="score-card-total-number">
-                                  <h5>5</h5>
-                                  <p>Total</p>
-                                </div>
-                                <div class="score-card-correct-number">
-                                  <h5>2</h5>
-                                  <p>Correct</p>
-                                </div>
-                                <div class="score-card-incorrect-number">
-                                  <h5>3</h5>
-                                  <p>Incorrect</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="skill-assessment-test-score-Passed">
-                              <div class="score-card-top-area">
-                                <i class="fa-solid fa-trophy"></i>
-                                <h5>Congratulations!</h5>
-                                <p>
-                                  You have successfully passed the assessment.
-                                </p>
-                              </div>
-                              <div class="score-card-final-score">
-                                <h5>100%</h5>
-                                <p>Final Score</p>
-                              </div>
-                              <div class="score-card-number-area">
-                                <div class="score-card-total-number">
-                                  <h5>5</h5>
-                                  <p>Total</p>
-                                </div>
-                                <div class="score-card-correct-number">
-                                  <h5>5</h5>
-                                  <p>Correct</p>
-                                </div>
-                                <div class="score-card-incorrect-number">
-                                  <h5>0</h5>
-                                  <p>Incorrect</p>
-                                </div>
-                              </div>
-                              <div class="continue-application-btn-area">
-                                <a href="#" class="default-btn btn">
-                                  Continue Application
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
                   {/* <!--Score Card Modal End Here --> */}
                 </div>
                 <div
@@ -1299,33 +1439,7 @@ function JobDetails() {
                 </div>
               </div>
 
-              <div className="skills-assessment-test-required-details">
-                <div className="skills-assessment-test-icon-content">
-                  <div className="skills-assessment-icon">
-                    <i className="fa-solid fa-file"></i>
-                  </div>
-                  <div className="skills-assessment-content">
-                    <h5>Skills Assessment Required</h5>
-                    <p>
-                      You need to pass a skills assessment before applying for
-                      this position.
-                    </p>
-                    <ul>
-                      <li>
-                        <i className="fa-solid fa-calendar"></i>5 Minutes
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-file"></i>5 Questions
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-percent"></i>Pass: 70%
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="skills-assessment-test-required-details">
+              {/* <div className="skills-assessment-test-required-details">
                 <div className="skills-assessment-test-icon-content">
                   <div className="skills-assessment-icon">
                     <i className="fa-solid fa-file"></i>
@@ -1334,18 +1448,107 @@ function JobDetails() {
                     <div className="skills-assessment-content">
                       <h5>Skills Assessment Required</h5>
                       <p>
-                        <i className="fa-solid fa-file"></i>You have already
-                        passed this test! You can apply directly.
+                        <i className="fa-solid fa-file"></i>{" "}
+                        {assessmentDetails?.status === "failed" ? (
+                          <>
+                            You did not pass the test on your previous attempt.
+                            <br />
+                            <strong>
+                              You can retry in{" "}
+                              {assessmentDetails?.retry_period_days} days.
+                            </strong>
+                          </>
+                        ) : (
+                          "You have already passed this test! You can apply directly."
+                        )}
                       </p>
                     </div>
-                    <div className="test-passed-percentage">
-                      <p>
-                        <i className="fa-solid fa-file"></i> Total Passed (100%)
-                      </p>
+                    {!assessmentDetails?.status === "failed" ? (
+                      <div className="test-passed-percentage">
+                        <p>
+                          <i className="fa-solid fa-file"></i> Total Passed
+                          ({assessmentDetails?.scorePercentage}%)
+                        </p>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+              </div> */}
+              {job?.jobDetails?.isAssessmentRequired && (
+                <div
+                  className={`skills-assessment-test-required-details ${
+                    assessmentDetails?.status === "failed"
+                      ? "assessment-failed"
+                      : ""
+                  }`}
+                >
+                  <div className="skills-assessment-test-icon-content">
+                    <div className="skills-assessment-icon">
+                      <i className="fa-solid fa-file"></i>
+                    </div>
+
+                    <div className="skills-assessment-test-passed-area">
+                      <div className="skills-assessment-content">
+                        <h5>Skills Assessment Required</h5>
+
+                        <p
+                          className={
+                            assessmentDetails?.status === "failed"
+                              ? "text-danger"
+                              : assessmentDetails?.status === "passed"
+                                ? "text-success"
+                                : "text-muted"
+                          }
+                        >
+                          <i className="fa-solid fa-file"></i>{" "}
+                          {/* 🟡 NOT ATTEMPTED */}
+                          {assessmentDetails?.status === "not_attempted" && (
+                            <>
+                              You need to pass a skills assessment before
+                              applying for this position.
+                            </>
+                          )}
+                          {/* 🔴 FAILED */}
+                          {assessmentDetails?.status === "failed" && (
+                            <>
+                              You did not pass the test on your previous
+                              attempt.
+                              {assessmentDetails?.retry_period_days > 0 && (
+                                <>
+                                  <br />
+                                  <strong>
+                                    You can retry in{" "}
+                                    {assessmentDetails?.retry_period_days} days.
+                                  </strong>
+                                </>
+                              )}
+                            </>
+                          )}
+                          {/* 🟢 PASSED */}
+                          {assessmentDetails?.status === "passed" && (
+                            <>
+                              You have already passed this test! You can apply
+                              directly.
+                            </>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* ✅ Show score ONLY when PASSED */}
+                      {assessmentDetails?.status === "passed" && (
+                        <div className="test-passed-percentage">
+                          <p className="text-success">
+                            <i className="fa-solid fa-file"></i> Total Passed (
+                            {assessmentDetails?.scorePercentage ?? 0}%)
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* <!-- skill Assessment Test All Modal Start Area--> */}
               <div className="job-details-tag-info-area">

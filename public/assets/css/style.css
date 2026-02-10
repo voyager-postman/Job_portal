@@ -11082,6 +11082,8 @@ text-transform: capitalize;
 .skill-assessment-javaScript-fundamental ul li {
   margin-right: 15px;
   display: inline-block;
+  font-size: 13px;
+  margin-top: 15px;
 }
 
 .skill-assessment-javaScript-fundamental ul li i {
@@ -11151,14 +11153,24 @@ text-transform: capitalize;
 .skill-assessment-test-tq-close span {
   background: #1868ca;
   color: #fff;
-  padding: 2px 5px;
-  font-size: 12px;
+  padding: 0px 5px 3px 5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
   border-radius: 5px;
   cursor: pointer;
+  margin-left: 10px;
 }
-.skill-assessment-test-tq-close :hover {
+
+.skill-assessment-test-tq-close span:hover {
+  background: #f9601a;
+}
+
+.skill-assessment-test-tq-close .quit-assessment:hover {
+  background: #f9601a;
+  color: #fff;
+}
+.skill-assessment-test-tq-close .submit-assessment:hover {
   background: #f9601a;
   color: #fff;
 }
@@ -11205,6 +11217,7 @@ text-transform: capitalize;
 .test-footer .default-btn {
   font-size: 15px;
   padding: 5px 10px;
+  margin-left: 15px;
 }
 .skill-assessment-test-question-option label {
   display: block;
@@ -11237,19 +11250,19 @@ text-transform: capitalize;
 }
 
 .score-card-top-area {
-  background: #cdcdcd4d;
+  background: #f0f5f7;
   padding: 40px 0px;
 }
 
 .score-card-top-area i {
-  color: #fff;
+  color: #f60;
   margin: auto;
   padding: 10px;
   font-size: 30px;
   margin-bottom: 15px;
   text-align: center;
   border-radius: 50px;
-  background: #ff6600;
+  background: #fff;
 }
 
 .score-card-top-area h5 {
@@ -11327,18 +11340,18 @@ text-transform: capitalize;
 }
 
 .skill-assessment-test-score-Passed .score-card-top-area {
-  background: #00a300;
+  background: #f0f5f7;
   text-align: center;
 }
 
 .skill-assessment-test-score-Passed .score-card-top-area h5 {
   margin: 0px;
-  color: #fff;
+  color: #202124;
   letter-spacing: 0.5px;
 }
 
 .skill-assessment-test-score-Passed .score-card-top-area p {
-  color: #fff;
+  color: #202124;
   font-size: 13px;
   font-weight: 600;
   text-align: center;
@@ -11898,4 +11911,47 @@ text-transform: capitalize;
 
 .skill-assessment-javaScript-fundamental p {
   margin-top: 10px;
+}
+
+.test-required-tag-area {
+  background: #f9603f;
+  padding: 1px 5px 5px 5px;
+  text-transform: capitalize;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.reapply-info-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: red;
+  margin-top: 10px;
+}
+.skill-assessment-test-score-card-area {
+  background: #f0f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.score-card-wrapper {
+  width: 80%;
+  margin: auto;
+}
+.assessment-failed {
+  border: 1px solid #dc3545;
+  background-color: #fff5f5;
+}
+
+.assessment-failed h5,
+.assessment-failed p,
+.assessment-failed i {
+  color: #dc3545;
+}
+.disabled-btn {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
