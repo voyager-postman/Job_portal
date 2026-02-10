@@ -11913,7 +11913,7 @@ text-transform: capitalize;
   margin-top: 10px;
 }
 
-.test-required-tag-area {
+/* .test-required-tag-area {
   background: #f9603f;
   padding: 1px 5px 5px 5px;
   text-transform: capitalize;
@@ -11921,6 +11921,45 @@ text-transform: capitalize;
   font-weight: 700;
   border-radius: 5px;
   font-size: 14px;
+} */
+.test-required-tag-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid #f9603f;
+  border-radius: 20px;
+  color: #f9603f;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.test-required-tag-area i {
+  font-size: 13px;
+}
+
+.test-required-tag-area {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid #f9603f;
+  border-radius: 20px;
+  color: #f9603f;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.test-required-tag-area i {
+  font-size: 13px;
 }
 
 .reapply-info-tag {
@@ -11941,7 +11980,7 @@ text-transform: capitalize;
   margin: auto;
 }
 .assessment-failed {
-  border: 1px solid #dc3545;
+  border: 1px solid #eb737e;
   background-color: #fff5f5;
 }
 
@@ -11954,4 +11993,22 @@ text-transform: capitalize;
   pointer-events: none;
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* 🟢 Passed */
+.test-passed-tag-area {
+  background: transparent;
+  border: 1.5px solid #28a745;
+  color: #28a745;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-passed-tag-area i {
+  color: #28a745;
 }
