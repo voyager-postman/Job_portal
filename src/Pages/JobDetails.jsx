@@ -1464,87 +1464,50 @@ function JobDetails() {
                 </div>
               </div>
 
-              {/* <div className="skills-assessment-test-required-details">
-                <div className="skills-assessment-test-icon-content">
-                  <div className="skills-assessment-icon">
-                    <i className="fa-solid fa-file"></i>
-                  </div>
-                  <div className="skills-assessment-test-passed-area">
-                    <div className="skills-assessment-content">
-                      <h5>Skills Assessment Required</h5>
-                      <p>
-                        <i className="fa-solid fa-file"></i>{" "}
-                        {assessmentDetails?.status === "failed" ? (
-                          <>
-                            You did not pass the test on your previous attempt.
-                            <br />
-                            <strong>
-                              You can retry in{" "}
-                              {assessmentDetails?.retry_period_days} days.
-                            </strong>
-                          </>
-                        ) : (
-                          "You have already passed this test! You can apply directly."
-                        )}
-                      </p>
-                    </div>
-                    {!assessmentDetails?.status === "failed" ? (
-                      <div className="test-passed-percentage">
-                        <p>
-                          <i className="fa-solid fa-file"></i> Total Passed
-                          ({assessmentDetails?.scorePercentage}%)
-                        </p>
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                </div>
-              </div> */}
               {job?.jobDetails?.isAssessmentRequired && (
-                <div className="skills-assessment-test-required-details">
-                  <div className="skills-assessment-test-icon-content">
+                <div
+                  className={`skills-assessment-test-required-details ${
+                    assessmentDetails?.status === "failed"
+                      ? "assessment-failed"
+                      : assessmentDetails?.status === "passed"
+                        ? "assessment-passed"
+                        : ""
+                  }`}
+                >
+                  <div
+                    className={`skills-assessment-test-icon-content ${
+                      assessmentDetails?.status === "failed"
+                        ? "assessment-icon"
+                        : "assessment-icon"
+                    }`}
+                  >
                     <div className="skills-assessment-icon">
-                      <i
-                        className="fa-solid fa-file"
-                        style={{
-                          color:
-                            assessmentDetails?.status === "failed"
-                              ? "#dc3545"
-                              : assessmentDetails?.status === "passed"
-                                ? "#28a745"
-                                : "#6c757d",
-                        }}
-                      ></i>
+                      <i className="fa-solid fa-file"></i>
                     </div>
 
                     <div className="skills-assessment-test-passed-area">
                       <div className="skills-assessment-content">
-                        <h5>Skills Assessment Required</h5>
-
-                        <p
-                          style={{
-                            color:
-                              assessmentDetails?.status === "failed"
-                                ? "#dc3545"
-                                : assessmentDetails?.status === "passed"
-                                  ? "#28a745"
-                                  : "#6c757d",
-                          }}
+                        <h5
+                          className={
+                            assessmentDetails?.status === "failed"
+                              ? "text-danger"
+                              : assessmentDetails?.status === "passed"
+                                ? "text-success"
+                                : "text-muted"
+                          }
                         >
-                          <i
-                            className="fa-solid fa-file"
-                            style={{
-                              color:
-                                assessmentDetails?.status === "failed"
-                                  ? "#dc3545"
-                                  : assessmentDetails?.status === "passed"
-                                    ? "#28a745"
-                                    : "#6c757d",
-                            }}
-                          ></i>{" "}
-                          <></>
-                          {/* 🟡 NOT ATTEMPTED */}
+                          Skills Assessment Required
+                        </h5>
+                        <p
+                          className={
+                            assessmentDetails?.status === "failed"
+                              ? "text-danger"
+                              : assessmentDetails?.status === "passed"
+                                ? "text-success"
+                                : "text-muted"
+                          }
+                        >
+                          <i className="fa-solid fa-file"></i> <></>
                           {/* 🟡 NOT ATTEMPTED (assessmentResult is null OR status not present) */}
                           {(!assessmentDetails ||
                             assessmentDetails?.status === "not_attempted") && (

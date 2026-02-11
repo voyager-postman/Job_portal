@@ -9892,12 +9892,6 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 40px;
   height: 40px;
   margin: auto;
-  bottom: -20px;
-  padding: 5px 5px;
-  overflow: hidden;
-  border-radius: 5px;
-  position: absolute;
-  background: #e4eaed;
 }
 
 .job-card-companies-name h4 {
@@ -11376,13 +11370,13 @@ text-transform: capitalize;
 
 .test-passed-percentage p {
   font-size: 13px;
-  color: #ff6600;
+  color: #74ad6b;
   margin-left: 10px;
   padding: 5px 10px;
   font-weight: 600;
   border-radius: 50px;
   background: #d1d6d982;
-  border: 1px solid #ff6600;
+  border: 1px solid #74ad6b;
 }
 
 .test-passed-percentage p i {
@@ -11979,16 +11973,34 @@ text-transform: capitalize;
   width: 80%;
   margin: auto;
 }
+
+/* Assessment failed styling */
+.assessment-failed .fa-solid {
+  color: #dc3545 !important;
+  border-radius: 5px;
+  background: #f9d2d5;
+}
+
 .assessment-failed {
   border: 1px solid #eb737e;
   background-color: #fff5f5;
 }
-
 .assessment-failed h5,
-.assessment-failed p,
-.assessment-failed i {
+.assessment-failed p {
   color: #dc3545;
 }
+
+/* Assessment failed styling */
+.assessment-passed {
+  border: 1px solid #28a745;
+  background-color: #e0eade;
+}
+.assessment-passed .fa-solid {
+  color: #28a745 !important;
+  border-radius: 5px;
+  background: #a7c2a1;
+}
+
 .disabled-btn {
   pointer-events: none;
   opacity: 0.6;
