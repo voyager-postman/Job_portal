@@ -386,7 +386,28 @@ function JobDetails() {
   //     setIsApplying(false); // 🔥 Stop loader
   //   }
   // };
+  // const fetchAssessmentDetails = async (assessmentId) => {
+  //   try {
+  //     setLoadingAssessment(true);
+
+  //     const res = await axios.get(
+  //       `${API_BASE_URL}getSkillAssessmentFullDetails/${assessmentId}`,
+  //     );
+
+  //     setAssessment(res.data.assessmentDetails);
+  //     setCategoryCount(res.data.categoryQuestionCount);
+  //   } catch (error) {
+  //     console.error("Failed to load assessment", error);
+  //   } finally {
+  //     setLoadingAssessment(false);
+  //   }
+  // };
   const fetchAssessmentDetails = async (assessmentId) => {
+    if (!assessmentId) {
+      console.warn("Assessment ID not found");
+      return;
+    }
+
     try {
       setLoadingAssessment(true);
 
@@ -398,6 +419,10 @@ function JobDetails() {
       setCategoryCount(res.data.categoryQuestionCount);
     } catch (error) {
       console.error("Failed to load assessment", error);
+
+      toast.error(
+        error?.response?.data?.message || "Unable to load assessment",
+      );
     } finally {
       setLoadingAssessment(false);
     }
@@ -1749,7 +1774,7 @@ function JobDetails() {
                   </ul>
 
                   <div className="summary-offer-apply-report-btn edit-popup-modal">
-                    {job?.jobDetails?.isApplied ? (
+                    {/* {job?.jobDetails?.isApplied ? (
                       <div className="default-btn btn">
                         {job?.jobDetails?.applicationStatus}
                       </div>
@@ -1782,6 +1807,88 @@ function JobDetails() {
                       >
                         Apply Now
                       </a>
+                    )} */}
+                    {/* 🔒 Already Applied */}
+                    {job?.jobDetails?.isApplied ? (
+                      <div className="default-btn btn">
+                        {job?.jobDetails?.applicationStatus}
+                      </div>
+                    ) : (
+                      <>
+                        {/* 🧪 Assessment Flow */}
+                        {job?.jobDetails?.isAssessmentRequired &&
+                        !hasPassedAssessment ? (
+                          <>
+                            <a
+                              href="#"
+                              className={`default-btn btn ${isRetryBlocked ? "disabled-btn" : ""}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+
+                                // ⛔ Retry blocked
+                                if (isRetryBlocked) return;
+
+                                if (userRole !== "JobSeeker") {
+                                  navigate("/login");
+                                  return;
+                                }
+
+                                fetchAssessmentDetails(
+                                  job?.jobDetails?.assessment,
+                                );
+
+                                const modalEl = document.getElementById(
+                                  "skillAssessmentModal",
+                                );
+                                if (modalEl) {
+                                  const modal = new window.bootstrap.Modal(
+                                    modalEl,
+                                  );
+                                  modal.show();
+                                }
+                              }}
+                              aria-disabled={isRetryBlocked}
+                            >
+                              Apply (Test Required)
+                            </a>
+
+                            {/* ⏳ Retry message */}
+                            {isRetryBlocked && (
+                              <p className="reapply-info-tag">
+                                You can retry in{" "}
+                                {assessmentDetails?.retry_period_days} days
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          /* ✅ Apply directly (passed or no assessment) */
+                          <a
+                            href="#"
+                            className="default-btn btn"
+                            onClick={(e) => {
+                              e.preventDefault();
+
+                              if (userRole !== "JobSeeker") {
+                                navigate("/login");
+                                return;
+                              }
+
+                              setJobId(job?.jobDetails?._id);
+
+                              const modalEl =
+                                document.getElementById("exampleModal");
+                              if (modalEl) {
+                                const modal = new window.bootstrap.Modal(
+                                  modalEl,
+                                );
+                                modal.show();
+                              }
+                            }}
+                          >
+                            Apply Now
+                          </a>
+                        )}
+                      </>
                     )}
                     <a href="#" className="report-btn-info">
                       Report this job
