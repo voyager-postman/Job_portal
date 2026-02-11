@@ -1150,7 +1150,7 @@ function JobDetailsForm() {
                         <input
                           type="checkbox"
                           name="jobAssesmentApply"
-                          checked={formData.jobAssesmentApply}
+                          checked
                           onChange={handleChange}
                         />
                         <span className="slider round" />
@@ -1158,30 +1158,28 @@ function JobDetailsForm() {
                     </div>
                   </div>
 
-                  {formData.jobAssesmentApply && (
-                    <div className="col-lg-12 col-md-12 mt-2">
-                      <div className="form-group">
-                        <label>Select Job Assessment</label>
-                        <span className="text-danger">*</span>
-                        <select
-                          className="form-select form-control"
-                          name="jobAssesmentApply"
-                        >
-                          <option value="" disabled>
-                            Select job assessment
+                  <div className="col-lg-12 col-md-12 mt-2">
+                    <div className="form-group">
+                      <label>Select Job Assessment</label>
+                      <span className="text-danger">*</span>
+                      <select
+                        className="form-select form-control"
+                        name="jobAssesmentApply"
+                      >
+                        <option value="" disabled>
+                          Select job assessment
+                        </option>
+                        {jobAssessment.map((assessment) => (
+                          <option
+                            key={assessment._id}
+                            value={assessment.assessmentName}
+                          >
+                            {assessment.assessmentName}
                           </option>
-                          {jobAssessment.map((assessment) => (
-                            <option
-                              key={assessment._id}
-                              value={assessment.assessmentName}
-                            >
-                              {assessment.assessmentName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                        ))}
+                      </select>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="job-option-branding-input-area">
