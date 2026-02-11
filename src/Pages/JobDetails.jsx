@@ -927,7 +927,7 @@ function JobDetails() {
                         <div className="modal-body">
                           <div className="skill-assessment-test-modal-details">
                             <p>
-                              To apply for senior javascript developer you must
+                              To apply for {job?.jobDetails?.jobTitle} you must
                               complete a skills assessment
                             </p>
                             <div className="skill-assessment-javaScript-fundamental">
@@ -1444,10 +1444,18 @@ function JobDetails() {
                   className={`skills-assessment-test-required-details ${
                     assessmentDetails?.status === "failed"
                       ? "assessment-failed"
-                      : "assessment-passed"
+                      : assessmentDetails?.status === "passed"
+                        ? "assessment-passed"
+                        : ""
                   }`}
                 >
-                  <div className="skills-assessment-test-icon-content">
+                  <div
+                    className={`skills-assessment-test-icon-content ${
+                      assessmentDetails?.status === "failed"
+                        ? "assessment-icon"
+                        : "assessment-icon"
+                    }`}
+                  >
                     <div className="skills-assessment-icon">
                       <i className="fa-solid fa-file"></i>
                     </div>
@@ -1474,9 +1482,10 @@ function JobDetails() {
                                 : "text-muted"
                           }
                         >
-                          <i className="fa-solid fa-file"></i>{" "}
-                          {/* 🟡 NOT ATTEMPTED */}
-                          {assessmentDetails?.status === "not_attempted" && (
+                          <i className="fa-solid fa-file"></i> <></>
+                          {/* 🟡 NOT ATTEMPTED (assessmentResult is null OR status not present) */}
+                          {(!assessmentDetails ||
+                            assessmentDetails?.status === "not_attempted") && (
                             <>
                               You need to pass a skills assessment before
                               applying for this position.
@@ -1511,8 +1520,12 @@ function JobDetails() {
                       {/* ✅ Show score ONLY when PASSED */}
                       {assessmentDetails?.status === "passed" && (
                         <div className="test-passed-percentage">
-                          <p className="text-success">
-                            <i className="fa-solid fa-file"></i> Total Passed (
+                          <p style={{ color: "#28a745" }}>
+                            <i
+                              className="fa-solid fa-file"
+                              style={{ color: "#28a745" }}
+                            ></i>{" "}
+                            Total Passed (
                             {assessmentDetails?.scorePercentage ?? 0}%)
                           </p>
                         </div>

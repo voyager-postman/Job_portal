@@ -9894,22 +9894,6 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin: auto;
 }
 
-/* Assessment failed styling */
-.assessment-failed {
-  background-color: #dc3545 !important; /* Red background */
-  color: #ffffff !important; /* White text for contrast */
-}
-
-.assessment-failed .fa-solid {
-  color: #ffffff !important; /* White icon */
-  bottom: -20px;
-  padding: 5px 5px;
-  overflow: hidden;
-  border-radius: 5px;
-  position: absolute;
-  background: #e4eaed;
-}
-
 .job-card-companies-name h4 {
   font-size: 17px;
   color: #ff6600;
@@ -11989,20 +11973,34 @@ text-transform: capitalize;
   width: 80%;
   margin: auto;
 }
+
+/* Assessment failed styling */
+.assessment-failed .fa-solid {
+  color: #dc3545 !important;
+  border-radius: 5px;
+  background: #f9d2d5;
+}
+
 .assessment-failed {
   border: 1px solid #eb737e;
   background-color: #fff5f5;
 }
-
 .assessment-failed h5,
-.assessment-failed p,
-.assessment-failed i {
+.assessment-failed p {
   color: #dc3545;
 }
-.assessment-passed{
-  border: 1px solid #eb737e;
-  background-color: #fff5f5;
+
+/* Assessment failed styling */
+.assessment-passed {
+  border: 1px solid #28a745;
+  background-color: #e0eade;
 }
+.assessment-passed .fa-solid {
+  color: #28a745 !important;
+  border-radius: 5px;
+  background: #a7c2a1;
+}
+
 .disabled-btn {
   pointer-events: none;
   opacity: 0.6;
@@ -12026,5 +12024,19 @@ text-transform: capitalize;
 .test-passed-tag-area i {
   color: #28a745;
 }
+.test-failed-tag-area {
+  background: transparent;
+  border: 1.5px solid #dc3545;
+  color: #dc3545;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
-
+.test-failed-tag-area i {
+  color: #dc3545;
+}

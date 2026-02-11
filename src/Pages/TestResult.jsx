@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -26,6 +25,13 @@ const TestResult = () => {
     isPassed,
     autoSubmitted,
   } = state;
+  const closeAnyOpenModal = () => {
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "auto";
+
+    const backdrops = document.querySelectorAll(".modal-backdrop");
+    backdrops.forEach((bd) => bd.remove());
+  };
 
   return (
     <section className="skill-assessment-test-score-card-area">
@@ -66,9 +72,17 @@ const TestResult = () => {
             </div>
 
             <div className="mt-4">
-              <Link to={`/job-details/${jobId}`} className="default-btn btn">
+              <button
+                className="default-btn btn"
+                onClick={() => {
+                  closeAnyOpenModal();
+                  navigate(`/job-details/${jobId}`, {
+                    state: { from: "/job-search" },
+                  });
+                }}
+              >
                 Back to Application
-              </Link>
+              </button>
             </div>
           </div>
         )}
@@ -101,9 +115,17 @@ const TestResult = () => {
             </div>
 
             <div className="continue-application-btn-area mt-4">
-              <Link to={`/job-details/${jobId}`} className="default-btn btn">
+              <button
+                className="default-btn btn"
+                onClick={() => {
+                  closeAnyOpenModal();
+                  navigate(`/job-details/${jobId}`, {
+                    state: { from: "/job-search" },
+                  });
+                }}
+              >
                 Continue Application
-              </Link>
+              </button>
             </div>
           </div>
         )}{" "}

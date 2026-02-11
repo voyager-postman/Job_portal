@@ -2141,78 +2141,116 @@ const JobList = () => {
                                           </h4>
                                         </a>
                                       </div>
-                                      <div className="available-job-save-job">
-                                        <i
-                                          className={`fa-${
-                                            job.isSaved ? "solid" : "regular"
-                                          } fa-heart`}
-                                          style={{
-                                            cursor: "pointer",
-                                            color: job.isSaved
-                                              ? "#fb761a"
-                                              : "#fff",
-                                          }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            handleSaveJob(job._id);
-                                          }}
-                                        />
 
-                                        <i
-                                          className="fa-brands fa-linkedin-in"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.linkedin ||
-                                              "https://www.linkedin.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
+                                      <div className="d-flex justify-space-between">
+                                        <div>
+                                          {job?.isAssessmentRequired && (
+                                            <>
+                                              {/* 🟢 PASSED */}
+                                              {job?.assessmentResult?.status ===
+                                                "passed" && (
+                                                <span className="test-passed-tag-area">
+                                                  <i className="fa-solid fa-circle-check"></i>
+                                                  Test Passed
+                                                </span>
+                                              )}
 
-                                        {/* Facebook */}
-                                        <i
-                                          className="fa-brands fa-facebook-f"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.facebook ||
-                                              "https://www.facebook.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
+                                              {/* 🔴 FAILED */}
+                                              {job?.assessmentResult?.status ===
+                                                "failed" && (
+                                                <span className="test-failed-tag-area">
+                                                  <i className="fa-solid fa-circle-xmark"></i>
+                                                  Test Failed
+                                                </span>
+                                              )}
 
-                                        {/* Instagram */}
-                                        <i
-                                          className="fa-brands fa-instagram"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.instagram ||
-                                              "https://www.instagram.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
+                                              {/* 🟠 NOT ATTEMPTED */}
+                                              {(!job?.assessmentResult ||
+                                                job?.assessmentResult
+                                                  ?.status ===
+                                                  "not_attempted") && (
+                                                <span className="test-required-tag-area">
+                                                  <i className="fa-solid fa-clipboard-check"></i>
+                                                  Test Required
+                                                </span>
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
 
-                                        {/* Twitter / X */}
-                                        <i
-                                          className="fa-brands fa-x-twitter"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.twitter ||
-                                              "https://twitter.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
+                                        <div className="available-job-save-job">
+                                          <i
+                                            className={`fa-${
+                                              job.isSaved ? "solid" : "regular"
+                                            } fa-heart`}
+                                            style={{
+                                              cursor: "pointer",
+                                              color: job.isSaved
+                                                ? "#fb761a"
+                                                : "#fff",
+                                            }}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              handleSaveJob(job._id);
+                                            }}
+                                          />
+
+                                          <i
+                                            className="fa-brands fa-linkedin-in"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const link =
+                                                job?.social_links?.linkedin ||
+                                                "https://www.linkedin.com/";
+                                              window.open(link, "_blank");
+                                            }}
+                                          />
+
+                                          {/* Facebook */}
+                                          <i
+                                            className="fa-brands fa-facebook-f"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const link =
+                                                job?.social_links?.facebook ||
+                                                "https://www.facebook.com/";
+                                              window.open(link, "_blank");
+                                            }}
+                                          />
+
+                                          {/* Instagram */}
+                                          <i
+                                            className="fa-brands fa-instagram"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const link =
+                                                job?.social_links?.instagram ||
+                                                "https://www.instagram.com/";
+                                              window.open(link, "_blank");
+                                            }}
+                                          />
+
+                                          {/* Twitter / X */}
+                                          <i
+                                            className="fa-brands fa-x-twitter"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              const link =
+                                                job?.social_links?.twitter ||
+                                                "https://twitter.com/";
+                                              window.open(link, "_blank");
+                                            }}
+                                          />
+                                        </div>
                                       </div>
                                     </div>
 
@@ -2248,7 +2286,7 @@ const JobList = () => {
                                       </ul>
                                     </div>
 
-                                    <div className="available-job-type-apply-btn">
+                                    {/* <div className="available-job-type-apply-btn">
                                       {job?.isApplied ? (
                                         <div className="default-btn btn">
                                           {job?.applicationStatus}
@@ -2284,6 +2322,43 @@ const JobList = () => {
                                               modalInstance.show();
                                             }
                                           }}
+                                        >
+                                          Apply Now
+                                        </a>
+                                      )}
+                                    </div> */}
+
+                                    <div className="available-job-type-apply-btn">
+                                      {/* 🔒 Already Applied */}
+                                      {job?.isApplied ? (
+                                        <button
+                                          className="default-btn btn"
+                                          disabled
+                                        >
+                                          {job?.applicationStatus}
+                                        </button>
+                                      ) : job?.isAssessmentRequired ? (
+                                        /* 🧪 Assessment Required → View Details */
+                                        <Link
+                                          to={`/job-details/${job._id}`}
+                                          className="default-btn btn"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          View Details
+                                        </Link>
+                                      ) : (
+                                        /* ✅ No Assessment → Direct Apply */
+                                        <a
+                                          href="#"
+                                          className="default-btn btn"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setJobId(job._id);
+                                            handleJobClick(job._id);
+                                          }}
+                                          data-bs-toggle="modal"
+                                          data-bs-target="#exampleModal"
                                         >
                                           Apply Now
                                         </a>
