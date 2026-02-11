@@ -1003,8 +1003,8 @@ function CompanyDetailsPage() {
                                     {job?.link ? (
                                       <i className="fa-solid fa-link" />
                                     ) : (
-                                      <span style={{ fontWeight: "bold" }}>
-                                        N
+                                      <span style={{ color: "#ffff" }}>
+                                        No Link
                                       </span>
                                     )}
                                   </a>

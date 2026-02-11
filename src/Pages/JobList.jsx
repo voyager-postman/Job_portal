@@ -29,9 +29,9 @@ const JobList = () => {
   const [searchParams] = useSearchParams();
 
   console.log("Received Alert Data:", alert);
-  const userRole = localStorage.getItem("role");
+  const userRole = localStorage.getItem("user_role");
   const userId = localStorage.getItem("user_id");
-
+  console.log(userRole);
   // or from context:  user?.role
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -2347,27 +2347,34 @@ const JobList = () => {
                                         </Link>
                                       ) : (
                                         /* ✅ No Assessment → Direct Apply */
+                                        // <a
+                                        //   href="#"
+                                        //   className="default-btn btn"
+                                        //   onClick={(e) => {
+                                        //     e.preventDefault();
+                                        //     e.stopPropagation();
+                                        //     setJobId(job._id);
+                                        //     handleJobClick(job._id);
+                                        //   }}
+                                        //   data-bs-toggle="modal"
+                                        //   data-bs-target="#exampleModal"
+                                        // >
+                                        //   Apply Now
+                                        // </a>
+
                                         <a
                                           href="#"
                                           className="default-btn btn"
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-
-                                            console.log("User Role:", userRole);
-
-                                            if (
-                                              !userRole ||
-                                              userRole.toLowerCase() !==
-                                                "jobseeker"
-                                            ) {
-                                              navigate("/login");
-                                              return;
-                                            }
-
                                             setJobId(job._id);
                                             handleJobClick(job._id);
 
+                                            if (userRole !== "JobSeeker") {
+                                              navigate("/login");
+                                              return;
+                                            }
                                             const modalEl =
                                               document.getElementById(
                                                 "exampleModal",

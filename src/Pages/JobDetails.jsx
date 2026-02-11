@@ -50,7 +50,7 @@ function JobDetails() {
     "/manage-job-application": "Manage Job Application",
     "/job-search": "Job Search",
     "/jobs": "Jobs",
-    "/candidate-dashboard": "Dashboard",
+    "/candidate-dashboard": "",
   };
 
   const breadcrumbLabel = breadcrumbLabelMap[from];
@@ -633,10 +633,15 @@ function JobDetails() {
                         <i className="fa-solid fa-angle-right"></i>
                       </li>
                     )}
-                    <li>
-                      <Link to={from}>{breadcrumbLabel}</Link>
-                      <i className="fa-solid fa-angle-right"></i>
-                    </li>
+                    {breadcrumbLabel ? (
+                      <li>
+                        <Link to={from}>{breadcrumbLabel}</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
+                    ) : (
+                      ""
+                    )}
+
                     <li>
                       {loading
                         ? "Loading..."
