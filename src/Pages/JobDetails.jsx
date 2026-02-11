@@ -37,16 +37,23 @@ function JobDetails() {
   const [job, setJob] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const from = location.state?.from || "/";
   console.log(id);
+  const from = location.state?.from;
+  console.log(location);
+  useEffect(() => {
+    if (location.state?.from) {
+      localStorage.setItem("jobFrom", location.state.from);
+    }
+  }, [location.state]);
 
-  const breadcrumbLabel = from?.includes("/manage-job-application")
-    ? "Manage Job Application"
-    : from?.includes("/job-search")
-      ? "Job Search"
-      : from?.includes("/jobs")
-        ? "Jobs"
-        : "Job Search";
+  const breadcrumbLabelMap = {
+    "/manage-job-application": "Manage Job Application",
+    "/job-search": "Job Search",
+    "/jobs": "Jobs",
+    "/candidate-dashboard": "Dashboard",
+  };
+
+  const breadcrumbLabel = breadcrumbLabelMap[from];
 
   const fetchJobDetails = async () => {
     try {
@@ -566,6 +573,7 @@ function JobDetails() {
         state: {
           assessmentId: assessment?.assessmentId,
           jobId: id,
+          from: from, // ✅ pass original source
         },
       });
     } catch (error) {
@@ -1867,6 +1875,7 @@ function JobDetails() {
                     <Link
                       key={item._id}
                       to={`/job-details/${item._id}`} // Pass ID in URL
+                      state={{ from: "/job-search" }}
                       className="job-link"
                     >
                       <div className="available-job-posts-box">
@@ -1891,42 +1900,78 @@ function JobDetails() {
                           </div>
 
                           {/* Save Job & Social Icons */}
-                          <div className="available-job-save-job">
-                            <i
-                              className={`fa-${
-                                item.isSaved ? "solid" : "regular"
-                              } fa-heart`}
-                              style={{
-                                cursor: "pointer",
-                                color: item.isSaved ? "#fb761a" : "#fff",
-                              }}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleSaveJob(item._id);
-                              }}
-                            />
-                            <a
-                              href="https://www.linkedin.com/login"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <i className="fa-brands fa-linkedin-in" />
-                            </a>
-                            <a
-                              href="https://www.facebook.com/"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <i className="fa-brands fa-facebook-f" />
-                            </a>
-                            <a
-                              href="https://web.whatsapp.com/"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <i className="fa-brands fa-whatsapp" />
-                            </a>
+                          <div className="d-flex justify-space-between">
+                            <div>
+                              {item?.isAssessmentRequired && (
+                                <>
+                                  {/* 🟢 PASSED */}
+                                  {item?.assessmentResult?.status ===
+                                    "passed" && (
+                                    <span className="test-passed-tag-area">
+                                      <i className="fa-solid fa-circle-check"></i>
+                                      Test Passed
+                                    </span>
+                                  )}
+
+                                  {/* 🔴 FAILED */}
+                                  {item?.assessmentResult?.status ===
+                                    "failed" && (
+                                    <span className="test-failed-tag-area">
+                                      <i className="fa-solid fa-circle-xmark"></i>
+                                      Test Failed
+                                    </span>
+                                  )}
+
+                                  {/* 🟠 NOT ATTEMPTED */}
+                                  {(!item?.assessmentResult ||
+                                    item?.assessmentResult?.status ===
+                                      "not_attempted") && (
+                                    <span className="test-required-tag-area">
+                                      <i className="fa-solid fa-clipboard-check"></i>
+                                      Test Required
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            <div className="available-job-save-job">
+                              <i
+                                className={`fa-${
+                                  item.isSaved ? "solid" : "regular"
+                                } fa-heart`}
+                                style={{
+                                  cursor: "pointer",
+                                  color: item.isSaved ? "#fb761a" : "#fff",
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleSaveJob(item._id);
+                                }}
+                              />
+                              <a
+                                href="https://www.linkedin.com/login"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <i className="fa-brands fa-linkedin-in" />
+                              </a>
+                              <a
+                                href="https://www.facebook.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <i className="fa-brands fa-facebook-f" />
+                              </a>
+                              <a
+                                href="https://web.whatsapp.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <i className="fa-brands fa-whatsapp" />
+                              </a>
+                            </div>
                           </div>
                         </div>
 
@@ -1965,7 +2010,7 @@ function JobDetails() {
                         </div>
 
                         {/* Apply Button */}
-                        <div className="available-job-type-apply-btn">
+                        {/* <div className="available-job-type-apply-btn">
                           {item?.isApplied ? (
                             <button className="default-btn btn">
                               {item?.applicationStatus}
@@ -1979,6 +2024,56 @@ function JobDetails() {
                             >
                               Apply Now
                             </button>
+                          )}
+                        </div> */}
+                        <div className="available-job-type-apply-btn">
+                          {/* 🔒 Already Applied */}
+                          {item?.isApplied ? (
+                            <button
+                              className="default-btn btn"
+                              disabled
+                              style={{ color: "#ff6600" }}
+                            >
+                              {item?.applicationStatus}
+                            </button>
+                          ) : item?.isAssessmentRequired ? (
+                            /* 🧪 Assessment Required → View Details */
+                            <Link
+                              to={`/job-details/${item._id}`}
+                              className="default-btn btn"
+                              state={{ from: "/job-search" }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View Details
+                            </Link>
+                          ) : (
+                            /* ✅ No Assessment → Direct Apply */
+                            <a
+                              href="#"
+                              className="default-btn btn"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                if (userRole !== "JobSeeker") {
+                                  navigate("/login");
+                                  return;
+                                }
+
+                                setJobId(item._id);
+
+                                const modalEl =
+                                  document.getElementById("exampleModal");
+                                if (modalEl) {
+                                  const modal = new window.bootstrap.Modal(
+                                    modalEl,
+                                  );
+                                  modal.show();
+                                }
+                              }}
+                            >
+                              Apply Now
+                            </a>
                           )}
                         </div>
                       </div>

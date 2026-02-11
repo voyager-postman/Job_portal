@@ -2117,9 +2117,7 @@ const JobList = () => {
                                 <Link
                                   key={job._id}
                                   to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                  state={{
-                                    from: "/jobs",
-                                  }}
+                                  state={{ from: "/jobs" }}
                                   className="job-link"
                                 >
                                   {" "}
@@ -2334,6 +2332,7 @@ const JobList = () => {
                                         <button
                                           className="default-btn btn"
                                           disabled
+                                          style={{ color: "#ff6600" }}
                                         >
                                           {job?.applicationStatus}
                                         </button>
@@ -2354,11 +2353,33 @@ const JobList = () => {
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
+
+                                            console.log("User Role:", userRole);
+
+                                            if (
+                                              !userRole ||
+                                              userRole.toLowerCase() !==
+                                                "jobseeker"
+                                            ) {
+                                              navigate("/login");
+                                              return;
+                                            }
+
                                             setJobId(job._id);
                                             handleJobClick(job._id);
+
+                                            const modalEl =
+                                              document.getElementById(
+                                                "exampleModal",
+                                              );
+                                            if (modalEl) {
+                                              const modal =
+                                                new window.bootstrap.Modal(
+                                                  modalEl,
+                                                );
+                                              modal.show();
+                                            }
                                           }}
-                                          data-bs-toggle="modal"
-                                          data-bs-target="#exampleModal"
                                         >
                                           Apply Now
                                         </a>

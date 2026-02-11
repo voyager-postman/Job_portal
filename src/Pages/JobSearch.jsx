@@ -2326,9 +2326,7 @@ function JobSearch() {
                               <Link
                                 key={job._id}
                                 to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                state={{
-                                  from: "/job-search",
-                                }}
+                                state={{ from: "/job-search" }}
                                 className="job-link"
                               >
                                 {" "}
@@ -2478,7 +2476,7 @@ function JobSearch() {
                                       </li>
                                       <li>
                                         <i className="fa-solid fa-users" />{" "}
-                                        Available:{" "}
+                                        Available:
                                         {job?.availablePosts || 0}{" "}
                                       </li>
                                     </ul>
@@ -2510,6 +2508,7 @@ function JobSearch() {
                                       <button
                                         className="default-btn btn"
                                         disabled
+                                        style={{ color: "#ff6600" }}
                                       >
                                         {job?.applicationStatus}
                                       </button>
