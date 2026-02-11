@@ -81,6 +81,7 @@ function JobDetailsForm() {
     assessment: jobFromState.assessment || jobFromState.assessment || "",
     validation_required: jobFromState.validation_required || false,
     retry_period_days: jobFromState.retry_period_days || "",
+    status: jobFromState.status || "draft",
   }));
 
   const [selectedCities, setSelectedCities] = useState(
@@ -128,6 +129,7 @@ function JobDetailsForm() {
             assessment: job.assessment || job.assessment || "",
             validation_required: job.validation_required || false,
             retry_period_days: job.retry_period_days || "",
+            status: job.status || "draft",
           }));
           console.log("Job Details Data:", res.data.data);
           setSelectedCities(Array.isArray(job.cities) ? job.cities : []);
@@ -563,7 +565,7 @@ function JobDetailsForm() {
   const handlePublishJob = async (
     data = formData,
     // isPublish = false,
-    statusType = "draft",
+    statusType = null,
     scheduleDate = null,
   ) => {
     try {
@@ -620,12 +622,13 @@ function JobDetailsForm() {
         "validation_required",
         data.validation_required ? "true" : "false",
       );
-      // **Core Logic**
-      if (statusType === "published") {
+      // **Core Logic** Preserve existing status unless explicitly set
+      const finalStatus = statusType || data.status || "draft";
+      if (finalStatus === "published") {
         formDataToSend.append("status", "published");
-      } else if (statusType === "scheduled") {
+      } else if (finalStatus === "scheduled") {
         formDataToSend.append("status", "scheduled");
-        formDataToSend.append("scheduleDate", scheduleDate); // REQUIRED BY API
+        formDataToSend.append("scheduleDate", scheduleDate);
       } else {
         formDataToSend.append("status", "draft");
       }
@@ -648,9 +651,9 @@ function JobDetailsForm() {
       console.log("✅ Job Updated:", response.data);
       // ✅ If published, navigate to "your-job-posts"
       if (
-        statusType === "published" ||
-        statusType === "scheduled" ||
-        statusType === "draft"
+        finalStatus === "published" ||
+        finalStatus === "scheduled" ||
+        finalStatus === "draft"
       ) {
         navigate("/your-job-posts", {
           state: {
@@ -663,15 +666,6 @@ function JobDetailsForm() {
       console.error("❌ Error creating job:", error.response || error);
     }
   };
-
-  // Add new city to list
-  // const openScheduleModal = () => {
-  //   const d = prompt("Enter schedule date (YYYY-MM-DD)");
-  //   if (d) {
-  //     setScheduleDate(d);
-  //     handlePublishJob(formData, "scheduled", d);
-  //   }
-  // };
 
   return (
     <>
