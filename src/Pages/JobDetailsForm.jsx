@@ -80,7 +80,11 @@ function JobDetailsForm() {
     isAssessmentRequired: jobFromState.isAssessmentRequired || false,
     assessment: jobFromState.assessment || jobFromState.assessment || "",
     validation_required: jobFromState.validation_required || false,
-    retry_period_days: jobFromState.retry_period_days || "",
+    retry_period_days: jobFromState.validation_required
+      ? jobFromState.retry_period_days
+        ? String(jobFromState.retry_period_days)
+        : ""
+      : "0",
     status: jobFromState.status || "draft",
   }));
 
@@ -128,7 +132,11 @@ function JobDetailsForm() {
             isAssessmentRequired: job.isAssessmentRequired || false,
             assessment: job.assessment || job.assessment || "",
             validation_required: job.validation_required || false,
-            retry_period_days: job.retry_period_days || "",
+            retry_period_days: job.validation_required
+              ? job.retry_period_days
+                ? String(job.retry_period_days)
+                : ""
+              : "0",
             status: job.status || "draft",
           }));
           console.log("Job Details Data:", res.data.data);
@@ -458,6 +466,10 @@ function JobDetailsForm() {
 
       if (type === "checkbox") {
         updated[name] = checked;
+        // If validation_required is unchecked, set retry_period_days to "0"
+        if (name === "validation_required" && !checked) {
+          updated.retry_period_days = "0";
+        }
       } else if (type === "file") {
         const file = files[0];
         if (file && file.size > 2 * 1024 * 1024) {
@@ -481,7 +493,7 @@ function JobDetailsForm() {
       // ✅ Debounce auto-save (updateJob)
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updated, false);
+        handlePublishJob(updated);
       }, 1000);
 
       return updated;
@@ -617,20 +629,25 @@ function JobDetailsForm() {
       formDataToSend.append("maxSalary", data.maxSalary || "");
       formDataToSend.append("isAssessmentRequired", data.isAssessmentRequired);
       formDataToSend.append("assessment", data.assessment || "");
-      formDataToSend.append("retry_period_days", data.retry_period_days);
+      formDataToSend.append(
+        "retry_period_days",
+        data.validation_required ? data.retry_period_days : "0",
+      );
       formDataToSend.append(
         "validation_required",
         data.validation_required ? "true" : "false",
       );
-      // **Core Logic** Preserve existing status unless explicitly set
-      const finalStatus = statusType || data.status || "draft";
-      if (finalStatus === "published") {
-        formDataToSend.append("status", "published");
-      } else if (finalStatus === "scheduled") {
-        formDataToSend.append("status", "scheduled");
-        formDataToSend.append("scheduleDate", scheduleDate);
-      } else {
-        formDataToSend.append("status", "draft");
+      // **Core Logic** Preserve existing status for auto-save, set for explicit actions
+      if (statusType) {
+        const finalStatus = statusType;
+        if (finalStatus === "published") {
+          formDataToSend.append("status", "published");
+        } else if (finalStatus === "scheduled") {
+          formDataToSend.append("status", "scheduled");
+          formDataToSend.append("scheduleDate", scheduleDate);
+        } else {
+          formDataToSend.append("status", "draft");
+        }
       }
       if (data.coverPhoto) {
         formDataToSend.append("jobCoverPhoto", data.coverPhoto);
@@ -649,12 +666,8 @@ function JobDetailsForm() {
       );
 
       console.log("✅ Job Updated:", response.data);
-      // ✅ If published, navigate to "your-job-posts"
-      if (
-        finalStatus === "published" ||
-        finalStatus === "scheduled" ||
-        finalStatus === "draft"
-      ) {
+      // ✅ Only navigate if this is an explicit publish/save action (not auto-save on change)
+      if (statusType) {
         navigate("/your-job-posts", {
           state: {
             jobTitle: data.jobTitle,
@@ -1285,11 +1298,13 @@ function JobDetailsForm() {
                         <span className="text-danger">*</span>
                         <input
                           className="form-control mt-2"
-                          type="text"
+                          type="number"
                           name="retry_period_days"
                           value={formData.retry_period_days}
                           onChange={handleChange}
                           placeholder="Enter the retry period days"
+                          min="1"
+                          disabled={!formData.validation_required}
                         />
                       </div>
                     </div>
