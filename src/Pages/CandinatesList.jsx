@@ -332,6 +332,149 @@ function CandinatesList() {
               </li>
             </ol>
           </div>
+          <div className="row">
+            {/* Search Box */}
+            <div className="col-12 mb-4">
+              <div className="employer-candidate-search-box d-flex align-items-center bg-white p-3 rounded shadow-sm">
+                <div className="employer-candidate-input-icon d-flex align-items-center flex-grow-1">
+                  <div className="employer-candidate-icon me-3 text-muted fs-5">
+                    <i className="fa-solid fa-magnifying-glass" />
+                  </div>
+
+                  <div className="employer-candidate-input-area w-100">
+                    <input
+                      type="text"
+                      className="form-control border-0 bg-transparent"
+                      placeholder="Find Candidate by Profile title, Competence, experience..."
+                    />
+                  </div>
+                </div>
+
+                <div className="employer-candidate-btn-area ms-3">
+                  <button className="default-btn btn px-4">
+                    Find Candidate
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            <div className="col-12">
+              <div className="p-3 bg-white shadow-sm rounded border">
+                <div className="row g-2">
+                  {/* Country */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <h3>Country</h3>
+                    <select
+                      className="form-select form-control"
+                      value={selectedCountry || ""}
+                      onChange={(e) => {
+                        const selectedOption =
+                          e.target.options[e.target.selectedIndex];
+                        const countryId =
+                          selectedOption.getAttribute("data-id"); // numeric id
+                        const countryObjectId = e.target.value; // _id (mongo id)
+
+                        setSelectedCountry(countryObjectId);
+                        setSelectedCities([]); // Reset cities when country changes
+                        if (countryId) {
+                          fetchCitiesByCountry(countryId);
+                        } else {
+                          setCityList([]);
+                        }
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value="">Select Country</option>
+                      {country.map((count) => (
+                        <option
+                          key={count._id}
+                          value={count.name}
+                          data-id={count.id}
+                        >
+                          {count.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* City */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <select title="City">
+                      <option>All Cities</option>
+                      <option>New York</option>
+                      <option>London</option>
+                      <option>Berlin</option>
+                      <option>Toronto</option>
+                      <option>Paris</option>
+                      <option>Remote</option>
+                    </select>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <div className="single-sidebar-widget">
+                      <h3 className="small text-muted mb-2">Skills</h3>
+                      <input
+                        type="text"
+                        className="form-control border-0 bg-light rounded-pill"
+                        placeholder="Type & Enter"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Experience */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <select title="Experience">
+                      <option>Level</option>
+                      <option>Junior</option>
+                      <option>Mid-Level</option>
+                      <option>Senior</option>
+                      <option>Lead</option>
+                    </select>
+                  </div>
+
+                  {/* Education */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <select title="Education">
+                      <option>Any Degree</option>
+                      <option>High School</option>
+                      <option>Bachelor Degree</option>
+                      <option>Master’s Degree</option>
+                      <option>Doctorate (PhD)</option>
+                    </select>
+                  </div>
+
+                  {/* Salary */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <select title="Salary">
+                      <option>Any Salary</option>
+                      <option>0-10,000</option>
+                      <option>10,000-20,000</option>
+                      <option>20,000-50,000</option>
+                      <option>50,000+</option>
+                    </select>
+                  </div>
+
+                  {/* Availability */}
+                  <div className="col-12 col-md-4 col-lg">
+                    <select title="Availability">
+                      <option>Any Status</option>
+                      <option>Immédiat</option>
+                      <option>Avec Préavis</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-end mt-4">
+                  <button className="btn btn-primary btn-sm px-5 fw-bold">
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="candidate-listing-area">
             <div className="container">
               <div className="row">

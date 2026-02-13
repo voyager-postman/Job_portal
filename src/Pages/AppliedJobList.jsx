@@ -112,28 +112,55 @@ function AppliedJobList() {
               <h5>Job Applications</h5>
             </div>
             <div className="applied-jobs-search-box-info">
-              <div className="employer-candidate-search-box">
-                <div className="employer-candidate-input-icon">
-                  <div className="employer-candidate-icon">
-                    <i className="fa-solid fa-briefcase" />
-                  </div>
-                  <div className="employer-candidate-input-area">
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Search By: Keywords, Job Title"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)} // ✅ update search term
-                    />
+              <div className="employer-candidate-search-box d-flex flex-wrap align-items-center justify-content-between">
+                {/* Search Input */}
+                <div className="d-flex align-items-center flex-grow-1">
+                  <div className="employer-candidate-input-icon d-flex align-items-center w-100">
+                    <div className="employer-candidate-icon me-2">
+                      <i className="fa-solid fa-briefcase"></i>
+                    </div>
+
+                    <div className="employer-candidate-input-area flex-grow-1">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Search By: Keywords, Job Title"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)} // ✅ update search term
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {/* Find Button */}
                 <div className="employer-candidate-btn-area">
                   <button
-                    className="default-btn btn"
-                    onClick={() => fetchJobs(searchTerm)} // ✅ Manual search trigger
+                    className="default-btn btn px-4"
+                    onClick={() => fetchJobs(searchTerm)}
                   >
                     Find
                   </button>
+                </div>
+
+                {/* Show Dropdown */}
+                <div className="ms-3 d-flex align-items-center">
+                  <span className="me-2 fw-semibold text-secondary text-nowrap">
+                    Show:
+                  </span>
+
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: "90px", cursor: "pointer" }}
+                    value={perPage}
+                    onChange={(e) => {
+                      setPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={50}>50</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -143,147 +170,215 @@ function AppliedJobList() {
             ) : jobs.length === 0 ? (
               <p className="text-center mt-3">No jobs found.</p>
             ) : (
-              jobs.map((job, index) => (
-                <div className="available-job-posts-box">
-                  <div className="available-job-company-name-save-job">
-                    <div className="available-job-company-name">
-                      <h4>
-                        <img
-                          crossOrigin="anonymous"
-                          src={getImageUrl(job?.company?.logo)}
-                          alt="logo"
-                          onError={(e) => {
-                            e.target.src = "assets/images/icon/icon-26.png";
-                          }}
-                        />
-                        {job?.jobTitle}
-                      </h4>
-                    </div>
-                  </div>
+              <div className="table-responsive ">
+                <table className="table align-middle table-hover">
+                  <thead>
+                    <tr className="custom-header-row">
+                      <th>Job Title</th>
+                      <th>Recruiters</th>
+                      <th>Status</th>
+                      <th>Published Date</th>
+                      <th>Expired</th>
+                      <th>Views</th>
+                      <th>Applicants</th>
+                      <th>Location</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
 
-                  <div className="available-job-type-details">
-                    <h5>
-                      <p>{job?.shortDescription}</p>
-                    </h5>
-                    <ul>
-                      <li>
-                        <i className="fa-regular fa-calendar" />{" "}
-                        {moment(job?.createdAt).fromNow() || "N/A"}
-                      </li>
-                      {/* <li>
-                            <i className="fa-regular fa-file" /> 5 Years
-                          </li> */}
-                      <li>
-                        <i className="fa-regular fa-user" />
-                        {job?.employmentType?.name || "N/A"}
-                      </li>
-                      <li>
-                        <i className="fa-solid fa-location-dot" />{" "}
-                        {job?.city && job.city.length > 0
-                          ? job.city.join(", ")
-                          : job?.company_city || "N/A"}
-                      </li>
-                      <li>
-                        <i className="fa-regular fa-file" />{" "}
-                        {job?.jobCategory?.name || "N/A"}{" "}
-                      </li>
-                      <li>
-                        <i
-                          style={{
-                            fontSize: "16px",
-                          }}
-                        >
-                          {" "}
-                          <TbMessages />
-                        </i>
-                        <Link
-                          to="/messaging-system"
-                          state={{
-                            jobId: job._id,
-                          }}
-                        >
+                  <tbody>
+                    {jobs.map((job) => (
+                      <tr key={job._id}>
+                        {/* Job Title */}
+                        <td>
+                          <div>
+                            <div className="fw-bold">{job?.jobTitle}</div>
+                            <small className="text-muted">
+                              {/* #{job?.jobId || job?._id} */}
+                              #JOB-OB_1
+                            </small>
+                          </div>
+                        </td>
+
+                        {/* Recruiter */}
+                        <td>
+                          <div>
+                            <div
+                              className="fw-semibold text-truncate"
+                              style={{ maxWidth: "180px" }}
+                            >
+                              {job?.company?.brandName || "N/A"}
+                            </div>
+
+                            <small
+                              className="text-muted text-truncate d-block"
+                              style={{ maxWidth: "180px" }}
+                            >
+                              {`${job?.recruiter?.firstName || ""} ${job?.recruiter?.lastName || ""}`}
+                            </small>
+                          </div>
+                        </td>
+
+                        {/* Status */}
+                        <td>
                           <span
+                            className="badge px-3 py-2 text-capitalize"
                             style={{
-                              color: "#f37a47",
+                              backgroundColor:
+                                job?.status?.toLowerCase() === "published"
+                                  ? "#2a8855"
+                                  : job?.status?.toLowerCase() === "expired"
+                                    ? "#dc3545"
+                                    : "#6c757d",
+                              borderRadius: "20px",
+                              fontSize: "12px",
                             }}
                           >
-                            Send Message
+                            {job?.status}
                           </span>
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
+                        </td>
 
-                  <div
-                    className="total-applicants-info"
-                    style={{
-                      pointerEvents:
-                        job?.applicantCount === 0 ? "none" : "auto",
-                      opacity: job?.applicantCount === 0 ? 0.5 : 1,
-                      cursor:
-                        job?.applicantCount === 0 ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    <Link
-                      to="/applied-candidate-list"
-                      state={{
-                        jobId: job._id,
-                        tags: job.tags, // 👈 passing tags also
-                      }}
-                    >
-                      <p>View Applicants: {job?.applicantCount || 0}</p>
-                    </Link>
-                  </div>
-                </div>
-              ))
+                        {/* Published Date */}
+                        <td>
+                          {" "}
+                          <small className="text-muted">
+                            {moment(job?.createdAt).format("MM/DD/YYYY")}
+                          </small>
+                        </td>
+
+                        {/* Expired */}
+                        <td>
+                          {job?.expiresAt ? (
+                            <small className="text-muted">
+                              {moment(job?.expiresAt).format("MM/DD/YYYY")}
+                            </small>
+                          ) : (
+                            "N/A"
+                          )}
+                        </td>
+
+                        {/* Views */}
+                        <td>{job?.views || 0}</td>
+
+                        {/* Applicants */}
+                        <td>
+                          <Link
+                            to="/applied-candidate-list"
+                            state={{ jobId: job._id }}
+                            style={{ color: "#0d6efd", fontWeight: "500" }}
+                          >
+                            {job?.applicantCount || 0} Applicants
+                          </Link>
+                        </td>
+
+                        {/* Location */}
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <i className="fa-solid fa-location-dot text-danger me-2"></i>
+                            <small className="text-muted">
+                              {job?.city && job.city.length > 0
+                                ? job.city.join(", ")
+                                : job?.company_city || "N/A"}
+                            </small>
+                          </div>
+                        </td>
+
+                        {/* Action */}
+                        <td className="pe-4 py-3 text-end">
+                          <div className="dropdown">
+                            <button
+                              className="btn btn-light btn-sm rounded-circle"
+                              type="button"
+                              data-bs-toggle="dropdown"
+                            >
+                              <i className="fa-solid fa-ellipsis"></i>
+                            </button>
+
+                            <ul className="dropdown-menu dropdown-menu-end border-0 shadow">
+                              <li>
+                                <Link
+                                  className="dropdown-item"
+                                  to={`/job-details/${job._id}`}
+                                >
+                                  <i className="fa-regular fa-eye me-2"></i>
+                                  View Details
+                                </Link>
+                              </li>
+
+                              <li>
+                                <Link
+                                  className="dropdown-item"
+                                  to={`/job-details-form/${job._id}`}
+                                >
+                                  <i className="fa-regular fa-pen-to-square me-2"></i>
+                                  Edit Job
+                                </Link>
+                              </li>
+
+                              <li>
+                                <hr className="dropdown-divider" />
+                              </li>
+
+                              <li>
+                                <button
+                                  className="dropdown-item text-danger"
+                                  onClick={() => console.log("Delete job")}
+                                >
+                                  <i className="fa-regular fa-trash-can me-2"></i>
+                                  Delete
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </section>
           {totalPages > 1 && (
-            <div className="paginations mb-30">
-              <ul>
-                {/* Previous */}
-                <li>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
-                    className={currentPage === 1 ? "disabled" : ""}
+            <div className="d-flex justify-content-center mt-4">
+              <ul className="pagination">
+                <li
+                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(currentPage - 1)}
                   >
                     <i className="fa-solid fa-angle-left" />
-                  </a>
+                  </button>
                 </li>
 
-                {/* Page numbers */}
                 {Array.from({ length: totalPages }, (_, i) => (
-                  <li key={i + 1}>
-                    <a
-                      href="#"
-                      className={currentPage === i + 1 ? "active" : ""}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handlePageChange(i + 1);
-                      }}
+                  <li
+                    key={i}
+                    className={`page-item ${
+                      currentPage === i + 1 ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => handlePageChange(i + 1)}
                     >
                       {i + 1}
-                    </a>
+                    </button>
                   </li>
                 ))}
 
-                {/* Next */}
-                <li>
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (currentPage < totalPages)
-                        handlePageChange(currentPage + 1);
-                    }}
-                    className={currentPage === totalPages ? "disabled" : ""}
+                <li
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => handlePageChange(currentPage + 1)}
                   >
                     <i className="fa-solid fa-angle-right" />
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>

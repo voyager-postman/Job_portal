@@ -12040,3 +12040,26 @@ text-transform: capitalize;
 .test-failed-tag-area i {
   color: #dc3545;
 }
+.custom-header-row th {
+  background-color: #ee764c !important;
+  color: #fff !important;
+  padding: 14px;
+  border: none !important;
+}
+.table tbody tr:hover {
+  background-color: #f5f7fa !important; /* light gray */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.table tbody td {
+  padding: 20px 20px !important;
+}
+
+.table thead th {
+  padding: 8px 15px !important;   /* keep header smaller */
+}
