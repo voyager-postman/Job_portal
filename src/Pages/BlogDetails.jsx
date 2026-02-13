@@ -1,6 +1,80 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+
 function BlogDetails() {
+  const { id } = useParams();
+  const [blog, setBlog] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const getBlogDetails = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}getActiveBlogs`);
+
+      if (res.data.success) {
+        const selectedBlog = res.data.data.find(
+          (item) => item._id === id || item.slug === id,
+        );
+
+        if (selectedBlog) {
+          setBlog(selectedBlog);
+          setError(null);
+        } else {
+          setError("Blog not found");
+        }
+      } else {
+        setError("Blog not found");
+      }
+    } catch (error) {
+      console.error("Error Fetching Blog Details:-", error);
+      setError("Failed to load blog details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      getBlogDetails();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="blog-area pt-100 pb-70">
+        <div className="container">
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="blog-area pt-100 pb-70">
+        <div className="container">
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+          <Link to="/blog" className="default-btn btn">
+            Back to Blog List
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return null;
+  }
+
   return (
     <>
       <div>
@@ -8,12 +82,12 @@ function BlogDetails() {
         <div className="page-banner-area bg-f0f4fc">
           <div className="container">
             <div className="page-banner-content">
-              <h1>Blog Details</h1>
+              <h1>{blog.title}</h1>
               <ul>
                 <li>
-                  <a href="index-2.html">Home</a>
+                  <Link to="/">Home</Link>
                 </li>
-                <li>Blog Details</li>
+                <li>{blog.title}</li>
               </ul>
             </div>
           </div>
@@ -28,59 +102,45 @@ function BlogDetails() {
                   <div className="blog-details-top-content">
                     <div className="top-image">
                       <img
-                        src="assets/images/blog/blog-img-15.jpg"
-                        alt="Image"
+                        src={
+                          blog?.bannerImage
+                            ? `${API_IMAGE_URL}/${blog.bannerImage}`
+                            : "/images/placeholder.jpg"
+                        }
+                        alt={blog?.title}
                       />
                     </div>
                     <div className="info">
                       <ul>
                         <li>
                           <i className="fa-solid fa-user" />
-                          <a href="#">Andrew Lawson</a>
+                          <Link to="#">{blog.authorName}</Link>
                         </li>
                         <li>
-                          <i className="fa-solid fa-calendar-days" /> Feb 12,
-                          2024
+                          <i className="fa-solid fa-calendar-days" />{" "}
+                          {new Date(blog.publishDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
                         </li>
                       </ul>
                     </div>
-                    <h2>The Internet Is A Job Seeker Most Crucial Success</h2>
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                      sed do eiusmod tempor incididunt labore et dolore magna
-                      aliqua Ut enim ad minim veniam, quis nostrud exercitation
-                      ullamc laboris nisi ut aliquip commodo consequat. Duis
-                      aute irure dolor in reprehenderit in voluptate velit esse
-                      cillum dolore eu fugiat nulla pariatur commodo. Lorem
-                      ipsum dolor sit amet consectetur adipisicing elit.
-                      Voluptatem necessitatibus dolor placeat fuga deleniti
-                      doloremque? Ratione officia quia aliquam possimus.
-                    </p>
-                    <p>
-                      Excepteur sint occaecat cupidatat non proident, sunt in
-                      culpa qui officia deserunt mollit anim id est laborum. Sed
-                      ut perspiciatis unde omnis iste natus error sit voluptatem
-                      accusantium sed doloremque laudantium, totam rem aperiam,
-                      eaque ipsa quae ab illo inventore veritatis et quasi
-                      architecto beatae vitae dicta sunt explicabo.
-                    </p>
+                    <h2>{blog.title}</h2>
+                    <div dangerouslySetInnerHTML={{ __html: blog.content }} />
                   </div>
-                  <div className="blog-deails-content">
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                      sed do eiusmod tempor incididunt labore et dolore magna
-                      aliqua Ut enim ad minim veniam, quis nostrud exercitation
-                      ullamc laboris nisi ut aliquip commodo consequat. Duis
-                      aute irure dolor in reprehenderit in voluptate velit esse
-                      cillum dolore eu fugiat nulla pariatur commodo.
-                    </p>
-                    <p>
-                      Excepteur sint occaecat cupidatat non proident, sunt in
-                      culpa qui officia deserunt mollit anim id est laborum. Sed
-                      ut perspici unde omnis iste natus error sit voluptatem
-                      accusantium sed doloremque laudantium.
-                    </p>
-                  </div>
+                  {blog.additionalContent && (
+                    <div className="blog-deails-content">
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: blog.additionalContent,
+                        }}
+                      />
+                    </div>
+                  )}
                   {/* <div class="tag-and-share">
                           <div class="row align-items-center">
                               <div class="col-lg-6 col-md-7">

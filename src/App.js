@@ -157,7 +157,7 @@ function LayoutWrapper() {
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/blog" element={<Blog />} />
 
-        <Route path="/blogDetails" element={<BlogDetails />} />
+        <Route path="/blogDetails/:id" element={<BlogDetails />} />
 
         <Route path="/employer-home" element={<EmployerHomePage />} />
         <Route
