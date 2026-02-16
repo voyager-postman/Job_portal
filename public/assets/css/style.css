@@ -11602,7 +11602,7 @@ text-transform: capitalize;
 }
 .employer-candidate-info-area {
   min-height: calc(100vh - 120px); /* adjust if header height differs */
-  display: flex;
+  /* display: flex; */
   align-items: center;
 }
 
