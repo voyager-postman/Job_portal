@@ -8,6 +8,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
 import axios from "axios";
 
 function JobDetailsForm() {
@@ -29,6 +31,8 @@ function JobDetailsForm() {
   const [cityList, setCityList] = useState([]);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [jobAssessment, setJobAssessment] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
 
   // Group assessments by source using useMemo
   const groupedAssessments = useMemo(() => {
@@ -1404,6 +1408,46 @@ function JobDetailsForm() {
                         />
                         <span className="slider round" />
                       </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="job-option-branding-input-area">
+                  <div className="job-option-branding-heading">
+                    <h3>Expire Date</h3>
+                    <span className="heading-small-description">
+                     Define how many days this job will remain active.
+                    </span>
+                  </div>
+                  <div className="job-option-branding-input-box">
+                    <div className="row">
+                      <div className="col-lg-12 col-md-12">
+                        <div className="form-group">
+                          <label>Select Job Expire Date</label>
+                           <input
+                            className="form-control"
+                            type="date"
+                            name="expireDate"
+                            placeholder="Enter the expire date"
+                            value={formData.expireDate}
+                            onChange={handleChange}
+                          />
+                          {/* <DatePicker
+                            selectsRange={true}
+                            startDate={startDate}
+                            endDate={endDate}
+                            onChange={(update) => {
+                              setDateRange(update);
+                            }}
+                            monthsShown={2}
+                            dateFormat="dd-MM-yyyy"
+                            placeholderText="dd-mm-yyyy"
+                            className="form-control Date_Input"
+                            isClearable={true}
+                            minDate={new Date()} // Prevent past dates
+                          /> */}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

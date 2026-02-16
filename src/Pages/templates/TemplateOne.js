@@ -151,7 +151,7 @@ const TemplateOne = ({ data }) => {
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <h5>Eligible to Work In</h5>
-                      <p>France</p>
+                      <p>{personal?.eligibleToWorkInFrance === true ? "Yes" : "No"}</p>
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <h5>Minimum Salary</h5>

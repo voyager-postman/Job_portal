@@ -858,6 +858,8 @@ function CandidateProfile() {
       desiredJobTitle: profileData.careerGoals?.desiredJobTitle || "",
       employmentType: profileData.careerGoals?.employmentType || "",
       occupationType: profileData.careerGoals?.occupationType || "",
+      availabilityToJoin:
+        profileData.careerGoals?.availabilityToJoin || "Immediate",
       eligibleToWork: profileData.careerGoals?.eligibleToWork || false,
       salaryAmount: profileData.careerGoals?.salaryAmount || "",
       salaryType: profileData.careerGoals?.salaryType || "Hourly",
@@ -3605,6 +3607,7 @@ function CandidateProfile() {
                                 desiredJobTitle: "",
                                 employmentType: "",
                                 occupationType: "",
+                                availabilityToJoin: "Immediate",
                                 salaryAmount: "",
                                 salaryCurrency: "MAD",
                                 salaryType: "Hourly",
@@ -3641,6 +3644,10 @@ function CandidateProfile() {
                                 occupationType:
                                   profileData.career_goals
                                     ?.DesiredOccupationType || "",
+
+                                availabilityToJoin:
+                                  profileData.career_goals
+                                    ?.availabilityToJoin || "Immediate",
                                 salaryAmount:
                                   profileData.career_goals?.MinimumDesiredSalary
                                     ?.amount || "",
@@ -4011,8 +4018,17 @@ function CandidateProfile() {
                                 </div>
 
                                 <div className="divder-line-info" />
+                                <div className="col-lg-6 col-md-6">
+                                  <div className="form-group">
+                                    <label>Available to Join</label>
+                                    <p>
+                                      {profileData.career_goals
+                                        ?.availabilityToJoin || ""}
+                                    </p>
+                                  </div>
+                                </div>
 
-                                <div className="col-lg-4 col-md-6">
+                                <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
                                     <label>Eligible to work in</label>
                                     <p>
@@ -4023,7 +4039,9 @@ function CandidateProfile() {
                                   </div>
                                 </div>
 
-                                <div className="col-lg-4 col-md-6">
+                                <div className="divder-line-info" />
+
+                                <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
                                     <label>
                                       Minimum Desired Salary (Gross)
@@ -4037,7 +4055,7 @@ function CandidateProfile() {
                                   </div>
                                 </div>
 
-                                <div className="col-lg-4 col-md-6">
+                                <div className="col-lg-6 col-md-6">
                                   <div className="form-group">
                                     <label>
                                       Looking for a new job opportunity?
