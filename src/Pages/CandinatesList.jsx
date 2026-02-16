@@ -4,13 +4,20 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-
 function CandinatesList() {
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const [listLoading, setListLoading] = useState(false);
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [skillInput, setSkillInput] = useState("");
+  const [showContact, setShowContact] = useState(false);
+  const [showEducationOptions, setShowEducationOptions] = useState(false);
+  const [selectedCandidateId, setSelectedCandidateId] = useState(null);
+  const [candidateDetails, setCandidateDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState([]);
   const debounceTimer = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,6 +26,9 @@ function CandinatesList() {
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [selectedSalary, setSelectedSalary] = useState("");
+  const [selectedAvailability, setSelectedAvailability] = useState("");
+
   const [selectedCountry, setSelectedCountry] = useState(null);
   const cityDropdownRef = useRef(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -32,8 +42,6 @@ function CandinatesList() {
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [selectedCities, setSelectedCities] = useState([]);
-
-  const candidatesPerPage = 6; // ✅ show 6 candidates per page
   const educationLevels = [
     "High School",
     "Secondary School",
@@ -47,54 +55,87 @@ function CandinatesList() {
     "Post Doctorate",
     "Professional Degree",
   ];
-  const experienceLevels = ["0-2", "2-4", "5-7", "8-10", "10+"];
 
-  const handleLocationSearch = async (e) => {
-    const value = e.target.value;
-    setLocationSearchTerm(value);
+  useEffect(() => {
+    if (candidates.length > 0) {
+      setSelectedCandidateId(candidates[0]?.userId?._id);
+    }
+  }, [candidates]);
 
-    if (!value.trim()) {
-      setLocationSuggestions([]);
+  useEffect(() => {
+    if (selectedCandidateId) {
+      fetchCandidateDetails(selectedCandidateId);
+    }
+  }, [selectedCandidateId]);
+
+  const fetchCandidateDetails = async (id) => {
+    try {
+      setDetailsLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        `${API_BASE_URL}getCandidateDetails/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      setCandidateDetails(res.data?.data[0]);
+    } catch (err) {
+      console.error("Error fetching candidate details:", err);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+  useEffect(() => {
+    const fetchSeniorityLevels = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}getActiveSeniorityLevelList`,
+        );
+        if (res.data.success && Array.isArray(res.data.levels)) {
+          setSeniorityLevels(res.data.levels);
+        }
+      } catch (error) {
+        console.error("Error fetching seniority levels:", error);
+      }
+    };
+
+    fetchSeniorityLevels();
+  }, []);
+  useEffect(() => {
+    const fetchSalaryRanges = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}getActiveSalaryRangeList`);
+        const data = await res.json();
+
+        if (data?.success && Array.isArray(data.data)) {
+          setSalaryRanges(data.data);
+        }
+      } catch (err) {
+        console.log("Error fetching salary ranges:", err);
+      }
+    };
+
+    fetchSalaryRanges();
+  }, []);
+
+  const handleDownloadCV = () => {
+    const resumes = candidateDetails?.resumeUrls;
+
+    if (!resumes || resumes.length === 0) {
+      toast.info("No CV uploaded by candidate", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
-    try {
-      setIsLocationLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
+    const latestResume = resumes[resumes.length - 1];
+    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
 
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setLocationSuggestions(res.data.cities);
-      } else {
-        setLocationSuggestions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setLocationSuggestions([]);
-    } finally {
-      setIsLocationLoading(false);
-    }
+    window.open(fileUrl, "_blank");
   };
-
-  const handleSelectLocation = (city) => {
-    setSelectedLocation(city.name); // ✅ NAME
-    setLocationSearchTerm(
-      `${city.name}, ${city.state_name}, ${city.country_name}`,
-    );
-    setLocationSuggestions([]);
-  };
-
-  const clearLocationFilter = () => {
-    setSelectedLocation(null);
-    setLocationSearchTerm("");
-    setLocationSuggestions([]);
-  };
-
-  const visibleEducation = showAllEducation
-    ? educationLevels
-    : educationLevels.slice(0, 5);
-
   const fetchCandidates = async (page = 1, limit = perPage) => {
     try {
       setLoading(true);
@@ -120,10 +161,15 @@ function CandinatesList() {
           selectedEducation.length > 0
             ? selectedEducation.join(",")
             : undefined,
-        experience:
-          selectedExperience.length > 0
-            ? selectedExperience.join(",")
-            : undefined,
+        // experience:
+        //   selectedExperience.length > 0
+        //     ? selectedExperience.join(",")
+        //     : undefined,
+        experience: selectedExperience || undefined, // ✅ fixed
+
+        salary: selectedSalary || undefined, // ✅ added
+
+        availability: selectedAvailability || undefined, // ✅ added
         keyword: keyword.trim() || undefined,
         sortBy: sortField || undefined,
         order: sortOrder || undefined,
@@ -153,10 +199,6 @@ function CandinatesList() {
     }
   };
 
-  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
-
-  const endResult = Math.min(currentPage * perPage, totalResults);
-
   useEffect(() => {
     fetchCandidates(currentPage, perPage);
   }, [currentPage, perPage]);
@@ -167,12 +209,6 @@ function CandinatesList() {
       <p>Loading Candidates Listing, please wait...</p>
     </div>
   );
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
 
   const handleBookmark = async (candidateId, jobId) => {
     try {
@@ -288,22 +324,17 @@ function CandinatesList() {
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
-    // ✅ Default local dashboard image
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
-      return url;
-    }
-
-    // ✅ Fix wrong stored URL like "/uploads/https://..."
+    // Case: wrong URL like "/uploads/https://..."
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External image (Google, GitHub, etc.)
-    if (url.startsWith("http://") || url.startsWith("https://")) {
+    // Case: full external URL
+    if (url.startsWith("http")) {
       return url;
     }
 
-    // ✅ Local uploaded image
+    // Case: local upload (relative path)
     return `${API_IMAGE_URL}${url}`;
   };
 
@@ -332,779 +363,1441 @@ function CandinatesList() {
               </li>
             </ol>
           </div>
-          <div className="row">
-            {/* Search Box */}
-            <div className="col-12 mb-4">
-              <div className="employer-candidate-search-box d-flex align-items-center bg-white p-3 rounded shadow-sm">
-                <div className="employer-candidate-input-icon d-flex align-items-center flex-grow-1">
-                  <div className="employer-candidate-icon me-3 text-muted fs-5">
-                    <i className="fa-solid fa-magnifying-glass" />
-                  </div>
-
-                  <div className="employer-candidate-input-area w-100">
-                    <input
-                      type="text"
-                      className="form-control border-0 bg-transparent"
-                      placeholder="Find Candidate by Profile title, Competence, experience..."
-                    />
-                  </div>
-                </div>
-
-                <div className="employer-candidate-btn-area ms-3">
-                  <button className="default-btn btn px-4">
-                    Find Candidate
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Filters Section */}
-            <div className="col-12">
-              <div className="p-3 bg-white shadow-sm rounded border">
-                <div className="row g-2">
-                  {/* Country */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <h3>Country</h3>
-                    <select
-                      className="form-select form-control"
-                      value={selectedCountry || ""}
-                      onChange={(e) => {
-                        const selectedOption =
-                          e.target.options[e.target.selectedIndex];
-                        const countryId =
-                          selectedOption.getAttribute("data-id"); // numeric id
-                        const countryObjectId = e.target.value; // _id (mongo id)
-
-                        setSelectedCountry(countryObjectId);
-                        setSelectedCities([]); // Reset cities when country changes
-                        if (countryId) {
-                          fetchCitiesByCountry(countryId);
-                        } else {
-                          setCityList([]);
-                        }
-                        setCurrentPage(1);
+          <div className="employer-dashboard-common-heading">
+            <h2>Candidate Search</h2>
+          </div>
+          <section
+            className="employer-candidate-filter-info-area"
+            style={{ padding: "20px 0px" }}
+          >
+            <div className="row">
+              {/* Search Box */}
+              <div className="col-12 mb-4">
+                <div
+                  className="employer-candidate-search-box"
+                  style={{
+                    display: "flex",
+                    "-webkit-align-items": "center",
+                    "-webkit-box-align": "center",
+                    "-ms-flex-align": "center",
+                    "align-items": "center",
+                    background: "rgb(255, 255, 255)",
+                    padding: "15px 20px",
+                    "border-radius": "8px",
+                    "box-shadow": "rgba(0, 0, 0, 0.05) 0px 2px 10px",
+                  }}
+                >
+                  <div
+                    className="employer-candidate-input-icon"
+                    style={{
+                      "-webkit-flex": "1 1 0%",
+                      "-ms-flex": "1 1 0%",
+                      flex: "1 1 0%",
+                      display: "flex",
+                      "-webkit-align-items": "center",
+                      "-webkit-box-align": "center",
+                      "-ms-flex-align": "center",
+                      "align-items": "center",
+                    }}
+                  >
+                    <div
+                      className="employer-candidate-icon"
+                      style={{
+                        "margin-right": "15px",
+                        color: "rgb(102, 102, 102)",
+                        "font-size": "18px",
                       }}
                     >
-                      <option value="">Select Country</option>
-                      {country.map((count) => (
-                        <option
-                          key={count._id}
-                          value={count.name}
-                          data-id={count.id}
-                        >
-                          {count.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* City */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <select title="City">
-                      <option>All Cities</option>
-                      <option>New York</option>
-                      <option>London</option>
-                      <option>Berlin</option>
-                      <option>Toronto</option>
-                      <option>Paris</option>
-                      <option>Remote</option>
-                    </select>
-                  </div>
-
-                  {/* Skills */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <div className="single-sidebar-widget">
-                      <h3 className="small text-muted mb-2">Skills</h3>
+                      <i className="fa-solid fa-magnifying-glass" />
+                    </div>
+                    <div
+                      className="employer-candidate-input-area"
+                      style={{ width: "100%" }}
+                    >
                       <input
+                        className="form-control"
+                        placeholder="Find Candidat by Profile title , Competance , experiance .."
                         type="text"
-                        className="form-control border-0 bg-light rounded-pill"
-                        placeholder="Type & Enter"
+                        value={keyword}
+                        onChange={(e) => {
+                          setKeyword(e.target.value);
+                          setCurrentPage(1); // reset page
+                        }}
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          height: "100%",
+                          "font-size": "16px",
+                          padding: "10px 0px",
+                        }}
                       />
                     </div>
                   </div>
-
-                  {/* Experience */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <select title="Experience">
-                      <option>Level</option>
-                      <option>Junior</option>
-                      <option>Mid-Level</option>
-                      <option>Senior</option>
-                      <option>Lead</option>
-                    </select>
-                  </div>
-
-                  {/* Education */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <select title="Education">
-                      <option>Any Degree</option>
-                      <option>High School</option>
-                      <option>Bachelor Degree</option>
-                      <option>Master’s Degree</option>
-                      <option>Doctorate (PhD)</option>
-                    </select>
-                  </div>
-
-                  {/* Salary */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <select title="Salary">
-                      <option>Any Salary</option>
-                      <option>0-10,000</option>
-                      <option>10,000-20,000</option>
-                      <option>20,000-50,000</option>
-                      <option>50,000+</option>
-                    </select>
-                  </div>
-
-                  {/* Availability */}
-                  <div className="col-12 col-md-4 col-lg">
-                    <select title="Availability">
-                      <option>Any Status</option>
-                      <option>Immédiat</option>
-                      <option>Avec Préavis</option>
-                    </select>
+                  <div
+                    className="employer-candidate-btn-area"
+                    style={{ "margin-left": "15px" }}
+                  >
+                    <button
+                      className="default-btn btn"
+                      onClick={() => {
+                        setCurrentPage(1);
+                        // If you have API call function, call it here
+                        // fetchCandidates();
+                      }}
+                      style={{ padding: "10px 25px", "border-radius": "5px" }}
+                    >
+                      Find Candidate
+                    </button>
                   </div>
                 </div>
+              </div>
 
-                <div className="d-flex justify-content-end mt-4">
-                  <button className="btn btn-primary btn-sm px-5 fw-bold">
-                    Apply Filter
-                  </button>
+              {/* Filters Section */}
+              <div className="col-12">
+                <div className="p-3 bg-white shadow-sm rounded border">
+                  <div className="row g-2">
+                    {/* Country */}
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              fontSize: "13px",
+                              marginBottom: "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Country
+                          </h3>
+
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
+                              style={{
+                                fontSize: "12px",
+                                height: "38px",
+                                cursor: "pointer",
+                              }}
+                              value={selectedCountry || ""}
+                              onChange={(e) => {
+                                const selectedOption =
+                                  e.target.options[e.target.selectedIndex];
+
+                                const countryId =
+                                  selectedOption.getAttribute("data-id"); // numeric id
+
+                                const countryObjectId = e.target.value; // name (as before)
+
+                                setSelectedCountry(countryObjectId);
+                                setSelectedCities([]); // Reset cities when country changes
+
+                                if (countryId) {
+                                  fetchCitiesByCountry(countryId);
+                                } else {
+                                  setCityList([]);
+                                }
+
+                                setCurrentPage(1);
+                              }}
+                            >
+                              <option value="">All Country</option>
+
+                              {country.map((count) => (
+                                <option
+                                  key={count._id}
+                                  value={count.name}
+                                  data-id={count.id}
+                                >
+                                  {count.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* City */}
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              fontSize: "13px",
+                              marginBottom: "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            City
+                          </h3>
+
+                          <div className="form-group position-relative">
+                            <div
+                              className="multi-select-container"
+                              ref={cityDropdownRef}
+                            >
+                              {/* Selected Items + Input */}
+                              <div
+                                onClick={() => setShowCityOptions(true)}
+                                className="bg-light rounded-pill px-3 d-flex flex-wrap align-items-center"
+                                style={{
+                                  minHeight: "38px",
+                                  cursor: "text",
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {/* Selected city tags */}
+                                {selectedCities.map((cityName) => (
+                                  <span
+                                    key={cityName}
+                                    className="me-1 mb-1 d-flex align-items-center"
+                                    style={{
+                                      background: "#0d6efd",
+                                      color: "white",
+                                      borderRadius: "12px",
+                                      padding: "2px 8px",
+                                      fontSize: "11px",
+                                    }}
+                                  >
+                                    {cityName}
+                                    <i
+                                      className="fa-solid fa-xmark ms-1"
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() => handleRemoveCity(cityName)}
+                                    />
+                                  </span>
+                                ))}
+
+                                <input
+                                  type="text"
+                                  placeholder="Search city..."
+                                  value={citySearchTerm}
+                                  onChange={(e) =>
+                                    setCitySearchTerm(e.target.value)
+                                  }
+                                  onFocus={() => setShowCityOptions(true)}
+                                  style={{
+                                    flex: 1,
+                                    border: "none",
+                                    outline: "none",
+                                    background: "transparent",
+                                    minWidth: "80px",
+                                    fontSize: "12px",
+                                  }}
+                                />
+                              </div>
+
+                              {/* Dropdown Options */}
+                              {showCityOptions && (
+                                <ul
+                                  className="list-unstyled bg-white shadow-sm rounded mt-1"
+                                  style={{
+                                    maxHeight: "200px",
+                                    overflowY: "auto",
+                                    position: "absolute",
+                                    width: "100%",
+                                    zIndex: 1000,
+                                    fontSize: "12px",
+                                  }}
+                                >
+                                  {filteredCities.length > 0 ? (
+                                    filteredCities.map((city) => {
+                                      const isSelected =
+                                        selectedCities.includes(city.name);
+
+                                      return (
+                                        <li
+                                          key={city._id}
+                                          onClick={() => toggleCity(city.name)}
+                                          className="px-3 py-2"
+                                          style={{
+                                            cursor: "pointer",
+                                            background: isSelected
+                                              ? "#0d6efd"
+                                              : "transparent",
+                                            color: isSelected
+                                              ? "white"
+                                              : "black",
+                                          }}
+                                        >
+                                          {city.name}
+                                          {isSelected && (
+                                            <span className="float-end">✔</span>
+                                          )}
+                                        </li>
+                                      );
+                                    })
+                                  ) : (
+                                    <li className="px-3 py-2 text-muted">
+                                      No cities found
+                                    </li>
+                                  )}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              fontSize: "13px",
+                              marginBottom: "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Skills
+                          </h3>
+
+                          <div className="form-group">
+                            {/* Input */}
+                            <input
+                              type="text"
+                              className="form-control border-0 bg-light rounded-pill px-3 shadow-none"
+                              placeholder="Type skill & press Enter"
+                              value={skillInput}
+                              style={{
+                                fontSize: "12px",
+                                height: "38px",
+                              }}
+                              onChange={(e) => setSkillInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && skillInput.trim()) {
+                                  e.preventDefault();
+
+                                  if (
+                                    !selectedSkills.includes(skillInput.trim())
+                                  ) {
+                                    setSelectedSkills((prev) => [
+                                      ...prev,
+                                      skillInput.trim(),
+                                    ]);
+                                  }
+
+                                  setSkillInput("");
+                                }
+                              }}
+                            />
+
+                            {/* Selected Skills */}
+                            {selectedSkills.length > 0 && (
+                              <div className="mt-2 d-flex flex-wrap gap-2">
+                                {selectedSkills.map((skill) => (
+                                  <span
+                                    key={skill}
+                                    className="d-flex align-items-center"
+                                    style={{
+                                      background: "#0d6efd",
+                                      color: "white",
+                                      borderRadius: "12px",
+                                      padding: "3px 10px",
+                                      fontSize: "11px",
+                                    }}
+                                  >
+                                    {skill}
+                                    <span
+                                      style={{
+                                        cursor: "pointer",
+                                        marginLeft: "6px",
+                                      }}
+                                      onClick={() =>
+                                        setSelectedSkills((prev) =>
+                                          prev.filter((s) => s !== skill),
+                                        )
+                                      }
+                                    >
+                                      ✕
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              "font-size": "13px",
+                              "margin-bottom": "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Experience
+                          </h3>
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
+                              style={{
+                                "font-size": "12px",
+                                height: "38px",
+                                cursor: "pointer",
+                              }}
+                              value={selectedExperience}
+                              onChange={(e) =>
+                                setSelectedExperience(e.target.value)
+                              }
+                            >
+                              <option value="" disabled>
+                                Select minimum level
+                              </option>
+
+                              {seniorityLevels.map((level) => (
+                                <option key={level._id} value={level._id}>
+                                  {level.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              fontSize: "13px",
+                              marginBottom: "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Education
+                          </h3>
+
+                          <div className="form-group position-relative">
+                            <div
+                              className="bg-light rounded-pill px-3 d-flex align-items-center flex-wrap"
+                              style={{
+                                minHeight: "38px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                              }}
+                              onClick={() =>
+                                setShowEducationOptions(!showEducationOptions)
+                              }
+                            >
+                              {selectedEducation.length > 0
+                                ? selectedEducation.join(", ")
+                                : "Any Degree"}
+                            </div>
+
+                            {showEducationOptions && (
+                              <ul
+                                className="list-unstyled bg-white shadow-sm rounded mt-1 p-2"
+                                style={{
+                                  maxHeight: "220px",
+                                  overflowY: "auto",
+                                  position: "absolute",
+                                  width: "100%",
+                                  zIndex: 1000,
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {educationLevels.map((edu, index) => (
+                                  <li
+                                    key={edu}
+                                    className="d-flex align-items-center px-2 py-1"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id={`education-${index}`}
+                                      value={edu}
+                                      checked={selectedEducation.includes(edu)}
+                                      onChange={() => toggleEducation(edu)}
+                                      className="me-2"
+                                    />
+                                    <label
+                                      htmlFor={`education-${index}`}
+                                      style={{ cursor: "pointer" }}
+                                    >
+                                      {edu}
+                                    </label>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skills */}
+
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              "font-size": "13px",
+                              "margin-bottom": "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Salary
+                          </h3>
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
+                              style={{
+                                "font-size": "12px",
+                                height: "38px",
+                                cursor: "pointer",
+                              }}
+                              value={selectedSalary}
+                              onChange={(e) =>
+                                setSelectedSalary(e.target.value)
+                              }
+                            >
+                              <option value="">Choose Salary Range</option>
+
+                              {salaryRanges.map((item) => (
+                                <option key={item._id} value={item.range}>
+                                  {item.range}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Experience */}
+                    <div className="col-12 col-md-4 col-lg">
+                      <div className="employer-candidate-filter-box">
+                        <div className="single-sidebar-widget keyword">
+                          <h3
+                            style={{
+                              "font-size": "13px",
+                              "margin-bottom": "8px",
+                              color: "rgb(102, 102, 102)",
+                            }}
+                          >
+                            Availability
+                          </h3>
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
+                              style={{
+                                "font-size": "12px",
+                                height: "38px",
+                                cursor: "pointer",
+                              }}
+                              value={selectedAvailability}
+                              onChange={(e) =>
+                                setSelectedAvailability(e.target.value)
+                              }
+                            >
+                              <option value="">Any Status</option>
+                              <option value="Immediate">Immediate</option>
+                              <option value="Notice">With Notice</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Education */}
+                  </div>
+
+                  <div className="d-flex justify-content-end mt-4">
+                    <button
+                      className="btn btn-primary btn-sm px-5 fw-bold"
+                      onClick={() => {
+                        setCurrentPage(1);
+                        fetchCandidates(1, perPage);
+                      }}
+                    >
+                      Apply Filter
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
+          <section
+            className="employer-candidate-info-area"
+            style={{ padding: "0px 20px 40px" }}
+          >
+            <div className="row">
+              <div className="col-lg-4">
+                <div className="d-flex justify-content-end mb-2">
+                  {/* Sort */}
+                  <select
+                    className="form-select form-select-sm shadow-none"
+                    style={{ width: "auto", fontSize: "12px" }}
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value="">Sort By (Newest First)</option>
 
-          <div className="candidate-listing-area">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-3">
-                  <div className="sidebar candidate-list-filter">
-                    <div className="single-sidebar-widget keyword">
-                      <h3>Search By Keyword</h3>
-                      <form>
-                        <div className="form-group">
-                          <input
-                            className="form-control"
-                            type="text"
-                            placeholder="Keywords / Job Title"
-                            value={keyword}
-                            onChange={(e) => {
-                              setKeyword(e.target.value);
-                              setCurrentPage(1); // reset page
-                            }}
-                          />
-                        </div>
-                      </form>
-                    </div>
-                    <div className="single-sidebar-widget skills">
-                      <h3>Skills</h3>
-                      <form>
-                        <div className="form-group">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Type skill and press Enter"
-                            value={skillInput}
-                            onChange={(e) => setSkillInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && skillInput.trim()) {
-                                e.preventDefault();
+                    <option value="name|asc">Name: A - Z</option>
+                    <option value="name|desc">Name: Z - A</option>
 
-                                if (
-                                  !selectedSkills.includes(skillInput.trim())
-                                ) {
-                                  setSelectedSkills((prev) => [
-                                    ...prev,
-                                    skillInput.trim(),
-                                  ]);
-                                }
-
-                                setSkillInput("");
-                              }
-                            }}
-                          />
-                          {selectedSkills.length > 0 && (
-                            <div className="mt-2 d-flex flex-wrap gap-2">
-                              {selectedSkills.map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="badge bg-primary d-flex align-items-center"
-                                >
-                                  {skill}
-                                  <span
-                                    style={{
-                                      cursor: "pointer",
-                                      marginLeft: "6px",
-                                      padding: "5px",
-                                    }}
-                                    onClick={() =>
-                                      setSelectedSkills((prev) =>
-                                        prev.filter((s) => s !== skill),
-                                      )
-                                    }
-                                  >
-                                    ✕
-                                  </span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </form>
-                    </div>
-                    <div className="single-sidebar-widget">
-                      <h3>Experience level</h3>
-                      <div className="candidate-list-select-filter">
-                        <ul>
-                          {experienceLevels.map((exp, index) => (
-                            <li key={index}>
-                              <input
-                                type="checkbox"
-                                id={`exp-${index}`}
-                                value={exp}
-                                checked={selectedExperience.includes(exp)}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  setSelectedExperience((prev) =>
-                                    prev.includes(value)
-                                      ? prev.filter((i) => i !== value)
-                                      : [...prev, value],
-                                  );
-                                }}
-                              />
-                              <label htmlFor={`exp-${index}`}>
-                                {exp === "10+"
-                                  ? "10+ Years"
-                                  : exp.replace("-", " - ") + " Years"}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="single-sidebar-widget">
-                      <h3>Education</h3>
-                      <div className="candidate-list-select-filter">
-                        <ul>
-                          {/* First 5 */}
-                          {educationLevels.slice(0, 5).map((edu, index) => (
-                            <li key={edu}>
-                              <input
-                                type="checkbox"
-                                id={`education-${index}`}
-                                value={edu}
-                                checked={selectedEducation.includes(edu)}
-                                onChange={() => toggleEducation(edu)}
-                              />
-                              <label htmlFor={`education-${index}`}>
-                                {edu}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-
-                        {/* Collapsed items */}
-                        <div className="collapse" id="educationCollapse">
-                          <ul>
-                            {educationLevels.slice(5).map((edu, index) => {
-                              const realIndex = index + 5;
-                              return (
-                                <li key={edu}>
-                                  <input
-                                    type="checkbox"
-                                    id={`education-${realIndex}`}
-                                    value={edu}
-                                    checked={selectedEducation.includes(edu)}
-                                    onChange={() => toggleEducation(edu)}
-                                  />
-                                  <label htmlFor={`education-${realIndex}`}>
-                                    {edu}
-                                  </label>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-
-                        {/* Show More / Show Less */}
-                        {educationLevels.length > 5 && (
-                          <div
-                            className="show-more-less-btn collapsed"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#educationCollapse"
-                            aria-expanded="false"
-                          >
-                            <span className="show-more">
-                              Show More <i className="fa fa-angle-down" />
-                            </span>
-                            <span className="show-less">
-                              Show Less <i className="fa fa-angle-up" />
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="single-sidebar-widget location-style2">
-                      <h3>Country</h3>
-                      <select
-                        className="form-select form-control"
-                        value={selectedCountry || ""}
-                        onChange={(e) => {
-                          const selectedOption =
-                            e.target.options[e.target.selectedIndex];
-                          const countryId =
-                            selectedOption.getAttribute("data-id"); // numeric id
-                          const countryObjectId = e.target.value; // _id (mongo id)
-
-                          setSelectedCountry(countryObjectId);
-                          setSelectedCities([]); // Reset cities when country changes
-                          if (countryId) {
-                            fetchCitiesByCountry(countryId);
-                          } else {
-                            setCityList([]);
-                          }
-                          setCurrentPage(1);
-                        }}
-                      >
-                        <option value="">Select Country</option>
-                        {country.map((count) => (
-                          <option
-                            key={count._id}
-                            value={count.name}
-                            data-id={count.id}
-                          >
-                            {count.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="single-sidebar-widget skills">
-                      <h3>City</h3>
-                      <div className="form-group">
-                        <div
-                          className="multi-select-container"
-                          ref={cityDropdownRef}
-                        >
-                          <div
-                            className="selected-items"
-                            onClick={() => setShowCityOptions(true)}
-                            style={{
-                              display: "flex",
-                              flexWrap: "wrap",
-                              border: "1px solid #ccc",
-                              borderRadius: "6px",
-                              padding: "6px",
-                              cursor: "text",
-                            }}
-                          >
-                            {/* Show selected city tags */}
-                            {selectedCities.map((cityName) => (
-                              <span
-                                key={cityName}
-                                className="tag"
-                                style={{
-                                  background: "#007bff",
-                                  color: "white",
-                                  borderRadius: "4px",
-                                  padding: "3px 6px",
-                                  margin: "2px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                {cityName}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() => handleRemoveCity(cityName)}
-                                />
-                              </span>
-                            ))}
-
-                            {/* Search Input */}
-                            <input
-                              type="text"
-                              placeholder="Search city..."
-                              value={citySearchTerm}
-                              onChange={(e) =>
-                                setCitySearchTerm(e.target.value)
-                              }
-                              onFocus={() => setShowCityOptions(true)}
-                              style={{
-                                flex: 1,
-                                border: "none",
-                                outline: "none",
-                                minWidth: "100px",
-                              }}
-                            />
-                          </div>
-                          {showCityOptions && (
-                            <ul
-                              className="options-list"
-                              style={{
-                                border: "1px solid #ccc",
-                                borderRadius: "6px",
-                                maxHeight: "200px",
-                                overflowY: "auto",
-                                background: "#fff",
-                                position: "absolute",
-                                width: "100%",
-                                zIndex: 1000,
-                                marginTop: "4px",
-                                padding: 0,
-                                listStyle: "none",
-                              }}
-                            >
-                              {filteredCities.length > 0 ? (
-                                filteredCities.map((city) => (
-                                  <li
-                                    key={city._id}
-                                    onClick={() => toggleCity(city.name)}
-                                    className={
-                                      selectedCities.includes(city.name)
-                                        ? "selected"
-                                        : ""
-                                    }
-                                    style={{
-                                      padding: "6px 10px",
-                                      cursor: "pointer",
-                                      background: selectedCities.includes(
-                                        city.name,
-                                      )
-                                        ? "#007bff"
-                                        : "transparent",
-                                      color: selectedCities.includes(city.name)
-                                        ? "white"
-                                        : "black",
-                                    }}
-                                  >
-                                    {city.name}
-                                    {selectedCities.includes(city.name) && (
-                                      <span style={{ float: "right" }}>✔</span>
-                                    )}
-                                  </li>
-                                ))
-                              ) : (
-                                <li
-                                  style={{
-                                    padding: "6px 10px",
-                                    color: "#888",
-                                  }}
-                                >
-                                  No cities found
-                                </li>
-                              )}
-                            </ul>
-                          )}
-                          {/* Dropdown list */}
-                        </div>
-                        {/* <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter city by country"
-                        /> */}
-                      </div>
-                    </div>
-
-                    {/* <div className="single-sidebar-widget location-style2">
-                      <h3>Location</h3>
-                      <div className="position-relative">
-                        <input
-                          type="search"
-                          className="form-control"
-                          placeholder="Search location"
-                          value={locationSearchTerm}
-                          onChange={handleLocationSearch}
-                        />
-                        {selectedLocation && (
-                          <span
-                            onClick={clearLocationFilter}
-                            style={{
-                              position: "absolute",
-                              right: "10px",
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              cursor: "pointer",
-                              fontSize: "16px",
-                              color: "#999",
-                            }}
-                            title="Clear location"
-                          >
-                            ✕
-                          </span>
-                        )}
-                      </div>
-                      {isLocationLoading && (
-                        <div className="suggestion-box">Searching...</div>
-                      )}
-                    </div> */}
-                    {/* {!isLocationLoading && locationSuggestions.length > 0 && (
-                      <ul
-                        className="list-group position-absolute "
-                        style={{
-                          zIndex: 1000,
-                          maxHeight: "200px",
-                          width: "250px",
-                          overflowY: "auto",
-                        }}
-                      >
-                        {locationSuggestions.map((city) => (
-                          <li
-                            key={city._id}
-                            className="list-group-item list-group-item-action"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleSelectLocation(city)}
-                          >
-                            {city.name}, {city.state_name}, {city.country_name}
-                          </li>
-                        ))}
-                      </ul>
-                    )} */}
-                  </div>
+                    <option value="experience|asc">
+                      Experience: Low to High
+                    </option>
+                    <option value="experience|desc">
+                      Experience: High to Low
+                    </option>
+                  </select>
                 </div>
-                <div className="col-lg-9">
-                  <div className="search-job-top-content">
-                    <div className="row align-items-center">
-                      <div className="col-lg-6 col-md-4">
-                        <div className="shoing-content">
-                          <span>
-                            Showing {startResult} – {endResult} of{" "}
-                            {totalResults} results
-                          </span>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-8">
-                        <div className="candidate-list-short-info shorting-content">
-                          <div className="row">
-                            <div className="col-6">
-                              <select
-                                className="form-select form-control"
-                                value={perPage}
-                                onChange={(e) => {
-                                  setPerPage(Number(e.target.value));
-                                  setCurrentPage(1); // reset page
-                                }}
-                              >
-                                <option value={10}>10 Per Page</option>
-                                <option value={20}>20 Per Page</option>
-                                <option value={50}>50 Per Page</option>
-                              </select>
-                            </div>
-                            <div className="col-6">
-                              <select
-                                className="form-select form-control"
-                                value={sortBy}
-                                onChange={(e) => {
-                                  setSortBy(e.target.value);
-                                  setCurrentPage(1); // reset page on sort
-                                }}
-                              >
-                                <option value="">Sort By (Newest First)</option>
 
-                                <option value="name|asc">Name: A - Z</option>
-                                <option value="name|desc">Name: Z - A</option>
+                <div
+                  className="candidate-list-scroll"
+                  style={{ maxHeight: "800px", overflowY: "auto" }}
+                >
+                  {candidates.length > 0 ? (
+                    candidates.map((candidate, index) => {
+                      const user = candidate?.userId || {};
+                      const role = candidate?.aboutRole || {};
 
-                                <option value="experience|asc">
-                                  Experience: Low to High
-                                </option>
-                                <option value="experience|desc">
-                                  Experience: High to Low
-                                </option>
-                              </select>
+                      return (
+                        <div
+                          onClick={() => {
+                            setSelectedCandidateId(user._id);
+                          }}
+                          key={candidate._id || index}
+                          className="card mb-2 border-0 shadow-sm"
+                          style={{
+                            cursor: "pointer",
+                            borderLeft: "4px solid #0d6efd",
+                            transition: "0.2s",
+                            background: "#fff",
+                          }}
+                        >
+                          <div className="card-body p-3">
+                            <div className="d-flex align-items-start">
+                              {/* Profile Image */}
+                              <img
+                                alt="user"
+                                className="rounded-circle me-3"
+                                src={
+                                  cleanImageUrl(user?.profileImage) ||
+                                  "assets/images/userIcon.png"
+                                }
+                                crossOrigin="anonymous"
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  objectFit: "cover",
+                                }}
+                              />
+
+                              <div className="flex-grow-1">
+                                {/* Name + Bookmark */}
+                                <div className="d-flex justify-content-between">
+                                  <h6 className="mb-1 fw-bold">
+                                    {`${user.first_name || ""} ${user.last_name || ""}`}
+                                  </h6>
+
+                                  <div className="dropdown">
+                                    <button
+                                      className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
+                                      type="button"
+                                      data-bs-toggle="dropdown"
+                                      style={{
+                                        width: "32px",
+                                        height: "32px",
+                                        padding: "0px",
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <i
+                                        className={
+                                          candidate.isBookmarked
+                                            ? "fa-solid fa-bookmark"
+                                            : "fa-regular fa-bookmark"
+                                        }
+                                      />
+                                    </button>
+
+                                    <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                      <li>
+                                        <button
+                                          className="dropdown-item d-flex align-items-center gap-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleBookmark(
+                                              user?._id,
+                                              candidate.jobId,
+                                            );
+                                          }}
+                                        >
+                                          <i className="fa-regular fa-folder" />
+                                          <span style={{ fontSize: "13px" }}>
+                                            Save to Default Folder
+                                          </span>
+                                        </button>
+                                      </li>
+
+                                      <li>
+                                        <hr className="dropdown-divider" />
+                                      </li>
+
+                                      <li>
+                                        <button className="dropdown-item text-primary">
+                                          <i className="fa-solid fa-plus me-2" />
+                                          Create New Folder
+                                        </button>
+                                      </li>
+                                    </ul>
+                                  </div>
+                                </div>
+
+                                {/* Job Title */}
+                                <p
+                                  className="mb-1 text-muted"
+                                  style={{ fontSize: "12px" }}
+                                >
+                                  {role.jobTitle || "Not specified"}
+                                </p>
+
+                                {/* Experience + Location */}
+                                <div
+                                  className="d-flex align-items-center gap-2 mb-1"
+                                  style={{ fontSize: "12px" }}
+                                >
+                                  <span className="text-primary fw-bold">
+                                    {role.yearOfExperience
+                                      ? `${role.yearOfExperience} Years`
+                                      : "N/A"}
+                                  </span>
+
+                                  <span className="text-muted">•</span>
+
+                                  <span className="text-muted">
+                                    {user.city || "Location not available"}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-center">No candidates found.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-lg-8">
+                <div
+                  className="card border-0 shadow-sm"
+                  style={{
+                    minHeight: "600px",
+                    maxHeight: "800px",
+                    overflowY: "auto",
+                  }}
+                >
+                  <div className="card-body p-4">
+                    {detailsLoading ? (
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "500px" }}
+                      >
+                        <div
+                          className="spinner-border text-primary"
+                          role="status"
+                        />
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="row">
-                    {loading ? (
-                      <JobListLoader />
-                    ) : candidates.length > 0 ? (
-                      candidates.map((candidate, index) => {
-                        // ✅ Declare variables here (not inside JSX)
-                        const user = candidate?.userId || {};
-                        const role = candidate?.aboutRole || {};
-
-                        return (
-                          <div
-                            key={candidate._id || index}
-                            className="col-lg-6 col-sm-6 aos-init aos-animate"
-                            data-aos="fade-up"
-                            data-aos-duration={1200}
-                            data-aos-delay={200}
-                          >
-                            <div className="candidate-list-info single-freelancer-card">
-                              <Link
-                                to="/candidates-details"
-                                state={{
-                                  userId: user._id,
-                                  from: "/candidates-search",
+                    ) : candidateDetails ? (
+                      <>
+                        <div
+                          className="card border-0 shadow-sm"
+                          style={{ "min-height": "600px" }}
+                        >
+                          <div className="card-body p-4">
+                            <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4">
+                              <img
+                                alt="profile"
+                                className="rounded"
+                                crossOrigin="anonymous"
+                                src={
+                                  cleanImageUrl(
+                                    candidateDetails?.userId?.profileImage,
+                                  ) || "assets/images/userIcon.png"
+                                }
+                                style={{
+                                  width: "120px",
+                                  height: "120px",
+                                  "object-fit": "cover",
                                 }}
-                              >
-                                <div className="row align-items-center">
-                                  <div className="col-lg-4">
-                                    <div className="freelancer-img">
-                                      <img
-                                        src={
-                                          cleanImageUrl(user?.profileImage) ||
-                                          "assets/images/userIcon.png"
-                                        }
-                                        crossOrigin="anonymous"
-                                        alt="Profile"
-                                      />
-                                    </div>
+                              />
+                              <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between align-items-start">
+                                  <div>
+                                    <h4 className="fw-bold mb-1">
+                                      {candidateDetails?.userId?.first_name
+                                        ?.toLowerCase()
+                                        .replace(/^\w/, (c) =>
+                                          c.toUpperCase(),
+                                        ) || "Not Provided"}{" "}
+                                      {candidateDetails?.userId?.last_name
+                                        ?.toLowerCase()
+                                        .replace(/^\w/, (c) => c.toUpperCase())}
+                                    </h4>
+                                    <p className="text-muted mb-2">
+                                      {candidateDetails?.aboutRole?.jobTitle
+                                        ?.toLowerCase()
+                                        .replace(/^\w/, (c) =>
+                                          c.toUpperCase(),
+                                        ) || "Not Provided"}{" "}
+                                    </p>
                                   </div>
-                                  <div className="col-lg-8">
-                                    <div className="freelancer-content">
-                                      <h3>
-                                        {`${user.first_name || ""} ${
-                                          user.last_name || ""
-                                        }`}
-                                      </h3>
-
-                                      <span>
-                                        {role.jobTitle || "Not specified"}
-                                      </span>
-                                      <div className="info">
-                                        <ul>
-                                          <li>
-                                            <i className="fa-solid fa-file" />{" "}
-                                            {role.yearOfExperience
-                                              ? `${role.yearOfExperience} Years`
-                                              : "N/A"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-money-bill" />
-                                            {candidate.career_goals
-                                              ?.MinimumDesiredSalary?.amount
-                                              ? `$ ${candidate.career_goals?.MinimumDesiredSalary?.amount}/${candidate.career_goals?.MinimumDesiredSalary?.type}`
-                                              : "$ 0"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-location-dot" />
-                                            {user.city ||
-                                              "Location not available"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-graduation-cap" />
-                                            {candidate?.career_goals
-                                              ?.DesiredEmploymentType ||
-                                              "Not specified"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-gear" />
-                                            <span className="candidate-active">
-                                              {candidate.profileVisible
-                                                ? "Active"
-                                                : "Inactive"}
-                                            </span>
-                                          </li>
-                                        </ul>
-                                      </div>
-
-                                      <div
-                                        className="candidate-list-bookmark"
-                                        onClick={(e) => {
-                                          e.preventDefault(); // 🔥 stop form submit
-                                          e.stopPropagation(); // 🔥 stop parent navigation
-                                          handleBookmark(
-                                            user?._id,
-                                            candidate.jobId,
-                                          );
+                                  <div className="d-flex gap-2">
+                                    <button
+                                      className="btn btn-primary btn-sm"
+                                      onClick={handleDownloadCV}
+                                    >
+                                      <i className="fa-solid fa-download me-1" />{" "}
+                                      Download CV
+                                    </button>
+                                    <a
+                                      href="https://www.linkedin.com/in/candidate-smith"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
+                                      style={{ width: "32px", height: "32px" }}
+                                    >
+                                      <i className="fa-brands fa-linkedin-in" />
+                                    </a>
+                                    <div className="dropdown">
+                                      <button
+                                        className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        title="Bookmark Candidate"
+                                        style={{
+                                          width: "32px",
+                                          height: "32px",
+                                          padding: "0px",
                                         }}
-                                        style={{ cursor: "pointer" }}
                                       >
-                                        <i
-                                          className={
-                                            candidate.isBookmarked
-                                              ? "fa-solid fa-bookmark"
-                                              : "fa-regular fa-bookmark"
-                                          }
-                                          style={{
-                                            cursor: "pointer",
-                                            color: candidate.isBookmarked
-                                              ? "#1868ca"
-                                              : "#888",
-                                          }}
-                                        />
-                                      </div>
+                                        <i className="fa-regular fa-bookmark" />
+                                      </button>
+                                      <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li>
+                                          <h6 className="dropdown-header">
+                                            Manual Folders
+                                          </h6>
+                                        </li>
+                                        <li>
+                                          <button className="dropdown-item d-flex align-items-center gap-2">
+                                            <i className="fa-regular fa-folder" />
+                                            <span
+                                              style={{ "font-size": "13px" }}
+                                            >
+                                              React Developer
+                                            </span>
+                                          </button>
+                                        </li>
+                                        <li>
+                                          <button className="dropdown-item d-flex align-items-center gap-2">
+                                            <i className="fa-regular fa-folder" />
+                                            <span
+                                              style={{ "font-size": "13px" }}
+                                            >
+                                              Backend Senior Developer
+                                            </span>
+                                          </button>
+                                        </li>
+                                        <li>
+                                          <button className="dropdown-item d-flex align-items-center gap-2">
+                                            <i className="fa-regular fa-folder" />
+                                            <span
+                                              style={{ "font-size": "13px" }}
+                                            >
+                                              UI/UX Designer
+                                            </span>
+                                          </button>
+                                        </li>
+                                        <li>
+                                          <hr className="dropdown-divider" />
+                                        </li>
+                                        <li>
+                                          <button className="dropdown-item text-primary">
+                                            <i className="fa-solid fa-plus me-2" />
+                                            Create New Folder
+                                          </button>
+                                        </li>
+                                      </ul>
                                     </div>
                                   </div>
                                 </div>
-                              </Link>
+                                <div className="d-flex flex-wrap gap-2 mt-3 text-sm text-muted">
+                                  <div className="w-100 d-flex align-items-center gap-1">
+                                    <i className="fa-solid fa-location-dot" />
+                                    {candidateDetails?.userId?.city
+                                      ?.toLowerCase()
+                                      .replace(/^\w/, (c) => c.toUpperCase()) ||
+                                      "Not Provided"}{" "}
+                                  </div>
+                                  <div className="w-100">
+                                    <button
+                                      className="btn btn-light btn-sm border text-muted"
+                                      style={{
+                                        fontSize: "11px",
+                                        padding: "2px 8px",
+                                      }}
+                                      onClick={() =>
+                                        setShowContact(!showContact)
+                                      }
+                                    >
+                                      <i className="fa-regular fa-eye me-1" />
+                                      {showContact
+                                        ? "Masquer les coordonnées"
+                                        : "Afficher les coordonnées"}
+                                    </button>
+                                  </div>
+
+                                  {showContact && (
+                                    <div className="w-100 d-flex flex-wrap gap-3 mt-2">
+                                      <div className="d-flex align-items-center gap-1">
+                                        <i className="fa-regular fa-envelope" />
+                                        {candidateDetails?.userId?.email ||
+                                          "Not Provided"}
+                                      </div>
+
+                                      <div className="d-flex align-items-center gap-1">
+                                        <i className="fa-solid fa-phone" />
+                                        {candidateDetails?.userId?.countryCode
+                                          ? `+${candidateDetails.userId.countryCode} ${
+                                              candidateDetails?.userId?.phone ||
+                                              ""
+                                            }`
+                                          : candidateDetails?.userId?.phone ||
+                                            "Not Provided"}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="d-flex flex-wrap gap-2 mt-3">
+                                  {candidateDetails?.skills &&
+                                  candidateDetails.skills.length > 0 ? (
+                                    candidateDetails.skills.map(
+                                      (skill, index) => (
+                                        <span className="badge bg-light text-dark border px-2 py-1 user-select-none">
+                                          {skill}
+                                        </span>
+                                      ),
+                                    )
+                                  ) : (
+                                    <li>No skills listed</li>
+                                  )}
+                                </div>
+                                <div className="d-flex justify-content-end mt-3">
+                                  <button className="btn btn-warning text-white btn-sm">
+                                    <i className="fa-solid fa-envelope me-1" />{" "}
+                                    Send Message
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">About Candidate</h5>
+                              <p
+                                className="text-muted"
+                                style={{ "line-height": "1.6" }}
+                              >
+                                {candidateDetails?.professionalSummary || "N/A"}
+                              </p>
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">Experience</h5>
+
+                              {candidateDetails?.workHistory &&
+                              candidateDetails.workHistory.length > 0 ? (
+                                candidateDetails.workHistory.map(
+                                  (work, index) => {
+                                    const isLast =
+                                      index ===
+                                      candidateDetails.workHistory.length - 1;
+
+                                    const startDate = new Date(work.startDate);
+                                    const endDateObj = work.currentlyWorkingHere
+                                      ? null
+                                      : new Date(work.endDate);
+
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="position-relative d-flex gap-3 pb-4"
+                                      >
+                                        {/* LEFT SIDE (ICON + LINE) */}
+                                        <div className="d-flex flex-column align-items-center position-relative">
+                                          {/* ICON */}
+                                          <div
+                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                            style={{
+                                              width: "40px",
+                                              height: "40px",
+                                              zIndex: 1,
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-briefcase text-primary" />
+                                          </div>
+
+                                          {/* VERTICAL LINE */}
+                                          {!isLast && (
+                                            <div
+                                              style={{
+                                                position: "absolute",
+                                                top: "40px",
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                width: "2px",
+                                                height: "100%",
+                                                backgroundColor: "#e9ecef",
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+
+                                        {/* RIGHT SIDE CONTENT */}
+                                        <div>
+                                          <h6 className="fw-bold mb-1">
+                                            {work.jobTitle
+                                              ?.toLowerCase()
+                                              .replace(/^\w/, (c) =>
+                                                c.toUpperCase(),
+                                              ) || "Not Provided"}
+                                          </h6>
+
+                                          <p className="text-muted mb-1 small">
+                                            {work.companyName} •{" "}
+                                            {startDate.toLocaleDateString(
+                                              "en-GB",
+                                              {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              },
+                                            )}{" "}
+                                            -{" "}
+                                            {work.currentlyWorkingHere
+                                              ? "Present"
+                                              : endDateObj?.toLocaleDateString(
+                                                  "en-GB",
+                                                  {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                  },
+                                                )}
+                                          </p>
+
+                                          <p className="text-muted small">
+                                            {work.Description}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )
+                              ) : (
+                                <p>No work experience available</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <h5 className="fw-bold mb-3">Education</h5>
+
+                              {candidateDetails?.education &&
+                              candidateDetails.education.length > 0 ? (
+                                candidateDetails.education.map((edu, index) => {
+                                  const isLast =
+                                    index ===
+                                    candidateDetails.education.length - 1;
+
+                                  const startDate = new Date(edu.startDate);
+                                  const endDateObj = edu.currentlyStudyingHere
+                                    ? null
+                                    : new Date(edu.endDate);
+
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="position-relative d-flex gap-3 pb-4"
+                                    >
+                                      {/* LEFT SIDE (ICON + LINE) */}
+                                      <div className="d-flex flex-column align-items-center position-relative">
+                                        {/* ICON */}
+                                        <div
+                                          className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                          style={{
+                                            width: "40px",
+                                            height: "40px",
+                                            zIndex: 1,
+                                          }}
+                                        >
+                                          <i className="fa-solid fa-graduation-cap text-success" />
+                                        </div>
+
+                                        {/* VERTICAL LINE */}
+                                        {!isLast && (
+                                          <div
+                                            style={{
+                                              position: "absolute",
+                                              top: "40px",
+                                              left: "50%",
+                                              transform: "translateX(-50%)",
+                                              width: "2px",
+                                              height: "100%",
+                                              backgroundColor: "#e9ecef",
+                                            }}
+                                          />
+                                        )}
+                                      </div>
+
+                                      {/* RIGHT SIDE CONTENT */}
+                                      <div>
+                                        <h6 className="fw-bold mb-1">
+                                          {edu.degree
+                                            ?.toLowerCase()
+                                            .replace(/^\w/, (c) =>
+                                              c.toUpperCase(),
+                                            ) || "Not Provided"}
+                                        </h6>
+
+                                        <p className="text-muted mb-1 small">
+                                          {edu.University || "Not Provided"} •{" "}
+                                          {startDate.toLocaleDateString(
+                                            "en-GB",
+                                            {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            },
+                                          )}{" "}
+                                          -{" "}
+                                          {edu.currentlyStudyingHere
+                                            ? "Present"
+                                            : endDateObj?.toLocaleDateString(
+                                                "en-GB",
+                                                {
+                                                  day: "2-digit",
+                                                  month: "short",
+                                                  year: "numeric",
+                                                },
+                                              )}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p>No education information available</p>
+                              )}
+                            </div>
+
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">Career Goals</h5>
+
+                              {candidateDetails?.career_goals ? (
+                                <div className="d-flex gap-3">
+                                  {/* LEFT ICON + LINE */}
+                                  <div className="d-flex flex-column align-items-center">
+                                    <div
+                                      className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                      style={{ width: "40px", height: "40px" }}
+                                    >
+                                      <i className="fa-solid fa-bullseye text-warning" />
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <h6 className="fw-bold mb-1">
+                                      {candidateDetails.career_goals.DesiredJobTitle?.toLowerCase().replace(
+                                        /^\w/,
+                                        (c) => c.toUpperCase(),
+                                      ) || "Not Provided"}
+                                    </h6>
+
+                                    <p className="text-muted mb-1 small">
+                                      {candidateDetails.career_goals.DesiredEmploymentType?.toLowerCase().replace(
+                                        /^\w/,
+                                        (c) => c.toUpperCase(),
+                                      ) || "-"}{" "}
+                                      •{" "}
+                                      {candidateDetails.career_goals.DesiredOccupationType?.toLowerCase().replace(
+                                        /^\w/,
+                                        (c) => c.toUpperCase(),
+                                      ) || "-"}
+                                    </p>
+
+                                    <div className="mt-2 small text-muted">
+                                      <p className="mb-1">
+                                        <strong>Eligible to work in:</strong>{" "}
+                                        {candidateDetails.eligibleToWorkInFrance
+                                          ? "France"
+                                          : "-"}
+                                      </p>
+
+                                      {candidateDetails.career_goals
+                                        .MinimumDesiredSalary ? (
+                                        <p className="mb-1">
+                                          <strong>Minimum Salary:</strong>{" "}
+                                          {
+                                            candidateDetails.career_goals
+                                              .MinimumDesiredSalary.currency
+                                          }{" "}
+                                          {
+                                            candidateDetails.career_goals
+                                              .MinimumDesiredSalary.amount
+                                          }{" "}
+                                          /{" "}
+                                          {
+                                            candidateDetails.career_goals
+                                              .MinimumDesiredSalary.type
+                                          }
+                                        </p>
+                                      ) : (
+                                        <p className="mb-1">
+                                          <strong>Minimum Salary:</strong> Not
+                                          specified
+                                        </p>
+                                      )}
+
+                                      <p className="mb-0">
+                                        <strong>Job Search Status:</strong>{" "}
+                                        {candidateDetails.career_goals
+                                          .jobSearchStatus || "Not specified"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p>No career goals specified</p>
+                              )}
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">About Your Role</h5>
+
+                              {candidateDetails?.aboutRole ? (
+                                <div className="d-flex gap-3">
+                                  {/* LEFT ICON + LINE */}
+                                  <div className="d-flex flex-column align-items-center">
+                                    <div
+                                      className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                      style={{ width: "40px", height: "40px" }}
+                                    >
+                                      <i className="fa-solid fa-user-tie text-primary" />
+                                    </div>
+
+                                    {/* <div
+                                  className="flex-grow-1 border-start my-1"
+                                  style={{
+                                    width: "2px",
+                                    backgroundColor: "rgb(233, 236, 239)",
+                                  }}
+                                /> */}
+                                  </div>
+
+                                  {/* RIGHT CONTENT */}
+                                  <div>
+                                    <h6 className="fw-bold mb-1">
+                                      {candidateDetails.aboutRole.jobTitle
+                                        ?.toLowerCase()
+                                        .replace(/^\w/, (c) =>
+                                          c.toUpperCase(),
+                                        ) || "Not Provided"}
+                                    </h6>
+
+                                    <p className="text-muted mb-1 small">
+                                      {candidateDetails.aboutRole
+                                        .yearOfExperience || 0}{" "}
+                                      Years Experience
+                                    </p>
+
+                                    <p className="text-muted small">
+                                      {candidateDetails.aboutRole.jobCategory
+                                        ?.toLowerCase()
+                                        .replace(/^\w/, (c) =>
+                                          c.toUpperCase(),
+                                        ) || "Not Provided"}
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p>No role information available</p>
+                              )}
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">Languages</h5>
+
+                              {candidateDetails?.languages &&
+                              candidateDetails.languages.length > 0 ? (
+                                candidateDetails.languages.map(
+                                  (lang, index) => {
+                                    const isLast =
+                                      index ===
+                                      candidateDetails.languages.length - 1;
+
+                                    return (
+                                      <div
+                                        key={lang._id}
+                                        className="position-relative d-flex gap-3 pb-4"
+                                      >
+                                        {/* LEFT SIDE (ICON + LINE) */}
+                                        <div className="d-flex flex-column align-items-center position-relative">
+                                          {/* ICON */}
+                                          <div
+                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                            style={{
+                                              width: "40px",
+                                              height: "40px",
+                                              zIndex: 1,
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-language text-info" />
+                                          </div>
+
+                                          {/* VERTICAL LINE */}
+                                          {!isLast && (
+                                            <div
+                                              style={{
+                                                position: "absolute",
+                                                top: "40px",
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                width: "2px",
+                                                height: "100%",
+                                                backgroundColor: "#e9ecef",
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+
+                                        {/* RIGHT SIDE CONTENT */}
+                                        <div>
+                                          <h6 className="fw-bold mb-1">
+                                            {lang.language
+                                              ?.toLowerCase()
+                                              .replace(/^\w/, (c) =>
+                                                c.toUpperCase(),
+                                              )}
+                                          </h6>
+
+                                          <p className="text-muted small mb-0">
+                                            {lang.proficiency
+                                              ?.toLowerCase()
+                                              .replace(/^\w/, (c) =>
+                                                c.toUpperCase(),
+                                              )}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )
+                              ) : (
+                                <p>No languages listed</p>
+                              )}
+                            </div>
+
+                            <div className="mb-4">
+                              <h5 className="fw-bold mb-3">Certificates</h5>
+
+                              {candidateDetails?.certificates &&
+                              candidateDetails.certificates.length > 0 ? (
+                                candidateDetails.certificates.map(
+                                  (cert, index) => {
+                                    const isLast =
+                                      index ===
+                                      candidateDetails.certificates.length - 1;
+
+                                    return (
+                                      <div
+                                        key={cert._id}
+                                        className="position-relative d-flex gap-3 pb-4"
+                                      >
+                                        {/* LEFT SIDE (ICON + LINE) */}
+                                        <div className="d-flex flex-column align-items-center position-relative">
+                                          {/* ICON */}
+                                          <div
+                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                            style={{
+                                              width: "40px",
+                                              height: "40px",
+                                              zIndex: 1,
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-certificate text-danger" />
+                                          </div>
+
+                                          {/* VERTICAL LINE */}
+                                          {!isLast && (
+                                            <div
+                                              style={{
+                                                position: "absolute",
+                                                top: "40px",
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                width: "2px",
+                                                height: "100%",
+                                                backgroundColor: "#e9ecef",
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+
+                                        {/* RIGHT SIDE CONTENT */}
+                                        <div>
+                                          <h6 className="fw-bold mb-1">
+                                            {cert?.title
+                                              ?.toLowerCase()
+                                              .replace(/^\w/, (c) =>
+                                                c.toUpperCase(),
+                                              ) || "Not Provided"}
+                                          </h6>
+
+                                          <p className="text-muted small mb-0">
+                                            Issued:{" "}
+                                            {cert?.issueDate
+                                              ? new Date(
+                                                  cert.issueDate,
+                                                ).getFullYear()
+                                              : "Not Provided"}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )
+                              ) : (
+                                <p>No certificates available</p>
+                              )}
                             </div>
                           </div>
-                        );
-                      })
+                        </div>
+                      </>
                     ) : (
-                      <p className="text-center">No candidates found.</p>
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "500px" }}
+                      >
+                        <p className="text-muted">
+                          Select a candidate to view details
+                        </p>
+                      </div>
                     )}
-                  </div>
-
-                  <div className="paginations mb-30">
-                    <ul>
-                      {/* Previous button */}
-                      <li>
-                        <a
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (currentPage > 1)
-                              handlePageChange(currentPage - 1);
-                          }}
-                          className={currentPage === 1 ? "disabled" : ""}
-                        >
-                          <i className="fa-solid fa-angle-left" />
-                        </a>
-                      </li>
-
-                      {/* Page numbers */}
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <li key={i + 1}>
-                          <a
-                            href="#"
-                            className={currentPage === i + 1 ? "active" : ""}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handlePageChange(i + 1);
-                            }}
-                          >
-                            {i + 1}
-                          </a>
-                        </li>
-                      ))}
-
-                      {/* Next button */}
-                      <li>
-                        <a
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (currentPage < totalPages)
-                              handlePageChange(currentPage + 1);
-                          }}
-                          className={
-                            currentPage === totalPages ? "disabled" : ""
-                          }
-                        >
-                          <i className="fa-solid fa-angle-right" />
-                        </a>
-                      </li>
-                    </ul>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
