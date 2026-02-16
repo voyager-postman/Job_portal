@@ -35,6 +35,28 @@ function Blog() {
     getBlogList(pageNumber);
   }, [pageNumber]);
 
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // ✅ Default local dashboard image
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+      return url;
+    }
+
+    // ✅ Fix wrong stored URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // ✅ External image (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image
+    return `${API_IMAGE_URL}${url}`;
+  };
+
   return (
     <>
       <div>
@@ -81,7 +103,10 @@ function Blog() {
                     <div className="blog-img">
                       <Link to={`/blogDetails/${blog._id}`}>
                         <img
-                          src={`${API_IMAGE_URL}/${blog.bannerImage}`}
+                          crossorigin="anonymous"
+                          src={
+                            cleanImageUrl(blog.bannerImage)
+                          }
                           alt="Image"
                         />
                       </Link>

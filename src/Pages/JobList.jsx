@@ -29,9 +29,9 @@ const JobList = () => {
   const [searchParams] = useSearchParams();
 
   console.log("Received Alert Data:", alert);
-  const userRole = localStorage.getItem("role");
+  const userRole = localStorage.getItem("user_role");
   const userId = localStorage.getItem("user_id");
-
+  console.log(userRole);
   // or from context:  user?.role
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -2117,9 +2117,7 @@ const JobList = () => {
                                 <Link
                                   key={job._id}
                                   to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                  state={{
-                                    from: "/jobs",
-                                  }}
+                                  state={{ from: "/jobs" }}
                                   className="job-link"
                                 >
                                   {" "}
@@ -2334,6 +2332,7 @@ const JobList = () => {
                                         <button
                                           className="default-btn btn"
                                           disabled
+                                          style={{ color: "#ff6600" }}
                                         >
                                           {job?.applicationStatus}
                                         </button>
@@ -2348,6 +2347,21 @@ const JobList = () => {
                                         </Link>
                                       ) : (
                                         /* ✅ No Assessment → Direct Apply */
+                                        // <a
+                                        //   href="#"
+                                        //   className="default-btn btn"
+                                        //   onClick={(e) => {
+                                        //     e.preventDefault();
+                                        //     e.stopPropagation();
+                                        //     setJobId(job._id);
+                                        //     handleJobClick(job._id);
+                                        //   }}
+                                        //   data-bs-toggle="modal"
+                                        //   data-bs-target="#exampleModal"
+                                        // >
+                                        //   Apply Now
+                                        // </a>
+
                                         <a
                                           href="#"
                                           className="default-btn btn"
@@ -2356,9 +2370,23 @@ const JobList = () => {
                                             e.stopPropagation();
                                             setJobId(job._id);
                                             handleJobClick(job._id);
+
+                                            if (userRole !== "JobSeeker") {
+                                              navigate("/login");
+                                              return;
+                                            }
+                                            const modalEl =
+                                              document.getElementById(
+                                                "exampleModal",
+                                              );
+                                            if (modalEl) {
+                                              const modal =
+                                                new window.bootstrap.Modal(
+                                                  modalEl,
+                                                );
+                                              modal.show();
+                                            }
                                           }}
-                                          data-bs-toggle="modal"
-                                          data-bs-target="#exampleModal"
                                         >
                                           Apply Now
                                         </a>

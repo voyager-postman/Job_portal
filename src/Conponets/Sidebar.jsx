@@ -61,7 +61,7 @@ function Sidebar() {
                 <span className="menu-title">Job Search</span>
               </NavLink>
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
               <NavLink
                 to="/skill-assessments-tests"
                 className={({ isActive }) =>
@@ -75,7 +75,7 @@ function Sidebar() {
                 </span>
                 <span className="menu-title">Skill Assessments & Tests</span>
               </NavLink>
-            </li>
+            </li> */}
             <li className="nav-item">
               <NavLink
                 to="/chat-messaging-system"

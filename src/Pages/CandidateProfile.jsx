@@ -66,7 +66,7 @@ function CandidateProfile() {
   }, []);
   const [image, setImage] = useState(DEFAULT_IMAGE);
   console.log(image);
-  const [storedImage, setStoredImage] = useState(null); // server stored image
+  const [storedImage, setStoredImage] = useState(null);
 
   const fileInputRef = useRef(null);
   const handleFileChange1 = (e) => {
@@ -90,16 +90,14 @@ function CandidateProfile() {
       }));
     }
   };
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const imageUrl = URL.createObjectURL(file);
     setImage(imageUrl);
-
     const formData = new FormData();
     formData.append("profile", file);
-
     try {
       setIsLoadingJobs(true); // 🔵 START LOADER
       const token = localStorage.getItem("token");
@@ -113,7 +111,6 @@ function CandidateProfile() {
           },
         },
       );
-
       const profileImg = res.data?.profileImage;
       if (res.data?.success && profileImg && profileImg.trim() !== "") {
         const fullUrl = profileImg;
@@ -173,6 +170,7 @@ function CandidateProfile() {
     desiredJobTitle: "",
     employmentType: "",
     occupationType: "",
+    availabilityToJoin: "",
     eligibleToWork: false,
     salaryAmount: "",
     salaryType: "Hourly",
@@ -262,11 +260,9 @@ function CandidateProfile() {
       } else {
         setImage(DEFAULT_IMAGE); // fallback
       }
-
       const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       console.log("GetLanguage API response:", resLang.data);
       setMasterLanguages(resLang.data.languages || []); // ✅ ensure array
     } catch (error) {
@@ -912,6 +908,14 @@ function CandidateProfile() {
         return;
       }
 
+      if (!careerGoalsData.availabilityToJoin) {
+        toast.error("Please select a Available to join", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
+
       if (!careerGoalsData.salaryType) {
         toast.error(
           "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
@@ -956,6 +960,7 @@ function CandidateProfile() {
         DesiredJobTitle: careerGoalsData.desiredJobTitle,
         DesiredEmploymentType: careerGoalsData.employmentType,
         DesiredOccupationType: careerGoalsData.occupationType,
+        availabilityToJoin: careerGoalsData.availabilityToJoin,
         MinimumDesiredSalary: {
           amount: careerGoalsData.salaryAmount,
           currency: careerGoalsData.salaryCurrency,
@@ -964,24 +969,6 @@ function CandidateProfile() {
         jobSearchStatus: careerGoalsData.lookingForJob,
         eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
       };
-
-      // const payload = {
-      //   career_goals: {
-      //     DesiredJobTitle: careerGoalsData.desiredJobTitle,
-      //     DesiredEmploymentType: careerGoalsData.employmentType,
-      //     DesiredOccupationType: careerGoalsData.occupationType,
-      //     MinimumDesiredSalary: {
-      //       amount: careerGoalsData.salaryAmount,
-      //       currency: careerGoalsData.salaryCurrency,
-      //       type: careerGoalsData.salaryType,
-      //     },
-      //     jobSearchStatus: careerGoalsData.lookingForJob,
-      //   },
-
-      //   // ✅ MUST BE OUTSIDE
-      //   eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
-      // };
-
       const response = await axios.put(
         `${API_BASE_URL}updateCareerGoals`,
         payload,
@@ -997,6 +984,7 @@ function CandidateProfile() {
             DesiredOccupationType: payload.DesiredOccupationType,
             MinimumDesiredSalary: payload.MinimumDesiredSalary,
             jobSearchStatus: payload.jobSearchStatus,
+            availabilityToJoin: payload.availabilityToJoin,
           },
           eligibleToWorkInFrance: payload.eligibleToWorkInFrance,
         }));
@@ -3714,7 +3702,7 @@ function CandidateProfile() {
                               <form>
                                 <div className="row">
                                   {/* Desired Job Title */}
-                                  <div className="col-lg-12 col-md-12">
+                                  <div className="col-lg-6 col-md-12">
                                     <div className="form-group">
                                       <label>Desired Job Title</label>
                                       <input
@@ -3780,6 +3768,37 @@ function CandidateProfile() {
                                     </div>
                                   </div>
 
+                                  {/* Is Available */}
+                                  <div className="col-lg-6 col-md-6">
+                                    <div className="form-group">
+                                      <label>Available to Join</label>
+                                      <select
+                                        className="form-select form-control"
+                                        name="availabilityToJoin"
+                                        value={
+                                          careerGoalsData.availabilityToJoin
+                                        }
+                                        onChange={handleCareerGoalsChange}
+                                      >
+                                        <option disabled>
+                                          Select Available to Join
+                                        </option>
+
+                                        <option value="Immediate">
+                                          Immediate
+                                        </option>
+                                        <option value="15 Days">15 Days</option>
+                                        <option value="30 days">30 days</option>
+                                        <option value="45 Days">45 Days</option>
+                                        <option value="60 Days">60 Days</option>
+                                        <option value="90 Days">90 Days</option>
+                                        <option value="Negotiable">
+                                          Negotiable
+                                        </option>
+                                      </select>
+                                    </div>
+                                  </div>
+
                                   {/* Eligible to work */}
                                   <div className="col-lg-6 col-md-6">
                                     <div className="form-group">
@@ -3834,6 +3853,7 @@ function CandidateProfile() {
                                       </div>
                                     </div>
                                   </div>
+
                                   <div className="col-lg-3 col-md-6">
                                     <div className="form-group">
                                       <select

@@ -617,22 +617,21 @@ function CompanyDetailsPage() {
                           <div className="company-detail-apply-link-save-btn">
                             <div className="company-detail-apply-btn">
                               {job?.isApplied ? (
-                                <button className="default-btn btn">
+                                <button
+                                  className="default-btn btn"
+                                  disabled
+                                  style={{ color: "#ff6600" }}
+                                >
                                   {job?.applicationStatus}
                                 </button>
                               ) : (
-                                <a
-                                  href="#"
+                                <Link
+                                  to={`/job-details/${job._id}`}
                                   className="default-btn btn"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#exampleModal"
-                                  onClick={() => {
-                                    setJobId(job._id);
-                                    handleJobClick(job._id);
-                                  }} // ✅ set job ID here
+                                  onClick={(e) => e.stopPropagation()}
                                 >
-                                  Apply Now
-                                </a>
+                                  View Details
+                                </Link>
                               )}
                               {/* Button trigger modal */}
                               {/* <a
@@ -1004,8 +1003,8 @@ function CompanyDetailsPage() {
                                     {job?.link ? (
                                       <i className="fa-solid fa-link" />
                                     ) : (
-                                      <span style={{ fontWeight: "bold" }}>
-                                        N
+                                      <span style={{ color: "#ffff" }}>
+                                        No Link
                                       </span>
                                     )}
                                   </a>

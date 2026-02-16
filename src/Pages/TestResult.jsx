@@ -15,6 +15,7 @@ const TestResult = () => {
 
   const {
     testName,
+    from,
     jobId,
     message,
     scorePercentage,
@@ -120,7 +121,7 @@ const TestResult = () => {
                 onClick={() => {
                   closeAnyOpenModal();
                   navigate(`/job-details/${jobId}`, {
-                    state: { from: "/job-search" },
+                    state: { from: from || "/job-search" },
                   });
                 }}
               >

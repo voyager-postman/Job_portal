@@ -29,25 +29,25 @@ function ManagesApplicants() {
     </div>
   );
 
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}getCompanyActiveJobs`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setJobs(res.data.jobs || []);
-    } catch (err) {
-      console.error("Error fetching jobs:", err);
-      setJobs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchJobs = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const token = localStorage.getItem("token");
+  //     const res = await axios.get(`${API_BASE_URL}getCompanyActiveJobs`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     setJobs(res.data.jobs || []);
+  //   } catch (err) {
+  //     console.error("Error fetching jobs:", err);
+  //     setJobs([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  // useEffect(() => {
+  //   fetchJobs();
+  // }, []);
 
   const cleanImageUrl = (url) => {
     if (!url) return "";

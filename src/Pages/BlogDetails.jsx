@@ -42,6 +42,28 @@ function BlogDetails() {
     }
   }, [id]);
 
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // ✅ Default local dashboard image
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+      return url;
+    }
+
+    // ✅ Fix wrong stored URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // ✅ External image (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image
+    return `${API_IMAGE_URL}${url}`;
+  };
+
   if (loading) {
     return (
       <div className="blog-area pt-100 pb-70">
@@ -102,11 +124,8 @@ function BlogDetails() {
                   <div className="blog-details-top-content">
                     <div className="top-image">
                       <img
-                        src={
-                          blog?.bannerImage
-                            ? `${API_IMAGE_URL}/${blog.bannerImage}`
-                            : "/images/placeholder.jpg"
-                        }
+                        crossorigin="anonymous"
+                        src={cleanImageUrl(blog.bannerImage)}
                         alt={blog?.title}
                       />
                     </div>
