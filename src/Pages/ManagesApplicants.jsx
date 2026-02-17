@@ -153,7 +153,7 @@ function ManagesApplicants() {
       setCityList(cities);
 
       // ✅ If editing, keep previously selected cities (if they still exist in the list)
-      console.log("City data on the behalf of country", cities);
+      // console.log("City data on the behalf of country", cities);
     } catch (error) {
       console.error(error);
       setCityList([]);
@@ -289,9 +289,7 @@ useEffect(() => {
           {/*Job Applied Candidates List Start Area */}
 
           <section
-            className="employer-candidate-filter-info-area"
-            style={{ padding: "20px 0px" }}
-          >
+            className="employer-candidate-filter-info-area">
             <div className="row">
               <div className="col-12 mb-4">
                 <div

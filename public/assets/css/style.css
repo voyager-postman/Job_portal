@@ -8853,7 +8853,7 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
 .employer-candidate-search-box {
   display: flex;
-  margin: 40px 0px;
+  /* margin: 40px 0px; */
 }
 
 .employer-candidate-input-icon {
