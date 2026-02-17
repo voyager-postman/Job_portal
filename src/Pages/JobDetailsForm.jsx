@@ -15,10 +15,13 @@ function JobDetailsForm() {
   const { id } = useParams();
   const location = useLocation();
   const job = location.state?.job || {};
+  const fromPath = location.state?.from || "/your-job-posts";
   console.log("job from state:", job);
   const theme = useTheme();
   const [scheduleDate, setScheduleDate] = useState("");
   const [showScheduleDate, setShowScheduleDate] = useState(false);
+  const [showExpireDate, setShowExpireDate] = useState(false);
+  const [expiresAt, setExpiresAt] = useState("");
   const Title = job?.jobTitle;
   const Category = job?.jobCategory;
   console.log("Job Title:-", Title);
@@ -29,6 +32,8 @@ function JobDetailsForm() {
   const [cityList, setCityList] = useState([]);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [jobAssessment, setJobAssessment] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
 
   // Group assessments by source using useMemo
   const groupedAssessments = useMemo(() => {
@@ -51,15 +56,15 @@ function JobDetailsForm() {
   // ---- Initialize once with either state job or empty
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
-    jobCategory: jobFromState.jobCategory || "",
-    minimumLevel: jobFromState.minimumLevel?._id || "",
-    employmentType: jobFromState.employmentType?._id || "",
+    jobCategory: jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
+    minimumLevel: jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
+    employmentType: jobFromState.employmentType?._id || jobFromState.employmentType || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
-    city: Array.isArray(jobFromState.city) ? jobFromState.city : [],
+    city: Array.isArray(jobFromState.city) ? jobFromState.city : Array.isArray(jobFromState.cities) ? jobFromState.cities : [],
     region: jobFromState.region || "",
-    Country: jobFromState.country || "",
+    Country: jobFromState.country?._id || jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
     tags: jobFromState.tags || [],
     jobDescription: jobFromState.jobDescription || "",
@@ -78,7 +83,7 @@ function JobDetailsForm() {
     coverPhotoPreview: null,
     availableJobs: "",
     isAssessmentRequired: jobFromState.isAssessmentRequired || false,
-    assessment: jobFromState.assessment || jobFromState.assessment || "",
+    assessment: jobFromState.assessment?._id || jobFromState.assessment || "",
     validation_required: jobFromState.validation_required || false,
     retry_period_days: jobFromState.validation_required
       ? jobFromState.retry_period_days
@@ -89,7 +94,7 @@ function JobDetailsForm() {
   }));
 
   const [selectedCities, setSelectedCities] = useState(
-    Array.isArray(jobFromState.city) ? jobFromState.city : [],
+    Array.isArray(jobFromState.city) ? jobFromState.city : Array.isArray(jobFromState.cities) ? jobFromState.cities : [],
   );
 
   // ---- Fetch if page was refreshed (no state) but we have an id
@@ -101,19 +106,22 @@ function JobDetailsForm() {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
-          const job = res.data.data;
+          const job = res.data?.data || res.data?.job || res.data;
+          if (!job) return;
+
+          const jobCities = Array.isArray(job.city) ? job.city : Array.isArray(job.cities) ? job.cities : [];
+
           setFormData((prev) => ({
             ...prev,
             jobTitle: job.jobTitle || "",
-            jobCategory: job.jobCategory || "",
-            minimumLevel: job.minimumLevel || "",
-            employmentType: job.employmentType || "",
+            jobCategory: job.jobCategory?._id || job.jobCategory || "",
+            minimumLevel: job.minimumLevel?._id || job.minimumLevel || "",
+            employmentType: job.employmentType?._id || job.employmentType || "",
             remote: job.remote || "",
             jobAddress: job.jobAddress || "",
-            // city: job.cities || "",
-            city: Array.isArray(job.city) ? job.city : [],
+            city: jobCities,
             region: job.region || "",
-            Country: job.country || "",
+            Country: job.country?._id || job.country || "",
             shortDescription: job.shortDescription || "",
             tags: job.tags || [],
             jobDescription: job.jobDescription || "",
@@ -130,7 +138,7 @@ function JobDetailsForm() {
             maxSalary: job?.privatJobDetails?.maxSalary || "",
             coverPhoto: null,
             isAssessmentRequired: job.isAssessmentRequired || false,
-            assessment: job.assessment || job.assessment || "",
+            assessment: job.assessment?._id || job.assessment || "",
             validation_required: job.validation_required || false,
             retry_period_days: job.validation_required
               ? job.retry_period_days
@@ -139,8 +147,8 @@ function JobDetailsForm() {
               : "0",
             status: job.status || "draft",
           }));
-          console.log("Job Details Data:", res.data.data);
-          setSelectedCities(Array.isArray(job.cities) ? job.cities : []);
+          console.log("Job Details Data:", job);
+          setSelectedCities(jobCities);
         })
         .catch((err) => console.error("Failed to fetch job:", err));
     }
@@ -353,22 +361,15 @@ function JobDetailsForm() {
     nextButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
-
         const currentPane = e.target.closest(".tab-pane");
-
         if (!currentPane) return;
-
         const nextPane = currentPane.nextElementSibling;
-
         if (!nextPane) return;
-
         const nextTabLink = document.querySelector(
           `.nav-link[href="#${nextPane.id}"]`,
         );
-
         if (nextTabLink) {
           const tab = new window.bootstrap.Tab(nextTabLink);
-
           tab.show();
         }
       });
@@ -579,6 +580,7 @@ function JobDetailsForm() {
     // isPublish = false,
     statusType = null,
     scheduleDate = null,
+    expiresAt = null,
   ) => {
     try {
       const token = localStorage.getItem("token");
@@ -591,7 +593,6 @@ function JobDetailsForm() {
         toast.error("Please select an assessment");
         return;
       }
-
       const formDataToSend = new FormData();
       formDataToSend.append("job_id", id || jobFromState._id);
       formDataToSend.append("jobTitle", data.jobTitle || "");
@@ -642,6 +643,7 @@ function JobDetailsForm() {
         const finalStatus = statusType;
         if (finalStatus === "published") {
           formDataToSend.append("status", "published");
+          formDataToSend.append("expiresAt", expiresAt);
         } else if (finalStatus === "scheduled") {
           formDataToSend.append("status", "scheduled");
           formDataToSend.append("scheduleDate", scheduleDate);
@@ -653,7 +655,6 @@ function JobDetailsForm() {
         formDataToSend.append("jobCoverPhoto", data.coverPhoto);
       }
       console.log("🚀 Sending to API:", Object.fromEntries(formDataToSend));
-
       const response = await axios.post(
         `${API_BASE_URL}updateJob`,
         formDataToSend,
@@ -668,7 +669,7 @@ function JobDetailsForm() {
       console.log("✅ Job Updated:", response.data);
       // ✅ Only navigate if this is an explicit publish/save action (not auto-save on change)
       if (statusType) {
-        navigate("/your-job-posts", {
+        navigate(fromPath, {
           state: {
             jobTitle: data.jobTitle,
             jobCategory: data.jobCategory,
@@ -698,8 +699,11 @@ function JobDetailsForm() {
                 </Link>
               </li>
               <li className="item">
-                <Link to="/your-job-posts">
-                  <i className="fa-solid fa-angle-right" /> Job Post
+                <Link to={fromPath}>
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {fromPath === "/applied-jobs-list"
+                    ? "Applied Jobs"
+                    : "Job Post"}
                 </Link>
               </li>
               <li className="item">
@@ -1640,9 +1644,13 @@ function JobDetailsForm() {
                         </div>
                         <div className="job-create-form-back-next-btn">
                           <button
-                            onClick={() =>
-                              handlePublishJob(formData, "published")
-                            }
+                            onClick={() => {
+                              // Set default expiry to 30 days from today
+                              const defaultExpiry = new Date();
+                              defaultExpiry.setDate(defaultExpiry.getDate() + 30);
+                              setExpiresAt(defaultExpiry.toISOString().split('T')[0]);
+                              setShowExpireDate(true);
+                            }}
                             className="default-btn btn"
                           >
                             Publish Job
@@ -1671,7 +1679,6 @@ function JobDetailsForm() {
                             value={scheduleDate}
                             onChange={(e) => setScheduleDate(e.target.value)}
                           />
-
                           <div className="modal-button-group mt-4">
                             <button
                               className="default-btn btn"
@@ -1685,10 +1692,52 @@ function JobDetailsForm() {
                             >
                               Confirm Schedule
                             </button>
-
                             <button
                               className="default-btn btn btn-light"
                               onClick={() => setShowScheduleDate(false)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {showExpireDate && (
+                      <div className="schedule-modal-overlay">
+                        <div className="schedule-modal">
+                          <h3>Set Job Expiry Date</h3>
+                          <p className="text-muted small mt-2">Default expiry is set to 30 days. You can select a different date if needed.</p>
+                          <label className="mt-3">Select Expire Date</label>
+                          <input
+                            type="date"
+                            className="form-control mt-1"
+                            value={expiresAt}
+                            min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                            onChange={(e) => setExpiresAt(e.target.value)}
+                          />
+                          <div className="modal-button-group mt-4">
+                            <button
+                              className="default-btn btn"
+                              onClick={() => {
+                                if (!expiresAt) {
+                                  toast.error("Please select an expiry date");
+                                  return;
+                                }
+                                handlePublishJob(
+                                  formData,
+                                  "published",
+                                  null,
+                                  expiresAt,
+                                );
+                              }}
+                            >
+                              Publish
+                            </button>
+
+                            <button
+                              className="default-btn btn btn-light"
+                              onClick={() => setShowExpireDate(false)}
                             >
                               Cancel
                             </button>

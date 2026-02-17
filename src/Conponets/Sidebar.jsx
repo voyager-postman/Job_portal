@@ -12,6 +12,7 @@ import { IoBookmark, IoSearchSharp, IoWalletSharp } from "react-icons/io5";
 import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 import { SiReaddotcv } from "react-icons/si";
+import { TbMessages } from "react-icons/tb";
 
 function Sidebar() {
   const userRole = localStorage.getItem("user_role");
@@ -138,7 +139,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-chart-line" /> */}
                   <i>
                     <MdDashboard />
                   </i>
@@ -155,7 +155,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
                     <FaToolbox />
                   </i>
@@ -172,7 +171,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
                     <IoWalletSharp />
                   </i>
@@ -189,7 +187,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
                     <FaListCheck />
                   </i>
@@ -205,7 +202,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-briefcase" /> */}
                   <i>
                     <FaUsers />
                   </i>
@@ -221,7 +217,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-bookmark" /> */}
                   <i>
                     <IoBookmark />
                   </i>
@@ -237,7 +232,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-magnifying-glass" /> */}
                   <i>
                     <IoSearchSharp />
                   </i>
@@ -253,7 +247,6 @@ function Sidebar() {
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-user-tie" /> */}
                   <i>
                     <FaUserTie />
                   </i>
@@ -278,13 +271,27 @@ function Sidebar() {
             </li>
             <li className="nav-item">
               <NavLink
+                to="/messaging-system"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+              >
+                <span className="icon">
+                  <i>
+                    <AiFillMessage />
+                  </i>
+                </span>
+                <span className="menu-title"> Massages</span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
                 to="/manage-recruiter"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
               >
                 <span className="icon">
-                  {/* <i className="fa-solid fa-users-gear" /> */}
                   <i>
                     <FaUsersGear />
                   </i>

@@ -71,7 +71,7 @@ const TemplateThird = ({ data }) => {
                       <div className="col-lg-4 col-md-6">
                         <div className="third-resume-summary-other">
                           <h5>Eligible to Work In</h5>
-                          <p>France</p>
+                          <p>{personal?.eligibleToWorkInFrance === true ? "Yes" : "No"}</p>
                         </div>
                       </div>
                       <div className="col-lg-4 col-md-6">

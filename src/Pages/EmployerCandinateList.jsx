@@ -15,7 +15,6 @@ import { TbMessages } from "react-icons/tb";
 function EmployerCandinateList() {
   const location = useLocation();
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
-
   const token = localStorage.getItem("token");
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const jobId = location.state?.jobId;
