@@ -527,14 +527,7 @@ function CandinateProfileDetails() {
                     <p>No education information available</p>
                   )}
 
-                  {/* <h5>Degree</h5>
-                  <p>B.Tech</p>
-                  <h5>University</h5>
-                  <p>IGNU</p>
-                  <h5>Start Date</h5>
-                  <p>05 / 2020</p>
-                  <h5>End Date</h5>
-                  <p>Until now</p> */}
+           
                 </div>
                 <div className="skill-content candidate-profile-summary">
                   <h3>Skills</h3>
@@ -640,31 +633,7 @@ function CandinateProfileDetails() {
                   <p>No reviews found.</p>
                 )}
 
-                {/* <div className="candidate-profile-divider-line" /> */}
-                {/* <div className="add-review">
-                  <h3>Add Review</h3>
-                  <div className="review-form">
-                    <form>
-                      <div className="row">
-                        <div className="col-lg-12">
-                          <div className="form-group">
-                            <textarea
-                              className="form-control"
-                              placeholder="Write Message"
-                              rows={6}
-                              defaultValue={""}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="candidate-profile-submit-btn">
-                        <button type="submit" className="default-btn btn">
-                          Submit A Review
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div> */}
+            
               </div>
             </div>
             <div className="col-lg-4">

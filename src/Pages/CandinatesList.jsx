@@ -5,15 +5,27 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 function CandinatesList() {
+  const { userId } = location.state || {};
+  console.log(userId);
+  const reviewSectionRef = useRef(null);
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
+  const [selectedCity, setSelectedCity] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [listLoading, setListLoading] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [rating, setRating] = useState(0); // selected rating
+  const [hover, setHover] = useState(0); // star hover effect
+  const [review, setReview] = useState("");
+  const [reviews, setReviews] = useState([]);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [skillInput, setSkillInput] = useState("");
   const [showContact, setShowContact] = useState(false);
+  const [candidate, setCandidate] = useState(null);
+
   const [showEducationOptions, setShowEducationOptions] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [candidateDetails, setCandidateDetails] = useState(null);
@@ -22,18 +34,13 @@ function CandinatesList() {
   const debounceTimer = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showAllEducation, setShowAllEducation] = useState(false);
-  const [locationSearchTerm, setLocationSearchTerm] = useState("");
-  const [locationSuggestions, setLocationSuggestions] = useState([]);
-  const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [selectedSalary, setSelectedSalary] = useState("");
   const [selectedAvailability, setSelectedAvailability] = useState("");
-
   const [selectedCountry, setSelectedCountry] = useState(null);
   const cityDropdownRef = useRef(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedEducation, setSelectedEducation] = useState([]);
-  const [selectedExperience, setSelectedExperience] = useState([]);
+  const [selectedExperience, setSelectedExperience] = useState("");
   const [perPage, setPerPage] = useState(10); // default
   const [totalResults, setTotalResults] = useState(0);
   const [sortBy, setSortBy] = useState("");
@@ -65,6 +72,7 @@ function CandinatesList() {
   useEffect(() => {
     if (selectedCandidateId) {
       fetchCandidateDetails(selectedCandidateId);
+      getReviewsByUser(selectedCandidateId);
     }
   }, [selectedCandidateId]);
 
@@ -136,11 +144,11 @@ function CandinatesList() {
 
     window.open(fileUrl, "_blank");
   };
+  console.log(selectedSalary);
   const fetchCandidates = async (page = 1, limit = perPage) => {
     try {
       setLoading(true);
 
-      // 🔥 split sortBy value
       let sortField = "";
       let sortOrder = "";
 
@@ -150,44 +158,41 @@ function CandinatesList() {
         sortOrder = order;
       }
 
-      const params = {
+      // 🔹 Query params (remain in URL)
+      const queryParams = {
         page,
         limit,
-        skills:
-          selectedSkills.length > 0 ? selectedSkills.join(",") : undefined,
-        city: selectedCities.length > 0 ? selectedCities.join(",") : undefined,
+        skills: selectedSkills.length ? selectedSkills.join(",") : undefined,
+        city: selectedCity || undefined,
+
         country: selectedCountry || undefined,
-        education:
-          selectedEducation.length > 0
-            ? selectedEducation.join(",")
-            : undefined,
-        // experience:
-        //   selectedExperience.length > 0
-        //     ? selectedExperience.join(",")
-        //     : undefined,
-        experience: selectedExperience || undefined, // ✅ fixed
+        education: selectedEducation || undefined,
 
-        salary: selectedSalary || undefined, // ✅ added
-
-        availability: selectedAvailability || undefined, // ✅ added
+        experience: selectedExperience || undefined,
         keyword: keyword.trim() || undefined,
         sortBy: sortField || undefined,
         order: sortOrder || undefined,
       };
 
-      console.log("Candidate Search Parameters:", params);
+      // 🔹 Body params (NO + encoding issue here)
+      const bodyData = {
+        salary: selectedSalary || undefined,
+        availability: selectedAvailability || undefined,
+      };
+
+      console.log("Query Params:", queryParams);
+      console.log("Body Data:", bodyData);
 
       const response = await axios.post(
         `${API_BASE_URL}getCandidateList`,
-        {},
+        bodyData, // ✅ send salary + availability in body
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          params: params,
+          params: queryParams, // ✅ others in query
         },
       );
-      console.log("Candidate Search Results:", response.data);
 
       setCandidates(response.data.data || []);
       setTotalPages(response.data.totalPages || 1);
@@ -202,13 +207,6 @@ function CandinatesList() {
   useEffect(() => {
     fetchCandidates(currentPage, perPage);
   }, [currentPage, perPage]);
-
-  const JobListLoader = () => (
-    <div className="text-center py-5">
-      <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading Candidates Listing, please wait...</p>
-    </div>
-  );
 
   const handleBookmark = async (candidateId, jobId) => {
     try {
@@ -305,18 +303,22 @@ function CandinatesList() {
 
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
     debounceTimer.current = setTimeout(() => {
-      fetchCandidates(1, perPage);
       setCurrentPage(1);
+      fetchCandidates(1, perPage);
     }, 500);
+
+    return () => clearTimeout(debounceTimer.current);
   }, [
     keyword,
     selectedSkills,
     selectedEducation,
     selectedExperience,
-    selectedCities,
+    selectedCity, // ✅ FIXED
     selectedCountry,
-    // selectedLocation,
+    selectedSalary, // ✅ ADD THIS
+    selectedAvailability, // ✅ ADD THIS
     sortBy,
     perPage,
   ]);
@@ -336,6 +338,42 @@ function CandinatesList() {
 
     // Case: local upload (relative path)
     return `${API_IMAGE_URL}${url}`;
+  };
+  const averageRating =
+    reviews && reviews.length > 0
+      ? (
+          reviews.reduce((acc, item) => acc + (item.rating || 0), 0) /
+          reviews.length
+        ).toFixed(1)
+      : 0;
+  const getReviewsByUser = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${API_BASE_URL}getReviews/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setReviews(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+  };
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <i
+          key={i}
+          className={i <= rating ? "fa-solid fa-star" : "fa-regular fa-star"}
+        ></i>,
+      );
+    }
+    return <div className="rating-stars">{stars}</div>;
+  };
+  const truncateText = (text, limit = 100) => {
+    if (!text) return "";
+    return text.length > limit ? text.substring(0, limit) + "..." : text;
   };
 
   return (
@@ -531,110 +569,29 @@ function CandinatesList() {
                             City
                           </h3>
 
-                          <div className="form-group position-relative">
-                            <div
-                              className="multi-select-container"
-                              ref={cityDropdownRef}
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
+                              style={{
+                                fontSize: "12px",
+                                height: "38px",
+                                cursor: "pointer",
+                              }}
+                              value={selectedCity || ""}
+                              onChange={(e) => {
+                                setSelectedCity(e.target.value);
+                                setCurrentPage(1);
+                              }}
+                              disabled={!selectedCountry} // disable if no country selected
                             >
-                              {/* Selected Items + Input */}
-                              <div
-                                onClick={() => setShowCityOptions(true)}
-                                className="bg-light rounded-pill px-3 d-flex flex-wrap align-items-center"
-                                style={{
-                                  minHeight: "38px",
-                                  cursor: "text",
-                                  fontSize: "12px",
-                                }}
-                              >
-                                {/* Selected city tags */}
-                                {selectedCities.map((cityName) => (
-                                  <span
-                                    key={cityName}
-                                    className="me-1 mb-1 d-flex align-items-center"
-                                    style={{
-                                      background: "#0d6efd",
-                                      color: "white",
-                                      borderRadius: "12px",
-                                      padding: "2px 8px",
-                                      fontSize: "11px",
-                                    }}
-                                  >
-                                    {cityName}
-                                    <i
-                                      className="fa-solid fa-xmark ms-1"
-                                      style={{ cursor: "pointer" }}
-                                      onClick={() => handleRemoveCity(cityName)}
-                                    />
-                                  </span>
-                                ))}
+                              <option value="">All Cities</option>
 
-                                <input
-                                  type="text"
-                                  placeholder="Search city..."
-                                  value={citySearchTerm}
-                                  onChange={(e) =>
-                                    setCitySearchTerm(e.target.value)
-                                  }
-                                  onFocus={() => setShowCityOptions(true)}
-                                  style={{
-                                    flex: 1,
-                                    border: "none",
-                                    outline: "none",
-                                    background: "transparent",
-                                    minWidth: "80px",
-                                    fontSize: "12px",
-                                  }}
-                                />
-                              </div>
-
-                              {/* Dropdown Options */}
-                              {showCityOptions && (
-                                <ul
-                                  className="list-unstyled bg-white shadow-sm rounded mt-1"
-                                  style={{
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                    position: "absolute",
-                                    width: "100%",
-                                    zIndex: 1000,
-                                    fontSize: "12px",
-                                  }}
-                                >
-                                  {filteredCities.length > 0 ? (
-                                    filteredCities.map((city) => {
-                                      const isSelected =
-                                        selectedCities.includes(city.name);
-
-                                      return (
-                                        <li
-                                          key={city._id}
-                                          onClick={() => toggleCity(city.name)}
-                                          className="px-3 py-2"
-                                          style={{
-                                            cursor: "pointer",
-                                            background: isSelected
-                                              ? "#0d6efd"
-                                              : "transparent",
-                                            color: isSelected
-                                              ? "white"
-                                              : "black",
-                                          }}
-                                        >
-                                          {city.name}
-                                          {isSelected && (
-                                            <span className="float-end">✔</span>
-                                          )}
-                                        </li>
-                                      );
-                                    })
-                                  ) : (
-                                    <li className="px-3 py-2 text-muted">
-                                      No cities found
-                                    </li>
-                                  )}
-                                </ul>
-                              )}
-                            </div>
+                              {cityList.map((city) => (
+                                <option key={city._id} value={city.name}>
+                                  {city.name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -746,7 +703,7 @@ function CandinatesList() {
                               }
                             >
                               <option value="" disabled>
-                                Select minimum level
+                                Select  level
                               </option>
 
                               {seniorityLevels.map((level) => (
@@ -772,58 +729,28 @@ function CandinatesList() {
                             Education
                           </h3>
 
-                          <div className="form-group position-relative">
-                            <div
-                              className="bg-light rounded-pill px-3 d-flex align-items-center flex-wrap"
+                          <div className="form-group">
+                            <select
+                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
                               style={{
-                                minHeight: "38px",
-                                cursor: "pointer",
                                 fontSize: "12px",
+                                height: "38px",
+                                cursor: "pointer",
                               }}
-                              onClick={() =>
-                                setShowEducationOptions(!showEducationOptions)
-                              }
+                              value={selectedEducation}
+                              onChange={(e) => {
+                                setSelectedEducation(e.target.value);
+                                setCurrentPage(1);
+                              }}
                             >
-                              {selectedEducation.length > 0
-                                ? selectedEducation.join(", ")
-                                : "Any Degree"}
-                            </div>
+                              <option value="">Any Degree</option>
 
-                            {showEducationOptions && (
-                              <ul
-                                className="list-unstyled bg-white shadow-sm rounded mt-1 p-2"
-                                style={{
-                                  maxHeight: "220px",
-                                  overflowY: "auto",
-                                  position: "absolute",
-                                  width: "100%",
-                                  zIndex: 1000,
-                                  fontSize: "12px",
-                                }}
-                              >
-                                {educationLevels.map((edu, index) => (
-                                  <li
-                                    key={edu}
-                                    className="d-flex align-items-center px-2 py-1"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id={`education-${index}`}
-                                      value={edu}
-                                      checked={selectedEducation.includes(edu)}
-                                      onChange={() => toggleEducation(edu)}
-                                      className="me-2"
-                                    />
-                                    <label
-                                      htmlFor={`education-${index}`}
-                                      style={{ cursor: "pointer" }}
-                                    >
-                                      {edu}
-                                    </label>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
+                              {educationLevels.map((edu) => (
+                                <option key={edu} value={edu}>
+                                  {edu}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -856,7 +783,7 @@ function CandinatesList() {
                                 setSelectedSalary(e.target.value)
                               }
                             >
-                              <option value="">Choose Salary Range</option>
+                              <option value="">Choose Salary</option>
 
                               {salaryRanges.map((item) => (
                                 <option key={item._id} value={item.range}>
@@ -1163,6 +1090,7 @@ function CandinatesList() {
                                       <i className="fa-solid fa-download me-1" />{" "}
                                       Download CV
                                     </button>
+
                                     <a
                                       href="https://www.linkedin.com/in/candidate-smith"
                                       target="_blank"
@@ -1297,10 +1225,21 @@ function CandinatesList() {
                                     <li>No skills listed</li>
                                   )}
                                 </div>
-                                <div className="d-flex justify-content-end mt-3">
-                                  <button className="btn btn-warning text-white btn-sm">
-                                    <i className="fa-solid fa-envelope me-1" />{" "}
+                                <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
+                                  {/* Send Message Button */}
+                                  <button className="btn btn-warning btn-sm text-white">
+                                    <i className="fa-solid fa-envelope me-1"></i>
                                     Send Message
+                                  </button>
+
+                                  {/* Rating Button */}
+                                  <button
+                                    type="button"
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => setShowModal(true)}
+                                  >
+                                    <i className="fa-solid fa-star me-1"></i>
+                                    Rating
                                   </button>
                                 </div>
                               </div>
@@ -1595,14 +1534,6 @@ function CandinatesList() {
                                     >
                                       <i className="fa-solid fa-user-tie text-primary" />
                                     </div>
-
-                                    {/* <div
-                                  className="flex-grow-1 border-start my-1"
-                                  style={{
-                                    width: "2px",
-                                    backgroundColor: "rgb(233, 236, 239)",
-                                  }}
-                                /> */}
                                   </div>
 
                                   {/* RIGHT CONTENT */}
@@ -1780,6 +1711,89 @@ function CandinatesList() {
                                 <p>No certificates available</p>
                               )}
                             </div>
+                            <div
+                              className="mt-5 border-top pt-4"
+                              ref={reviewSectionRef}
+                            >
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="fw-bold mb-0">Reviews</h5>
+
+                                {reviews.length > 0 && (
+                                  <div className="d-flex align-items-center gap-2">
+                                    <div className="text-warning fs-5">
+                                      {renderStars(averageRating)}
+                                    </div>
+                                    <span className="fw-semibold">
+                                      {averageRating}
+                                    </span>
+                                    <span className="text-muted small">
+                                      ({reviews.length} reviews)
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {reviews.length > 0 ? (
+                                reviews.map((item, index) => {
+                                  const name =
+                                    item?.senderCompany?.brandName ||
+                                    item?.sender?.first_name ||
+                                    "Anonymous";
+
+                                  const profileImage = item?.senderCompany?.logo
+                                    ? `${API_IMAGE_URL}${item.senderCompany.logo}`
+                                    : "/jobPortal/assets/images/dashboard/images1.png";
+
+                                  return (
+                                    <div
+                                      className="border rounded p-3 mb-3 shadow-sm"
+                                      key={index}
+                                    >
+                                      <div className="d-flex gap-3">
+                                        <img
+                                          crossOrigin="anonymous"
+                                          src={profileImage}
+                                          alt="user"
+                                          className="rounded-circle"
+                                          style={{
+                                            width: "50px",
+                                            height: "50px",
+                                            objectFit: "cover",
+                                          }}
+                                          onError={(e) =>
+                                            (e.target.src =
+                                              "/jobPortal/assets/images/dashboard/images1.png")
+                                          }
+                                        />
+
+                                        <div className="flex-grow-1">
+                                          <div className="d-flex justify-content-between">
+                                            <h6 className="mb-1 fw-semibold">
+                                              {name}
+                                            </h6>
+                                            <small className="text-muted">
+                                              {new Date(
+                                                item?.createdAt,
+                                              ).toLocaleDateString()}
+                                            </small>
+                                          </div>
+
+                                          <div className="text-warning mb-2">
+                                            {renderStars(item?.rating)}
+                                          </div>
+
+                                          <p className="mb-0 text-muted">
+                                            {truncateText(item?.message, 150)}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p className="text-muted">No reviews yet.</p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </>
@@ -1826,6 +1840,88 @@ function CandinatesList() {
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal">
+            <div className="modal-header">
+              <h5>Add Review</h5>
+              <span className="modal-close" onClick={() => setShowModal(false)}>
+                &times;
+              </span>
+            </div>
+
+            {/* ⭐ Star Rating */}
+            <div className="star-rating-modal">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <i
+                  key={star}
+                  className={
+                    star <= (hover || rating)
+                      ? "fa-solid fa-star"
+                      : "fa-regular fa-star"
+                  }
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                />
+              ))}
+            </div>
+
+            {/* Review Textarea */}
+            <textarea
+              className="form-control"
+              placeholder="Write Message"
+              rows={6}
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+            />
+
+            {/* Submit */}
+            <button
+              className="default-btn btn w-100 mt-3"
+              onClick={async () => {
+                if (!rating) return toast.error("Please select a rating!");
+                if (!review.trim())
+                  return toast.error("Review cannot be empty!");
+
+                const token = localStorage.getItem("token");
+
+                try {
+                  const res = await axios.post(
+                    `${API_BASE_URL}addReview`,
+                    {
+                      receiver: candidateDetails?.userId, // 👉 Receiver = candidate userId
+                      message: review,
+                      rating: rating,
+                    },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    },
+                  );
+                  getReviewsByUser(selectedCandidateId);
+                  toast.success("Review submitted successfully!");
+                  setTimeout(() => {
+                    reviewSectionRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }, 300);
+                  setShowModal(false);
+                  setReview("");
+                  setRating(0);
+                } catch (error) {
+                  console.error("Error submitting review:", error);
+                  toast.error("Failed to submit review");
+                }
+              }}
+            >
+              Submit Review
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -258,7 +258,7 @@ function AppliedJobList() {
                         </td>
 
                         {/* Views */}
-                        <td>{job?.views || 0}</td>
+                        <td>{job?.uniqueViewsCount || 0}</td>
 
                         {/* Applicants */}
                         <td>
