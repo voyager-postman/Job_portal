@@ -23,6 +23,7 @@ function AppliedJobList() {
     }, 500); // waits 500ms after user stops typing
     return () => clearTimeout(handler);
   }, [searchTerm]);
+
   const fetchJobs = async (search = "", page = 1) => {
     try {
       setLoading(true);
@@ -74,6 +75,7 @@ function AppliedJobList() {
     // backend upload
     return `${API_IMAGE_URL}${url}`;
   };
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -106,6 +108,7 @@ function AppliedJobList() {
             </ol>
           </div>
           {/* End Breadcrumb Area */}
+
           {/*Applied jobs list start here */}
           <section className="applied-jobs-list-info">
             <div className="application-management-filter-info">
@@ -309,6 +312,7 @@ function AppliedJobList() {
                                 <Link
                                   className="dropdown-item"
                                   to={`/job-details-form/${job._id}`}
+                                  state={{ jobData: job, from: "/applied-jobs-list" }}
                                 >
                                   <i className="fa-regular fa-pen-to-square me-2"></i>
                                   Edit Job
@@ -338,6 +342,7 @@ function AppliedJobList() {
               </div>
             )}
           </section>
+
           {totalPages > 1 && (
             <div className="d-flex justify-content-center mt-4">
               <ul className="pagination">
@@ -355,9 +360,8 @@ function AppliedJobList() {
                 {Array.from({ length: totalPages }, (_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${currentPage === i + 1 ? "active" : ""
+                      }`}
                   >
                     <button
                       className="page-link"
@@ -369,9 +373,8 @@ function AppliedJobList() {
                 ))}
 
                 <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
+                  className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                    }`}
                 >
                   <button
                     className="page-link"

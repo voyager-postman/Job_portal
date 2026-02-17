@@ -187,7 +187,7 @@ function YourJobPosts() {
 
   const jobUpdate = (job) => {
     navigate(`/job-details-form/${job._id}`, {
-      state: { jobData: job },
+      state: { jobData: job, from: "/your-job-posts" },
     });
   };
 
@@ -359,9 +359,8 @@ function YourJobPosts() {
                 </div>
                 <div className="col-md-4 mb-3">
                   <Link
-                    className={`${
-                      activeStatus === "published" ? "active" : ""
-                    }`}
+                    className={`${activeStatus === "published" ? "active" : ""
+                      }`}
                     onClick={() => setActiveStatus("published")}
                   >
                     <div className="employer-dashboard-box-icon-content">
@@ -418,9 +417,8 @@ function YourJobPosts() {
                 </div>
                 <div className="col-md-4 mb-3">
                   <Link
-                    className={`${
-                      activeStatus === "unpublished" ? "active" : ""
-                    }`}
+                    className={`${activeStatus === "unpublished" ? "active" : ""
+                      }`}
                     onClick={() => setActiveStatus("unpublished")}
                   >
                     <div className="employer-dashboard-box-icon-content">
@@ -560,9 +558,8 @@ function YourJobPosts() {
                   <ul className="nav nav-tabs" role="tablist">
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${
-                          activeStatus === "all" ? "active" : ""
-                        }`}
+                        className={`nav-link ${activeStatus === "all" ? "active" : ""
+                          }`}
                         onClick={() => setActiveStatus("all")}
                       >
                         <i className="fas fa-tasks"></i> All
@@ -570,9 +567,8 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${
-                          activeStatus === "published" ? "active" : ""
-                        }`}
+                        className={`nav-link ${activeStatus === "published" ? "active" : ""
+                          }`}
                         onClick={() => setActiveStatus("published")}
                       >
                         <i className="fa-solid fa-upload"></i> Published
@@ -580,9 +576,8 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${
-                          activeStatus === "draft" ? "active" : ""
-                        }`}
+                        className={`nav-link ${activeStatus === "draft" ? "active" : ""
+                          }`}
                         onClick={() => setActiveStatus("draft")}
                       >
                         <i className="fa-solid fa-pencil"></i> Draft
@@ -590,29 +585,8 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${
-                          activeStatus === "expired" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveStatus("expired")}
-                      >
-                        <i className="fas fa-calendar-alt"></i> Expired
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link
-                        className={`nav-link ${
-                          activeStatus === "unpublished" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveStatus("unpublished")}
-                      >
-                        <i className="fas fa-file-word"></i> Unpublished
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link
-                        className={`nav-link ${
-                          activeStatus === "archived" ? "active" : ""
-                        }`}
+                        className={`nav-link ${activeStatus === "archived" ? "active" : ""
+                          }`}
                         onClick={() => setActiveStatus("archived")}
                       >
                         <i className="fas fa-archive"></i> Archived
@@ -620,9 +594,26 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${
-                          activeStatus === "scheduled" ? "active" : ""
-                        }`}
+                        className={`nav-link ${activeStatus === "unpublished" ? "active" : ""
+                          }`}
+                        onClick={() => setActiveStatus("unpublished")}
+                      >
+                        <i className="fas fa-file-word"></i> Unpublished
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        className={`nav-link ${activeStatus === "expired" ? "active" : ""
+                          }`}
+                        onClick={() => setActiveStatus("expired")}
+                      >
+                        <i className="fas fa-calendar-alt"></i> Expired
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link
+                        className={`nav-link ${activeStatus === "scheduled" ? "active" : ""
+                          }`}
                         onClick={() => setActiveStatus("scheduled")}
                       >
                         <i className="fas fa-archive"></i> Scheduled
@@ -710,11 +701,11 @@ function YourJobPosts() {
                                 <i className="fa-solid fa-location-dot"></i>{" "}
                                 {job.city?.length
                                   ? (() => {
-                                      const cityText = job.city.join(", ");
-                                      return cityText.length > 30
-                                        ? cityText.slice(0, 30) + "..."
-                                        : cityText;
-                                    })()
+                                    const cityText = job.city.join(", ");
+                                    return cityText.length > 30
+                                      ? cityText.slice(0, 30) + "..."
+                                      : cityText;
+                                  })()
                                   : "Not provided"}
                               </li>
                               <li>
