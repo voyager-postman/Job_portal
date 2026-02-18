@@ -18,7 +18,7 @@ function MassagingSystem() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
-  const stateHandledRef = useRef(false);
+
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket(
@@ -61,58 +61,15 @@ function MassagingSystem() {
       const res = await axios.get(`${API_BASE_URL}getChatUserList`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      let chatUsers = res.data.data || [];
-
-      // If we're coming from "Send Message" button, ensure that specific person is in the list
-      if (location.state?.candidateId && location.state?.candidate) {
-        const targetId = location.state.candidateId;
-        const exists = chatUsers.some((u) => u.user?._id === targetId);
-
-        if (!exists) {
-          const app = location.state.candidate;
-          chatUsers = [
-            {
-              user: {
-                _id: app.userId?._id,
-                name: `${app.userId?.first_name} ${app.userId?.last_name}`,
-                profileImage: app.userId?.profileImage,
-              },
-              lastMessage: "",
-              unreadCount: 0,
-              lastMessageAt: null,
-              groupId: null,
-            },
-            ...chatUsers,
-          ];
-        }
-      }
-
-      setUsers(chatUsers);
+      setUsers(res.data.data);
     } catch (error) {
-      console.error("Error While fetching the candidate data", error);
+      console.error("Error While fetching the candidate data");
     }
   };
 
   useEffect(() => {
     fetchCandidates();
   }, []);
-
-  // Handle incoming candidate selection from state (e.g., from Manage Applicants page)
-  useEffect(() => {
-    if (
-      !stateHandledRef.current &&
-      location.state?.candidateId &&
-      users.length > 0
-    ) {
-      const targetUser = users.find(
-        (u) => u.user?._id === location.state.candidateId,
-      );
-      if (targetUser) {
-        loadChat(targetUser);
-        stateHandledRef.current = true;
-      }
-    }
-  }, [users, location.state]);
 
   const checkUnreadCount = async (groupId) => {
     try {
@@ -293,13 +250,7 @@ function MassagingSystem() {
                                   checkUnreadCount(u.groupId || "");
                                 }}
                               >
-                                <a
-                                  className={`nav-link ${activeUser?.id === u.user?._id
-                                    ? "active"
-                                    : ""
-                                    }`}
-                                  data-bs-toggle="tab"
-                                >
+                                <a className="nav-link" data-bs-toggle="tab">
                                   <div className="messaging-system-img-user-info">
                                     <div className="messaging-system-user-img">
                                       <img
@@ -318,11 +269,12 @@ function MassagingSystem() {
                                     <div className="messaging-system-user-info">
                                       <h5>
                                         {u.user?.name}{" "}
+                                        {/* {u.applicant?.last_name} */}
                                       </h5>
                                       <p>
                                         {u?.lastMessage?.length > 40
                                           ? u.lastMessage.substring(0, 40) +
-                                          "..."
+                                            "..."
                                           : u?.lastMessage}
                                       </p>
                                     </div>
@@ -402,7 +354,7 @@ function MassagingSystem() {
                               {(chatStore[activeUser?.id] || []).map(
                                 (msg, index) =>
                                   String(msg.sender) ===
-                                    String(CURRENT_USER_ID) ? (
+                                  String(CURRENT_USER_ID) ? (
                                     // RIGHT SIDE (RECTRUITER - YOU)
                                     <>
                                       <div

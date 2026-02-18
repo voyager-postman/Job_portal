@@ -234,8 +234,7 @@ function AppliedJobList() {
                           <div>
                             <div className="fw-bold">{job?.jobTitle}</div>
                             <small className="text-muted">
-                              {/* #{job?.jobId || job?._id} */}
-                              #JOB-OB_1
+                              #{job?.jobNumber || "N/A"}
                             </small>
                           </div>
                         </td>
