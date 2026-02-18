@@ -703,7 +703,7 @@ function CandinatesList() {
                               }
                             >
                               <option value="" disabled>
-                                Select  level
+                                Select level
                               </option>
 
                               {seniorityLevels.map((level) => (
@@ -812,7 +812,7 @@ function CandinatesList() {
                             <select
                               className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
                               style={{
-                                "font-size": "12px",
+                                fontSize: "12px",
                                 height: "38px",
                                 cursor: "pointer",
                               }}
@@ -823,7 +823,12 @@ function CandinatesList() {
                             >
                               <option value="">Any Status</option>
                               <option value="Immediate">Immediate</option>
-                              <option value="Notice">With Notice</option>
+                              <option value="15 Days">15 Days</option>
+                              <option value="30 Days">30 Days</option>
+                              <option value="45 Days">45 Days</option>
+                              <option value="60 Days">60 Days</option>
+                              <option value="90 Days">90 Days</option>
+                              <option value="Negotiable">Negotiable</option>
                             </select>
                           </div>
                         </div>
@@ -1003,7 +1008,13 @@ function CandinatesList() {
                                   <span className="text-muted">•</span>
 
                                   <span className="text-muted">
-                                    {user.city || "Location not available"}
+                                    <span className="text-muted">
+                                      {user?.city && user?.Nationality
+                                        ? `${user.city}, ${user.Nationality}`
+                                        : user?.city ||
+                                          user?.Nationality ||
+                                          "Location not available"}
+                                    </span>
                                   </span>
                                 </div>
                               </div>
@@ -1166,10 +1177,23 @@ function CandinatesList() {
                                 <div className="d-flex flex-wrap gap-2 mt-3 text-sm text-muted">
                                   <div className="w-100 d-flex align-items-center gap-1">
                                     <i className="fa-solid fa-location-dot" />
-                                    {candidateDetails?.userId?.city
-                                      ?.toLowerCase()
-                                      .replace(/^\w/, (c) => c.toUpperCase()) ||
-                                      "Not Provided"}{" "}
+                                    <span className="text-muted">
+                                      {candidateDetails?.userId?.city &&
+                                      candidateDetails?.userId?.Nationality
+                                        ? `${candidateDetails.userId.city
+                                            .toLowerCase()
+                                            .replace(/^\w/, (c) =>
+                                              c.toUpperCase(),
+                                            )}, ${candidateDetails.userId.Nationality}`
+                                        : candidateDetails?.userId?.city
+                                          ? candidateDetails.userId.city
+                                              .toLowerCase()
+                                              .replace(/^\w/, (c) =>
+                                                c.toUpperCase(),
+                                              )
+                                          : candidateDetails?.userId
+                                              ?.Nationality || "Not Provided"}
+                                    </span>
                                   </div>
                                   <div className="w-100">
                                     <button

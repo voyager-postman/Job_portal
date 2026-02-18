@@ -197,8 +197,7 @@ function AppliedJobList() {
                           <div>
                             <div className="fw-bold">{job?.jobTitle}</div>
                             <small className="text-muted">
-                              {/* #{job?.jobId || job?._id} */}
-                              #JOB-OB_1
+                              #{job?.jobNumber || "N/A"}
                             </small>
                           </div>
                         </td>
@@ -312,7 +311,10 @@ function AppliedJobList() {
                                 <Link
                                   className="dropdown-item"
                                   to={`/job-details-form/${job._id}`}
-                                  state={{ jobData: job, from: "/applied-jobs-list" }}
+                                  state={{
+                                    jobData: job,
+                                    from: "/applied-jobs-list",
+                                  }}
                                 >
                                   <i className="fa-regular fa-pen-to-square me-2"></i>
                                   Edit Job
@@ -360,8 +362,9 @@ function AppliedJobList() {
                 {Array.from({ length: totalPages }, (_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${currentPage === i + 1 ? "active" : ""
-                      }`}
+                    className={`page-item ${
+                      currentPage === i + 1 ? "active" : ""
+                    }`}
                   >
                     <button
                       className="page-link"
@@ -373,8 +376,9 @@ function AppliedJobList() {
                 ))}
 
                 <li
-                  className={`page-item ${currentPage === totalPages ? "disabled" : ""
-                    }`}
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                 >
                   <button
                     className="page-link"
