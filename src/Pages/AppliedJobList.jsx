@@ -64,19 +64,6 @@ function AppliedJobList() {
     fetchJobs(debouncedSearch, currentPage);
   }, [debouncedSearch, currentPage, perPage]);
 
-  const getImageUrl = (url) => {
-    if (!url) return "assets/images/icon/icon-26.png";
-
-    // full external url
-    if (url.startsWith("http")) return url;
-
-    // local assets
-    if (url.startsWith("assets/")) return url;
-
-    // backend upload
-    return `${API_IMAGE_URL}${url}`;
-  };
-
   const handleDelete = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -253,7 +240,7 @@ function AppliedJobList() {
                               className="text-muted text-truncate d-block"
                               style={{ maxWidth: "180px" }}
                             >
-                              {`${job?.recruiter?.firstName || ""} ${job?.recruiter?.lastName || ""}`}
+                              {`${job?.recruiter?.first_name || ""} ${job?.recruiter?.last_name || ""}`}
                             </small>
                           </div>
                         </td>
@@ -302,13 +289,25 @@ function AppliedJobList() {
 
                         {/* Applicants */}
                         <td>
-                          <Link
-                            to="/applied-candidate-list"
-                            state={{ jobId: job._id }}
-                            style={{ color: "#0d6efd", fontWeight: "500" }}
-                          >
-                            {job?.applicantCount || 0} Applicants
-                          </Link>
+                          {job?.applicantCount > 0 ? (
+                            <Link
+                              to="/all-applicants-list"
+                              state={{ jobId: job._id }}
+                              style={{ color: "#0d6efd", fontWeight: "500" }}
+                            >
+                              {job.applicantCount} Applicants
+                            </Link>
+                          ) : (
+                            <span
+                              style={{
+                                color: "#6c757d",
+                                fontWeight: "500",
+                                cursor: "not-allowed",
+                              }}
+                            >
+                              0 Applicants
+                            </span>
+                          )}
                         </td>
 
                         {/* Location */}

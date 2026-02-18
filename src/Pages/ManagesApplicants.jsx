@@ -13,6 +13,7 @@ function ManagesApplicants() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const [showContact, setShowContact] = useState(false);
+  const [companyJobs, setCompanyJobs] = useState([]);
 
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
@@ -41,7 +42,7 @@ function ManagesApplicants() {
 
   console.log(selectedCandidate);
   const [loading, setLoading] = useState(false);
-  const [keyword, setKeyword] = useState("");
+  // const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState("");
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -141,6 +142,48 @@ function ManagesApplicants() {
 
     fetchSalaryRanges();
   }, []);
+  const handleViewFromTable = (candidate) => {
+    // 1. Switch tab
+    setActiveTab("all");
+
+    // 2. Set selected candidate
+    setSelectedCandidate(candidate);
+
+    // 3. Optional: scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleTableStatusUpdate = async (value, applicationId, jobId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}updateApplicationStatus`,
+        {
+          jobId: jobId?._id || jobId,
+          applicationId: applicationId,
+          newStatus: value,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      toast.success(`Candidate status updated to ${value}`);
+
+      // Update UI instantly (without refresh)
+      setCandidates((prev) =>
+        prev.map((candidate) =>
+          candidate._id === applicationId
+            ? { ...candidate, status: value }
+            : candidate,
+        ),
+      );
+    } catch (error) {
+      console.error("Update Status Error:", error);
+      toast.error("Failed to update status");
+    }
+  };
 
   const fetchCountry = async () => {
     try {
@@ -152,6 +195,25 @@ function ManagesApplicants() {
       console.error("Error While Fetching Country:", error);
     }
   };
+  const fetchCompanyJobs = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getCompanyJobsFilterList`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.data?.success) {
+        setCompanyJobs(res.data.jobs || []);
+      }
+    } catch (error) {
+      console.error("Error fetching company jobs:", error);
+      toast.error("Failed to load job list");
+    }
+  };
+  useEffect(() => {
+    fetchCompanyJobs();
+  }, []);
 
   const fetchCitiesByCountry = async (countryId) => {
     if (!countryId) return;
@@ -207,6 +269,7 @@ function ManagesApplicants() {
     // ✅ Local uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
+
   const filters = {
     selectedJob,
     status,
@@ -542,7 +605,10 @@ function ManagesApplicants() {
                 </span>
                 <select
                   value={selectedJob}
-                  onChange={(e) => setSelectedJob(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedJob(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="form-select border-0 bg-transparent text-dark fw-bold p-0 shadow-none"
                   style={{
                     width: "auto",
@@ -553,7 +619,7 @@ function ManagesApplicants() {
                 >
                   <option value="">All Job Offers</option>
 
-                  {jobOptions.map((job) => (
+                  {companyJobs.map((job) => (
                     <option key={job._id} value={job._id}>
                       {job.jobTitle}
                     </option>
@@ -721,7 +787,7 @@ function ManagesApplicants() {
                           >
                             <option value>Level</option>
                             {seniorityLevels.map((level) => (
-                              <option key={level._id} value={level._id}>
+                              <option key={level._id} value={level.name}>
                                 {level.name}
                               </option>
                             ))}
@@ -1681,6 +1747,50 @@ function ManagesApplicants() {
                                 : "No professional summary added."}
                             </p>
                           </div>
+                          <div className="mb-4">
+                            <h5 className="fw-bold mb-3 border-bottom pb-2">
+                              About Your Role
+                            </h5>
+
+                            {selectedCandidate?.userId?.candidateProfile
+                              ?.aboutRole ? (
+                              <div className="row">
+                                <div className="col-md-4 mb-2">
+                                  <label class="fw-bold d-block text-muted small">
+                                    Job Title
+                                  </label>
+                                  <p>
+                                    {selectedCandidate.userId.candidateProfile
+                                      .aboutRole.jobTitle || "NA"}
+                                  </p>
+                                </div>
+
+                                <div className="col-md-4 mb-2">
+                                  <label class="fw-bold d-block text-muted small">
+                                    Years of Experience
+                                  </label>
+                                  <p>
+                                    {selectedCandidate.userId.candidateProfile
+                                      .aboutRole.yearOfExperience || "NA"}
+                                  </p>
+                                </div>
+
+                                <div className="col-md-4 mb-2">
+                                  <label class="fw-bold d-block text-muted small">
+                                    Job Category
+                                  </label>
+                                  <p>
+                                    {selectedCandidate.userId.candidateProfile
+                                      .aboutRole.jobCategory || "NA"}
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-muted small border rounded p-3 bg-light">
+                                No role information added
+                              </div>
+                            )}
+                          </div>
 
                           <div className="mb-4">
                             <h5 className="fw-bold mb-3 border-bottom pb-2">
@@ -2227,7 +2337,7 @@ function ManagesApplicants() {
                                         src={
                                           cleanImageUrl(
                                             item.userId?.profileImage,
-                                          ) || "assets/images/userIcon.png"
+                                          )
                                         }
                                         style={{
                                           width: "30px",
@@ -2278,16 +2388,22 @@ function ManagesApplicants() {
 
                                       <ul className="dropdown-menu">
                                         {statusFilters
-                                          .filter((item) => item.value !== "") // remove "All"
-                                          .map((item) => (
-                                            <li key={item.value}>
+                                          .filter(
+                                            (status) => status.value !== "",
+                                          )
+                                          .map((status) => (
+                                            <li key={status.value}>
                                               <button
                                                 className="dropdown-item"
                                                 onClick={() =>
-                                                  handleStatusUpdate(item.value)
-                                                } // ✅ PASS VALUE
+                                                  handleTableStatusUpdate(
+                                                    status.value,
+                                                    item._id,
+                                                    item.jobId,
+                                                  )
+                                                }
                                               >
-                                                {item.label} {/* show label */}
+                                                {status.label}
                                               </button>
                                             </li>
                                           ))}
@@ -2316,7 +2432,12 @@ function ManagesApplicants() {
 
                                       <ul className="dropdown-menu dropdown-menu-end border-0 shadow">
                                         <li>
-                                          <button className="dropdown-item">
+                                          <button
+                                            className="dropdown-item"
+                                            onClick={() =>
+                                              handleViewFromTable(item)
+                                            }
+                                          >
                                             <i className="fa-regular fa-eye me-2" />
                                             View Details
                                           </button>
@@ -2356,7 +2477,6 @@ function ManagesApplicants() {
                                   </td>
                                 </tr>
 
-                            
                                 {expandedRows.includes(item._id) && (
                                   <tr>
                                     <td
@@ -2387,9 +2507,15 @@ function ManagesApplicants() {
                                           />
 
                                           {statusFilters
-                                            .filter((s) => s.value !== "") // remove "All"
+                                            .filter(
+                                              (s) =>
+                                                s.value !== "" &&
+                                                s.value !== "Rejected", // ❌ remove Rejected from progress
+                                            )
                                             .map((step, index, arr) => {
-                                              // find index of current status
+                                              const isRejected =
+                                                item.status === "Rejected";
+
                                               const currentIndex =
                                                 arr.findIndex(
                                                   (s) =>
@@ -2397,8 +2523,10 @@ function ManagesApplicants() {
                                                 );
 
                                               const isCompleted =
+                                                !isRejected &&
                                                 index < currentIndex;
                                               const isActive =
+                                                !isRejected &&
                                                 index === currentIndex;
 
                                               let bgColor = "#fff";
@@ -2406,24 +2534,34 @@ function ManagesApplicants() {
                                               let textColor = "#6c757d";
                                               let fontWeight = "normal";
 
-                                              if (isCompleted) {
-                                                bgColor = "#198754";
-                                                borderColor = "#198754";
-                                              }
-
-                                              if (isActive) {
-                                                bgColor = "#0d6efd";
-                                                borderColor = "#0d6efd";
-                                                textColor = "#0d6efd";
+                                              // ✅ IF REJECTED → ALL STEPS RED
+                                              if (isRejected) {
+                                                bgColor = "#d62a47";
+                                                borderColor = "#d62a47";
+                                                textColor = "#d62a47";
                                                 fontWeight = "bold";
+                                              } else {
+                                                if (isCompleted) {
+                                                  bgColor = "#198754";
+                                                  borderColor = "#198754";
+                                                }
+
+                                                if (isActive) {
+                                                  bgColor = "#0d6efd";
+                                                  borderColor = "#0d6efd";
+                                                  textColor = "#0d6efd";
+                                                  fontWeight = "bold";
+                                                }
                                               }
 
                                               return (
                                                 <div
                                                   key={step.value}
                                                   onClick={() =>
-                                                    handleStatusUpdate(
+                                                    handleTableStatusUpdate(
                                                       step.value,
+                                                      item._id,
+                                                      item.jobId,
                                                     )
                                                   }
                                                   className="d-flex flex-column align-items-center position-relative"
@@ -2443,22 +2581,13 @@ function ManagesApplicants() {
                                                       transition: "0.3s",
                                                     }}
                                                   >
-                                                    {isCompleted ? (
+                                                    {isCompleted &&
+                                                    !isRejected ? (
                                                       <i
                                                         className="fa-solid fa-check"
                                                         style={{
                                                           color: "#fff",
                                                           fontSize: "10px",
-                                                        }}
-                                                      />
-                                                    ) : isActive ? (
-                                                      <span
-                                                        style={{
-                                                          width: 6,
-                                                          height: 6,
-                                                          backgroundColor:
-                                                            "#fff",
-                                                          borderRadius: "50%",
                                                         }}
                                                       />
                                                     ) : (
@@ -2467,7 +2596,9 @@ function ManagesApplicants() {
                                                           width: 6,
                                                           height: 6,
                                                           backgroundColor:
-                                                            "#dee2e6",
+                                                            isRejected
+                                                              ? "#fff"
+                                                              : "#dee2e6",
                                                           borderRadius: "50%",
                                                         }}
                                                       />

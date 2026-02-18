@@ -708,7 +708,7 @@ function CandinatesList() {
                               </option>
 
                               {seniorityLevels.map((level) => (
-                                <option key={level._id} value={level._id}>
+                                <option key={level._id} value={level.name}>
                                   {level.name}
                                 </option>
                               ))}
