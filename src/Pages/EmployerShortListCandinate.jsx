@@ -1,126 +1,12 @@
 import { Link } from "react-router-dom";
-import React, { useEffect, useState } from "react";
-import { FaBookmark } from "react-icons/fa";
+import React, { useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 
 function EmployerShortListCandinate() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [bookmarkedCandidates, setBookmarkedCandidates] = useState([]);
-  // const [bookmarkCount, setBookMarkCount] = useState("");
-  const [itemsPerPage] = useState(6); // show 6 candidates per page
-  // Calculate index range
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const [showProfile, setShowProfile] = useState(false);
 
-  const totalPages = Math.ceil(totalCount / perPage);
-
-  // Total pages
-
-  // Page change handler
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const token = localStorage.getItem("token");
-  useEffect(() => {
-    AOS.init({ duration: 1200 });
-  }, []);
-
-  useEffect(() => {
-    fetchBookmarkedCandidates();
-  }, [currentPage, perPage]);
-
-  const pageSizeOptions = [10, 20, 30, 50];
-
-  const fetchBookmarkedCandidates = async (page = currentPage) => {
-    try {
-      setLoading(true);
-
-      const res = await axios.get(`${API_BASE_URL}getBookmarked/candidates`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          page,
-          limit: perPage,
-          search: search?.trim() || "", // 👈 THIS
-        },
-      });
-
-      setBookmarkedCandidates(res.data.bookmarks || []);
-      setTotalCount(res.data.totalCount || 0);
-    } catch (error) {
-      console.error("Error fetching bookmarked candidates:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const JobListLoader = () => (
-    <div className="text-center py-5">
-      <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading BookMark Candidates, please wait...</p>
-    </div>
-  );
-
-  const handleBookmark = async (candidateId, jobId) => {
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}bookmark/candidate`,
-        { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      // Show message from backend
-      toast.success(res.data.message);
-      fetchBookmarkedCandidates(); // load bookmark list
-    } catch (err) {
-      console.error("Error bookmarking candidate:", err);
-
-      // If backend sends error message
-      if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error("Failed to bookmark candidate!");
-      }
-    }
-  };
-  useEffect(() => {
-    // whenever search becomes empty, reload full list
-    if (search.trim() === "") {
-      setCurrentPage(1);
-      fetchBookmarkedCandidates(1);
-    }
-  }, [search]);
-
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    // Case: wrong URL like "/uploads/https://"
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // External image URL
-    if (url.startsWith("http")) {
-      return url;
-    }
-
-    // Local uploads
-    return `${API_IMAGE_URL}${url}`;
-  };
-  console.log(totalCount);
-  
   return (
     <>
       <ToastContainer />
@@ -684,7 +570,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -744,7 +630,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -804,7 +690,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -864,7 +750,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -924,7 +810,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -984,7 +870,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1044,7 +930,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1104,7 +990,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1164,7 +1050,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1224,7 +1110,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1284,7 +1170,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1344,7 +1230,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1404,7 +1290,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1464,7 +1350,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1524,7 +1410,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1584,7 +1470,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1644,7 +1530,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1704,7 +1590,7 @@ function EmployerShortListCandinate() {
                       </div>
                     </div>
                     <div className="candidate-actions">
-                      <button className="btn btn-sm btn-light">
+                      <button className="btn btn-sm btn-light" onClick={() => setShowProfile(true)}>
                         View Profile
                       </button>
                       <button className="btn btn-sm btn-outline-danger">
@@ -1727,11 +1613,11 @@ function EmployerShortListCandinate() {
             </main>
           </div>
 
-          <div className="side-panel-overlay open">
-            <div className="side-panel-content">
+          <div className={`side-panel-overlay ${showProfile ? "open" : ""}`} onClick={() => setShowProfile(false)}>
+            <div className="side-panel-content" onClick={(e) => e.stopPropagation()}>
               <div className="side-panel-header">
                 <h2>Candidate Profile</h2>
-                <button className="close-btn">
+                <button className="close-btn" onClick={() => setShowProfile(false)}>
                   <svg
                     stroke="currentColor"
                     fill="currentColor"

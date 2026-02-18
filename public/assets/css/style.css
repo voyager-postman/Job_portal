@@ -12371,3 +12371,7 @@ text-transform: capitalize;
     margin-right: 8px;
     padding: 4px 12px;
 }
+.side-panel-footer {
+    border-top: 1px solid #eee;
+    padding: 20px;
+}
