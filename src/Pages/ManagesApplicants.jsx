@@ -4,8 +4,11 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-
+import { useLocation } from "react-router-dom";
+import Swal from "sweetalert2";
 function ManagesApplicants() {
+  const location = useLocation();
+
   const token = localStorage.getItem("token");
   const cityDropdownRef = useRef(null);
   const [selectedCities, setSelectedCities] = useState([]);
@@ -64,6 +67,12 @@ function ManagesApplicants() {
     { label: "Recruté", value: "Hired" },
     { label: "Rejeté", value: "Rejected" },
   ];
+  useEffect(() => {
+    if (location.state?.jobId) {
+      setSelectedJob(location.state.jobId);
+      setActiveTab("all"); // optional if needed
+    }
+  }, [location.state]);
 
   const recruitmentSteps = [
     "New",
@@ -90,7 +99,7 @@ function ManagesApplicants() {
   ];
 
   // const [currentStatus, setCurrentStatus] = useState("");
-    const [currentStatus, setCurrentStatus] = useState(
+  const [currentStatus, setCurrentStatus] = useState(
     selectedCandidate?.status || "New",
   );
   useEffect(() => {
@@ -98,8 +107,6 @@ function ManagesApplicants() {
       setCurrentStatus(selectedCandidate.status);
     }
   }, [selectedCandidate]);
-
-
 
   const jobOptions = [
     ...new Map(
@@ -367,9 +374,11 @@ function ManagesApplicants() {
     return null;
   };
   useEffect(() => {
-    if (candidates?.length > 0) {
+    if (!selectedCandidate && candidates?.length > 0) {
       setSelectedCandidate(candidates[0]);
-    } else {
+    }
+
+    if (candidates.length === 0) {
       setSelectedCandidate(null);
     }
   }, [candidates]);
@@ -423,6 +432,56 @@ function ManagesApplicants() {
 
     setSearch(""); // if you have search state
     fetchApplicants(1, resetValues, ""); // reload data
+  };
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            toast.error("You need to log in first.");
+            return;
+          }
+
+          const response = await axios.post(
+            `${API_BASE_URL}deleteApplicant/${id}`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          if (response.data.success) {
+            toast.success(response.data.message);
+
+            // ✅ Remove candidate from list instantly
+            setCandidates((prev) =>
+              prev.filter((candidate) => candidate._id !== id),
+            );
+
+            // ✅ If deleted candidate was selected → select next
+            if (selectedCandidate?._id === id) {
+              const remaining = candidates.filter((c) => c._id !== id);
+              setSelectedCandidate(remaining[0] || null);
+            }
+
+            // ❌ REMOVE THIS (causes refresh)
+            // fetchApplicants();
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to delete applicant");
+        }
+      }
+    });
   };
 
   return (
@@ -1262,7 +1321,7 @@ function ManagesApplicants() {
                       <div className="card-body p-4">
                         <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4">
                           <img
-                           crossOrigin="anonymous"
+                            crossOrigin="anonymous"
                             alt="profile"
                             className="rounded"
                             src={
@@ -2330,7 +2389,7 @@ function ManagesApplicants() {
                                   <td className="py-3">
                                     <div className="d-flex align-items-center">
                                       <img
-                                       crossOrigin="anonymous"
+                                        crossOrigin="anonymous"
                                         alt="user"
                                         className="rounded-circle me-2"
                                         src={
@@ -2443,12 +2502,14 @@ function ManagesApplicants() {
                                         </li>
 
                                         <li>
-                                          <Link to="/messaging-system" 
-                                          state={{
-                                            candidateId:item.userId?._id,
-                                            candidate:item,
-                                          }}
-                                          className="dropdown-item">
+                                          <Link
+                                            to="/messaging-system"
+                                            state={{
+                                              candidateId: item.userId?._id,
+                                              candidate: item,
+                                            }}
+                                            className="dropdown-item"
+                                          >
                                             <i className="fa-regular fa-comment-dots me-2" />
                                             Message
                                           </Link>
@@ -2466,7 +2527,12 @@ function ManagesApplicants() {
                                         </li>
 
                                         <li>
-                                          <button className="dropdown-item text-danger">
+                                          <button
+                                            className="dropdown-item text-danger"
+                                            onClick={() =>
+                                              handleDelete(item?._id)
+                                            }
+                                          >
                                             <i className="fa-regular fa-trash-can me-2" />
                                             Delete
                                           </button>
