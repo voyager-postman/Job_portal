@@ -1106,7 +1106,11 @@ function EmployerCandinateList() {
                         <Link
                           to="/messaging-system"
                           // className="default-btn btn"
-                          state={{ jobId: selectedCandidate.jobId }}
+                          state={{
+                            jobId: selectedCandidate.jobId,
+                            candidateId: selectedCandidate?.userInfo?._id,
+                            candidate: selectedCandidate,
+                          }}
                           style={{
                             padding: "3px 3px",
                             borderRadius: "5px",

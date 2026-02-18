@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+
 function ManagesApplicants() {
   const token = localStorage.getItem("token");
   const cityDropdownRef = useRef(null);
@@ -27,6 +28,7 @@ function ManagesApplicants() {
   const [selectedSalary, setSelectedSalary] = useState("");
   const [selectedAvailability, setSelectedAvailability] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
+  // const [showCityOptions, setShowCityOptions] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [sortByATS, setSortByATS] = useState("");
 
@@ -87,12 +89,18 @@ function ManagesApplicants() {
     "Professional Degree",
   ];
 
-  const [currentStatus, setCurrentStatus] = useState("");
+  // const [currentStatus, setCurrentStatus] = useState("");
+    const [currentStatus, setCurrentStatus] = useState(
+    selectedCandidate?.status || "New",
+  );
   useEffect(() => {
     if (selectedCandidate?.status) {
       setCurrentStatus(selectedCandidate.status);
     }
   }, [selectedCandidate]);
+
+
+
   const jobOptions = [
     ...new Map(
       candidates
@@ -100,6 +108,7 @@ function ManagesApplicants() {
         .map((c) => [c.jobId._id, c.jobId]),
     ).values(),
   ];
+
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -116,6 +125,7 @@ function ManagesApplicants() {
 
     fetchSeniorityLevels();
   }, []);
+
   useEffect(() => {
     const fetchSalaryRanges = async () => {
       try {
@@ -221,6 +231,7 @@ function ManagesApplicants() {
       setCityList([]);
     }
   };
+
   useEffect(() => {
     fetchCountry();
 
@@ -236,6 +247,7 @@ function ManagesApplicants() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
@@ -334,6 +346,7 @@ function ManagesApplicants() {
     currentPage,
     selectedJob,
     status,
+    search,
     selectedSkills,
     selectedExperience,
     selectedEducation,
@@ -1249,6 +1262,7 @@ function ManagesApplicants() {
                       <div className="card-body p-4">
                         <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4">
                           <img
+                           crossOrigin="anonymous"
                             alt="profile"
                             className="rounded"
                             src={
@@ -1699,10 +1713,17 @@ function ManagesApplicants() {
                                 </ul>
                               </div>
 
-                              <button className="btn btn-warning text-white btn-sm">
+                              <Link
+                                to="/messaging-system"
+                                state={{
+                                  candidateId: selectedCandidate?.userId?._id,
+                                  candidate: selectedCandidate,
+                                }}
+                                className="btn btn-warning text-white btn-sm"
+                              >
                                 <i className="fa-solid fa-envelope me-1" /> Send
                                 Message
-                              </button>
+                              </Link>
                             </div>
                           </div>
                         </div>
@@ -2309,6 +2330,7 @@ function ManagesApplicants() {
                                   <td className="py-3">
                                     <div className="d-flex align-items-center">
                                       <img
+                                       crossOrigin="anonymous"
                                         alt="user"
                                         className="rounded-circle me-2"
                                         src={
@@ -2421,10 +2443,15 @@ function ManagesApplicants() {
                                         </li>
 
                                         <li>
-                                          <button className="dropdown-item">
+                                          <Link to="/messaging-system" 
+                                          state={{
+                                            candidateId:item.userId?._id,
+                                            candidate:item,
+                                          }}
+                                          className="dropdown-item">
                                             <i className="fa-regular fa-comment-dots me-2" />
                                             Message
-                                          </button>
+                                          </Link>
                                         </li>
 
                                         <li>

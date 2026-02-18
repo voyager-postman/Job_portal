@@ -8,26 +8,24 @@ import image1 from "../../src/images/whatImg.png";
 function MassagingSystem() {
   const location = useLocation();
   const token = localStorage.getItem("token");
-  const profileImage = localStorage.getItem("profileImage");
-  const jobId = location.state?.jobId;
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
   const [users, setUsers] = useState([]);
+  const CURRENT_USER_ID = localStorage.getItem("companyId");
+  console.log("Current Employer ID:-", CURRENT_USER_ID);
+  const profileImage = localStorage.getItem("profileImage");
   const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
-  const CURRENT_USER_ID = localStorage.getItem("companyId");
-  console.log("Current Employer ID:-", CURRENT_USER_ID);
-  // const companyId = localStorage.getItem("companyId");
 
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket(
-      "wss://thunderingslap.com/chatusingsocket/ws/chat/",
+      `wss://thunderingslap.com/chatusingsocket/ws/chat/`,
     );
     socketRef.current = ws;
-    ws.onopen = () => console.log("WebSocket Connected");
+    ws.onopen = () => console.log("Websocket Connected");
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
       const normalized = {
@@ -46,12 +44,11 @@ function MassagingSystem() {
         [otherUserId]: [...(prev[otherUserId] || []), normalized],
       }));
 
-      // If currently chatting with this user → update UI
       if (activeUser && otherUserId === activeUser.id) {
         setMessages((prev) => [...prev, normalized]);
       }
     };
-    ws.onclose = () => console.log("WebSocket Closed");
+    ws.onclose = () => console.log("Websocket Closed");
     return () => ws.close();
   }, []);
 
@@ -60,18 +57,14 @@ function MassagingSystem() {
   }, [messages]);
 
   const fetchCandidates = async () => {
-    const res = await fetch(`${API_BASE_URL}getApplicantsListByJob/${jobId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json();
-    const applicants = data.applicants || [];
-    setUsers(applicants);
-
-    // ✅ Auto-select first user
-    // if (applicants.length > 0) {
-    //   loadChat(applicants[0]);
-    // }
+    try {
+      const res = await axios.get(`${API_BASE_URL}getChatUserList`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(res.data.data);
+    } catch (error) {
+      console.error("Error While fetching the candidate data");
+    }
   };
 
   useEffect(() => {
@@ -93,9 +86,9 @@ function MassagingSystem() {
   };
 
   // ---------------- LOAD CHAT HISTORY ----------------
-  const loadChat = async (user) => {
-    const userId = user.applicant.userId;
-    const groupId = user?.chat?.groupId || {};
+  const loadChat = async (chatItem) => {
+    const userId = chatItem?.user?._id;
+    const groupId = chatItem?.groupId;
 
     const getLastSeenText = (lastMessageAt) => {
       if (!lastMessageAt) return "";
@@ -124,22 +117,23 @@ function MassagingSystem() {
       });
       return `last seen ${date}`;
     };
-    const isOnline = user?.applicant?.isOnline === "true";
+
     setActiveUser({
       id: userId,
-      name: `${user.applicant.first_name} ${user.applicant.last_name}`,
-      image: user.applicant.profileImage,
-      jobId: user.jobId,
-      online: isOnline ? "Online" : getLastSeenText(user?.chat?.lastMessageAt),
+      name: chatItem?.user?.name?.trim(),
+      image: chatItem?.user?.profileImage,
+      // jobId: chatItem?.jobId,
+      online: getLastSeenText(chatItem?.lastMessageAt),
       groupId: groupId,
-      unreadCount: user?.chat?.unreadCount || 0,
+      unreadCount: chatItem?.unreadCount || 0,
     });
 
-    // If already cached, reuse it
+    // If already cached
     if (chatStore[userId]) {
       setMessages(chatStore[userId]);
       return;
     }
+
     try {
       const res = await axios.post(
         `${API_BASE_URL}getChatHistory/${userId}`,
@@ -153,7 +147,6 @@ function MassagingSystem() {
       }));
 
       setMessages(res.data.data);
-      fetchCandidates();
     } catch (err) {
       console.log("History Load Failed", err);
     }
@@ -171,15 +164,10 @@ function MassagingSystem() {
       from: CURRENT_USER_ID,
       to: activeUser.id,
       message: text,
-      jobId: jobId,
       created_at: new Date().toISOString(),
     };
     console.log(payload);
     socketRef.current.send(JSON.stringify(payload));
-    // setChatStore((prev) => ({
-    //   ...prev,
-    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
-    // }));
     setMessages((prev) => [...prev, payload]);
     setText("");
   };
@@ -255,11 +243,11 @@ function MassagingSystem() {
                               <li
                                 className="nav-item"
                                 role="presentation"
-                                key={u.applicant.userId}
+                                key={u.user?._id}
                                 onClick={() => {
                                   loadChat(u);
                                   fetchCandidates();
-                                  checkUnreadCount(u.chat.groupId || 1);
+                                  checkUnreadCount(u.groupId || "");
                                 }}
                               >
                                 <a className="nav-link" data-bs-toggle="tab">
@@ -267,31 +255,27 @@ function MassagingSystem() {
                                     <div className="messaging-system-user-img">
                                       <img
                                         crossOrigin="anonymous"
-                                        src={getImageUrl(
-                                          u?.applicant?.profileImage,
-                                        )}
+                                        src={getImageUrl(u?.user?.profileImage)}
                                       />
 
-                                      {u?.chat?.unreadCount > 0 && (
+                                      {u?.unreadCount > 0 && (
                                         <>
                                           <span className="chat-count">
-                                            {u?.chat?.unreadCount}
+                                            {u?.unreadCount}
                                           </span>
                                         </>
                                       )}
                                     </div>
                                     <div className="messaging-system-user-info">
                                       <h5>
-                                        {u.applicant?.first_name}{" "}
-                                        {u.applicant?.last_name}
+                                        {u.user?.name}{" "}
+                                        {/* {u.applicant?.last_name} */}
                                       </h5>
                                       <p>
-                                        {u?.chat?.lastMessage?.length > 40
-                                          ? u.chat.lastMessage.substring(
-                                              0,
-                                              40,
-                                            ) + "..."
-                                          : u?.chat?.lastMessage}
+                                        {u?.lastMessage?.length > 40
+                                          ? u.lastMessage.substring(0, 40) +
+                                            "..."
+                                          : u?.lastMessage}
                                       </p>
                                     </div>
                                   </div>
@@ -393,15 +377,6 @@ function MassagingSystem() {
                                         <div className="messaging-system-userImg">
                                           <img
                                             crossOrigin="anonymous"
-                                            // src={
-                                            //   profileImage
-                                            //     ? profileImage.startsWith(
-                                            //         "http",
-                                            //       )
-                                            //       ? profileImage
-                                            //       : `${API_IMAGE_URL}${profileImage}`
-                                            //     : "assets/images/userIcon.png"
-                                            // }
                                             src={getImageUrl(profileImage)}
                                             alt="rectruiter"
                                           />
@@ -415,15 +390,6 @@ function MassagingSystem() {
                                         <div className="messaging-system-userImg">
                                           <img
                                             crossOrigin="anonymous"
-                                            // src={
-                                            //   activeUser?.image
-                                            //     ? activeUser.image.startsWith(
-                                            //         "http",
-                                            //       )
-                                            //       ? activeUser.image
-                                            //       : "assets/images/userIcon.png"
-                                            //     : "assets/images/userIcon.png"
-                                            // }
                                             src={getImageUrl(activeUser?.image)}
                                             alt={activeUser?.name || "User"}
                                           />

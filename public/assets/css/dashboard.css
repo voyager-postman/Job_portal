@@ -6995,8 +6995,10 @@ width:100%;
 }
 
 .messaging-system-tab-area .nav-tabs {
-  display: block;
-  border: none;
+    display: block;
+    border: none;
+    overflow: auto;
+    height: 475px;
 }
 
 .messaging-system-tab-area {
