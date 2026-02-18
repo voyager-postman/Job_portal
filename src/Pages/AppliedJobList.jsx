@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import axios from "axios";
-
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -216,7 +215,7 @@ function AppliedJobList() {
                               className="text-muted text-truncate d-block"
                               style={{ maxWidth: "180px" }}
                             >
-                              {`${job?.recruiter?.firstName || ""} ${job?.recruiter?.lastName || ""}`}
+                              {`${job?.recruiter?.first_name || ""} ${job?.recruiter?.last_name || ""}`}
                             </small>
                           </div>
                         </td>
@@ -264,13 +263,25 @@ function AppliedJobList() {
 
                         {/* Applicants */}
                         <td>
-                          <Link
-                            to="/applied-candidate-list"
-                            state={{ jobId: job._id }}
-                            style={{ color: "#0d6efd", fontWeight: "500" }}
-                          >
-                            {job?.applicantCount || 0} Applicants
-                          </Link>
+                          {job?.applicantCount > 0 ? (
+                            <Link
+                              to="/all-applicants-list"
+                              state={{ jobId: job._id }}
+                              style={{ color: "#0d6efd", fontWeight: "500" }}
+                            >
+                              {job.applicantCount} Applicants
+                            </Link>
+                          ) : (
+                            <span
+                              style={{
+                                color: "#6c757d",
+                                fontWeight: "500",
+                                cursor: "not-allowed",
+                              }}
+                            >
+                              0 Applicants
+                            </span>
+                          )}
                         </td>
 
                         {/* Location */}
