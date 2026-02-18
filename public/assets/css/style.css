@@ -12114,6 +12114,21 @@ text-transform: capitalize;
   padding: 0 20px 10px;
   text-transform: uppercase;
 }
+.filter-label-inline {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: block;
+}
+.bookmark-filters-row .form-control-sm, .bookmark-filters-row .form-select-sm {
+    font-size: 12px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    height: 35px;
+}
 .folder-badge {
   background: #eee;
   border-radius: 4px;
