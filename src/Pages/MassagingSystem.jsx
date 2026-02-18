@@ -18,8 +18,10 @@ function MassagingSystem() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
+  const stateHandledRef = useRef(false);
 
   // ---------------- CONNECT SOCKET ----------------
+
   useEffect(() => {
     const ws = new WebSocket(
       `wss://thunderingslap.com/chatusingsocket/ws/chat/`,
@@ -61,15 +63,61 @@ function MassagingSystem() {
       const res = await axios.get(`${API_BASE_URL}getChatUserList`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data.data);
+      let chatUsers = res.data.data || [];
+
+      // If we're coming from "Send Message" button, ensure that specific person is in the list
+      if (location.state?.candidateId && location.state?.candidate) {
+        const targetId = location.state.candidateId;
+        const exists = chatUsers.find(
+          (u) => String(u.user?._id) === String(targetId),
+        );
+
+        if (!exists) {
+          const app = location.state.candidate;
+          // Create a mock chat user object from the applicant data
+          const newChatUser = {
+            user: {
+              _id: app.userId?._id,
+              name: `${app.userId?.first_name} ${app.userId?.last_name}`,
+              profileImage: app.userId?.profileImage,
+            },
+            lastMessage: "",
+            unreadCount: 0,
+            lastMessageAt: null,
+            groupId: null,
+          };
+          chatUsers = [newChatUser, ...chatUsers];
+        }
+      }
+
+      setUsers(chatUsers);
     } catch (error) {
-      console.error("Error While fetching the candidate data");
+      console.error("Error While fetching the candidate data", error);
     }
   };
 
   useEffect(() => {
     fetchCandidates();
   }, []);
+
+  // Handle incoming candidate selection from state (e.g., from Manage Applicants page)
+  useEffect(() => {
+    if (
+      !stateHandledRef.current &&
+      location.state?.candidateId &&
+      users.length > 0
+    ) {
+      const targetUser = users.find(
+        (u) => String(u.user?._id) === String(location.state.candidateId),
+      );
+      if (targetUser) {
+        loadChat(targetUser);
+        stateHandledRef.current = true;
+      }
+    }
+  }, [users, location.state]);
+
+
 
   const checkUnreadCount = async (groupId) => {
     try {
@@ -168,6 +216,10 @@ function MassagingSystem() {
     };
     console.log(payload);
     socketRef.current.send(JSON.stringify(payload));
+    // setChatStore((prev) => ({
+    //   ...prev,
+    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
+    // }));
     setMessages((prev) => [...prev, payload]);
     setText("");
   };
@@ -250,7 +302,13 @@ function MassagingSystem() {
                                   checkUnreadCount(u.groupId || "");
                                 }}
                               >
-                                <a className="nav-link" data-bs-toggle="tab">
+                                <a
+                                  className={`nav-link ${String(activeUser?.id) === String(u.user?._id)
+                                    ? "active"
+                                    : ""
+                                    }`}
+                                  data-bs-toggle="tab"
+                                >
                                   <div className="messaging-system-img-user-info">
                                     <div className="messaging-system-user-img">
                                       <img
@@ -274,7 +332,7 @@ function MassagingSystem() {
                                       <p>
                                         {u?.lastMessage?.length > 40
                                           ? u.lastMessage.substring(0, 40) +
-                                            "..."
+                                          "..."
                                           : u?.lastMessage}
                                       </p>
                                     </div>
@@ -354,7 +412,7 @@ function MassagingSystem() {
                               {(chatStore[activeUser?.id] || []).map(
                                 (msg, index) =>
                                   String(msg.sender) ===
-                                  String(CURRENT_USER_ID) ? (
+                                    String(CURRENT_USER_ID) ? (
                                     // RIGHT SIDE (RECTRUITER - YOU)
                                     <>
                                       <div

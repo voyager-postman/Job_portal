@@ -45,7 +45,7 @@ function ManagesApplicants() {
 
   console.log(selectedCandidate);
   const [loading, setLoading] = useState(false);
-  const [keyword, setKeyword] = useState("");
+  // const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState("");
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -276,6 +276,7 @@ function ManagesApplicants() {
     // ✅ Local uploaded image
     return `${API_IMAGE_URL}${url}`;
   };
+
   const filters = {
     selectedJob,
     status,
@@ -2395,7 +2396,7 @@ function ManagesApplicants() {
                                         src={
                                           cleanImageUrl(
                                             item.userId?.profileImage,
-                                          ) || "assets/images/userIcon.png"
+                                          )
                                         }
                                         style={{
                                           width: "30px",
