@@ -5,6 +5,8 @@ import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { Modal, Typography, Card, Divider, Box } from "@mui/material";
 import { API_IMAGE_URL } from "../Url/Url";
+import Swal from "sweetalert2";
+import { green } from "@mui/material/colors";
 
 function YourJobPosts() {
   const navigate = useNavigate();
@@ -250,6 +252,41 @@ function YourJobPosts() {
     }
   };
 
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            toast.error("You need to log in first.");
+            return;
+          }
+          const response = await axios.post(
+            `${API_BASE_URL}deleteJob/${id}`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+          if (response.data.success) {
+            toast.success(response.data.message);
+            fetchJobs(activeStatus);
+          }
+        } catch (error) {
+          console.error(error.response.data.message);
+        }
+      }
+    });
+  };
+
   const fetchJobDashboardStats = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -359,8 +396,9 @@ function YourJobPosts() {
                 </div>
                 <div className="col-md-4 mb-3">
                   <Link
-                    className={`${activeStatus === "published" ? "active" : ""
-                      }`}
+                    className={`${
+                      activeStatus === "published" ? "active" : ""
+                    }`}
                     onClick={() => setActiveStatus("published")}
                   >
                     <div className="employer-dashboard-box-icon-content">
@@ -417,8 +455,9 @@ function YourJobPosts() {
                 </div>
                 <div className="col-md-4 mb-3">
                   <Link
-                    className={`${activeStatus === "unpublished" ? "active" : ""
-                      }`}
+                    className={`${
+                      activeStatus === "unpublished" ? "active" : ""
+                    }`}
                     onClick={() => setActiveStatus("unpublished")}
                   >
                     <div className="employer-dashboard-box-icon-content">
@@ -558,8 +597,9 @@ function YourJobPosts() {
                   <ul className="nav nav-tabs" role="tablist">
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "all" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "all" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("all")}
                       >
                         <i className="fas fa-tasks"></i> All
@@ -567,8 +607,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "published" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "published" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("published")}
                       >
                         <i className="fa-solid fa-upload"></i> Published
@@ -576,8 +617,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "draft" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "draft" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("draft")}
                       >
                         <i className="fa-solid fa-pencil"></i> Draft
@@ -585,8 +627,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "archived" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "archived" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("archived")}
                       >
                         <i className="fas fa-archive"></i> Archived
@@ -594,8 +637,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "unpublished" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "unpublished" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("unpublished")}
                       >
                         <i className="fas fa-file-word"></i> Unpublished
@@ -603,8 +647,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "expired" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "expired" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("expired")}
                       >
                         <i className="fas fa-calendar-alt"></i> Expired
@@ -612,8 +657,9 @@ function YourJobPosts() {
                     </li>
                     <li className="nav-item">
                       <Link
-                        className={`nav-link ${activeStatus === "scheduled" ? "active" : ""
-                          }`}
+                        className={`nav-link ${
+                          activeStatus === "scheduled" ? "active" : ""
+                        }`}
                         onClick={() => setActiveStatus("scheduled")}
                       >
                         <i className="fas fa-archive"></i> Scheduled
@@ -691,6 +737,10 @@ function YourJobPosts() {
                                     <i className="fa-solid fa-box-archive cursor-pointer"></i>
                                     Archive
                                   </li>
+                                  <li onClick={() => handleDelete(job._id)}>
+                                    <i className="fa-regular fa-trash-can"></i>
+                                    Delete
+                                  </li>
                                 </ul>
                               </div>
                             )}
@@ -701,11 +751,11 @@ function YourJobPosts() {
                                 <i className="fa-solid fa-location-dot"></i>{" "}
                                 {job.city?.length
                                   ? (() => {
-                                    const cityText = job.city.join(", ");
-                                    return cityText.length > 30
-                                      ? cityText.slice(0, 30) + "..."
-                                      : cityText;
-                                  })()
+                                      const cityText = job.city.join(", ");
+                                      return cityText.length > 30
+                                        ? cityText.slice(0, 30) + "..."
+                                        : cityText;
+                                    })()
                                   : "Not provided"}
                               </li>
                               <li>
@@ -861,7 +911,6 @@ function YourJobPosts() {
                 ? viewData?.jobDetails?.companyId?.city?.join(",")
                 : viewData.jobDetails.city?.join(", ") || "Not Provided"}
             </Typography>
-
             <Typography>
               <p>
                 <strong>Country:</strong>{" "}
@@ -869,10 +918,6 @@ function YourJobPosts() {
                   (country) => country._id === viewData?.jobDetails?.country,
                 )?.name || "Not provided"}
               </p>
-            </Typography>
-            <Typography>
-              <strong>Status:</strong>{" "}
-              {viewData?.jobDetails?.status || "Not Provided"}
             </Typography>
             <Typography>
               <strong>Enable External Apply:</strong>{" "}
@@ -920,6 +965,31 @@ function YourJobPosts() {
               ))}
             </ul>
             <Typography>
+              <strong>Publish Job Date:</strong>{" "}
+              {viewData?.jobDetails?.published_date
+                ? new Date(
+                    viewData.jobDetails.published_date,
+                  ).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
+                : "-"}
+            </Typography>
+            <Typography>
+              <strong>Expire Job Date:</strong>{" "}
+              {viewData?.jobDetails?.expiresAt
+                ? new Date(viewData.jobDetails?.expiresAt).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    },
+                  )
+                : "-"}
+            </Typography>
+            <Typography>
               <strong>Short Description:</strong>{" "}
               {viewData?.jobDetails?.shortDescription || "null"}
             </Typography>
@@ -930,6 +1000,26 @@ function YourJobPosts() {
                   __html: viewData?.jobDetails?.jobDescription,
                 }}
               />
+            </Typography>
+            <Typography>
+              <strong>Status:</strong>{" "}
+              <span
+                className="text-capitalize"
+                style={{
+                  color:
+                    viewData?.jobDetails?.status === "published"
+                      ? "#2a8855"
+                      : viewData?.jobDetails?.status === "expired"
+                        ? "#dc3545"
+                        : "#6c757d",
+                  borderRadius: "20px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  // textTransform: "capitalize",
+                }}
+              >
+                {viewData?.jobDetails?.status || "-"}
+              </span>
             </Typography>
           </Card>
 

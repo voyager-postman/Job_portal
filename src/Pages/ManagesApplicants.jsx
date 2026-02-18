@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-import moment from "moment";
 
 function ManagesApplicants() {
   const token = localStorage.getItem("token");
@@ -20,13 +19,13 @@ function ManagesApplicants() {
   const [search, setSearch] = useState("");
   const [skillInput, setSkillInput] = useState("");
   const [salaryRanges, setSalaryRanges] = useState([]);
-
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState("");
   const [selectedEducation, setSelectedEducation] = useState("");
   const [selectedSalary, setSelectedSalary] = useState("");
   const [selectedAvailability, setSelectedAvailability] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
+  const [showCityOptions, setShowCityOptions] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [sortByATS, setSortByATS] = useState("");
 
@@ -93,6 +92,7 @@ function ManagesApplicants() {
   const [currentStatus, setCurrentStatus] = useState(
     selectedCandidate?.status || "New",
   );
+
   const jobOptions = [
     ...new Map(
       candidates
@@ -100,6 +100,7 @@ function ManagesApplicants() {
         .map((c) => [c.jobId._id, c.jobId]),
     ).values(),
   ];
+
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -116,6 +117,7 @@ function ManagesApplicants() {
 
     fetchSeniorityLevels();
   }, []);
+
   useEffect(() => {
     const fetchSalaryRanges = async () => {
       try {
@@ -132,6 +134,7 @@ function ManagesApplicants() {
 
     fetchSalaryRanges();
   }, []);
+
   const fetchCountry = async () => {
     try {
       setLoading(true);
@@ -159,6 +162,7 @@ function ManagesApplicants() {
       setCityList([]);
     }
   };
+
   useEffect(() => {
     fetchCountry();
 
@@ -174,6 +178,7 @@ function ManagesApplicants() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   const cleanImageUrl = (url) => {
     if (!url) return "";
 
@@ -239,23 +244,23 @@ function ManagesApplicants() {
     }
   };
 
-useEffect(() => {
-  fetchApplicants(currentPage);
-}, [
-  currentPage,
-  selectedJob,
-  status,
-  search,
-  selectedSkills,
-  selectedExperience,
-  selectedEducation,
-  selectedSalary,
-  selectedAvailability,
-  selectedCountry,
-  selectedCity,
-  sortByATS,
-  perPage,
-]);
+  useEffect(() => {
+    fetchApplicants(currentPage);
+  }, [
+    currentPage,
+    selectedJob,
+    status,
+    search,
+    selectedSkills,
+    selectedExperience,
+    selectedEducation,
+    selectedSalary,
+    selectedAvailability,
+    selectedCountry,
+    selectedCity,
+    sortByATS,
+    perPage,
+  ]);
 
   return (
     <>
@@ -288,8 +293,7 @@ useEffect(() => {
           </div>
           {/*Job Applied Candidates List Start Area */}
 
-          <section
-            className="employer-candidate-filter-info-area">
+          <section className="employer-candidate-filter-info-area">
             <div className="row">
               <div className="col-12 mb-4">
                 <div
@@ -1364,10 +1368,17 @@ useEffect(() => {
                                 </ul>
                               </div>
 
-                              <button className="btn btn-warning text-white btn-sm">
+                              <Link
+                                to="/messaging-system"
+                                state={{
+                                  candidateId: selectedCandidate?.userId?._id,
+                                  candidate: selectedCandidate,
+                                }}
+                                className="btn btn-warning text-white btn-sm"
+                              >
                                 <i className="fa-solid fa-envelope me-1" /> Send
                                 Message
-                              </button>
+                              </Link>
                             </div>
                           </div>
                         </div>

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import axios from "axios";
-
+import Swal from "sweetalert2";
+import { ToastContainer, toast } from "react-toastify";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
@@ -76,6 +77,41 @@ function AppliedJobList() {
     return `${API_IMAGE_URL}${url}`;
   };
 
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            toast.error("You need to log in first.");
+            return;
+          }
+          const response = await axios.post(
+            `${API_BASE_URL}deleteJob/${id}`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+          if (response.data.success) {
+            toast.success(response.data.message);
+            fetchJobs();
+          }
+        } catch (error) {
+          console.error(error.response.data.message);
+        }
+      }
+    });
+  };
+
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -85,6 +121,7 @@ function AppliedJobList() {
 
   return (
     <>
+      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -235,6 +272,7 @@ function AppliedJobList() {
                                     : "#6c757d",
                               borderRadius: "20px",
                               fontSize: "12px",
+                              fontWeight: "600",
                             }}
                           >
                             {job?.status}
@@ -312,7 +350,10 @@ function AppliedJobList() {
                                 <Link
                                   className="dropdown-item"
                                   to={`/job-details-form/${job._id}`}
-                                  state={{ jobData: job, from: "/applied-jobs-list" }}
+                                  state={{
+                                    jobData: job,
+                                    from: "/applied-jobs-list",
+                                  }}
                                 >
                                   <i className="fa-regular fa-pen-to-square me-2"></i>
                                   Edit Job
@@ -326,7 +367,7 @@ function AppliedJobList() {
                               <li>
                                 <button
                                   className="dropdown-item text-danger"
-                                  onClick={() => console.log("Delete job")}
+                                  onClick={() => handleDelete(job._id)}
                                 >
                                   <i className="fa-regular fa-trash-can me-2"></i>
                                   Delete
@@ -360,8 +401,9 @@ function AppliedJobList() {
                 {Array.from({ length: totalPages }, (_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${currentPage === i + 1 ? "active" : ""
-                      }`}
+                    className={`page-item ${
+                      currentPage === i + 1 ? "active" : ""
+                    }`}
                   >
                     <button
                       className="page-link"
@@ -373,8 +415,9 @@ function AppliedJobList() {
                 ))}
 
                 <li
-                  className={`page-item ${currentPage === totalPages ? "disabled" : ""
-                    }`}
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
                 >
                   <button
                     className="page-link"

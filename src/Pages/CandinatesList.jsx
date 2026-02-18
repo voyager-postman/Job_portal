@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+
 function CandinatesList() {
+  const location = useLocation();
   const { userId } = location.state || {};
   console.log(userId);
   const reviewSectionRef = useRef(null);
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [listLoading, setListLoading] = useState(false);
@@ -703,7 +704,7 @@ function CandinatesList() {
                               }
                             >
                               <option value="" disabled>
-                                Select  level
+                                Select level
                               </option>
 
                               {seniorityLevels.map((level) => (
@@ -1227,10 +1228,18 @@ function CandinatesList() {
                                 </div>
                                 <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
                                   {/* Send Message Button */}
-                                  <button className="btn btn-warning btn-sm text-white">
+                                  <Link
+                                    to="/messaging-system"
+                                    state={{
+                                      candidateId:
+                                        candidateDetails?.userId?._id,
+                                      candidate: candidateDetails,
+                                    }}
+                                    className="btn btn-warning btn-sm text-white"
+                                  >
                                     <i className="fa-solid fa-envelope me-1"></i>
                                     Send Message
-                                  </button>
+                                  </Link>
 
                                   {/* Rating Button */}
                                   <button
