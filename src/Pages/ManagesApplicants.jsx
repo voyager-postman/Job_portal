@@ -20,7 +20,7 @@ function ManagesApplicants() {
 
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
-  const [showProcess, setShowProcess] = useState(false);
+  // const [showProcess, setShowProcess] = useState(false);
   const [expandedRows, setExpandedRows] = useState([]);
   const [search, setSearch] = useState("");
   const [skillInput, setSkillInput] = useState("");
