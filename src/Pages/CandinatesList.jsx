@@ -26,7 +26,7 @@ function CandinatesList() {
   const [skillInput, setSkillInput] = useState("");
   const [showContact, setShowContact] = useState(false);
   const [candidate, setCandidate] = useState(null);
-
+  console.log(">>>>>>>>>>>>>>>>>>>>>>>");
   const [showEducationOptions, setShowEducationOptions] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [candidateDetails, setCandidateDetails] = useState(null);

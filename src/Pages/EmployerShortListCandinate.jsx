@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 function EmployerShortListCandinate() {
   const [showProfile, setShowProfile] = useState(false);
+  console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
   return (
     <>
