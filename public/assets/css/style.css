@@ -10913,27 +10913,26 @@ text-transform: capitalize;
 }
 
 /* Stepper Wrapper */
-.steps-wrapper {
+.steps-wrapper2 {
   display: flex;
   align-items: center;
   max-width: 100%;
-  overflow-x: auto; /* prevents overflow */
-  padding-bottom: 6px; /* scrollbar space */
-  scrollbar-width: thin;
+  overflow-x: auto;
+  padding-bottom: 6px;
 }
 
-.steps-wrapper::-webkit-scrollbar {
+.steps-wrapper2::-webkit-scrollbar {
   height: 6px;
 }
 
 /* Each Step */
-.step-item {
+.profile-step-item {
   display: flex;
   align-items: center;
 }
 
 /* Circles */
-.step-circle {
+.profile-step-circle {
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -10945,35 +10944,37 @@ text-transform: capitalize;
   flex-shrink: 0;
 }
 
-.step-circle.completed {
+
+.profile-step-circle.completed {
   border-color: #1868ca;
   color: #1868ca;
 }
 
-.step-circle.pending {
+.profile-step-circle.pending {
   border-color: #d0d0d0;
   color: transparent;
 }
 
 /* Check icon */
-.step-circle i {
+.profile-step-circle i {
   font-size: 11px;
 }
 
 /* Lines */
-.step-line {
+.profile-step-line {
+  width: 20px;
   height: 4px;
-  width: clamp(10px, 0.5vw, 20px);
   margin: 0 6px;
   background: #d0d0d0;
   flex-shrink: 0;
+  transform: translateY(-1px); /* vertical alignment fix */
 }
 
-.step-line.line-completed {
+.profile-step-line.line-completed {
   background: #1868ca;
 }
 
-.step-line.line-pending {
+.profile-step-line.line-pending {
   background: #d0d0d0;
 }
 
@@ -12256,6 +12257,7 @@ text-transform: capitalize;
   display: flex;
   margin-bottom: 10px;
   padding: 15px 20px;
+
   transition:
     transform 0.2s,
     box-shadow 0.2s;
@@ -12763,7 +12765,7 @@ text-transform: capitalize;
   color: #2dce89;
   box-shadow: 0 0 0 4px rgba(45, 206, 137, 0.15);
 }
-.step-item:not(:last-child)::after {
+ .chart-box .step-item:not(:last-child)::after {
   content: "";
   position: absolute;
   top: 27px;
@@ -12812,7 +12814,7 @@ text-transform: capitalize;
   }
 }
 @media (max-width: 768px) {
-  .step-item:not(:last-child)::after {
+  .chart-box .step-item:not(:last-child)::after {
     top: 54px;
     left: 27px;
     width: 3px;
@@ -12961,7 +12963,10 @@ text-transform: capitalize;
   padding: 20px;
   font-family: Arial, sans-serif;
   color: #333;
+  /* margin-top: 80px; */
   position: relative;
+  height: 70vh;
+  overflow: auto;
 }
 
 .user-hover-short-details .header {
@@ -13053,6 +13058,11 @@ text-transform: capitalize;
   font-weight: normal;
 }
 
+i.fa-solid.fa-trash {
+  cursor: pointer;
+  color: red;
+  background: #f8b6b6;
+}
 .user-hover-short-details svg {
   font-size: 12px;
   vertical-align: baseline;

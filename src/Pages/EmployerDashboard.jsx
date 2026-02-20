@@ -1,15 +1,28 @@
 import axios from "axios";
-import { API_BASE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function EmployerDashboard() {
-  const [stats, setStats] = useState("");
   const [activity, setActivity] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
+  const [filter, setFilter] = useState("week");
+  const today = new Date();
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [stats, setStats] = useState(null);
+  const [profileData, setProfileData] = useState("");
+  const userRole = localStorage.getItem("user_role");
+  const fName = localStorage.getItem("first_name");
+  const lName = localStorage.getItem("last_name");
+  const [search, setSearch] = useState("");
+  const [createdAt, setCreatedAt] = useState(-1);
 
   const [chartData, setChartData] = useState({
     series: [],
@@ -21,12 +34,19 @@ function EmployerDashboard() {
       legend: {
         position: "bottom",
       },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: "65%", // 🔽 smaller donut (default ~65%)
+          },
+        },
+      },
       responsive: [
         {
           breakpoint: 300,
           options: {
             chart: {
-              width: 100,
+              height: 180,
             },
             legend: {
               position: "bottom",
@@ -34,49 +54,6 @@ function EmployerDashboard() {
           },
         },
       ],
-    },
-  });
-
-  const [funnelState, setFunnelState] = useState({
-    series: [
-      {
-        name: "Funnel Series",
-        data: [],
-      },
-    ],
-    options: {
-      chart: {
-        type: "bar",
-        height: 350,
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          isFunnel: true,
-          barHeight: "65%",
-          distributed: false,
-          dataLabels: {
-            position: "center",
-          },
-        },
-      },
-
-      dataLabels: {
-        enabled: true,
-        formatter: function (val, opt) {
-          return `${opt.w.globals.labels[opt.dataPointIndex]}: ${val}`;
-        },
-      },
-      title: {
-        text: "Recruitment Funnel",
-        align: "center",
-      },
-      xaxis: {
-        categories: ["View", "Click", "Application", "Hired"],
-      },
-      legend: {
-        show: false,
-      },
     },
   });
 
@@ -119,110 +96,96 @@ function EmployerDashboard() {
     },
   });
 
+  const companyData = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const companyId = user?.companyId;
+      const token = localStorage.getItem("token");
+
+      if (!companyId) {
+        toast.error("Company ID not found!");
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_BASE_URL}GetCompanyById/${companyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data.company);
+      setProfileData(response.data.company);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    companyData();
+  }, []);
+
+  const getImageUrl = (url) => {
+    if (!url) return "assets/images/userIcon.png";
+
+    if (url.includes("http") && url.includes("uploads/http")) {
+      return url.replace(`${API_IMAGE_URL}`, "");
+    }
+
+    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
+  };
+
+  const updateLineChart = (performance) => {
+    setLineChartConfig((prev) => ({
+      ...prev,
+      series: [
+        {
+          name: "Views",
+          data: performance?.views || [],
+        },
+        {
+          name: "Applications",
+          data: performance?.applications || [],
+        },
+      ],
+      options: {
+        ...prev.options,
+        xaxis: {
+          categories: performance?.labels || [],
+        },
+      },
+    }));
+  };
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
+        const params = { filter };
+
+        if (filter === "custom") {
+          params.startDate = startDate.toISOString().split("T")[0];
+          params.endDate = endDate.toISOString().split("T")[0];
+        }
+        if (filter === "custom" && (!startDate || !endDate)) return;
+
         const response = await axios.get(
           `${API_BASE_URL}recruiter/dashboardStats`,
           {
             headers: { Authorization: `Bearer ${token}` },
+            params,
           },
         );
-        console.log("Dashboard Stats:", response.data);
-        setStats(response.data.stats);
+        // console.log("Dashboard Stats:", response.data);
+        setStats(response.data);
+        updateLineChart(response.data?.performance);
       } catch (err) {
         console.error("Error Fetching Dashboard Stats:", err);
       }
     };
     fetchStats();
-  }, []);
-
-  useEffect(() => {
-    const fetchJobPerformance = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `${API_BASE_URL}getJobPerformanceData`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        const { labels, views, applications } = response.data;
-
-        setLineChartConfig((prev) => ({
-          ...prev,
-          series: [
-            { name: "Views", data: views },
-            { name: "Applications", data: applications },
-          ],
-          options: {
-            ...prev.options,
-            xaxis: {
-              categories: labels,
-            },
-          },
-        }));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchJobPerformance();
-  }, []);
-
-  const VISUAL_WIDTHS = [100, 75, 50, 30];
-  useEffect(() => {
-    const fetchFunnelData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${API_BASE_URL}getJobFunnelData`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const {
-          totalViews = 0,
-          totalClicks = 0,
-          totalApplications = 0,
-          totalHires = 0,
-        } = response.data;
-
-        const actualValues = [
-          totalViews,
-          totalClicks,
-          totalApplications,
-          totalHires,
-        ];
-
-        setFunnelState((prev) => ({
-          ...prev,
-          series: [
-            {
-              name: "Funnel Series",
-              data: VISUAL_WIDTHS, // fixed visual widths
-            },
-          ],
-          options: {
-            ...prev.options,
-            dataLabels: {
-              enabled: true,
-              formatter: (_, opt) => {
-                const label = opt.w.globals.labels[opt.dataPointIndex];
-                return `${label}: ${actualValues[opt.dataPointIndex]}`;
-              },
-            },
-          },
-        }));
-        console.log("<<<<<<<<<<<<<<<<<<<<")
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchFunnelData();
-  }, []);
+  }, [filter, startDate, endDate]);
 
   const ZERO_COLOR = "#b2bacf"; // light gray
   const NORMAL_COLORS = ["#3b82f6", "#34d399"]; // Messages, Replies
@@ -296,10 +259,16 @@ function EmployerDashboard() {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${API_BASE_URL}getCompanyJobOverview?page=${page}&limit=${limit}`,
+          `${API_BASE_URL}getCompanyJobOverview`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+            },
+            params: {
+              page,
+              limit,
+              search,
+              createdAt,
             },
           },
         );
@@ -311,7 +280,7 @@ function EmployerDashboard() {
       }
     };
     fetchJobList();
-  }, [page, limit]);
+  }, [page, limit, search, createdAt]);
 
   return (
     <>
@@ -339,8 +308,9 @@ function EmployerDashboard() {
               <div className="company-branding">
                 <div className="company-logo">
                   <img
+                    crossOrigin="anonymous"
                     alt="Company Logo"
-                    src="https://www.ecoactu.ma/wp-content/uploads/2021/06/xlogo-EcoActu.png.pagespeed.ic.RWcLDnahT5.png"
+                    src={getImageUrl(profileData?.logo)}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -349,33 +319,78 @@ function EmployerDashboard() {
                   />
                 </div>
                 <div className="company-info">
-                  <h2>Connect Work.ma</h2>
-                  <span>Employer Dashboard</span>
+                  <h2>{profileData?.brandName}</h2>
+                  <span>{userRole} Dashboard</span>
                 </div>
               </div>
-              <div className="user-welcome">
-                <h3>Hello, Sarah Connor</h3>
-                <p>Senior Recruiter</p>
-              </div>
+              {localStorage.getItem("user_role") === "Recruiter" && (
+                <div className="user-welcome">
+                  <h3>
+                    Hello, {fName} {lName}
+                  </h3>
+                  <p>{userRole}</p>
+                </div>
+              )}
             </div>
             <div className="d-flex align-items-center justify-content-end mb-4 gap-2">
               <div className="btn-group" role="group">
-                <button type="button" className="btn btn-outline-primary ">
+                <button
+                  type="button"
+                  className={`btn btn-outline-primary ${filter === "today" ? "active" : ""}`}
+                  onClick={() => setFilter("today")}
+                >
                   Today
                 </button>
                 <button
                   type="button"
-                  className="btn btn-outline-primary active"
+                  className={`btn btn-outline-primary ${filter === "week" ? "active" : ""}`}
+                  onClick={() => setFilter("week")}
                 >
                   Week
                 </button>
-                <button type="button" className="btn btn-outline-primary ">
+                <button
+                  type="button"
+                  className={`btn btn-outline-primary ${filter === "month" ? "active" : ""}`}
+                  onClick={() => setFilter("month")}
+                >
                   Month
                 </button>
-                <button type="button" className="btn btn-outline-primary ">
+                <button
+                  type="button"
+                  className={`btn btn-outline-primary ${filter === "custom" ? "active" : ""}`}
+                  onClick={() => setFilter("custom")}
+                >
                   Custom Date
                 </button>
               </div>
+              {filter === "custom" && (
+                <div className="d-flex gap-2">
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
+                    placeholderText="Start Date"
+                    className="form-control"
+                    dateFormat="yyyy-MM-dd"
+                    maxDate={new Date()}
+                  />
+
+                  <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    minDate={startDate}
+                    placeholderText="End Date"
+                    className="form-control"
+                    dateFormat="yyyy-MM-dd"
+                    maxDate={new Date()}
+                  />
+                </div>
+              )}
             </div>
             <div className="row mb-4">
               <div className="col-lg-4">
@@ -383,29 +398,26 @@ function EmployerDashboard() {
                   <h2>Overview</h2>
                 </div>
                 <div className="d-flex flex-column" style={{ gap: "10px" }}>
-                  <a
-                    className="text-decoration-none"
-                    href="/jobPortal/your-job-posts"
-                  >
+                  <Link className="text-decoration-none" to="/your-job-posts">
                     <div className="summary-card-compact">
                       <div className="employer-box-icon">
                         <i className="fa-solid fa-briefcase" />
                       </div>
                       <div className="content-wrapper">
                         <div className="main-info">
-                          <h5>12</h5>
+                          <h5>{stats?.overview?.totalJobs || 0}</h5>
                           <span>All Jobs</span>
                         </div>
                         <div className="trend-info">
                           <i className="fa-solid fa-arrow-up" />
-                          15%
+                          {stats?.overview?.jobsPercentage || 0}%
                         </div>
                       </div>
                     </div>
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     className="text-decoration-none"
-                    href="/jobPortal/all-applicants-list"
+                    to="/all-applicants-list"
                   >
                     <div className="summary-card-compact green-theme">
                       <div className="employer-box-icon">
@@ -413,16 +425,16 @@ function EmployerDashboard() {
                       </div>
                       <div className="content-wrapper">
                         <div className="main-info">
-                          <h5>48</h5>
+                          <h5>{stats?.overview?.totalApplicants || 0}</h5>
                           <span>Applicants</span>
                         </div>
                         <div className="trend-info">
                           <i className="fa-solid fa-arrow-up" />
-                          25%
+                          {stats?.overview?.applicantsPercentage || 0}%
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </div>
               <div className="col-lg-8">
@@ -436,7 +448,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-plus" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>45</h5>
+                        <h5>{stats?.atsFlow?.New || 0}</h5>
                         <span>New</span>
                       </div>
                     </div>
@@ -445,7 +457,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-filter" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>28</h5>
+                        <h5>{stats?.atsFlow?.Preselected || 0}</h5>
                         <span>Pre-selected</span>
                       </div>
                     </div>
@@ -454,7 +466,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-phone" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>22</h5>
+                        <h5>{stats?.atsFlow?.Contacted || 0}</h5>
                         <span>Contacted</span>
                       </div>
                     </div>
@@ -463,7 +475,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-user-tie" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>15</h5>
+                        <h5>{stats?.atsFlow?.HRInterview || 0}</h5>
                         <span>HR Interview</span>
                       </div>
                     </div>
@@ -472,7 +484,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-laptop-code" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>10</h5>
+                        <h5>{stats?.atsFlow?.TechInterview || 0}</h5>
                         <span>Tech Interview</span>
                       </div>
                     </div>
@@ -481,7 +493,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-file-contract" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>5</h5>
+                        <h5>{stats?.atsFlow?.Offered || 0}</h5>
                         <span>Offer</span>
                       </div>
                     </div>
@@ -490,7 +502,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-check-double" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>3</h5>
+                        <h5>{stats?.atsFlow?.Hired || 0}</h5>
                         <span>Hired</span>
                       </div>
                     </div>
@@ -499,7 +511,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-xmark" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>12</h5>
+                        <h5>{stats?.atsFlow?.Rejected || 0}</h5>
                         <span>Rejected</span>
                       </div>
                     </div>
@@ -540,28 +552,36 @@ function EmployerDashboard() {
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-eye" />
                     </div>
-                    <span className="step-count">1250</span>
+                    <span className="step-count">
+                      {stats?.funnel?.uniqueViews || 0}
+                    </span>
                     <span className="step-label">Views</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-mouse-pointer" />
                     </div>
-                    <span className="step-count">850</span>
+                    <span className="step-count">
+                      {stats?.funnel?.uniqueClicks || 0}
+                    </span>
                     <span className="step-label">Clicks</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-file-alt" />
                     </div>
-                    <span className="step-count">120</span>
+                    <span className="step-count">
+                      {stats?.funnel?.applied || 0}
+                    </span>
                     <span className="step-label">Applied</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-check" />
                     </div>
-                    <span className="step-count">5</span>
+                    <span className="step-count">
+                      {stats?.funnel?.hired || 0}
+                    </span>
                     <span className="step-label">Hired</span>
                   </div>
                 </div>
@@ -584,9 +604,14 @@ function EmployerDashboard() {
                           <select
                             className="form-select form-select-sm"
                             style={{ width: "150px" }}
+                            value={createdAt}
+                            onChange={(e) => {
+                              setCreatedAt(Number(e.target.value));
+                              setPage(1);
+                            }}
                           >
-                            <option value="newest">Plus récent</option>
-                            <option value="oldest">Plus ancien</option>
+                            <option value={-1}>Plus récent</option>
+                            <option value={1}>Plus ancien</option>
                           </select>
                         </div>
                       </div>
@@ -594,7 +619,11 @@ function EmployerDashboard() {
                         <input
                           placeholder="search"
                           type="search"
-                          defaultValue
+                          value={search}
+                          onChange={(e) => {
+                            setSearch(e.target.value);
+                            setPage(1);
+                          }}
                         />
                       </div>
                     </div>
@@ -611,8 +640,8 @@ function EmployerDashboard() {
                         </thead>
                         <tbody>
                           {activity.map((jobData, index) => (
-                            <tr key={index}>
-                              <td>{(page-1) * limit + index + 1}</td>
+                            <tr key={jobData._id || index}>
+                              <td>{(page - 1) * limit + index + 1}</td>
                               <td>{jobData.jobTitle}</td>
                               <td>{jobData.location}</td>
                               <td>{jobData.employmentType}</td>
@@ -655,8 +684,8 @@ function EmployerDashboard() {
                 <ReactApexChart
                   options={chartData.options}
                   series={chartData.series}
-                  width={400}
-                  height={400}
+                  width={300}
+                  height={350}
                   type="donut"
                 />
               </div>

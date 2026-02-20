@@ -18,7 +18,6 @@ function ManagesApplicants() {
   const [companyJobs, setCompanyJobs] = useState([]);
   const [folders, setFolders] = useState([]);
   const [activeFolder, setActiveFolder] = useState("all");
-
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
   // const [showProcess, setShowProcess] = useState(false);
