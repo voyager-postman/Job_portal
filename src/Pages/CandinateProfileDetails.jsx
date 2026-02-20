@@ -38,8 +38,8 @@ function CandinateProfileDetails() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      console.log(res.data?.data[0]);
-      setCandidate(res.data?.data[0]); // store the candidate details
+      console.log(res.data?.data);
+      setCandidate(res.data?.data); // store the candidate details
     } catch (err) {
       console.error("Error fetching candidate details:", err);
     } finally {
