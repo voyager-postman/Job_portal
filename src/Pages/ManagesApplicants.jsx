@@ -8,7 +8,6 @@ import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 function ManagesApplicants() {
   const location = useLocation();
-
   const token = localStorage.getItem("token");
   const cityDropdownRef = useRef(null);
   const [selectedCities, setSelectedCities] = useState([]);
@@ -296,7 +295,10 @@ function ManagesApplicants() {
           salary: customFilters.selectedSalary || undefined,
           availability: customFilters.selectedAvailability || undefined,
           country: customFilters.selectedCountry || undefined,
-          city: customFilters.selectedCity || undefined,
+          city:
+            customFilters.selectedCountry && customFilters.selectedCity
+              ? customFilters.selectedCity
+              : undefined,
           status: customFilters.status || undefined,
           jobId: customFilters.selectedJob || undefined,
           sortByATS: customFilters.sortByATS || undefined, // ✅ ADD THIS
@@ -955,8 +957,12 @@ function ManagesApplicants() {
 
                               const countryObjectId = e.target.value; // name (as before)
 
+                              // setSelectedCountry(countryObjectId);
+                              // setSelectedCities([]); // Reset cities when country changes
                               setSelectedCountry(countryObjectId);
-                              setSelectedCities([]); // Reset cities when country changes
+                              setSelectedCities([]);
+                              setSelectedCity(""); // ⭐ VERY IMPORTANT
+                              setCityList([]); // clean dropdown list
 
                               if (countryId) {
                                 fetchCitiesByCountry(countryId);
@@ -1274,15 +1280,14 @@ function ManagesApplicants() {
                                                 className="fw-bold"
                                                 style={{ fontSize: "12px" }}
                                               >
-                                                {folder.name}
+                                                Job Application{" "}
                                               </span>
 
                                               <span
                                                 className="text-muted"
                                                 style={{ fontSize: "10px" }}
                                               >
-                                                {folder.jobTitle ||
-                                                  "No Job Assigned"}
+                                                {folder.name}
                                               </span>
                                             </div>
                                           </button>
@@ -1543,15 +1548,14 @@ function ManagesApplicants() {
                                               className="fw-bold"
                                               style={{ fontSize: "12px" }}
                                             >
-                                              {folder.name}
+                                              Job Application
                                             </span>
 
                                             <span
                                               className="text-muted"
                                               style={{ fontSize: "10px" }}
                                             >
-                                              {folder.jobTitle ||
-                                                "No Job Assigned"}
+                                              {folder.name}
                                             </span>
                                           </div>
                                         </button>
