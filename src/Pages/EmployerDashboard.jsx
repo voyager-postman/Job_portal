@@ -272,7 +272,7 @@ function EmployerDashboard() {
             },
           },
         );
-        // console.log("Job Overview Data:-", response.data.data);
+        console.log("Job Overview Data:-", response.data.data);
         setActivity(response.data.data);
         setTotalPages(response?.data?.pagination?.totalPages || 1);
       } catch (error) {
