@@ -461,9 +461,7 @@ function EmployerShortListCandinate() {
                 {/* CUSTOM FOLDERS */}
                 {/* CUSTOM FOLDERS */}
                 <div className="folder-section">
-                  <div className="folder-section-label">
-                    Custom Folders ddddd
-                  </div>
+                  <div className="folder-section-label">Custom Folders</div>
 
                   {customFolders.map((folder) => (
                     <div
@@ -1281,7 +1279,13 @@ function EmployerShortListCandinate() {
                   {" "}
                   View Full Profile
                 </Link>
-                <button className="btn btn-outline-danger w-100">
+                <button
+                  className="btn btn-outline-danger w-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveBookmark(selectedCandidate.bookmarkId);
+                  }}
+                >
                   Remove from Folder
                 </button>
               </div>
