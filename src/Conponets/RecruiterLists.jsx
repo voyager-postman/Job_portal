@@ -162,7 +162,6 @@ function RecruiterLists() {
             />
             <i
               className="fa-solid fa-trash"
-              style={{ cursor: "pointer", color:"red" }}
               onClick={() => handleDelete(recruiter._id)}
             />
           </div>

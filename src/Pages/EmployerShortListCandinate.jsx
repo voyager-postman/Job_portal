@@ -28,6 +28,7 @@ function EmployerShortListCandinate() {
   const [skillInput, setSkillInput] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
+  const [showCityOptions, setShowCityOptions] = useState(false);
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
   // const [customFolders, setCustomFolders] = useState([
@@ -325,26 +326,24 @@ function EmployerShortListCandinate() {
       }
     }
   };
+  const fetchFolders = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const fetchFolders = async () => {
-      try {
-        const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}getFolders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const res = await axios.get(`${API_BASE_URL}getFolders`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.data.success) {
-          setFolders(res.data.folders);
-        }
-      } catch (error) {
-        console.error("Error fetching folders:", error);
+      if (res.data.success) {
+        setFolders(res.data.folders);
       }
-    };
-
+    } catch (error) {
+      console.error("Error fetching folders:", error);
+    }
+  };
+  useEffect(() => {
     fetchFolders();
   }, []);
   const autoJobFolders = folders.filter((folder) => folder.type === "AUTO_JOB");

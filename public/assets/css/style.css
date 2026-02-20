@@ -12912,3 +12912,9 @@ text-transform: capitalize;
 .top-space-search-reslute .tab-content {
     padding: unset !important;
 }
+
+i.fa-solid.fa-trash {
+    cursor: pointer;
+    color: red;
+    background:#f8b6b6
+}
