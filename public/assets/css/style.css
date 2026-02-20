@@ -12176,7 +12176,7 @@ text-transform: capitalize;
   display: flex;
   font-size: 13px;
   justify-content: center;
-  margin: 10px 20px;
+  /* margin: 10px 20px; */
   padding: 8px;
 }
 
@@ -12263,9 +12263,10 @@ text-transform: capitalize;
 }
 .candidate-row:hover {
   border-color: #1967d2;
-  box-shadow: 0 4px 12px #000000d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
+
 .candidate-avatar {
   border-radius: 50%;
   height: 50px;
@@ -12389,4 +12390,105 @@ text-transform: capitalize;
 .side-panel-footer {
   border-top: 1px solid #eee;
   padding: 20px;
+}
+.table tbody td {
+  padding: 10px 10px !important;
+}
+
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin-bottom: 15px;
+}
+
+.total-exp {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.experience-block {
+  margin-bottom: 18px;
+}
+
+.job-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #222;
+}
+
+.company-name {
+  font-size: 14px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.job-duration {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+.education-section {
+  padding: 20px;
+}
+
+.section-title1 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin-bottom: 15px;
+}
+
+.education-block {
+  margin-bottom: 18px;
+}
+
+.education-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.education-icon {
+  color: #555;
+  margin-top: 3px;
+}
+
+.degree-line {
+  font-size: 14px;
+  color: #333;
+}
+
+.education-year {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+.btn-outline-danger:hover {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  border-color: #dc3545 !important;
+}
+
+.btn-outline-danger:hover svg {
+  color: #fff !important;
+  fill: #fff !important;
 }

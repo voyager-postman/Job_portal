@@ -34,15 +34,6 @@ function ManagesApplicants() {
   // const [showCityOptions, setShowCityOptions] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
   const [sortByATS, setSortByATS] = useState("");
-
-  const handleStatusChange = (candidateId, newStatus) => {
-    setCandidates((prev) =>
-      prev.map((c) =>
-        c._id === candidateId ? { ...c, status: newStatus } : c,
-      ),
-    );
-  };
-
   console.log(selectedCandidate);
   const [loading, setLoading] = useState(false);
   // const [keyword, setKeyword] = useState("");
@@ -51,7 +42,7 @@ function ManagesApplicants() {
   const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedJob, setSelectedJob] = useState("");
+  const [selectedJob, setSelectedJob] = useState(location.state?.jobId || "");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(6); // default
@@ -67,12 +58,6 @@ function ManagesApplicants() {
     { label: "Recruté", value: "Hired" },
     { label: "Rejeté", value: "Rejected" },
   ];
-  useEffect(() => {
-    if (location.state?.jobId) {
-      setSelectedJob(location.state.jobId);
-      setActiveTab("all"); // optional if needed
-    }
-  }, [location.state]);
 
   const recruitmentSteps = [
     "New",
@@ -107,14 +92,6 @@ function ManagesApplicants() {
       setCurrentStatus(selectedCandidate.status);
     }
   }, [selectedCandidate]);
-
-  const jobOptions = [
-    ...new Map(
-      candidates
-        ?.filter((c) => c.jobId?._id)
-        .map((c) => [c.jobId._id, c.jobId]),
-    ).values(),
-  ];
 
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
@@ -844,7 +821,7 @@ function ManagesApplicants() {
                             className="form-select form-control"
                             style={{ "font-size": "13px", padding: "8px" }}
                           >
-                            <option value>Level</option>
+                            <option value="">All Levels</option>
                             {seniorityLevels.map((level) => (
                               <option key={level._id} value={level.name}>
                                 {level.name}
@@ -970,7 +947,7 @@ function ManagesApplicants() {
                             className="form-select form-control"
                             style={{ "font-size": "13px", padding: "8px" }}
                           >
-                            <option value>Any</option>
+                            <option value="">Any</option>
                             {educationLevels.map((edu) => (
                               <option key={edu} value={edu}>
                                 {edu}
@@ -999,7 +976,7 @@ function ManagesApplicants() {
                             className="form-select form-control"
                             style={{ "font-size": "13px", padding: "8px" }}
                           >
-                            <option value>Any</option>
+                            <option value="">Any</option>
                             {salaryRanges.map((item) => (
                               <option key={item._id} value={item.range}>
                                 {item.range}
@@ -1369,10 +1346,7 @@ function ManagesApplicants() {
                                   <i className="fa-solid fa-download me-1" />{" "}
                                   Download CV
                                 </button>
-                                <a
-                                  href="https://www.linkedin.com/in/candidate-gonzalez"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <button
                                   className="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
                                   title="LinkedIn Profile"
                                   style={{
@@ -1380,9 +1354,23 @@ function ManagesApplicants() {
                                     height: "32px",
                                     padding: "0px",
                                   }}
+                                  onClick={() => {
+                                    const linkedinUrl =
+                                      selectedCandidate?.userId
+                                        ?.candidateProfile?.links?.linkedin;
+
+                                    if (linkedinUrl) {
+                                      window.open(linkedinUrl, "_blank");
+                                    } else {
+                                      toast.error(
+                                        "LinkedIn profile not provided",
+                                      );
+                                    }
+                                  }}
                                 >
                                   <i className="fa-brands fa-linkedin-in" />
-                                </a>
+                                </button>
+
                                 <div className="dropdown">
                                   <button
                                     className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
@@ -2393,11 +2381,9 @@ function ManagesApplicants() {
                                         crossOrigin="anonymous"
                                         alt="user"
                                         className="rounded-circle me-2"
-                                        src={
-                                          cleanImageUrl(
-                                            item.userId?.profileImage,
-                                          )
-                                        }
+                                        src={cleanImageUrl(
+                                          item.userId?.profileImage,
+                                        )}
                                         style={{
                                           width: "30px",
                                           height: "30px",
@@ -2428,7 +2414,20 @@ function ManagesApplicants() {
 
                                   {/* CITY */}
                                   <td className="py-3 text-center">
-                                    {item.userId?.city || "N/A"}
+                                    {item?.userId?.city &&
+                                    item?.userId?.Nationality
+                                      ? `${item.userId.city
+                                          .toLowerCase()
+                                          .replace(/^\w/, (c) =>
+                                            c.toUpperCase(),
+                                          )}, ${item.userId.Nationality}`
+                                      : item?.userId?.city
+                                        ? item.userId.city
+                                            .toLowerCase()
+                                            .replace(/^\w/, (c) =>
+                                              c.toUpperCase(),
+                                            )
+                                        : item?.userId?.Nationality || "N/A"}
                                   </td>
 
                                   {/* STATUS */}

@@ -381,7 +381,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>All Jobs</h4>
-                        <h5>{stats.totalJobs || 0}</h5>
+                        <h5>{stats?.totalJobs || 0}</h5>
                         <p>
                           <i className="fa-solid fa-arrow-up" />{" "}
                           {stats?.weekly?.jobsPosted?.percent || 0}% this week
@@ -398,7 +398,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="employer-box-content">
                         <h4>Total Applicants</h4>
-                        <h5>{stats.totalApplicants || 0}</h5>
+                        <h5>{stats?.totalApplicants || 0}</h5>
                         <p>
                           <i className="fa-solid fa-arrow-up" />{" "}
                           {stats?.weekly?.applicants?.percent || 0}% this week
@@ -431,7 +431,7 @@ function EmployerDashboard() {
                     </div>
                     <div className="employer-box-content">
                       <h4>Shortlist</h4>
-                      <h5>{stats.totalShortlisted || 0}</h5>
+                      <h5>{stats?.totalShortlisted || 0}</h5>
                       <p>
                         <i className="fa-solid fa-arrow-up" />{" "}
                         {stats?.weekly?.shortlisted?.percent || 0}% this week

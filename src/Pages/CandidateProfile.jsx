@@ -3879,7 +3879,7 @@ function CandidateProfile() {
                                     </div>
                                   </div>
 
-                                  <div className="col-lg-9 col-md-9">
+                                  {/* <div className="col-lg-9 col-md-9">
                                     <div className="form-group">
                                       <select
                                         className="form-control mb-2"
@@ -3900,6 +3900,18 @@ function CandidateProfile() {
                                           </option>
                                         ))}
                                       </select>
+                                    </div>
+                                  </div> */}
+                                  <div className="col-lg-9 col-md-9">
+                                    <div className="form-group">
+                                      <input
+                                        type="text"
+                                        className="form-control mb-2"
+                                        name="salaryAmount"
+                                        placeholder="Enter Desired Salary"
+                                        value={careerGoalsData.salaryAmount}
+                                        onChange={handleCareerGoalsChange}
+                                      />
                                     </div>
                                   </div>
 

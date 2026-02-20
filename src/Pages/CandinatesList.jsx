@@ -10,10 +10,13 @@ function CandinatesList() {
   const { userId } = location.state || {};
   console.log(userId);
   const reviewSectionRef = useRef(null);
+  const [folders, setFolders] = useState([]);
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [loading, setLoading] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [listLoading, setListLoading] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
@@ -89,13 +92,60 @@ function CandinatesList() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      setCandidateDetails(res.data?.data[0]);
+      setCandidateDetails(res.data?.data);
     } catch (err) {
       console.error("Error fetching candidate details:", err);
     } finally {
       setDetailsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getFolders`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setFolders(res.data.folders || []);
+      } catch (error) {
+        console.error("Error fetching folders:", error);
+      }
+    };
+
+    fetchFolders();
+  }, []);
+  const handleBookmarkCandidate = async (candidateId, folderId) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}bookmarkCandidate`,
+        { candidateId, folderId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Candidate bookmarked successfully ");
+      } else {
+        toast.warning(res.data.message); // handles already bookmarked
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data?.message === "Already bookmarked in this folder"
+      ) {
+        toast.warning("Already bookmarked in this folder ⚠️");
+      } else {
+        toast.error("Something went wrong ");
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -376,6 +426,38 @@ function CandinatesList() {
     if (!text) return "";
     return text.length > limit ? text.substring(0, limit) + "..." : text;
   };
+  const handleCreateFolder = async () => {
+    const folderName = prompt("Enter folder name");
+
+    if (!folderName || folderName.trim() === "") {
+      toast.error("Folder name is required");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        `${API_BASE_URL}createBookmarkFolder`,
+        { name: folderName },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.success) {
+        setFolders((prev) => [...prev, res.data.folder]);
+        toast.success("Folder created successfully");
+      }
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      toast.error("Failed to create folder");
+    }
+  };
+  const autoJobFolders = folders.filter((folder) => folder.type === "AUTO_JOB");
+  const customFolders = folders.filter((folder) => folder.type === "CUSTOM");
 
   return (
     <>
@@ -703,9 +785,7 @@ function CandinatesList() {
                                 setSelectedExperience(e.target.value)
                               }
                             >
-                              <option value="" disabled>
-                                Select level
-                              </option>
+                              <option value="">All Levels</option>
 
                               {seniorityLevels.map((level) => (
                                 <option key={level._id} value={level.name}>
@@ -784,7 +864,7 @@ function CandinatesList() {
                                 setSelectedSalary(e.target.value)
                               }
                             >
-                              <option value="">Choose Salary</option>
+                              <option value="">All Salary</option>
 
                               {salaryRanges.map((item) => (
                                 <option key={item._id} value={item.range}>
@@ -954,7 +1034,7 @@ function CandinatesList() {
                                       />
                                     </button>
 
-                                    <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                    {/* <ul className="dropdown-menu dropdown-menu-end shadow border-0">
                                       <li>
                                         <button
                                           className="dropdown-item d-flex align-items-center gap-2"
@@ -979,6 +1059,76 @@ function CandinatesList() {
 
                                       <li>
                                         <button className="dropdown-item text-primary">
+                                          <i className="fa-solid fa-plus me-2" />
+                                          Create New Folder
+                                        </button>
+                                      </li>
+                                    </ul> */}
+                                    <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                      {/* DEFAULT SAVE */}
+                                      <li>
+                                        <button
+                                          className="dropdown-item d-flex align-items-center gap-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleBookmark(
+                                              user?._id,
+                                              candidate.jobId,
+                                            );
+                                          }}
+                                        >
+                                          Manual Folders
+                                        </button>
+                                      </li>
+
+                                      <li>
+                                        <hr className="dropdown-divider" />
+                                      </li>
+
+                                      {/* CUSTOM FOLDERS */}
+                                      {customFolders.length > 0 ? (
+                                        customFolders.map((folder) => (
+                                          <li key={folder._id}>
+                                            <button
+                                              className="dropdown-item d-flex align-items-center gap-2"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleBookmarkCandidate(
+                                                  user?._id,
+                                                  folder._id,
+                                                );
+                                              }}
+                                            >
+                                              <i className="fa-regular fa-folder" />
+                                              <span
+                                                style={{ fontSize: "13px" }}
+                                              >
+                                                {folder.name}
+                                              </span>
+                                            </button>
+                                          </li>
+                                        ))
+                                      ) : (
+                                        <li>
+                                          <span className="dropdown-item text-muted small">
+                                            No custom folders available
+                                          </span>
+                                        </li>
+                                      )}
+
+                                      <li>
+                                        <hr className="dropdown-divider" />
+                                      </li>
+
+                                      {/* CREATE FOLDER */}
+                                      <li>
+                                        <button
+                                          className="dropdown-item d-flex align-items-center gap-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCreateFolder();
+                                          }}
+                                        >
                                           <i className="fa-solid fa-plus me-2" />
                                           Create New Folder
                                         </button>
@@ -1104,9 +1254,25 @@ function CandinatesList() {
                                     </button>
 
                                     <a
-                                      href="https://www.linkedin.com/in/candidate-smith"
-                                      target="_blank"
+                                      href={
+                                        candidateDetails?.links?.linkedin || "#"
+                                      }
+                                      target={
+                                        candidateDetails?.links?.linkedin
+                                          ? "_blank"
+                                          : "_self"
+                                      }
                                       rel="noopener noreferrer"
+                                      onClick={(e) => {
+                                        if (
+                                          !candidateDetails?.links?.linkedin
+                                        ) {
+                                          e.preventDefault(); // stop navigation
+                                          toast.info(
+                                            "LinkedIn profile not provided",
+                                          );
+                                        }
+                                      }}
                                       className="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
                                       style={{ width: "32px", height: "32px" }}
                                     >
@@ -1124,7 +1290,13 @@ function CandinatesList() {
                                           padding: "0px",
                                         }}
                                       >
-                                        <i className="fa-regular fa-bookmark" />
+                                        <i
+                                          className={
+                                            candidateDetails.isBookmarked
+                                              ? "fa-solid fa-bookmark"
+                                              : "fa-regular fa-bookmark"
+                                          }
+                                        />
                                       </button>
                                       <ul className="dropdown-menu dropdown-menu-end shadow border-0">
                                         <li>
@@ -1132,41 +1304,46 @@ function CandinatesList() {
                                             Manual Folders
                                           </h6>
                                         </li>
-                                        <li>
-                                          <button className="dropdown-item d-flex align-items-center gap-2">
-                                            <i className="fa-regular fa-folder" />
-                                            <span
-                                              style={{ "font-size": "13px" }}
-                                            >
-                                              React Developer
+
+                                        {customFolders.length > 0 ? (
+                                          customFolders.map((folder) => (
+                                            <li key={folder._id}>
+                                              <button
+                                                className="dropdown-item d-flex align-items-center gap-2"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleBookmarkCandidate(
+                                                    candidateDetails?.userId
+                                                      ?._id,
+                                                    folder._id,
+                                                  );
+                                                }}
+                                              >
+                                                <i className="fa-regular fa-folder" />
+                                                <span
+                                                  style={{ fontSize: "13px" }}
+                                                >
+                                                  {folder.name}
+                                                </span>
+                                              </button>
+                                            </li>
+                                          ))
+                                        ) : (
+                                          <li>
+                                            <span className="dropdown-item text-muted small">
+                                              No custom folders available
                                             </span>
-                                          </button>
-                                        </li>
-                                        <li>
-                                          <button className="dropdown-item d-flex align-items-center gap-2">
-                                            <i className="fa-regular fa-folder" />
-                                            <span
-                                              style={{ "font-size": "13px" }}
-                                            >
-                                              Backend Senior Developer
-                                            </span>
-                                          </button>
-                                        </li>
-                                        <li>
-                                          <button className="dropdown-item d-flex align-items-center gap-2">
-                                            <i className="fa-regular fa-folder" />
-                                            <span
-                                              style={{ "font-size": "13px" }}
-                                            >
-                                              UI/UX Designer
-                                            </span>
-                                          </button>
-                                        </li>
+                                          </li>
+                                        )}
+
                                         <li>
                                           <hr className="dropdown-divider" />
                                         </li>
                                         <li>
-                                          <button className="dropdown-item text-primary">
+                                          <button
+                                            className="dropdown-item d-flex align-items-center gap-2"
+                                            onClick={handleCreateFolder}
+                                          >
                                             <i className="fa-solid fa-plus me-2" />
                                             Create New Folder
                                           </button>
