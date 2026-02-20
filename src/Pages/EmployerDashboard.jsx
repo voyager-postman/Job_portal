@@ -177,7 +177,7 @@ function EmployerDashboard() {
             params,
           },
         );
-        console.log("Dashboard Stats:", response.data);
+        // console.log("Dashboard Stats:", response.data);
         setStats(response.data);
         updateLineChart(response.data?.performance);
       } catch (err) {
@@ -272,7 +272,7 @@ function EmployerDashboard() {
             },
           },
         );
-        console.log("Job Overview Data:-", response.data.data);
+        // console.log("Job Overview Data:-", response.data.data);
         setActivity(response.data.data);
         setTotalPages(response?.data?.pagination?.totalPages || 1);
       } catch (error) {

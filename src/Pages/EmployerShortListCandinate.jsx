@@ -140,9 +140,9 @@ function EmployerShortListCandinate() {
             timer: 1500,
             showConfirmButton: false,
           });
+          fetchFolders();
 
           // Refresh folders list
-          fetchFolders();
 
           // If active folder was deleted → reset
           if (activeFolder === folderId) {
@@ -314,10 +314,7 @@ function EmployerShortListCandinate() {
             timer: 1500,
             showConfirmButton: false,
           });
-
-          // Refresh list
           fetchApplicants(currentPage);
-
           // OR instant remove without API refetch (faster UI)
           // setApplicants(prev => prev.filter(item => item._id !== bookmarkId));
         }
@@ -464,7 +461,9 @@ function EmployerShortListCandinate() {
                 {/* CUSTOM FOLDERS */}
                 {/* CUSTOM FOLDERS */}
                 <div className="folder-section">
-                  <div className="folder-section-label">Custom Folders</div>
+                  <div className="folder-section-label">
+                    Custom Folders ddddd
+                  </div>
 
                   {customFolders.map((folder) => (
                     <div
@@ -494,7 +493,7 @@ function EmployerShortListCandinate() {
                       >
                         <button
                           className="btn btn-sm text-danger"
-                          // onClick={() => handleDeleteFolder(folder._id)}
+                          onClick={() => handleDeleteFolder(folder._id)}
                         >
                           <div className="folder-actions ms-auto d-flex gap-2">
                             <svg
@@ -633,22 +632,45 @@ function EmployerShortListCandinate() {
                         cursor: "pointer",
                       }}
                       value={selectedCountry || ""}
+                      // onChange={(e) => {
+                      //   const selectedOption =
+                      //     e.target.options[e.target.selectedIndex];
+
+                      //   const countryId =
+                      //     selectedOption.getAttribute("data-id"); // numeric id
+
+                      //   const countryObjectId = e.target.value; // name (as before)
+
+                      //   // setSelectedCountry(countryObjectId);
+                      //   // setSelectedCities([]); // Reset cities when country changes
+                      //   setSelectedCountry(countryObjectId);
+                      //   setSelectedCities([]);
+                      //   setSelectedCity(""); // ⭐ THIS WAS MISSING
+                      //   setCityList([]); // optional but cleaner
+                      //   if (countryId) {
+                      //     fetchCitiesByCountry(countryId);
+                      //   } else {
+                      //     setCityList([]);
+                      //   }
+
+                      //   setCurrentPage(1);
+                      // }}
                       onChange={(e) => {
                         const selectedOption =
                           e.target.options[e.target.selectedIndex];
 
                         const countryId =
-                          selectedOption.getAttribute("data-id"); // numeric id
+                          selectedOption.getAttribute("data-id");
 
-                        const countryObjectId = e.target.value; // name (as before)
+                        const countryObjectId = e.target.value;
 
                         setSelectedCountry(countryObjectId);
-                        setSelectedCities([]); // Reset cities when country changes
+                        setSelectedCity(""); // reset city
+                        setSelectedCities([]); // reset multi-city
+                        setCityList([]); // clear dropdown list
 
                         if (countryId) {
                           fetchCitiesByCountry(countryId);
-                        } else {
-                          setCityList([]);
                         }
 
                         setCurrentPage(1);
@@ -896,9 +918,10 @@ function EmployerShortListCandinate() {
 
                             <button
                               className="btn btn-sm btn-outline-danger"
-                              onClick={() =>
-                                handleRemoveBookmark(candidate._id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveBookmark(candidate.bookmarkId);
+                              }}
                             >
                               <div className="folder-actions ms-auto d-flex gap-2">
                                 <svg
@@ -973,7 +996,7 @@ function EmployerShortListCandinate() {
                                     <p>Availability</p>
                                     <span className="na">
                                       {candidate.career_goals
-                                        ?.jobSearchStatus || "N/A"}
+                                        ?.availabilityToJoin || "N/A"}
                                     </span>
                                   </div>
 
@@ -981,7 +1004,7 @@ function EmployerShortListCandinate() {
                                     <p>Education</p>
                                     <span>
                                       {candidate.education?.length > 0
-                                        ? `${candidate.education[0].degree} - ${candidate.education[0].University}`
+                                        ? `${candidate.education[0].degree}`
                                         : "N/A"}
                                     </span>
                                   </div>
@@ -990,7 +1013,12 @@ function EmployerShortListCandinate() {
                                     <p>Languages</p>
                                     <span>
                                       {candidate.languages?.length > 0
-                                        ? candidate.languages.join(", ")
+                                        ? candidate.languages
+                                            .map(
+                                              (lang) =>
+                                                `${lang.language} (${lang.proficiency})`,
+                                            )
+                                            .join(", ")
                                         : "N/A"}
                                     </span>
                                   </div>

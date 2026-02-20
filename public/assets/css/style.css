@@ -12438,9 +12438,6 @@ text-transform: capitalize;
   color: #888;
   margin-top: 2px;
 }
-.education-section {
-  padding: 20px;
-}
 
 .section-title1 {
   font-size: 12px;
@@ -12918,8 +12915,8 @@ text-transform: capitalize;
 }
 
 .hover-profile-card {
-  position: absolute;
-  top: 52%;
+  position: fixed;
+  top: 45%;
   right: 0px;
   transform: translateY(-50%);
 
@@ -13028,7 +13025,7 @@ text-transform: capitalize;
 
 .user-hover-short-details .detail-item span {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   color: #333;
   margin-top: 2px;
@@ -13052,11 +13049,12 @@ text-transform: capitalize;
 }
 
 .user-hover-short-details .skill-tag {
-  background-color: #e0f7fa; /* Light blue background for tags */
+  background-color: #e0f7fa;
   color: #0288d1;
-  padding: 5px 12px;
+  padding: 1px 5px;
   border-radius: 4px;
-  font-size: 8px;
+  font-size: 11px;
+  margin: 0px;
   font-weight: normal;
 }
 
@@ -13064,4 +13062,8 @@ i.fa-solid.fa-trash {
   cursor: pointer;
   color: red;
   background: #f8b6b6;
+}
+.user-hover-short-details svg {
+  font-size: 12px;
+  vertical-align: baseline;
 }

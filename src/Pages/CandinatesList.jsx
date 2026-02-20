@@ -214,8 +214,7 @@ function CandinatesList() {
         page,
         limit,
         skills: selectedSkills.length ? selectedSkills.join(",") : undefined,
-        city: selectedCity || undefined,
-
+        city: selectedCountry && selectedCity ? selectedCity : undefined,
         country: selectedCountry || undefined,
         education: selectedEducation || undefined,
 
@@ -615,9 +614,14 @@ function CandinatesList() {
 
                                 const countryObjectId = e.target.value; // name (as before)
 
+                                // setSelectedCountry(countryObjectId);
+                                // setSelectedCities([]); // Reset cities when country changes
                                 setSelectedCountry(countryObjectId);
-                                setSelectedCities([]); // Reset cities when country changes
 
+                                // ⭐ RESET EVERYTHING RELATED TO CITY
+                                setSelectedCity(""); // very important
+                                setSelectedCities([]); // if using multi city
+                                setCityList([]);
                                 if (countryId) {
                                   fetchCitiesByCountry(countryId);
                                 } else {
