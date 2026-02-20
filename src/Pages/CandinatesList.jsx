@@ -429,7 +429,13 @@ function CandinatesList() {
   const handleCreateFolder = async () => {
     const folderName = prompt("Enter folder name");
 
-    if (!folderName || folderName.trim() === "") {
+    // ✅ If user clicked Cancel → stop here (no validation)
+    if (folderName === null) {
+      return;
+    }
+
+    // ✅ If user clicked OK but left it empty
+    if (folderName.trim() === "") {
       toast.error("Folder name is required");
       return;
     }
@@ -439,7 +445,7 @@ function CandinatesList() {
 
       const res = await axios.post(
         `${API_BASE_URL}createBookmarkFolder`,
-        { name: folderName },
+        { name: folderName.trim() },
         {
           headers: {
             Authorization: `Bearer ${token}`,

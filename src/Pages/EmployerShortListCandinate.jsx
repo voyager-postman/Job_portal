@@ -8,6 +8,8 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
   const cityDropdownRef = useRef(null);
+  const [hoveredCandidate, setHoveredCandidate] = useState(null);
+  const [showCityOptions, setShowCityOptions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [totalCandidates, setTotalCandidates] = useState(0); // ✅ ADD THIS
   const token = localStorage.getItem("token");
@@ -28,7 +30,6 @@ function EmployerShortListCandinate() {
   const [skillInput, setSkillInput] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
-  const [showCityOptions, setShowCityOptions] = useState(false);
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
   // const [customFolders, setCustomFolders] = useState([
@@ -73,7 +74,13 @@ function EmployerShortListCandinate() {
   const handleCreateFolder = async () => {
     const folderName = prompt("Enter folder name");
 
-    if (!folderName || folderName.trim() === "") {
+    // If user clicked Cancel → do nothing
+    if (folderName === null) {
+      return;
+    }
+
+    // If empty string after clicking OK → show validation
+    if (folderName.trim() === "") {
       toast.error("Folder name is required");
       return;
     }
@@ -350,6 +357,22 @@ function EmployerShortListCandinate() {
 
   const customFolders = folders.filter((folder) => folder.type === "CUSTOM");
 
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // Case: wrong URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // Case: full external URL
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Case: local upload (relative path)
+    return `${API_IMAGE_URL}${url}`;
+  };
   return (
     <>
       <ToastContainer />
@@ -750,8 +773,12 @@ function EmployerShortListCandinate() {
                   </button>
                 </div>
               </div>
-              <div className="bookmark-list-area p-4 overflow-auto">
-                <div className="candidate-rows">
+              <div
+                className="bookmark-list-area p-4"
+                style={{ overflow: "visible" }}
+              >
+                {" "}
+                <div className="bookmark-user-list-cell">
                   {applicants.length === 0 ? (
                     <div className="p-5 text-center text-muted">
                       <div
@@ -794,15 +821,23 @@ function EmployerShortListCandinate() {
                       const role = candidate.aboutRole;
 
                       return (
-                        <div key={candidate._id} className="candidate-row">
+                        <div
+                          key={candidate._id}
+                          className="candidate-row"
+                          onClick={() => {
+                            setSelectedCandidate(candidate);
+                            setShowProfile(true);
+                          }}
+                          onMouseEnter={() => setHoveredCandidate(candidate)}
+                          onMouseLeave={() => setHoveredCandidate(null)}
+                        >
                           <img
                             crossOrigin="anonymous"
                             className="candidate-avatar"
                             alt={candidate.fullName}
                             src={
-                              user.profileImage
-                                ? `${API_IMAGE_URL}${user.profileImage}`
-                                : "/default-avatar.png"
+                              cleanImageUrl(user.profileImage) ||
+                              "assets/images/userIcon.png"
                             }
                           />
 
@@ -848,15 +883,16 @@ function EmployerShortListCandinate() {
                           </div>
 
                           <div className="candidate-actions">
-                            <button
+                            <Link
                               className="btn btn-sm btn-light"
-                              onClick={() => {
-                                setSelectedCandidate(candidate);
-                                setShowProfile(true);
+                              to={`/candidates-details`}
+                              state={{
+                                userId: candidate?.userId?._id,
+                                from: "/bookmark-candidate",
                               }}
                             >
                               View Profile
-                            </button>
+                            </Link>
 
                             <button
                               className="btn btn-sm btn-outline-danger"
@@ -881,6 +917,116 @@ function EmployerShortListCandinate() {
                               </div>
                             </button>
                           </div>
+                          {hoveredCandidate?._id === candidate._id && (
+                            <div className="hover-profile-card">
+                              <div className="user-hover-short-details card">
+                                {/* HEADER */}
+                                <div className="header">
+                                  <img
+                                    crossOrigin="anonymous"
+                                    className="profile-pic"
+                                    alt={candidate.fullName}
+                                    src={
+                                      cleanImageUrl(user?.profileImage) ||
+                                      "assets/images/userIcon.png"
+                                    }
+                                  />
+
+                                  <div className="header-info">
+                                    <h1>{candidate.fullName}</h1>
+                                    <p>
+                                      {candidate.aboutRole?.jobTitle || "N/A"}
+                                    </p>
+                                    <svg
+                                      stroke="currentColor"
+                                      fill="currentColor"
+                                      strokeWidth={0}
+                                      viewBox="0 0 512 512"
+                                      className="me-1"
+                                      height="1em"
+                                      width="1em"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
+                                    </svg>
+                                    {candidate.userId?.city &&
+                                    candidate.userId?.Nationality
+                                      ? `${candidate.userId.city}, ${candidate.userId.Nationality}`
+                                      : candidate.userId?.city ||
+                                        candidate.userId?.Nationality ||
+                                        "N/A"}
+                                  </div>
+                                </div>
+
+                                {/* DETAILS GRID */}
+                                <div className="details-grid">
+                                  <div className="detail-item">
+                                    <p>Experience</p>
+                                    <span>
+                                      {candidate.aboutRole?.yearOfExperience
+                                        ? `${candidate.aboutRole.yearOfExperience} Years`
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+
+                                  <div className="detail-item">
+                                    <p>Availability</p>
+                                    <span className="na">
+                                      {candidate.career_goals
+                                        ?.jobSearchStatus || "N/A"}
+                                    </span>
+                                  </div>
+
+                                  <div className="detail-item">
+                                    <p>Education</p>
+                                    <span>
+                                      {candidate.education?.length > 0
+                                        ? `${candidate.education[0].degree} - ${candidate.education[0].University}`
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+
+                                  <div className="detail-item">
+                                    <p>Languages</p>
+                                    <span>
+                                      {candidate.languages?.length > 0
+                                        ? candidate.languages.join(", ")
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* PROFESSIONAL SUMMARY */}
+                                {candidate.aboutRole?.professionalSummary && (
+                                  <div className="skills-section">
+                                    <h2>PROFESSIONAL SUMMARY</h2>
+                                    <p>
+                                      {candidate.aboutRole.professionalSummary}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* SKILLS */}
+                                {candidate.skills?.length > 0 && (
+                                  <div className="skills-section">
+                                    <h2>Skills</h2>
+                                    <div className="skills-list">
+                                      {candidate.skills
+                                        .slice(0, 6)
+                                        .map((skill, index) => (
+                                          <span
+                                            key={index}
+                                            className="skill-tag"
+                                          >
+                                            {skill}
+                                          </span>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })
@@ -926,9 +1072,9 @@ function EmployerShortListCandinate() {
                         crossOrigin="anonymous"
                         className="profile-img-large mb-3"
                         src={
-                          selectedCandidate.userId?.profileImage
-                            ? `${API_IMAGE_URL}${selectedCandidate.userId.profileImage}`
-                            : "/default-avatar.png"
+                          cleanImageUrl(
+                            selectedCandidate.userId?.profileImage,
+                          ) || "assets/images/userIcon.png"
                         }
                         alt={selectedCandidate.fullName}
                       />
@@ -1096,9 +1242,17 @@ function EmployerShortListCandinate() {
                 </div>
               </div>
               <div className="side-panel-footer">
-                <button className="default-btn btn-primary w-100 mb-2">
+                <Link
+                  className="default-btn btn-primary w-100 mb-2"
+                  to={`/candidates-details`}
+                  state={{
+                    userId: selectedCandidate?.userId?._id,
+                    from: "/bookmark-candidate",
+                  }}
+                >
+                  {" "}
                   View Full Profile
-                </button>
+                </Link>
                 <button className="btn btn-outline-danger w-100">
                   Remove from Folder
                 </button>

@@ -13,8 +13,9 @@ function EmployerDashboard() {
   const [limit, setLimit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState("week");
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const today = new Date();
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [stats, setStats] = useState(null);
   const [profileData, setProfileData] = useState("");
   const userRole = localStorage.getItem("user_role");
@@ -279,7 +280,7 @@ function EmployerDashboard() {
       }
     };
     fetchJobList();
-  }, [page, limit,search,createdAt]);
+  }, [page, limit, search, createdAt]);
 
   return (
     <>
@@ -404,12 +405,12 @@ function EmployerDashboard() {
                       </div>
                       <div className="content-wrapper">
                         <div className="main-info">
-                          <h5>{stats?.overview?.totalJobs}</h5>
+                          <h5>{stats?.overview?.totalJobs || 0}</h5>
                           <span>All Jobs</span>
                         </div>
                         <div className="trend-info">
                           <i className="fa-solid fa-arrow-up" />
-                          {stats?.overview?.jobsPercentage}%
+                          {stats?.overview?.jobsPercentage || 0}%
                         </div>
                       </div>
                     </div>
@@ -424,12 +425,12 @@ function EmployerDashboard() {
                       </div>
                       <div className="content-wrapper">
                         <div className="main-info">
-                          <h5>{stats?.overview?.totalApplicants}</h5>
+                          <h5>{stats?.overview?.totalApplicants || 0}</h5>
                           <span>Applicants</span>
                         </div>
                         <div className="trend-info">
                           <i className="fa-solid fa-arrow-up" />
-                          {stats?.overview?.applicantsPercentage}%
+                          {stats?.overview?.applicantsPercentage || 0}%
                         </div>
                       </div>
                     </div>
@@ -447,7 +448,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-plus" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.New}</h5>
+                        <h5>{stats?.atsFlow?.New || 0}</h5>
                         <span>New</span>
                       </div>
                     </div>
@@ -456,7 +457,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-filter" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.Preselected}</h5>
+                        <h5>{stats?.atsFlow?.Preselected || 0}</h5>
                         <span>Pre-selected</span>
                       </div>
                     </div>
@@ -465,7 +466,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-phone" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.Contacted}</h5>
+                        <h5>{stats?.atsFlow?.Contacted || 0}</h5>
                         <span>Contacted</span>
                       </div>
                     </div>
@@ -474,7 +475,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-user-tie" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.HRInterview}</h5>
+                        <h5>{stats?.atsFlow?.HRInterview || 0}</h5>
                         <span>HR Interview</span>
                       </div>
                     </div>
@@ -483,7 +484,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-laptop-code" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.TechInterview}</h5>
+                        <h5>{stats?.atsFlow?.TechInterview || 0}</h5>
                         <span>Tech Interview</span>
                       </div>
                     </div>
@@ -492,7 +493,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-file-contract" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.Offered}</h5>
+                        <h5>{stats?.atsFlow?.Offered || 0}</h5>
                         <span>Offer</span>
                       </div>
                     </div>
@@ -501,7 +502,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-check-double" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.Hired}</h5>
+                        <h5>{stats?.atsFlow?.Hired || 0}</h5>
                         <span>Hired</span>
                       </div>
                     </div>
@@ -510,7 +511,7 @@ function EmployerDashboard() {
                         <i className="fa-solid fa-xmark" />
                       </div>
                       <div className="ats-card-content">
-                        <h5>{stats?.atsFlow?.Rejected}</h5>
+                        <h5>{stats?.atsFlow?.Rejected || 0}</h5>
                         <span>Rejected</span>
                       </div>
                     </div>
@@ -552,7 +553,7 @@ function EmployerDashboard() {
                       <i className="fa-solid fa-eye" />
                     </div>
                     <span className="step-count">
-                      {stats?.funnel?.uniqueViews}
+                      {stats?.funnel?.uniqueViews || 0}
                     </span>
                     <span className="step-label">Views</span>
                   </div>
@@ -561,7 +562,7 @@ function EmployerDashboard() {
                       <i className="fa-solid fa-mouse-pointer" />
                     </div>
                     <span className="step-count">
-                      {stats?.funnel?.uniqueClicks}
+                      {stats?.funnel?.uniqueClicks || 0}
                     </span>
                     <span className="step-label">Clicks</span>
                   </div>
@@ -569,14 +570,18 @@ function EmployerDashboard() {
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-file-alt" />
                     </div>
-                    <span className="step-count">{stats?.funnel?.applied}</span>
+                    <span className="step-count">
+                      {stats?.funnel?.applied || 0}
+                    </span>
                     <span className="step-label">Applied</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
                       <i className="fa-solid fa-check" />
                     </div>
-                    <span className="step-count">{stats?.funnel?.hired}</span>
+                    <span className="step-count">
+                      {stats?.funnel?.hired || 0}
+                    </span>
                     <span className="step-label">Hired</span>
                   </div>
                 </div>
@@ -601,8 +606,8 @@ function EmployerDashboard() {
                             style={{ width: "150px" }}
                             value={createdAt}
                             onChange={(e) => {
-                            setCreatedAt(Number(e.target.value))
-                            setPage(1);
+                              setCreatedAt(Number(e.target.value));
+                              setPage(1);
                             }}
                           >
                             <option value={-1}>Plus récent</option>
@@ -616,8 +621,8 @@ function EmployerDashboard() {
                           type="search"
                           value={search}
                           onChange={(e) => {
-                          setSearch(e.target.value);
-                          setPage(1);
+                            setSearch(e.target.value);
+                            setPage(1);
                           }}
                         />
                       </div>

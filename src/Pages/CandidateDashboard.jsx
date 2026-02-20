@@ -548,15 +548,15 @@ function CandidateDashboard() {
               <div className="left-area">
                 <h4>Complete your profile and get better matches</h4>
 
-                <div className="steps-wrapper">
+                <div className="steps-wrapper2">
                   {[...Array(profileData?.totalSections || 0)].map(
                     (_, index) => {
                       const isCompleted = index < profileData.completedSections;
 
                       return (
-                        <div key={index} className="step-item">
+                        <div className="profile-step-item" key={index}>
                           <div
-                            className={`step-circle ${
+                            className={`profile-step-circle ${
                               isCompleted ? "completed" : "pending"
                             }`}
                           >
@@ -565,7 +565,7 @@ function CandidateDashboard() {
 
                           {index !== profileData.totalSections - 1 && (
                             <div
-                              className={`step-line ${
+                              className={`profile-step-line ${
                                 index < profileData.completedSections - 1
                                   ? "line-completed"
                                   : "line-pending"
