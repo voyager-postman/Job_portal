@@ -10,6 +10,7 @@ function MassagingSystem() {
   const token = localStorage.getItem("token");
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const [users, setUsers] = useState([]);
   const CURRENT_USER_ID = localStorage.getItem("companyId");
   console.log("Current Employer ID:-", CURRENT_USER_ID);
@@ -56,7 +57,7 @@ function MassagingSystem() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatStore, activeUser]);
 
   const fetchCandidates = async () => {
     try {
@@ -116,8 +117,6 @@ function MassagingSystem() {
       }
     }
   }, [users, location.state]);
-
-
 
   const checkUnreadCount = async (groupId) => {
     try {
@@ -203,10 +202,6 @@ function MassagingSystem() {
   const sendMessage = () => {
     if (!text.trim() || !activeUser) return;
 
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      console.log("Socket not connected");
-      return;
-    }
     const payload = {
       type: "chat",
       from: CURRENT_USER_ID,
@@ -214,13 +209,14 @@ function MassagingSystem() {
       message: text,
       created_at: new Date().toISOString(),
     };
-    console.log(payload);
+
     socketRef.current.send(JSON.stringify(payload));
+    setMessages((prev) => [...prev, payload]);
     // setChatStore((prev) => ({
     //   ...prev,
     //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
     // }));
-    setMessages((prev) => [...prev, payload]);
+
     setText("");
   };
 
@@ -295,6 +291,9 @@ function MassagingSystem() {
                               <li
                                 className="nav-item"
                                 role="presentation"
+                                style={{
+                                  cursor: "pointer",
+                                }}
                                 key={u.user?._id}
                                 onClick={() => {
                                   loadChat(u);
@@ -303,10 +302,12 @@ function MassagingSystem() {
                                 }}
                               >
                                 <a
-                                  className={`nav-link ${String(activeUser?.id) === String(u.user?._id)
-                                    ? "active"
-                                    : ""
-                                    }`}
+                                  className={`nav-link ${
+                                    String(activeUser?.id) ===
+                                    String(u.user?._id)
+                                      ? "active"
+                                      : ""
+                                  }`}
                                   data-bs-toggle="tab"
                                 >
                                   <div className="messaging-system-img-user-info">
@@ -330,9 +331,9 @@ function MassagingSystem() {
                                         {/* {u.applicant?.last_name} */}
                                       </h5>
                                       <p>
-                                        {u?.lastMessage?.length > 40
-                                          ? u.lastMessage.substring(0, 40) +
-                                          "..."
+                                        {u?.lastMessage?.length > 30
+                                          ? u.lastMessage.substring(0, 30) +
+                                            "..."
                                           : u?.lastMessage}
                                       </p>
                                     </div>
@@ -407,12 +408,15 @@ function MassagingSystem() {
                             </div>
                           </div>
                           {/* ---------------- CHAT MESSAGES ---------------- */}
-                          <div className="tab-content">
+                          <div
+                            className="tab-content"
+                            ref={chatContainerRef}
+                          >
                             <div className="tab-pane fade show active">
                               {(chatStore[activeUser?.id] || []).map(
                                 (msg, index) =>
                                   String(msg.sender) ===
-                                    String(CURRENT_USER_ID) ? (
+                                  String(CURRENT_USER_ID) ? (
                                     // RIGHT SIDE (RECTRUITER - YOU)
                                     <>
                                       <div
@@ -440,11 +444,13 @@ function MassagingSystem() {
                                           />
                                         </div>
                                       </div>
-                                      <div ref={bottomRef}></div>
                                     </>
                                   ) : (
                                     <>
-                                      <div className="messaging-system-user-messaging">
+                                      <div
+                                        key={index}
+                                        className="messaging-system-user-messaging"
+                                      >
                                         <div className="messaging-system-userImg">
                                           <img
                                             crossOrigin="anonymous"
@@ -466,10 +472,10 @@ function MassagingSystem() {
                                           </div>
                                         </div>
                                       </div>
-                                      <div ref={bottomRef}></div>
                                     </>
                                   ),
                               )}
+                              <div ref={bottomRef}></div>
                             </div>
                           </div>
                           {/* ---------------- INPUT ---------------- */}
@@ -481,12 +487,14 @@ function MassagingSystem() {
                                 rows={1}
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
-                                onKeyDown={(e) =>
-                                  e.key === "Enter" && sendMessage()
-                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                  }
+                                }}
                               />
                             </>
-
                             <div
                               onClick={sendMessage}
                               className="send_chat cusror-pointer"
@@ -499,7 +507,6 @@ function MassagingSystem() {
                             </div>
                             <div className="chat-messaging-typeing-function"></div>
                           </div>
-                          <div ref={bottomRef}></div>
                         </>
                       )}
                     </div>

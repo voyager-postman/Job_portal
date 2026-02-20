@@ -752,8 +752,8 @@ function YourJobPosts() {
                                 {job.city?.length
                                   ? (() => {
                                       const cityText = job.city.join(", ");
-                                      return cityText.length > 30
-                                        ? cityText.slice(0, 30) + "..."
+                                      return cityText.length > 20
+                                        ? cityText.slice(0, 20) + "..."
                                         : cityText;
                                     })()
                                   : "Not provided"}

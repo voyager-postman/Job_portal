@@ -8,6 +8,7 @@ function ChatMassageSystem() {
   const token = localStorage.getItem("token");
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const [users, setUsers] = useState([]);
   const CURRENT_USER_ID = localStorage.getItem("user_id");
   console.log("Current Employer ID:-", CURRENT_USER_ID);
@@ -53,7 +54,7 @@ function ChatMassageSystem() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatStore, activeUser]);
 
   const fetchCandidates = async () => {
     const res = await fetch(`${API_BASE_URL}getJobseekerChatList`, {
@@ -158,16 +159,15 @@ function ChatMassageSystem() {
   const sendMessage = () => {
     if (!text.trim() || !activeUser) return;
 
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      console.log("Socket not connected");
-      return;
-    }
+    // if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+    //   console.log("Socket not connected");
+    //   return;
+    // }
     const payload = {
       type: "chat",
       from: CURRENT_USER_ID,
       to: activeUser.id,
       message: text,
-      // jobId: activeUser.jobId,
       created_at: new Date().toISOString(),
     };
     socketRef.current.send(JSON.stringify(payload));
@@ -273,8 +273,8 @@ function ChatMassageSystem() {
                                 </div>
                                 <div className="user-short-massage">
                                   <p>
-                                    {u?.lastMessage?.length > 40
-                                      ? u.lastMessage.substring(0, 40) + "..."
+                                    {u?.lastMessage?.length > 30
+                                      ? u.lastMessage.substring(0, 30) + "..."
                                       : u?.lastMessage}
                                   </p>
                                 </div>
@@ -353,69 +353,73 @@ function ChatMassageSystem() {
                     <div className="user-message-list-massage-detail">
                       <div className="job-seeker-employer-message-detail">
                         {/* Tab Panes */}
-                        <div className="tab-content">
+                        <div className="tab-content" ref={chatContainerRef}>
                           <div className="tab-pane fade show active">
                             {(chatStore[activeUser?.id] || []).map(
                               (msg, index) =>
                                 String(msg.sender) ===
                                 String(CURRENT_USER_ID) ? (
                                   // RIGHT SIDE (JOB SEEKER - YOU)
-                                  <div
-                                    key={index}
-                                    className="user-message-chat-details employer-info-main-area"
-                                  >
-                                    <div className="job-seeker-message-detail-text">
-                                      <p>{msg.message}</p>
-                                      <div className="job-seeker-message-time">
-                                        <p>
-                                          {new Date(
-                                            msg.created_at,
-                                          ).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })}
-                                        </p>
+                                  <>
+                                    <div
+                                      key={index}
+                                      className="user-message-chat-details employer-info-main-area"
+                                    >
+                                      <div className="job-seeker-message-detail-text">
+                                        <p>{msg.message}</p>
+                                        <div className="job-seeker-message-time">
+                                          <p>
+                                            {new Date(
+                                              msg.created_at,
+                                            ).toLocaleTimeString([], {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="job-seeker-message-name-img-time">
+                                        <div className="job-seeker-message-img">
+                                          <img
+                                            crossOrigin="anonymous"
+                                            src={getImageUrl(profileImage)}
+                                            alt="rectruiter"
+                                          />
+                                        </div>
                                       </div>
                                     </div>
-                                    <div className="job-seeker-message-name-img-time">
-                                      <div className="job-seeker-message-img">
-                                        <img
-                                          crossOrigin="anonymous"
-                                          src={getImageUrl(profileImage)}
-                                          alt="rectruiter"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
+                                  </>
                                 ) : (
-                                  <div
-                                    key={index}
-                                    className="user-message-chat-details"
-                                  >
-                                    <div className="job-seeker-message-name-img-time">
-                                      <div className="job-seeker-message-img">
-                                        <img
-                                          crossOrigin="anonymous"
-                                          src={getImageUrl(activeUser?.image)}
-                                          alt="rectruiter"
-                                        />
+                                  <>
+                                    <div
+                                      key={index}
+                                      className="user-message-chat-details"
+                                    >
+                                      <div className="job-seeker-message-name-img-time">
+                                        <div className="job-seeker-message-img">
+                                          <img
+                                            crossOrigin="anonymous"
+                                            src={getImageUrl(activeUser?.image)}
+                                            alt="rectruiter"
+                                          />
+                                        </div>
                                       </div>
-                                    </div>
 
-                                    <div className="job-seeker-message-detail-text">
-                                      <p>{msg.message}</p>
-                                      <div className="job-seeker-message-time">
-                                        <p>
-                                          {new Date(
-                                            msg.created_at,
-                                          ).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          })}
-                                        </p>
+                                      <div className="job-seeker-message-detail-text">
+                                        <p>{msg.message}</p>
+                                        <div className="job-seeker-message-time">
+                                          <p>
+                                            {new Date(
+                                              msg.created_at,
+                                            ).toLocaleTimeString([], {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  </>
                                 ),
                             )}
                             <div ref={bottomRef}></div>
@@ -429,9 +433,12 @@ function ChatMassageSystem() {
                                 rows={1}
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
-                                onKeyDown={(e) =>
-                                  e.key === "Enter" && sendMessage()
-                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                  }
+                                }}
                               />
                             </div>
                             <div
@@ -446,7 +453,6 @@ function ChatMassageSystem() {
                             </div>
                             <div className="chat-messaging-typeing-function"></div>
                           </div>
-                          <div ref={bottomRef}></div>
                         </div>
                       </div>
                     </div>

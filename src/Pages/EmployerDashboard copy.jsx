@@ -1,8 +1,10 @@
 import axios from "axios";
+
 import { API_BASE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
+import { TableView } from "../Conponets/DataTable";
 
 function EmployerDashboard() {
   const [stats, setStats] = useState("");
@@ -23,10 +25,10 @@ function EmployerDashboard() {
       },
       responsive: [
         {
-          breakpoint: 300,
+          breakpoint: 480,
           options: {
             chart: {
-              width: 100,
+              width: 200,
             },
             legend: {
               position: "bottom",
@@ -53,7 +55,7 @@ function EmployerDashboard() {
         bar: {
           horizontal: true,
           isFunnel: true,
-          barHeight: "65%",
+          barHeight: "65%", // tighter funnel
           distributed: false,
           dataLabels: {
             position: "center",
@@ -118,6 +120,38 @@ function EmployerDashboard() {
       colors: ["#2563eb", "#60a5fa"],
     },
   });
+
+  const columns = [
+    {
+      accessorKey: "id",
+      header: "S.No",
+      cell: ({ row }) => (page - 1) * limit + row.index + 1,
+    },
+    {
+      accessorKey: "jobTitle",
+      header: "Job Title",
+      accessorFn: (row) => (row.jobTitle || "").toLowerCase(),
+      cell: ({ row }) => row.original.jobTitle || "Not Provided",
+    },
+    {
+      accessorKey: "location",
+      header: "Location",
+      accessorFn: (row) => (row.location || "").toLowerCase(),
+      cell: ({ row }) => row.original.location || "Not Provided",
+    },
+    {
+      accessorKey: "employmentType",
+      header: "Employment Type",
+      accessorFn: (row) => (row.employmentType || "").toLowerCase(),
+      cell: ({ row }) => row.original.employmentType || "Not Provided",
+    },
+    {
+      accessorKey: "uniqueViews",
+      header: "Views",
+      accessorFn: (row) => (row.uniqueViews || "").toLowerCase(),
+      cell: ({ row }) => String(row.original.uniqueViews) || "Not Provided",
+    },
+  ];
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -216,7 +250,6 @@ function EmployerDashboard() {
             },
           },
         }));
-        console.log("<<<<<<<<<<<<<<<<<<<<")
       } catch (error) {
         console.error(error);
       }
@@ -226,7 +259,7 @@ function EmployerDashboard() {
 
   const ZERO_COLOR = "#b2bacf"; // light gray
   const NORMAL_COLORS = ["#3b82f6", "#34d399"]; // Messages, Replies
-
+  
   useEffect(() => {
     const fetchInsight = async () => {
       try {
@@ -303,7 +336,7 @@ function EmployerDashboard() {
             },
           },
         );
-        console.log("Job Overview Data:-", response.data.data);
+        // console.log(response);
         setActivity(response.data.data);
         setTotalPages(response?.data?.pagination?.totalPages || 1);
       } catch (error) {
@@ -335,175 +368,77 @@ function EmployerDashboard() {
           {/* End Breadcrumb Area */}
           {/* employer dashboard  start here */}
           <section className="employer-dashboard-info-area">
-            <div className="dashboard-header">
-              <div className="company-branding">
-                <div className="company-logo">
-                  <img
-                    alt="Company Logo"
-                    src="https://www.ecoactu.ma/wp-content/uploads/2021/06/xlogo-EcoActu.png.pagespeed.ic.RWcLDnahT5.png"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      "object-fit": "contain",
-                    }}
-                  />
-                </div>
-                <div className="company-info">
-                  <h2>Connect Work.ma</h2>
-                  <span>Employer Dashboard</span>
-                </div>
-              </div>
-              <div className="user-welcome">
-                <h3>Hello, Sarah Connor</h3>
-                <p>Senior Recruiter</p>
-              </div>
+            <div className="employer-dashboard-common-heading">
+              <h2> Dashboard</h2>
             </div>
-            <div className="d-flex align-items-center justify-content-end mb-4 gap-2">
-              <div className="btn-group" role="group">
-                <button type="button" className="btn btn-outline-primary ">
-                  Today
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline-primary active"
-                >
-                  Week
-                </button>
-                <button type="button" className="btn btn-outline-primary ">
-                  Month
-                </button>
-                <button type="button" className="btn btn-outline-primary ">
-                  Custom Date
-                </button>
-              </div>
-            </div>
-            <div className="row mb-4">
-              <div className="col-lg-4">
-                <div className="employer-dashboard-common-heading mb-3">
-                  <h2>Overview</h2>
-                </div>
-                <div className="d-flex flex-column" style={{ gap: "10px" }}>
-                  <a
-                    className="text-decoration-none"
-                    href="/jobPortal/your-job-posts"
-                  >
-                    <div className="summary-card-compact">
+            <div className="employer-dashboard-box">
+              <div className="row">
+                <div className="col-md-3 mb-3">
+                  <Link to="/your-job-posts">
+                    <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
                         <i className="fa-solid fa-briefcase" />
                       </div>
-                      <div className="content-wrapper">
-                        <div className="main-info">
-                          <h5>12</h5>
-                          <span>All Jobs</span>
-                        </div>
-                        <div className="trend-info">
-                          <i className="fa-solid fa-arrow-up" />
-                          15%
-                        </div>
+                      <div className="employer-box-content">
+                        <h4>All Jobs</h4>
+                        <h5>{stats.totalJobs || 0}</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" />{" "}
+                          {stats?.weekly?.jobsPosted?.percent || 0}% this week
+                        </p>
                       </div>
                     </div>
-                  </a>
-                  <a
-                    className="text-decoration-none"
-                    href="/jobPortal/all-applicants-list"
-                  >
-                    <div className="summary-card-compact green-theme">
-                      <div className="employer-box-icon">
-                        <i className="fa-regular fa-user" />
-                      </div>
-                      <div className="content-wrapper">
-                        <div className="main-info">
-                          <h5>48</h5>
-                          <span>Applicants</span>
-                        </div>
-                        <div className="trend-info">
-                          <i className="fa-solid fa-arrow-up" />
-                          25%
-                        </div>
-                      </div>
-                    </div>
-                  </a>
+                  </Link>
                 </div>
-              </div>
-              <div className="col-lg-8">
-                <div className="ats-flow-section h-100">
-                  <div className="employer-dashboard-common-heading mb-3">
-                    <h2>ATS Flow Stats</h2>
-                  </div>
-                  <div className="ats-card-grid">
-                    <div className="ats-card ats-new">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-plus" />
+                <div className="col-md-3 mb-3">
+                  <Link to="/all-applicants-list">
+                    <div className="employer-dashboard-box-icon-content">
+                      <div className="employer-box-icon">
+                        <i className="fa-solid fa-file" />
                       </div>
-                      <div className="ats-card-content">
-                        <h5>45</h5>
-                        <span>New</span>
-                      </div>
-                    </div>
-                    <div className="ats-card ats-pre">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-filter" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>28</h5>
-                        <span>Pre-selected</span>
+                      <div className="employer-box-content">
+                        <h4>Total Applicants</h4>
+                        <h5>{stats.totalApplicants || 0}</h5>
+                        <p>
+                          <i className="fa-solid fa-arrow-up" />{" "}
+                          {stats?.weekly?.applicants?.percent || 0}% this week
+                        </p>
                       </div>
                     </div>
-                    <div className="ats-card ats-con">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-phone" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>22</h5>
-                        <span>Contacted</span>
-                      </div>
+                  </Link>
+                </div>
+                <div className="col-md-3 mb-3">
+                  {/* <Link to="/jobs"> */}
+                  <div className="employer-dashboard-box-icon-content">
+                    <div className="employer-box-icon">
+                      <i className="fa-solid fa-envelope" />
                     </div>
-                    <div className="ats-card ats-hr">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-user-tie" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>15</h5>
-                        <span>HR Interview</span>
-                      </div>
-                    </div>
-                    <div className="ats-card ats-tech">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-laptop-code" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>10</h5>
-                        <span>Tech Interview</span>
-                      </div>
-                    </div>
-                    <div className="ats-card ats-off">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-file-contract" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>5</h5>
-                        <span>Offer</span>
-                      </div>
-                    </div>
-                    <div className="ats-card ats-hire">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-check-double" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>3</h5>
-                        <span>Hired</span>
-                      </div>
-                    </div>
-                    <div className="ats-card ats-rej">
-                      <div className="ats-card-icon">
-                        <i className="fa-solid fa-xmark" />
-                      </div>
-                      <div className="ats-card-content">
-                        <h5>12</h5>
-                        <span>Rejected</span>
-                      </div>
+                    <div className="employer-box-content">
+                      <h4>Interview Invitations </h4>
+                      <h5>0</h5>
+                      <p>
+                        <i className="fa-solid fa-arrow-up" /> 0% this week
+                      </p>
                     </div>
                   </div>
+                  {/* </Link> */}
+                </div>
+                <div className="col-md-3 mb-3">
+                  {/* <Link to="/jobs"> */}
+                  <div className="employer-dashboard-box-icon-content">
+                    <div className="employer-box-icon">
+                      <i className="fa-solid fa-bookmark" />
+                    </div>
+                    <div className="employer-box-content">
+                      <h4>Shortlist</h4>
+                      <h5>{stats.totalShortlisted || 0}</h5>
+                      <p>
+                        <i className="fa-solid fa-arrow-up" />{" "}
+                        {stats?.weekly?.shortlisted?.percent || 0}% this week
+                      </p>
+                    </div>
+                  </div>
+                  {/* </Link> */}
                 </div>
               </div>
             </div>
@@ -526,45 +461,17 @@ function EmployerDashboard() {
                   height={300}
                 />
               </div>
+              {/* Funnel Chart */}
               <div className="chart-box funnel-container">
-                <div
-                  className="employer-dashboard-common-heading"
-                  style={{ "margin-bottom": "20px" }}
-                >
-                  <h2 style={{ "font-size": "18px", margin: "0px" }}>
-                    Recruitment Pipeline
-                  </h2>
+                <div className="funnel-title">
+                  Views → Clicks → Applications → Hires
                 </div>
-                <div className="recruitment-pipeline">
-                  <div className="step-item active">
-                    <div className="step-icon-circle">
-                      <i className="fa-solid fa-eye" />
-                    </div>
-                    <span className="step-count">1250</span>
-                    <span className="step-label">Views</span>
-                  </div>
-                  <div className="step-item active">
-                    <div className="step-icon-circle">
-                      <i className="fa-solid fa-mouse-pointer" />
-                    </div>
-                    <span className="step-count">850</span>
-                    <span className="step-label">Clicks</span>
-                  </div>
-                  <div className="step-item active">
-                    <div className="step-icon-circle">
-                      <i className="fa-solid fa-file-alt" />
-                    </div>
-                    <span className="step-count">120</span>
-                    <span className="step-label">Applied</span>
-                  </div>
-                  <div className="step-item active">
-                    <div className="step-icon-circle">
-                      <i className="fa-solid fa-check" />
-                    </div>
-                    <span className="step-count">5</span>
-                    <span className="step-label">Hired</span>
-                  </div>
-                </div>
+                <ReactApexChart
+                  options={funnelState.options}
+                  series={funnelState.series}
+                  type="bar"
+                  height={350}
+                />
               </div>
             </div>
           </section>
@@ -575,55 +482,18 @@ function EmployerDashboard() {
               <h2>Job OverView</h2>
             </div>
             <div className="dashboard">
+              {/* Left Panel */}
               <div className="left dashboard-bottom">
-                <div className="top-space-search-reslute">
-                  <div className="tab-content px-2 md:!px-4">
-                    <div className="parentProduceSearch">
-                      <div className="entries">
-                        <div className="d-flex align-items-center">
-                          <select
-                            className="form-select form-select-sm"
-                            style={{ width: "150px" }}
-                          >
-                            <option value="newest">Plus récent</option>
-                            <option value="oldest">Plus ancien</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="table-search-box-info">
-                        <input
-                          placeholder="search"
-                          type="search"
-                          defaultValue
-                        />
-                      </div>
-                    </div>
-                    <div className="table-responsive">
-                      <table className="table table-bordered">
-                        <thead>
-                          <tr>
-                            <th>S.No</th>
-                            <th>Job Title</th>
-                            <th>Location</th>
-                            <th>Employment Type</th>
-                            <th>Views</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {activity.map((jobData, index) => (
-                            <tr key={index}>
-                              <td>{(page-1) * limit + index + 1}</td>
-                              <td>{jobData.jobTitle}</td>
-                              <td>{jobData.location}</td>
-                              <td>{jobData.employmentType}</td>
-                              <td>{jobData.uniqueViews}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
+                <TableView
+                  columns={columns}
+                  data={activity}
+                  limit={limit}
+                  setLimit={(value) => {
+                    setLimit(value);
+                    setPage(1);
+                  }}
+                />
+                {/* PAGINATION BUTTONS */}
                 <div className="d-flex justify-content-center mt-3">
                   <button
                     className="btn btn-sm btn-primary mx-1"
@@ -632,15 +502,21 @@ function EmployerDashboard() {
                   >
                     Prev
                   </button>
+
                   {[...Array(totalPages)].map((_, index) => (
                     <button
                       key={index}
-                      className={`btn btn-sm mx-1 ${page === index + 1 ? "btn-primary" : "btn-outline-primary"}`}
+                      className={`btn btn-sm mx-1 ${
+                        page === index + 1
+                          ? "btn-primary"
+                          : "btn-outline-primary"
+                      }`}
                       onClick={() => setPage(index + 1)}
                     >
                       {index + 1}
                     </button>
                   ))}
+
                   <button
                     className="btn btn-sm btn-primary mx-1"
                     disabled={page === totalPages}
@@ -650,6 +526,7 @@ function EmployerDashboard() {
                   </button>
                 </div>
               </div>
+              {/* Right Panel */}
               <div className="right dashboard-bottom">
                 <h5>Candidate Engagement Insights</h5>
                 <ReactApexChart
