@@ -30,48 +30,101 @@ const PrevArrow = ({ onClick }) => (
   </button>
 );
 
-const categories1 = [
-  { icon: "flaticon-web-development", label: "Development (55)" },
-  { icon: "flaticon-customer-support", label: "Information IT (25)" },
-  { icon: "flaticon-business", label: "Corporate Job (47)" },
-  { icon: "flaticon-business-1", label: "Business Policy (69)" },
-  { icon: "flaticon-web-development", label: "Development (55)" },
-  { icon: "flaticon-customer-support", label: "Information IT (25)" },
-  { icon: "flaticon-office-building", label: "Corporate Job (47)" },
-  { icon: "flaticon-business", label: "Business Policy (69)" },
-];
-
-const reviews = [
-  {
-    name: "Nikolas Brooten",
-    role: "Digital Marketer",
-    text: `“Morbi porttitor ligula id varius consectetur. Integer ipsum justo, congue sit amet massa vel, porttitor semper magna. Orci varius natoque penatibus et magnis dis parturient”`,
-  },
-  {
-    name: "Terry Ambady",
-    role: "IT Specialist",
-    text: `“Morbi porttitor ligula id varius consectetur. Integer ipsum justo, congue sit amet massa vel, porttitor semper magna. Orci varius natoque penatibus et magnis dis parturient”`,
-  },
-  {
-    name: "Camelia Renesa",
-    role: "President Of Sale",
-    text: `“Morbi porttitor ligula id varius consectetur. Integer ipsum justo, congue sit amet massa vel, porttitor semper magna. Orci varius natoque penatibus et magnis dis parturient”`,
-  },
-  // repeat or map more if needed
-];
-
 function Home() {
   const { t, i18n } = useTranslation("global");
+  const [trendingKeywords, setTrendingKeywords] = useState([]);
+  const [categories1, setCategories1] = useState([]);
+  const [bannerImages, setBannerImages] = useState([]);
+  const [homeData, setHomeData] = useState({});
   const userRole = localStorage.getItem("user_role");
   const navigate = useNavigate();
   const [jobList, setJobList] = useState([]);
+  const [candidates, setCandidates] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+  const [blogData, setBlogData] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({
     keywords: "",
     location: "",
     category: "",
   });
+  const [stats, setStats] = useState([]);
+
+  const getStats = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getHomePageStats`);
+
+      const data = res.data.data;
+
+      const formattedStats = [
+        {
+          icon: "flaticon-bag",
+          count: data.jobsAdded || 0,
+          label: "Jobs Added",
+          showPlus: true,
+        },
+        {
+          icon: "flaticon-office-building",
+          count: data.companies || 0,
+          label: "Companies",
+        },
+        {
+          icon: "flaticon-cv",
+          count: data.resumes || 0,
+          label: "Resume",
+        },
+        {
+          icon: "flaticon-member",
+          count: data.jobSeeker || 0,
+          label: "Members",
+        },
+      ];
+
+      setStats(formattedStats);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getStats();
+  }, []);
+  useEffect(() => {
+    const getTopJobCategories = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getTopJobCategories`);
+        if (res.data?.data) {
+          // Map API data to { icon, label } format
+          const formattedCategories = res.data.data.map((cat) => ({
+            icon: "flaticon-web-development", // you can customize icons per category
+            label: `${cat.categoryName} (${cat.totalJobs})`,
+          }));
+
+          setCategories1(formattedCategories);
+        }
+      } catch (error) {
+        console.log("Error fetching categories:", error);
+      }
+    };
+
+    getTopJobCategories();
+  }, []);
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getTopRatedCandidates`);
+        if (res.data.success && res.data.data) {
+          setCandidates(res.data.data.slice(0, 6)); // Only show first 6
+        }
+      } catch (error) {
+        console.error("Failed to fetch candidates:", error);
+      }
+    };
+
+    fetchCandidates();
+  }, []);
   const getCategories = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getJobCategory`);
@@ -82,7 +135,7 @@ function Home() {
   };
   const getAllJobList = async (limit = 6, page = 1) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
+      const res = await axios.get(`${API_BASE_URL}getHomePageJobs`, {
         params: { limit, page }, // ✅ send limit & page to API
       });
 
@@ -98,10 +151,79 @@ function Home() {
   useEffect(() => {
     getAllJobList(6, 1); // ✅ Fetch only 6 jobs by default on first load
   }, []);
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getHomePage`);
 
+        const data = res.data?.data;
+
+        setHomeData(data);
+
+        // trending keywords
+        if (data?.firstSection?.trendingKeywords) {
+          setTrendingKeywords(data.firstSection.trendingKeywords);
+        }
+
+        // banner images
+        if (data?.firstSection?.firstSectionImages) {
+          setBannerImages(data.firstSection.firstSectionImages);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
   useEffect(() => {
     getCategories();
   }, []);
+  const getBlogList = async (page = 1, limit = pageSize) => {
+    try {
+      const params = {
+        page,
+        limit,
+      };
+
+      const res = await axios.get(`${API_BASE_URL}getActiveBlogs`, {
+        params,
+      });
+      if (res.data.success) {
+        setBlogData(res.data.data);
+        setPageSize(res.data.limit);
+        setPageNumber(res.data.page);
+        setTotalPages(res.data.totalPages);
+      }
+    } catch (error) {
+      console.error("Error Fetching Blog Data:-", error);
+    }
+  };
+
+  useEffect(() => {
+    getBlogList(pageNumber);
+  }, [pageNumber]);
+  const cleanImageUrl = (url) => {
+    if (!url) return "";
+
+    // ✅ Default local dashboard image
+    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
+      return url;
+    }
+
+    // ✅ Fix wrong stored URL like "/uploads/https://..."
+    if (url.includes("uploads/https")) {
+      return url.substring(url.indexOf("https"));
+    }
+
+    // ✅ External image (Google, GitHub, etc.)
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    // ✅ Local uploaded image
+    return `${API_IMAGE_URL}${url}`;
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -142,12 +264,6 @@ function Home() {
     });
   };
 
-  const stats = [
-    { icon: "flaticon-bag", count: 15000, label: "Jobs Added", showPlus: true },
-    { icon: "flaticon-office-building", count: 123842, label: "Companies" },
-    { icon: "flaticon-cv", count: 20554, label: "Resume" },
-    { icon: "flaticon-member", count: 18435, label: "Members" },
-  ];
   useEffect(() => {
     if (containerRef.current) {
       mixitup(containerRef.current, {
@@ -310,6 +426,19 @@ function Home() {
       { breakpoint: 480, settings: { slidesToShow: 1 } },
     ],
   };
+
+  const titleParts =
+    homeData?.firstSection?.mainTitle?.split("Make A Better") || [];
+  const title = homeData?.secondSection?.mainTitle || "";
+  const words = title.split(" ");
+  const thirdTitle = homeData?.thirdSection?.mainTitle || "";
+  const thirdWords = thirdTitle.split(" ");
+  const fourthTitle = homeData?.fourthSection?.mainTitle || "";
+  const fourthWords = fourthTitle.trim().split(" ");
+  const fifthTitle = homeData?.fifthSection?.mainTitle || "";
+  const fifthWords = fifthTitle.trim().split(" ");
+
+  const fifthImages = homeData?.fifthSection?.images || [];
   return (
     <>
       <div className="banner-area bg-f0f4fc">
@@ -318,17 +447,17 @@ function Home() {
             <div className="col-lg-7">
               <div className="banner-content">
                 <div className="banner-title">
-                  <span className="homespan">{t("header.lookingForJob")}</span>
+                  <span className="homespan">
+                    {homeData?.firstSection?.shortTitle}
+                  </span>
                   <h1>
-                    {t("header.findYourCareerTo")}{" "}
-                    <span className="oragneColor">
-                      {t("header.makeABetter")}
-                    </span>{" "}
-                    {t("header.life")}
+                    {titleParts[0]}
+                    <span className="oragneColor">Make A Better</span>
+                    {titleParts[1]}
                   </h1>
                 </div>
                 <div className="serech-over">
-                  <span>{t("header.searchJobsToday")}</span>
+                  <span>{homeData?.firstSection?.shortParagraph}</span>
                 </div>
                 <div className="banner-search-form">
                   <form onSubmit={handleSubmit}>
@@ -405,24 +534,11 @@ function Home() {
                     <li>
                       <span>{t("header.trendingKeywords")}:</span>
                     </li>
-                    <li>
-                      <a href="/">Design</a>
-                    </li>
-                    <li>
-                      <a href="/">Development</a>
-                    </li>
-                    <li>
-                      <a href="/">Marketing</a>
-                    </li>
-                    <li>
-                      <a href="/">Affiliate</a>
-                    </li>
-                    <li>
-                      <a href="/">Senior</a>
-                    </li>
-                    <li>
-                      <a href="/">Engineer</a>
-                    </li>
+                    {trendingKeywords.map((keyword, index) => (
+                      <li key={index}>
+                        <a href="/">{keyword}</a>
+                      </li>
+                    ))}
                   </ul>
                 </div>
                 <div className="shape-1">
@@ -436,62 +552,25 @@ function Home() {
             <div className="col-lg-5">
               <div className="banner-image-content">
                 <div className="row aligns-item-center">
-                  <div className="col-lg-6 col-sm-6 col-6">
-                    <div className="banner-img-1">
-                      <img
-                        src="/jobPortal/assets/images/banner/banner-img-1.jpg"
-                        alt="Image"
-                      />
-                      <div className="shape-2">
+                  {bannerImages.map((img, index) => (
+                    <div className="col-lg-6 col-sm-6 col-6" key={index}>
+                      <div className="banner-img-1">
                         <img
-                          src="/jobPortal/assets/images/banner/shape-2.png"
-                          alt="Image"
+                          crossorigin="anonymous"
+                          src={`${API_IMAGE_URL}${img}`}
+                          alt="Banner"
                         />
+
+                        <div className="shape-2">
+                          <img
+                            crossorigin="anonymous"
+                            src="/jobPortal/assets/images/banner/shape-2.png"
+                            alt="Shape"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-6">
-                    <div className="banner-img-1">
-                      <img
-                        src="/jobPortal/assets/images/banner/banner-img-4.jpg"
-                        alt="Image"
-                      />
-                      <div className="shape-2">
-                        <img
-                          src="/jobPortal/assets/images/banner/shape-2.png"
-                          alt="Image"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-6">
-                    <div className="banner-img-1">
-                      <img
-                        src="/jobPortal/assets/images/banner/banner-img-2.jpg"
-                        alt="Image"
-                      />
-                      <div className="shape-2">
-                        <img
-                          src="/jobPortal/assets/images/banner/shape-2.png"
-                          alt="Image"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-sm-6 col-6">
-                    <div className="banner-img-1">
-                      <img
-                        src="/jobPortal/assets/images/banner/banner-img-3.jpg"
-                        alt="Image"
-                      />
-                      <div className="shape-2">
-                        <img
-                          src="/jobPortal/assets/images/banner/shape-2.png"
-                          alt="Image"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
                 <div
                   className="assisted-candidate d-none"
@@ -531,8 +610,10 @@ function Home() {
         <div className="container">
           <div className="section-title text-center">
             <h2>
-              {t("header.companiesOf")}{" "}
-              <label className="oragneColor">{t("header.theWeek")}</label>
+              {words.slice(0, words.length - 2).join(" ")}{" "}
+              <label className="oragneColor">
+                {words.slice(words.length - 2).join(" ")}
+              </label>
             </h2>
           </div>
 
@@ -542,7 +623,15 @@ function Home() {
                 const company = item?.companyId;
                 return (
                   <div className="item" key={company?._id}>
-                    <div className="companies-week-box-info">
+                    {item?.isHighlighted && (
+                      <span
+                        className="highlight-badge"
+                        title="This is a highlight-badge Company listing"
+                      >
+                        <i className="fa-solid fa-star"></i>
+                      </span>
+                    )}
+                    <div className={`companies-week-box-info`}>
                       {/* ✅ Company Logo */}
                       <div className="companies-week-logo">
                         <img
@@ -615,16 +704,16 @@ function Home() {
         <div className="container">
           <div className="section-title">
             <h2>
-              {t("header.mostDemandedJobs")}{" "}
-              <label className="oragneColor">
-                {t("header.categories")}
-              </label>{" "}
+              {thirdWords.slice(0, -1).join(" ")}{" "}
+              <label className="oragneColor">{thirdWords.slice(-1)}</label>
             </h2>
+
+            {/* <p>{homeData?.thirdSection?.shortParagraph}</p> */}
           </div>
 
           <div className="category-slider-wrapper">
             <Slider {...settings3}>
-              {categories1?.map((cat, i) => (
+              {categories1.map((cat, i) => (
                 <div key={i} className="category-slide">
                   <div className="single-category-card">
                     <div className="icon">
@@ -644,12 +733,11 @@ function Home() {
         <div className="container">
           <div className="section-title">
             <h2>
-              {t("header.findYourBest")}{" "}
-              <label className="oragneColor">{t("header.jobs")} </label>
+              {fourthWords.slice(0, -1).join(" ")}{" "}
+              <label className="oragneColor">{fourthWords.slice(-1)}</label>
             </h2>
-            <p>
-              155 {t("header.jobsLive")} - 30 {t("header.addedToday")}
-            </p>
+
+            <p>{homeData?.fourthSection?.shortParagraph}</p>
           </div>
           <div className="shoting-btn"></div>
           <div
@@ -664,6 +752,14 @@ function Home() {
                   className="col-lg-4 col-md-6 mix design service writing"
                 >
                   <div className="single-job-card">
+                    {job?.badge && (
+                      <span
+                        className="featured-badge"
+                        title="This is a featured job listing"
+                      >
+                        <i className="fa-solid fa-star"></i> Featured
+                      </span>
+                    )}
                     <div className="job-image">
                       <Link
                         to={`/job-details/${job._id}`}
@@ -706,7 +802,6 @@ function Home() {
                           </li>
                         </ul>
                       </div>
-
                       <div className="bottom-content">
                         <ul className="d-flex justify-content-between">
                           <li>
@@ -715,9 +810,9 @@ function Home() {
                                 <img
                                   crossorigin="anonymous"
                                   src={
-                                    job?.logo
-                                      ? `${API_IMAGE_URL}${job.logo}`
-                                      : "/jobPortal/assets/images/icon/icon-7.png"
+                                    job?.companyLogo
+                                      ? `${API_IMAGE_URL}${job.companyLogo}`
+                                      : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                                   }
                                   alt="Company Logo"
                                 />
@@ -755,7 +850,7 @@ function Home() {
         <div className="container">
           <div className="counter-overly">
             <div className="row">
-              {stats.map((item, index) => (
+              {stats?.map((item, index) => (
                 <div key={index} className="col-lg-3 col-sm-6">
                   <div className="single-counter-item">
                     <div className="icon">
@@ -785,50 +880,36 @@ function Home() {
             <div className="col-lg-6">
               <div className="cv-img-area pr-15">
                 <div className="row">
-                  <div
-                    className="col-lg-6 col-md-6"
-                    data-aos=""
-                    data-aos-duration={1200}
-                    data-aos-delay={600}
-                  >
-                    <div className="cv-img-1">
-                      <img
-                        src="/jobPortal/assets/images/cv/cv-img-1.png"
-                        alt="Image"
-                      />
+                  {fifthImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="col-lg-6 col-md-6"
+                      data-aos-duration={1200}
+                      data-aos-delay={600 + index * 200}
+                    >
+                      <div className={`cv-img-${index + 1}`}>
+                        <img
+                          crossorigin="anonymous"
+                          src={`${API_IMAGE_URL}${img}`}
+                          alt="CV"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div
-                    className="col-lg-6 col-md-6"
-                    data-aos=""
-                    data-aos-duration={1200}
-                    data-aos-delay={800}
-                  >
-                    <div className="cv-img-2">
-                      <img
-                        src="/jobPortal/assets/images/cv/cv-img-2.png"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
             <div className="col-lg-6">
               <div className="cv-content pl-15">
                 <h2>
-                  {t("header.putYourCVFront")}{" "}
-                  <label class="oragneColor">
-                    {" "}
-                    {t("header.employersToSee")}
+                  {fifthWords.slice(0, -3).join(" ")}{" "}
+                  <label className="oragneColor">
+                    {fifthWords.slice(-3).join(" ")}
                   </label>
                 </h2>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor labore et dolore magna aliqua. Quis ipsum
-                  suspendisse ultrices gravida risus viverra maecenas accumsan
-                  lacus vel facilisis dolore magna.
-                </p>
+
+                <p>{homeData?.fifthSection?.mainTitleDescription}</p>
+
                 <div className="cv-btn">
                   <a
                     href="#!"
@@ -858,7 +939,9 @@ function Home() {
         <div className="container">
           <div className="partner-title">
             <h3>
-              <label class="oragneColor"> {t("header.company")}</label>
+              <label className="oragneColor">
+                {homeData?.sixthSection?.mainTitle}
+              </label>
             </h3>
           </div>
           <Slider {...settings4} className="partner-slider">
@@ -884,8 +967,15 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                    {t("header.highestRated")}{" "}
-                    <label class="oragneColor">{t("header.freelancers")}</label>
+                    {homeData?.seventhSection?.mainTitle
+                      ?.split(" ")
+                      .slice(0, -1)
+                      .join(" ")}{" "}
+                    <label className="oragneColor">
+                      {homeData?.seventhSection?.mainTitle
+                        ?.split(" ")
+                        .slice(-1)}
+                    </label>
                   </h2>
                 </div>
               </div>
@@ -905,336 +995,70 @@ function Home() {
             </div>
           </div>
           <div className="row">
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={200}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-1.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Jequline Fenda</h3>
-
-                      <span>IT Developer</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $35 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            USA
-                          </li>
-                        </ul>
+            {candidates.map((candidate, index) => (
+              <div
+                className="col-lg-4 col-sm-6"
+                key={candidate.userId}
+                data-aos=""
+                data-aos-duration={1200}
+                data-aos-delay={200 + index * 200}
+              >
+                <div className="single-freelancer-card">
+                  <div className="row align-items-center">
+                    <div className="col-lg-4">
+                      <div className="freelancer-img">
+                        <img
+                          style={{
+                            width: "110px",
+                            height: "125px",
+                            objectFit: "cover",
+                          }}
+                          crossorigin="anonymous"
+                          src={
+                            cleanImageUrl(candidate.userImage) ||
+                            "/jobPortal/assets/images/freelancers/default.jpg"
+                          }
+                          alt={candidate.name}
+                        />
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={400}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-2.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Thomas Abedin</h3>
-
-                      <span>Software Engineer</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $43 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            Brazil
-                          </li>
-                        </ul>
+                    <div className="col-lg-8">
+                      <div className="freelancer-content">
+                        <h3>{candidate.name}</h3>
+                        <span>{candidate.jobTitle}</span>
+                        <div className="ratings">
+                          {Array(5)
+                            .fill(0)
+                            .map((_, i) => (
+                              <i
+                                key={i}
+                                className={`fa-solid fa-star ${i < candidate.avgRating ? "text-warning" : ""}`}
+                              />
+                            ))}
+                        </div>
+                        <div className="info">
+                          <ul>
+                            <li>
+                              <i className="flaticon-coin" />
+                              {candidate.salary?.amount}{" "}
+                              {candidate.salary?.currency} /{" "}
+                              {candidate.salary?.type}
+                            </li>
+                            <li>
+                              <i className="flaticon-location" />
+                              {candidate.location}
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={600}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-3.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Jean Burke</h3>
-
-                      <span>Graphics Designer</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $52 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            Canada
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={800}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-4.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Robin William</h3>
-
-                      <span>Manager Support</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $67 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            Japan
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={1000}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-5.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Tom Henry</h3>
-
-                      <span>Director At School</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $55 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            Australia
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              className="col-lg-4 col-sm-6"
-              data-aos=""
-              data-aos-duration={1200}
-              data-aos-delay={1200}
-            >
-              <div className="single-freelancer-card">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="freelancer-img">
-                      <img
-                        src="/jobPortal/assets/images/freelancers/freelancers-img-6.jpg"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="freelancer-content">
-                      <h3>Jubra Ward</h3>
-
-                      <span>CEO Founder</span>
-                      <div className="ratings">
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                        <i className="fa-solid fa-star" />
-                      </div>
-                      <div className="info">
-                        <ul>
-                          <li>
-                            <i className="flaticon-coin" />
-                            $82 Per Hour
-                          </li>
-                          <li>
-                            <i className="flaticon-location" />
-                            Italy
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
-      {/* <div className="download-area bg-f0f5f7 ptb-100">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <div className="download-image">
-                <img
-                  src="/jobPortal/assets/images/download/download-img-1.png"
-                  alt="Image"
-                />
-                <div className="shape">
-                  <img
-                    src="/jobPortal/assets/images/download/shape-1.png"
-                    alt="Image"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-6">
-              <div className="download-content">
-                <h2>
-                  Get More In Our Application Sit Back And Enjoy The{" "}
-                  <label class="oragneColor">Mobile App</label>
-                </h2>
-                <p>
-                  In our restaurant with people who are important to you,
-                  conversations that bring you to closer to each other and those
-                  who enjoy our dishes. Quisque pretium dolor turpis, quis
-                  blandit turpis semper ut. Nam malesuada eros nec luctus
-                  laoreet. Fusce sodales consequat velit eget dictum. Integer
-                  ornare magna.
-                </p>
-                <h3>Available At Mobile App</h3>
-                <div className="download-btn">
-                  <ul>
-                    <li>
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/download/google-play.png"
-                          alt="Image"
-                        />
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#">
-                        <img
-                          src="/jobPortal/assets/images/download/app-store.png"
-                          alt="Image"
-                        />
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
 
       {/* Read Our Article To Get Tricks */}
       <div className="blog-area pt-100 pb-70">
@@ -1244,11 +1068,16 @@ function Home() {
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                    {t("header.readArticleTo")}{" "}
-                    <label class="oragneColor">
-                      {" "}
-                      {t("header.getTricks")}
-                    </label>{" "}
+                    {homeData?.eighthSection?.mainTitle
+                      ?.split(" ")
+                      .slice(0, -2)
+                      .join(" ")}{" "}
+                    <label className="oragneColor">
+                      {homeData?.eighthSection?.mainTitle
+                        ?.split(" ")
+                        .slice(-2)
+                        .join(" ")}
+                    </label>
                   </h2>
                 </div>
               </div>
@@ -1270,135 +1099,62 @@ function Home() {
           <div className="row">
             <div className="col-lg-12">
               <div className="row">
-                <div
-                  className="col-lg-4 col-md-6"
-                  data-aos=""
-                  data-aos-duration={1200}
-                  data-aos-delay={200}
-                >
-                  <div className="single-blog-card">
-                    <div className="blog-img">
-                      <Link to="#">
-                        <img
-                          src="/jobPortal/assets/images/blog/blog-img-1.jpg"
-                          alt="Image"
-                        />
-                      </Link>
-                    </div>
-                    <div className="blog-content">
-                      <div className="info-list">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-user" />
-                            <a href="#">Andrew Lawson</a>
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-calendar-days" /> Feb 12,
-                            2024
-                          </li>
-                        </ul>
-                      </div>
-                      <h2>
-                        <Link to="#">
-                          The Internet Is A Job Seeker Most Crucial Success
+                {blogData?.slice(0, 3).map((blog) => (
+                  <div
+                    key={blog._id}
+                    className="col-lg-4 col-md-6 aos-init aos-animate"
+                    data-aos="fade-up"
+                    data-aos-duration={1200}
+                    data-aos-delay={200}
+                  >
+                    <div className="single-blog-card">
+                      <div className="blog-img">
+                        <Link to={`/blogDetails/${blog._id}`}>
+                          <img
+                            crossorigin="anonymous"
+                            src={cleanImageUrl(blog.bannerImage)}
+                            alt="Image"
+                          />
                         </Link>
-                      </h2>
-                      <p>
-                        Lorem ipsum dolor sit amet, constetur adipiscing elit,
-                        sed do eiusmod tempor incididunt.
-                      </p>
-                      <Link to="#" className="read-more">
-                        Read More
-                      </Link>
+                      </div>
+                      <div className="blog-content">
+                        <div className="info-list">
+                          <ul>
+                            <li>
+                              <i className="fa-solid fa-user" />
+                              <Link to="#">{blog.authorName}</Link>
+                            </li>
+                            <li>
+                              <i className="fa-solid fa-calendar-days" />{" "}
+                              {new Date(blog.publishDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
+                            </li>
+                          </ul>
+                        </div>
+                        <h2>
+                          <Link to={`/blogDetails/${blog._id}`}>
+                            {blog.title}
+                          </Link>
+                        </h2>
+                        <p>{blog.content.substring(0, 150) + "..."}</p>
+                        <div className="blog-btn-info-area">
+                          <Link
+                            to={`/blogDetails/${blog._id}`}
+                            className="read-more default-btn btn"
+                          >
+                            Read More
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div
-                  className="col-lg-4 col-md-6"
-                  data-aos=""
-                  data-aos-duration={1200}
-                  data-aos-delay={400}
-                >
-                  <div className="single-blog-card">
-                    <div className="blog-img">
-                      <Link to="#">
-                        <img
-                          src="/jobPortal/assets/images/blog/blog-img-2.jpg"
-                          alt="Image"
-                        />
-                      </Link>
-                    </div>
-                    <div className="blog-content">
-                      <div className="info-list">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-user" />
-                            <a href="#">Andrew Lawson</a>
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-calendar-days" /> Feb 12,
-                            2024
-                          </li>
-                        </ul>
-                      </div>
-                      <h2>
-                        <Link to="#">
-                          Today From Connecting With Potential Employers
-                        </Link>
-                      </h2>
-                      <p>
-                        Lorem ipsum dolor sit amet, constetur adipiscing elit,
-                        sed do eiusmod tempor incididunt.
-                      </p>
-                      <Link to="#" className="read-more">
-                        Read More
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="col-lg-4 col-md-6"
-                  data-aos=""
-                  data-aos-duration={1200}
-                  data-aos-delay={400}
-                >
-                  <div className="single-blog-card">
-                    <div className="blog-img">
-                      <Link to="#">
-                        <img
-                          src="/jobPortal/assets/images/blog/blog-img-6.jpg"
-                          alt="Image"
-                        />
-                      </Link>
-                    </div>
-                    <div className="blog-content">
-                      <div className="info-list">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-user" />
-                            <a href="#">Andrew Lawson</a>
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-calendar-days" /> Feb 12,
-                            2024
-                          </li>
-                        </ul>
-                      </div>
-                      <h2>
-                        <Link to="#">
-                          Today From Connecting With Potential Employers
-                        </Link>
-                      </h2>
-                      <p>
-                        Lorem ipsum dolor sit amet, constetur adipiscing elit,
-                        sed do eiusmod tempor incididunt.
-                      </p>
-                      <Link to="#" className="read-more">
-                        Read More
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1410,9 +1166,15 @@ function Home() {
             <div className="col-lg-8 col-md-9">
               <div className="contact-left-content">
                 <h2>
-                  {t("header.findNextGreat")}{" "}
-                  <label class="oragneColor">
-                    {t("header.jobOpportunity")}
+                  {homeData?.ninthSection?.mainTitle
+                    ?.split(" ")
+                    .slice(0, -2)
+                    .join(" ")}{" "}
+                  <label className="oragneColor">
+                    {homeData?.ninthSection?.mainTitle
+                      ?.split(" ")
+                      .slice(-2)
+                      .join(" ")}
                   </label>
                 </h2>
               </div>

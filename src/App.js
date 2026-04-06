@@ -74,9 +74,12 @@ import TestResult from "./Pages/TestResult";
 import ManagesAssement from "./Conponets/ManagesAssement";
 import CreateAssement from "./Conponets/CreateAssement";
 import AssessmentDetails from "./Pages/AssessmentDetails";
-
+import PaymentSuccess from "../src/Pages/PaymentSuccess";
+import PaymentFailed from "../src/Pages/PaymentFailed";
+import OfferContact from "./Conponets/OfferContact";
+import InvoiceView from "./Pages/InvoiceView";
 // "build 04-09-2025"
-console.log("Date:-18-02-2026,time:-14:0");
+console.log("Date:20-02-2026,time:-18:05");
 function LayoutWrapper() {
   const location = useLocation();
   const noLayoutRoutes = ["/start-test", "/apply-test", "/test-result"];
@@ -99,6 +102,7 @@ function LayoutWrapper() {
     "/all-applicants-list",
     "/create-recruiters",
     "/create-assessment",
+    "/request-plan",
     "/manage-recruiter",
     "/manage-assessment",
     "/messaging-system",
@@ -110,6 +114,7 @@ function LayoutWrapper() {
     "/resume-builder",
     // "/job-details",
     "/candidate-dashboard",
+    "/view-invoice",
     "/chat-messaging-system",
     "/applied-jobs-list",
     "/activity-timeline",
@@ -146,9 +151,8 @@ function LayoutWrapper() {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/privacy-policy" element={<PrivecyPolicy />} />
         <Route path="/terms-condition" element={<TearmCondition />} />
-
         <Route path="/companies" element={<Employers />} />
-        <Route path="/faq" element={<Faq />} />
+        <Route path="/faq/:type" element={<Faq />} />{" "}
         <Route
           path="/applied-candidate-list"
           element={<EmployerCandinateList />}
@@ -156,9 +160,9 @@ function LayoutWrapper() {
         <Route path="/applicants-details" element={<ApplicantsDetails />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/blog" element={<Blog />} />
-
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failed" element={<PaymentFailed />} />
         <Route path="/blogDetails/:id" element={<BlogDetails />} />
-
         <Route path="/employer-home" element={<EmployerHomePage />} />
         <Route
           path="/employer-basic-info"
@@ -172,7 +176,6 @@ function LayoutWrapper() {
         <Route path="/company-details" element={<CompanyDetailsInfo />} />
         <Route path="/add-plan" element={<AddPlan />} />
         <Route path="/add-on-pack" element={<AddOnPack />} />
-
         {/* Protected Routes */}
         <Route
           path="/job-details-form/:id"
@@ -203,6 +206,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute>
               <ResumeBuilder />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/employer-dashboard"
+          element={
+            <PrivateRoute>
+              <EmployerDashboard />
             </PrivateRoute>
           }
         />
@@ -262,10 +273,8 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-
         <Route path="/companies-details" element={<CompanyDetailsPage />} />
         <Route path="/job-details/:id" element={<JobDetails />} />
-
         <Route
           path="/job-details-list"
           element={
@@ -306,11 +315,19 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/employer-dashboard"
+        {/* <Route
+          path="/employer-wallet"
           element={
             <PrivateRoute>
-              <EmployerDashboard />
+              <EmployerWallet />
+            </PrivateRoute>
+          }
+        /> */}
+        <Route
+          path="/view-invoice/:id"
+          element={
+            <PrivateRoute>
+              <InvoiceView />
             </PrivateRoute>
           }
         />
@@ -370,7 +387,14 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/request-plan"
+          element={
+            <PrivateRoute>
+              <OfferContact />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/manage-recruiter"
           element={
@@ -411,7 +435,6 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-
         <Route
           path="/change-password"
           element={
@@ -452,7 +475,6 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         ></Route>
-
         <Route
           path="/test-result"
           element={

@@ -2332,6 +2332,15 @@ function JobSearch() {
                                 {" "}
                                 <div className="available-job-posts-box">
                                   <div className="available-job-company-name-save-job">
+                                    {job?.isFeatured && (
+                                      <span
+                                        className="featured-badge"
+                                        title="This is a featured job listing"
+                                      >
+                                        <i className="fa-solid fa-star"></i>{" "}
+                                        Featured
+                                      </span>
+                                    )}
                                     <div className="available-job-company-name">
                                       <a href="#">
                                         <h4>

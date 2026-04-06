@@ -195,9 +195,41 @@ function AppliedJobList() {
             {loading ? (
               <JobListLoader />
             ) : jobs.length === 0 ? (
-              <p className="text-center mt-3">No jobs found.</p>
+              <div className="empty-state-wrapper text-center py-5">
+                <div className="empty-icon mb-3">
+                  <i
+                    className="fa-solid fa-briefcase"
+                    style={{
+                      fontSize: "50px",
+                      color: "#c5c5c5",
+                    }}
+                  ></i>
+                </div>
+
+                <h5 className="fw-semibold mb-2">No Jobs Found</h5>
+
+                <p
+                  className="text-muted mb-3"
+                  style={{ maxWidth: "400px", margin: "0 auto" }}
+                >
+                  No job postings match your current search. Try adjusting your
+                  search keywords or reset filters to see results.
+                </p>
+
+                <button
+                  className="btn btn-outline-primary btn-sm px-4"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setDebouncedSearch("");
+                    setCurrentPage(1);
+                    fetchJobs("", 1);
+                  }}
+                >
+                  Reset Search
+                </button>
+              </div>
             ) : (
-              <div className="table-responsive ">
+              <div className="table-responsive-table ">
                 <table className="table align-middle table-hover">
                   <thead>
                     <tr className="custom-header-row">
@@ -246,9 +278,9 @@ function AppliedJobList() {
                         </td>
 
                         {/* Status */}
-                        <td>
+                        <td className="py-3">
                           <span
-                            className="badge px-3 py-2 text-capitalize"
+                            className="badge text-capitalize"
                             style={{
                               backgroundColor:
                                 job?.status?.toLowerCase() === "published"
@@ -285,15 +317,18 @@ function AppliedJobList() {
                         </td>
 
                         {/* Views */}
-                        <td>{job?.uniqueViewsCount || 0}</td>
+                        <td className="fw-bold text-dark">
+                          {job?.uniqueViewsCount || 0}
+                        </td>
 
                         {/* Applicants */}
-                        <td>
+                        <td className="py-3">
                           {job?.applicantCount > 0 ? (
                             <Link
                               to="/all-applicants-list"
                               state={{ jobId: job._id }}
-                              style={{ color: "#0d6efd", fontWeight: "500" }}
+                              className="fw-bold text-primary"
+                              // style={{ color: "#0d6efd", fontWeight: "500" }}
                             >
                               {job.applicantCount} Applicants
                             </Link>
@@ -311,7 +346,7 @@ function AppliedJobList() {
                         </td>
 
                         {/* Location */}
-                        <td>
+                        {/* <td>
                           <div className="d-flex align-items-center">
                             <i className="fa-solid fa-location-dot text-danger me-2"></i>
                             <small className="text-muted">
@@ -320,8 +355,17 @@ function AppliedJobList() {
                                 : job?.company_city || "N/A"}
                             </small>
                           </div>
+                        </td> */}
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <i className="fa-solid fa-location-dot text-danger me-2"></i>
+                            <small className="text-muted">
+                              {Array.isArray(job?.city) && job.city.length > 0
+                                ? job.city.join(", ")
+                                : job?.company?.city?.trim() || "N/A"}
+                            </small>
+                          </div>
                         </td>
-
                         {/* Action */}
                         <td className="pe-4 py-3 text-end">
                           <div className="dropdown">
@@ -338,6 +382,10 @@ function AppliedJobList() {
                                 <Link
                                   className="dropdown-item"
                                   to={`/job-details/${job._id}`}
+                                  state={{
+                                    jobData: job,
+                                    from: "/applied-jobs-list",
+                                  }}
                                 >
                                   <i className="fa-regular fa-eye me-2"></i>
                                   View Details

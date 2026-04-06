@@ -39,21 +39,32 @@ function JobDetails() {
   const [loading, setLoading] = useState(true);
   console.log(id);
   const from = location.state?.from;
-  console.log(location);
-  useEffect(() => {
-    if (location.state?.from) {
-      localStorage.setItem("jobFrom", location.state.from);
-    }
-  }, [location.state]);
+  console.log(from);
+  // useEffect(() => {
+  //   if (location.state?.from) {
+  //     localStorage.setItem("jobFrom", location.state.from);
+  //   }
+  // }, [location.state]);
 
-  const breadcrumbLabelMap = {
-    "/manage-job-application": "Manage Job Application",
-    "/job-search": "Job Search",
-    "/jobs": "Jobs",
-    "/candidate-dashboard": "",
-  };
+  const breadcrumbLabel = from?.includes("/manage-job-application")
+    ? "Manage Job Application"
+    : from?.includes("/job-search")
+      ? "Job Search"
+      : from?.includes("/applied-jobs-list")
+        ? "Application Management"
+        : from?.includes("/jobs")
+          ? "Jobs"
+          : "Candidate Dashboard";
 
-  const breadcrumbLabel = breadcrumbLabelMap[from];
+  // {
+  //   "/manage-job-application": "Manage Job Application",
+  //   "/job-search": "Job Search",
+  //   "/jobs": "Jobs",
+  //   "/applied-jobs-list": " Application Management",
+  //   "/candidate-dashboard": "",
+  // };
+
+  // const breadcrumbLabel = breadcrumbLabelMap[from];
 
   const fetchJobDetails = async () => {
     try {
@@ -606,11 +617,59 @@ function JobDetails() {
       toast.error("Unable to start assessment. Please try again later");
     }
   };
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
+    }
+  };
   const hasPassedAssessment = assessmentDetails?.status === "passed";
 
-  const isRetryBlocked =
+  // const canRetryLater =
+  //   assessmentDetails?.validation_required === true &&
+  //   assessmentDetails?.status === "failed" &&
+  //   assessmentDetails?.retry_period_days > 0;
+  // const canRetryLater =
+  //   assessmentDetails?.validation_required === true &&
+  //   assessmentDetails?.status === "failed" &&
+  //   assessmentDetails?.daysLeft > 0;
+
+  // const canRetryNow =
+  //   assessmentDetails?.validation_required === true &&
+  //   assessmentDetails?.status === "failed" &&
+  //   assessmentDetails?.retry_period_days === 0;
+
+  // const cannotRetry =
+  //   assessmentDetails?.validation_required === false &&
+  //   assessmentDetails?.status === "failed";
+
+  // const isRetryBlocked = canRetryLater || cannotRetry;
+  const canRetryLater =
+    assessmentDetails?.validation_required === true &&
     assessmentDetails?.status === "failed" &&
-    assessmentDetails?.retry_period_days > 0;
+    assessmentDetails?.daysLeft > 0;
+
+  const canRetryNow =
+    assessmentDetails?.validation_required === true &&
+    assessmentDetails?.status === "failed" &&
+    assessmentDetails?.daysLeft === 0;
+
+  const cannotRetry =
+    assessmentDetails?.validation_required === false &&
+    assessmentDetails?.status === "failed";
+
+  const isRetryBlocked = canRetryLater || cannotRetry;
 
   return (
     <>
@@ -633,15 +692,10 @@ function JobDetails() {
                         <i className="fa-solid fa-angle-right"></i>
                       </li>
                     )}
-                    {breadcrumbLabel ? (
-                      <li>
-                        <Link to={from}>{breadcrumbLabel}</Link>
-                        <i className="fa-solid fa-angle-right"></i>
-                      </li>
-                    ) : (
-                      ""
-                    )}
-
+                    <li>
+                      <Link to={from}>{breadcrumbLabel}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
                     <li>
                       {loading
                         ? "Loading..."
@@ -897,10 +951,18 @@ function JobDetails() {
                             </a>
 
                             {/* ⏳ Retry message */}
-                            {isRetryBlocked && (
+                            {canRetryLater && (
                               <p className="reapply-info-tag">
-                                You can retry in{" "}
-                                {assessmentDetails?.retry_period_days} days
+                                You can retry in {assessmentDetails.daysLeft}{" "}
+                                day
+                                {assessmentDetails.daysLeft > 1 ? "s" : ""}
+                              </p>
+                            )}
+
+                            {cannotRetry && (
+                              <p className="reapply-info-tag">
+                                This assessment cannot be retaken. Please
+                                contact the employer for further assistance.
                               </p>
                             )}
                           </>
@@ -918,7 +980,7 @@ function JobDetails() {
                               }
 
                               setJobId(job?.jobDetails?._id);
-
+                              handleJobClick(job?.jobDetails?._id);
                               const modalEl =
                                 document.getElementById("exampleModal");
                               if (modalEl) {
@@ -1534,7 +1596,7 @@ function JobDetails() {
                             <>
                               You did not pass the test on your previous
                               attempt.
-                              {assessmentDetails?.retry_period_days > 0 && (
+                              {/* {assessmentDetails?.retry_period_days > 0 && (
                                 <>
                                   <br />
                                   <strong>
@@ -1542,6 +1604,38 @@ function JobDetails() {
                                     {assessmentDetails?.retry_period_days} days.
                                   </strong>
                                 </>
+                              )}
+                              {assessmentDetails?.retry_period_days === 0 && (
+                                <>
+                                  <br />
+                                  <strong>
+                                    This assessment cannot be retaken. Please
+                                    contact the employer for further assistance.
+                                  </strong>
+                                </>
+                              )} */}
+                              {canRetryNow && (
+                                <strong>
+                                  <br />
+                                  You can try the assessment again.
+                                </strong>
+                              )}
+                              {canRetryLater && (
+                                <strong>
+                                  <br />
+                                  You can retry in {
+                                    assessmentDetails.daysLeft
+                                  }{" "}
+                                  day
+                                  {assessmentDetails.daysLeft > 1 ? "s" : ""}
+                                </strong>
+                              )}
+                              {cannotRetry && (
+                                <strong>
+                                  <br />
+                                  This assessment cannot be retaken. Please
+                                  contact the employer for further assistance.
+                                </strong>
                               )}
                             </>
                           )}
@@ -1829,10 +1923,18 @@ function JobDetails() {
                             </a>
 
                             {/* ⏳ Retry message */}
-                            {isRetryBlocked && (
+                            {canRetryLater && (
                               <p className="reapply-info-tag">
-                                You can retry in{" "}
-                                {assessmentDetails?.retry_period_days} days
+                                You can retry in {assessmentDetails.daysLeft}{" "}
+                                day
+                                {assessmentDetails.daysLeft > 1 ? "s" : ""}
+                              </p>
+                            )}
+
+                            {cannotRetry && (
+                              <p className="reapply-info-tag">
+                                This assessment cannot be retaken. Please
+                                contact the employer for further assistance.
                               </p>
                             )}
                           </>
@@ -1850,7 +1952,7 @@ function JobDetails() {
                               }
 
                               setJobId(job?.jobDetails?._id);
-
+                              handleJobClick(job?.jobDetails?._id);
                               const modalEl =
                                 document.getElementById("exampleModal");
                               if (modalEl) {

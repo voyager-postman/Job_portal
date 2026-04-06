@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
   const cityDropdownRef = useRef(null);
+  const [perPage, setPerPage] = useState(20);
   const [hoveredCandidate, setHoveredCandidate] = useState(null);
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -108,6 +109,59 @@ function EmployerShortListCandinate() {
     }
   };
 
+  // const handleDeleteFolder = async (folderId) => {
+  //   const result = await Swal.fire({
+  //     title: "Delete Folder?",
+  //     text: "All bookmarked candidates inside this folder will be removed.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#d33",
+  //     cancelButtonColor: "#6c757d",
+  //     confirmButtonText: "Yes, delete",
+  //   });
+
+  //   if (result.isConfirmed) {
+  //     try {
+  //       setLoading(true);
+
+  //       const res = await axios.delete(
+  //         `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         },
+  //       );
+
+  //       if (res.data.success) {
+  //         Swal.fire({
+  //           icon: "success",
+  //           title: "Deleted!",
+  //           text: "Folder deleted successfully.",
+  //           timer: 1500,
+  //           showConfirmButton: false,
+  //         });
+  //         fetchFolders();
+
+  //         // Refresh folders list
+
+  //         // If active folder was deleted → reset
+  //         if (activeFolder === folderId) {
+  //           setActiveFolder("all");
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Delete folder error:", error);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Failed",
+  //         text: "Unable to delete folder.",
+  //       });
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  // };
   const handleDeleteFolder = async (folderId) => {
     const result = await Swal.fire({
       title: "Delete Folder?",
@@ -117,51 +171,54 @@ function EmployerShortListCandinate() {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
     });
 
-    if (result.isConfirmed) {
-      try {
-        setLoading(true);
+    if (!result.isConfirmed) return;
 
-        const res = await axios.delete(
-          `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+    try {
+      setLoading(true);
+
+      const res = await axios.delete(
+        `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        },
+      );
 
-        if (res.data.success) {
-          Swal.fire({
-            icon: "success",
-            title: "Deleted!",
-            text: "Folder deleted successfully.",
-            timer: 1500,
-            showConfirmButton: false,
-          });
-          fetchFolders();
+      if (res.data.success) {
+        // ✅ Remove folder instantly from UI (No reload flicker)
+        setFolders((prev) => prev.filter((folder) => folder._id !== folderId));
 
-          // Refresh folders list
-
-          // If active folder was deleted → reset
-          if (activeFolder === folderId) {
-            setActiveFolder("all");
-          }
+        // ✅ If deleted folder was active → reset to "all"
+        if (activeFolder === folderId) {
+          setActiveFolder("all");
         }
-      } catch (error) {
-        console.error("Delete folder error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Failed",
-          text: "Unable to delete folder.",
+
+        // ✅ Success popup with OK button
+        await Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Folder deleted successfully.",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK",
         });
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Delete folder error:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: "Unable to delete folder.",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setLoading(false);
     }
   };
-
   const fetchCountry = async () => {
     try {
       setLoading(true);
@@ -252,7 +309,7 @@ function EmployerShortListCandinate() {
           country: customFilters.selectedCountry || undefined,
           city: customFilters.selectedCity || undefined,
           page: page,
-          limit: 20,
+          limit: perPage,
         },
       });
 
@@ -272,7 +329,8 @@ function EmployerShortListCandinate() {
     fetchApplicants(currentPage);
   }, [
     currentPage,
-    activeFolder, // ✅ ADD THIS
+    perPage,
+    activeFolder,
     selectedJob,
     search,
     selectedSkills,
@@ -291,45 +349,97 @@ function EmployerShortListCandinate() {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
       confirmButtonText: "Yes, remove",
+      cancelButtonText: "Cancel",
     });
 
-    if (result.isConfirmed) {
-      try {
-        setLoading(true);
+    if (!result.isConfirmed) return;
 
-        const res = await axios.get(
-          `${API_BASE_URL}removeBookmark/${bookmarkId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+    try {
+      setLoading(true);
+
+      const res = await axios.get(
+        `${API_BASE_URL}removeBookmark/${bookmarkId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        },
+      );
 
-        if (res.data.success) {
-          Swal.fire({
-            icon: "success",
-            title: "Removed!",
-            text: "Candidate removed from bookmark.",
-            timer: 1500,
-            showConfirmButton: false,
-          });
-          fetchApplicants(currentPage);
-          // OR instant remove without API refetch (faster UI)
-          // setApplicants(prev => prev.filter(item => item._id !== bookmarkId));
-        }
-      } catch (error) {
-        console.error("Remove bookmark error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Something went wrong.",
+      if (res.data.success) {
+        fetchApplicants(currentPage);
+        // ✅ Remove instantly from UI (better UX)
+
+        // ✅ Success popup WITH OK button
+        await Swal.fire({
+          icon: "success",
+          title: "Removed!",
+          text: "Candidate removed from bookmark.",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK",
         });
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Remove bookmark error:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Something went wrong.",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setLoading(false);
     }
   };
+  // const handleRemoveBookmark = async (bookmarkId) => {
+  //   const result = await Swal.fire({
+  //     title: "Remove from Bookmark?",
+  //     text: "This candidate will be removed from your bookmarks.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#d33",
+  //     cancelButtonColor: "#6c757d",
+  //     confirmButtonText: "Yes, remove",
+  //   });
+
+  //   if (result.isConfirmed) {
+  //     try {
+  //       setLoading(true);
+
+  //       const res = await axios.get(
+  //         `${API_BASE_URL}removeBookmark/${bookmarkId}`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         },
+  //       );
+
+  //       if (res.data.success) {
+  //         Swal.fire({
+  //           icon: "success",
+  //           title: "Removed!",
+  //           text: "Candidate removed from bookmark.",
+  //           timer: 1500,
+  //           showConfirmButton: false,
+  //         });
+  //         fetchApplicants(currentPage);
+  //         // OR instant remove without API refetch (faster UI)
+  //         // setApplicants(prev => prev.filter(item => item._id !== bookmarkId));
+  //       }
+  //     } catch (error) {
+  //       console.error("Remove bookmark error:", error);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Error",
+  //         text: "Something went wrong.",
+  //       });
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  // };
   const fetchFolders = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -538,7 +648,14 @@ function EmployerShortListCandinate() {
                   </p>
                 </div>
                 <div className="header-right header-controls">
-                  <select className="per-page-select">
+                  <select
+                    className="per-page-select"
+                    value={perPage}
+                    onChange={(e) => {
+                      setPerPage(Number(e.target.value));
+                      setCurrentPage(1); // reset to first page
+                    }}
+                  >
                     <option value={20}>Show: 20</option>
                     <option value={30}>Show: 30</option>
                     <option value={50}>Show: 50</option>
@@ -1023,12 +1140,10 @@ function EmployerShortListCandinate() {
                                 </div>
 
                                 {/* PROFESSIONAL SUMMARY */}
-                                {candidate.aboutRole?.professionalSummary && (
+                                {candidate.professionalSummary && (
                                   <div className="skills-section">
                                     <h2>PROFESSIONAL SUMMARY</h2>
-                                    <p>
-                                      {candidate.aboutRole.professionalSummary}
-                                    </p>
+                                    <p>{candidate.professionalSummary}</p>
                                   </div>
                                 )}
 
@@ -1283,6 +1398,7 @@ function EmployerShortListCandinate() {
                   className="btn btn-outline-danger w-100"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setShowProfile(false);
                     handleRemoveBookmark(selectedCandidate.bookmarkId);
                   }}
                 >

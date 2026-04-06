@@ -643,7 +643,13 @@ function EmployerDashboard() {
                             <tr key={jobData._id || index}>
                               <td>{(page - 1) * limit + index + 1}</td>
                               <td>{jobData.jobTitle}</td>
-                              <td>{jobData.location}</td>
+                              <td>
+                                {jobData.location && jobData.location !== "N/A"
+                                  ? jobData.location
+                                  : jobData.companyDetails?.city ||
+                                    "Not provided"}
+                              </td>
+
                               <td>{jobData.employmentType}</td>
                               <td>{jobData.uniqueViews}</td>
                             </tr>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 
 function EmployerHomePage() {
   return (
@@ -184,7 +184,7 @@ function EmployerHomePage() {
           </div>
         </div>
       </section>
-      <section className="employer-home-third-section">
+      {/* <section className="employer-home-third-section">
         <div className="container">
           <div className="row">
             <div className="col-lg-12 col-md-12">
@@ -232,6 +232,66 @@ function EmployerHomePage() {
             </div>
             <div className="col-lg-3 col-md-3">
               <div className="employer-home-category-card">
+                <div className="icon">
+                  <i className="far fa-user" />
+                </div>
+                <h3>Screening And Shortlisting</h3>
+                <p>
+                  Make smart decisions with our guide to solution and service
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section> */}
+      <section className="employer-home-third-section">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 col-md-12">
+              <div className="section-title">
+                <h2>
+                  Steps Of Recruitment{" "}
+                  <label className="oragneColor">Process</label>
+                </h2>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt.
+                </p>
+              </div>
+            </div>
+            <div className="col-lg-3 col-md-3">
+              <div className="single-category-card">
+                <div className="icon">
+                  <i className="far fa-id-card" />
+                </div>
+                <h3>Identifying The Needs</h3>
+                <p>Hear from industry leading HR professionals and solution</p>
+              </div>
+            </div>
+            <div className="col-lg-3 col-md-3">
+              <div className="single-category-card">
+                <div className="icon">
+                  <i className="far fa-file-alt" />
+                </div>
+                <h3>Preparing A Job Description</h3>
+                <p>
+                  Access to all of your candidate responses and against global
+                </p>
+              </div>
+            </div>
+            <div className="col-lg-3 col-md-3">
+              <div className="single-category-card">
+                <div className="icon">
+                  <i className="fas fa-search" />
+                </div>
+                <h3>Find A Talented Candidate</h3>
+                <p>
+                  Companies are backing up their strategic decisions with inform
+                </p>
+              </div>
+            </div>
+            <div className="col-lg-3 col-md-3">
+              <div className="single-category-card">
                 <div className="icon">
                   <i className="far fa-user" />
                 </div>

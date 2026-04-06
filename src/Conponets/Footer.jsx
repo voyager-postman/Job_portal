@@ -1,7 +1,44 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import React, { useEffect, useRef, useState } from "react";
+
+import axios from "axios";
 
 function Footer() {
+  const [homeData, setHomeData] = useState({});
+  const [contactData, setContactData] = useState({});
+  const getContactInfo = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getContactUs`);
+
+      if (res.data.success) {
+        setContactData(res.data.data);
+      }
+    } catch (error) {
+      console.error("Contact info error:", error);
+    }
+  };
+
+  useEffect(() => {
+    getContactInfo();
+  }, []);
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getHomePage`);
+
+        const data = res.data?.data;
+
+        setHomeData(data);
+
+        // trending keywords
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
   const userRole = localStorage.getItem("user_role");
   const isJobSeeker = userRole === "JobSeeker";
   const isEmployer = userRole === "Recruiter" || userRole === "Company";
@@ -25,35 +62,50 @@ function Footer() {
                   <div className="footer-logo">
                     <Link className="navbar-brand" to="/">
                       <img
-                        src="/jobPortal/assets/images/white-logo.png"
-                        alt="Image"
+                        crossorigin="anonymous"
+                        src={
+                          homeData?.footerSection?.image
+                            ? `${API_IMAGE_URL}${homeData.footerSection.image}`
+                            : "/jobPortal/assets/images/white-logo.png"
+                        }
+                        alt="Footer Logo"
                       />
                     </Link>
                   </div>
-                  <p>
-                    Lorem ipsum dolor sit amet, consec tetur adipiscing elit
-                    eiusmod tempor incididunt eiusmod tempor incididunt.
-                  </p>
+
+                  <p>{homeData?.footerSection?.shortDescription}</p>
+
                   <div className="social-content">
                     <ul>
                       <li>
-                        {" "}
                         <span>Follow Us:</span>
                       </li>
+
                       <li>
-                        <a href="https://www.facebook.com/" target="_blank">
+                        <a
+                          href={homeData?.footerSection?.socialLinks?.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <i className="fa-brands fa-facebook-f" />
                         </a>
                       </li>
+
                       <li>
-                        <a href="https://www.twitter.com/" target="_blank">
+                        <a
+                          href={homeData?.footerSection?.socialLinks?.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <i className="fa-brands fa-twitter" />
                         </a>
                       </li>
+
                       <li>
                         <a
-                          href="https://instagram.com/?lang=en"
+                          href={homeData?.footerSection?.socialLinks?.instagram}
                           target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <i className="fa-brands fa-instagram" />
                         </a>
@@ -85,7 +137,7 @@ function Footer() {
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq">FAQ JobSeeker </Link>
+                        <Link to="/faq/jobseeker">FAQ JobSeeker</Link>
                       </li>
                     </ul>
                   </div>
@@ -131,7 +183,7 @@ function Footer() {
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq">FAQ Employer</Link>
+                        <Link to="/faq/recruiter">FAQ Employer</Link>
                       </li>
                     </ul>
                   </div>
@@ -143,21 +195,30 @@ function Footer() {
                   <ul>
                     <li>
                       <i className="fa-solid fa-location-dot" />
-                      <h4>Location: 2976 sunrise road las vegas</h4>
+                      <h4>{contactData.location?.address}</h4>
                     </li>
                     <li>
                       <i className="fa-solid fa-envelope" />
                       <h4>
                         Email :{" "}
-                        <a href="mailto:info@companyname.com">
-                          info@companyname.com
-                        </a>
+                        {contactData.emails?.map((e, i) => (
+                          <span key={i}>
+                            <a href={`mailto:${e}`}>{e}</a>
+                            {i !== contactData.emails.length - 1 && ", "}
+                          </span>
+                        ))}
                       </h4>
                     </li>
                     <li>
                       <i className="fa-solid fa-phone" />
                       <h4>
-                        Phone: <a href="tel:098765432150">098765432150</a>
+                        Phone:{" "}
+                        {contactData.phones?.map((p, i) => (
+                          <span key={i}>
+                            <a href={`tel:${p}`}>{p}</a>
+                            {i !== contactData.phones.length - 1 && ", "}
+                          </span>
+                        ))}
                       </h4>
                     </li>
                   </ul>

@@ -96,7 +96,32 @@ function Header({ bgColor }) {
       console.error("Error fetching notifications:", err);
     }
   };
+  const handleNotificationClick = (note) => {
+    const walletTypes = [
+      "pack",
+      "pack_warning",
+      "pack_expired",
+      "welcome_pack_warning",
+      "Welcome_Pack_Expired",
+      "credits",
+      "low_balance",
+      "zero_credit",
+      "LOW_JOB_CREDIT",
+      "monthly_limit",
+      "weekly_limit",
+      "daily_limit",
+    ];
 
+    if (walletTypes.includes(note?.type)) {
+      navigate("/employer-wallet");
+    } else if (note?.type === "job_alert") {
+      navigate("/job-search");
+    } else if (note?.type === "application-status") {
+      navigate("/manage-job-application");
+    } else {
+      navigate("/employer-dashboard"); // default fallback
+    }
+  };
   const markAllRead = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -122,7 +147,13 @@ function Header({ bgColor }) {
 
   // Fetch notifications on initial load
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(); // first call
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 5000); // every 5 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   const isEmployerPage =
@@ -264,208 +295,6 @@ function Header({ bgColor }) {
     handleSocialLogin();
   }, []);
 
-  // useEffect(() => {
-  //   const queryParams = new URLSearchParams(window.location.search);
-
-  //   const success = queryParams.get("success");
-  //   const token = queryParams.get("token");
-  //   const message = queryParams.get("message");
-  //   const provider = queryParams.get("provider");
-
-  //   // ❌ Backend error
-  //   if (success === "false") {
-  //     toast.error(message || "Login failed!");
-  //     console.error(`Login failed from ${provider}:`, message);
-
-  //     window.history.replaceState({}, document.title, "/jobPortal");
-  //     return;
-  //   }
-
-  //   // ⛔ No social login callback
-  //   if (!success || !token) return;
-
-  //   // ✅ Read params
-  //   const role = queryParams.get("role");
-  //   const email = queryParams.get("email");
-  //   const name = queryParams.get("name");
-  //   const avatar = queryParams.get("avatar");
-
-  //   const is_completed = queryParams.get("is_completed") === "true";
-  //   const verifiedByAdmin = queryParams.get("verifiedByAdmin") === "true";
-
-  //   const [first_name = "", last_name = ""] = name?.split(" ") || [];
-
-  //   const user = {
-  //     email,
-  //     role,
-  //     first_name,
-  //     last_name,
-  //     profileImage: avatar,
-  //     is_completed,
-  //     verifiedByAdmin,
-  //   };
-
-  //   // 💾 Save data
-  //   localStorage.setItem("token", token);
-  //   localStorage.setItem("user", JSON.stringify(user));
-  //   localStorage.setItem("user_role", role);
-  //   localStorage.setItem("is_completed", JSON.stringify(is_completed));
-  //   localStorage.setItem("verifiedByAdmin", JSON.stringify(verifiedByAdmin));
-
-  //   authLogin();
-  //   toast.success("Login Successful!");
-
-  //   // 🔒 BLOCK unverified Company users
-  //   if (role === "Company" && is_completed && !verifiedByAdmin) {
-  //     Swal.fire({
-  //       title: "Account Not Verified",
-  //       text: "Your account is not verified by the admin. Please contact support.",
-  //       icon: "error",
-  //       confirmButtonText: "OK",
-  //     });
-
-  //     navigate("/");
-  //     return;
-  //   }
-
-  //   // 🚀 Redirect logic
-  //   if (is_completed) {
-  //     if (role === "Recruiter" || role === "Company") {
-  //       navigate("/employer-dashboard");
-  //     } else {
-  //       navigate("/candidate-profile");
-  //     }
-  //   } else {
-  //     if (role === "Recruiter" || role === "Company") {
-  //       navigate("/employer-basic-info");
-  //     } else {
-  //       navigate("/profile-basic-info");
-  //     }
-  //   }
-
-  //   // 🧹 Clean social-login URL (ONLY ONCE)
-  //   requestAnimationFrame(() => {
-  //     window.history.replaceState({}, document.title, "/jobPortal");
-  //   });
-  // }, []);
-
-  // useEffect(() => {
-  //   const queryParams = new URLSearchParams(window.location.search);
-  //   const success = queryParams.get("success");
-  //   const token = queryParams.get("token");
-  //   const message = queryParams.get("message"); // backend error message
-  //   const provider = queryParams.get("provider"); // optional (github/linkedin)
-  //   // ❌ Backend error handling
-  //   if (success === "false") {
-  //     toast.error(message || "Login failed!");
-  //     console.error(`Login failed from ${provider}:`, message);
-
-  //     // clean URL
-  //     window.history.replaceState({}, document.title, "/jobPortal");
-  //     return;
-  //   }
-
-  //   // No login → ignore
-  //   if (!success || !token) return;
-
-  //   // ✔ SUCCESS CASE BELOW
-
-  //   const email = queryParams.get("email");
-  //   const name = queryParams.get("name");
-  //   const avatar = queryParams.get("avatar");
-  //   const role = queryParams.get("role");
-  //   const isVerified = queryParams.get("isVerified");
-  //   const companyId = queryParams.get("companyId");
-  //   const is_completed = queryParams.get("is_completed") === "true";
-  //   const verifiedByAdmin = queryParams.get("verifiedByAdmin") === "true";
-  //   // Split GitHub or LinkedIn name
-  //   const [first_name = "", last_name = ""] = name?.split(" ") || [];
-
-  //   const user = {
-  //     email,
-  //     role,
-  //     first_name,
-  //     last_name,
-  //     companyId,
-  //     profileImage: avatar,
-  //     is_completed,
-  //   };
-
-  //   console.log(user);
-  //   // 👉 Save login data
-  //   localStorage.setItem("token", token);
-  //   localStorage.setItem("user", JSON.stringify(user));
-  //   localStorage.setItem("user_email", email);
-  //   localStorage.setItem("user_role", role);
-  //   localStorage.setItem("first_name", first_name);
-  //   localStorage.setItem("last_name", last_name);
-  //   localStorage.setItem("user_profile", avatar);
-  //   localStorage.setItem("user_name", `${first_name} ${last_name}`);
-  //   localStorage.setItem("is_completed", user.is_completed);
-  //   toast.success("Login Successful!");
-  //   // Close modal
-  //   const loginModal = document.getElementById("exampleModalLogin");
-  //   const registerModal = document.getElementById("exampleModalRegister");
-
-  //   if (loginModal?.classList.contains("show")) {
-  //     const modalInstance = window.bootstrap.Modal.getInstance(loginModal);
-  //     modalInstance?.hide();
-  //   }
-
-  //   if (registerModal?.classList.contains("show")) {
-  //     const modalInstance = window.bootstrap.Modal.getInstance(registerModal);
-  //     modalInstance?.hide();
-  //   }
-
-  //   authLogin();
-
-  //   // 👉 Redirect based on role & completion
-  //   if (user.is_completed) {
-  //     if (role === "Recruiter" || role === "Company") {
-  //       navigate("/employer-dashboard");
-  //     } else {
-  //       navigate("/candidate-profile");
-  //     }
-  //   } else {
-  //     if (role === "Recruiter" || role === "Company") {
-  //       navigate("/employer-basic-info");
-  //     } else {
-  //       navigate("/profile-basic-info");
-  //     }
-  //   }
-
-  //   if (role === "Recruiter" || role === "Company") {
-  //     if (role === "Company" && !verifiedByAdmin) {
-  //       Swal.fire({
-  //         title: "Account Not Verified",
-  //         text: "Your account is not verified by the admin. Please contact support.",
-  //         icon: "error",
-  //         confirmButtonText: "OK",
-  //       });
-
-  //       // ⛔ STOP — do NOT redirect
-  //       return;
-  //     }
-  //     window.history.replaceState(
-  //       {},
-  //       document.title,
-  //       "/jobPortal/employer-dashboard",
-  //     );
-  //   } else {
-  //     window.history.replaceState(
-  //       {},
-  //       document.title,
-  //       "/jobPortal/candidate-profile",
-  //     );
-  //   }
-
-  //   // Clean URL
-  //   window.history.replaceState(
-  //     {},
-  //     document.title,
-  //     "/jobPortal/candidate-profile",
-  //   );
-  // }, []);
   const cleanImageUrl1 = (url) => {
     if (!url) return "";
 
@@ -819,16 +648,15 @@ function Header({ bgColor }) {
                             {notifications.length > 0 ? (
                               notifications.map((note) => (
                                 <li key={note._id}>
-                                  <a
-                                    className={`dropdown-item d-flex gap-2 align-items-start ${
+                                  <div
+                                    onClick={() =>
+                                      handleNotificationClick(note)
+                                    }
+                                    className={`dropdown-item notification-item d-flex gap-2 align-items-start ${
                                       note.isRead ? "" : "fw-bold"
                                     }`}
-                                    href={note.actionUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ whiteSpace: "normal" }}
                                   >
-                                    {/* -------- IMAGE -------- */}
+                                    {/* IMAGE */}
                                     <img
                                       crossOrigin="anonymous"
                                       src={
@@ -846,14 +674,14 @@ function Header({ bgColor }) {
                                       }}
                                     />
 
-                                    {/* -------- TEXT -------- */}
+                                    {/* TEXT */}
                                     <div className="flex-grow-1">
                                       <div>{note.title}</div>
                                       <small className="text-muted d-block">
                                         {note.message}
                                       </small>
                                     </div>
-                                  </a>
+                                  </div>
                                 </li>
                               ))
                             ) : (
@@ -892,26 +720,7 @@ function Header({ bgColor }) {
                           </div>
                         )}
 
-                      {/* {isEmployer && (
-                        <div className="option-item post-job-employers-btn">
-                          <button
-                            onClick={handlePostJob}
-                            className="default-btn btn"
-                            type="button"
-                          >
-                            Post New Job
-                          </button>
-                        </div>
-                      )} */}
-
-                      {/* navigate("/your-job-posts", {
-      state: { openModal: true },
-      replace: true,
-    });
-
-    const modalElement = document.getElementById("exampleModal");
-    const modal = window.bootstrap.Modal.getInstance(modalElement);
-    modal?.hide(); */}
+                  
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">

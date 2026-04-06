@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { useLocation, Link } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 function CandinateProfileDetails() {
   const location = useLocation();
@@ -124,6 +124,8 @@ function CandinateProfileDetails() {
   );
   return (
     <>
+      <ToastContainer />
+
       <section className="inner-breadcrumb-main-area ">
         <div className="container">
           <div className="row">
@@ -286,24 +288,24 @@ function CandinateProfileDetails() {
                   <h3>Career Goals</h3>
                   <h5>Desired Job Title</h5>
                   <p>
-                    {candidate?.career_goals?.DesiredJobTitle?.toLowerCase().replace(
-                      /^\w/,
-                      (c) => c.toUpperCase(),
-                    ) || "Not Provided"}{" "}
+                    {(candidate?.career_goals?.DesiredJobTitle || "")
+                      .toString()
+                      .toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase()) || "Not Provided"}
                   </p>
                   <h5>Desired Employment Type</h5>
                   <p>
-                    {candidate?.career_goals?.DesiredEmploymentType?.toLowerCase().replace(
-                      /^\w/,
-                      (c) => c.toUpperCase(),
-                    ) || "Not Provided"}{" "}
+                    {(candidate?.career_goals?.DesiredEmploymentType || "")
+                      .toString()
+                      .toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase()) || "Not Provided"}
                   </p>
                   <h5>Desired Occupation Type</h5>
                   <p>
-                    {candidate?.career_goals?.DesiredOccupationType?.toLowerCase().replace(
-                      /^\w/,
-                      (c) => c.toUpperCase(),
-                    ) || "Not Provided"}{" "}
+                    {(candidate?.career_goals?.DesiredOccupationType || "")
+                      .toString()
+                      .toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase()) || "Not Provided"}
                   </p>
                   <div className="candidate-profile-divider-line" />
                   <h3>Other Preferences</h3>
@@ -526,8 +528,6 @@ function CandinateProfileDetails() {
                   ) : (
                     <p>No education information available</p>
                   )}
-
-           
                 </div>
                 <div className="skill-content candidate-profile-summary">
                   <h3>Skills</h3>
@@ -632,8 +632,6 @@ function CandinateProfileDetails() {
                 ) : (
                   <p>No reviews found.</p>
                 )}
-
-            
               </div>
             </div>
             <div className="col-lg-4">
@@ -691,9 +689,7 @@ function CandinateProfileDetails() {
                   </ul>
                 </div>
                 <div className="candidate-profile-summary single-sidebar-widget download">
-                  <a href="#" className="default-btn btn">
-                    Download CV
-                  </a>
+                  <a className="default-btn btn">Download CV</a>
                 </div>
               </div>
 

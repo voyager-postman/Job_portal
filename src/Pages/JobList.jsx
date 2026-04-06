@@ -2123,6 +2123,15 @@ const JobList = () => {
                                   {" "}
                                   <div className="available-job-posts-box">
                                     <div className="available-job-company-name-save-job">
+                                      {job?.isFeatured && (
+                                        <span
+                                          class="featured-badge"
+                                          title="This is a featured job listing"
+                                        >
+                                          <i class="fa-solid fa-star"></i>{" "}
+                                          Featured
+                                        </span>
+                                      )}
                                       <div className="available-job-company-name">
                                         <a href="job-details.html">
                                           <h4>

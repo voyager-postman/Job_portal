@@ -10366,33 +10366,9 @@ tr {
   gap: 20px;
 }
 
-.user-wallet-credit-box {
-  width: 50%;
-  height: 100%;
-  background: #fff;
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 20px 20px 10px 20px;
-}
-
-.user-wallet-credit-box h3 {
-  font-size: 22px;
-  color: #ff6600;
-}
-
 .user-wallet-credit-box h4 {
   font-size: 16px;
   text-transform: capitalize;
-}
-
-.user-wallet-credit-box p {
-  font-size: 14px;
-  font-weight: 450;
-  margin-top: 15px;
-  padding-top: 5px;
-  letter-spacing: 0.5px;
-  text-transform: capitalize;
-  border-top: 1px solid #cdcdcd;
 }
 
 .user-wallet-transaction-tab .nav-tabs .nav-item {
@@ -10546,7 +10522,6 @@ text-transform: capitalize;
   background: #fff;
   padding: 30px;
   border-radius: 10px;
-  width: 380px;
   box-shadow: 0 5px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -10714,25 +10689,26 @@ text-transform: capitalize;
 }
 
 .user-wallet-credit-limit {
-  display: flex;
+  display: grid;
   margin-top: 10px;
   align-items: center;
-  justify-content: space-between;
+  grid-template-columns: 50px 1fr;
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .user-wallet-credit-box {
-  width: 32%;
   height: 200px;
   background: #fff;
   text-align: center;
   margin-bottom: 10px;
   border: 1px solid #dee2e6;
-  padding: 20px 20px 20px 20px;
+  padding: 5px;
 }
 
 .user-wallet-credit-box h3 {
-  font-size: 20px;
+  font-size: 18px;
   color: #ff6600;
+  margin-top: 5px;
 }
 
 .user-wallet-credit-box h4 {
@@ -10742,9 +10718,9 @@ text-transform: capitalize;
 }
 
 .user-wallet-credit-box p {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 450;
-  margin-top: 15px;
+  margin: 5px 0px;
   padding-top: 5px;
   letter-spacing: 0.5px;
   text-transform: capitalize;
@@ -10943,7 +10919,6 @@ text-transform: capitalize;
   justify-content: center;
   flex-shrink: 0;
 }
-
 
 .profile-step-circle.completed {
   border-color: #1868ca;
@@ -12606,6 +12581,10 @@ text-transform: capitalize;
   background: rgba(45, 206, 137, 0.1);
   color: #2dce89;
 }
+.summary-card-compact:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
 .employer-dashboard-common-heading h2 {
   font-size: 20px;
   font-weight: 700;
@@ -12765,7 +12744,7 @@ text-transform: capitalize;
   color: #2dce89;
   box-shadow: 0 0 0 4px rgba(45, 206, 137, 0.15);
 }
- .chart-box .step-item:not(:last-child)::after {
+.chart-box .step-item:not(:last-child)::after {
   content: "";
   position: absolute;
   top: 27px;
@@ -12963,10 +12942,7 @@ text-transform: capitalize;
   padding: 20px;
   font-family: Arial, sans-serif;
   color: #333;
-  /* margin-top: 80px; */
   position: relative;
-  height: 70vh;
-  overflow: auto;
 }
 
 .user-hover-short-details .header {
@@ -13060,10 +13036,50 @@ text-transform: capitalize;
 
 i.fa-solid.fa-trash {
   cursor: pointer;
-  color: red;
-  background: #f8b6b6;
+  /* color: red;
+  background: #f8b6b6; */
 }
 .user-hover-short-details svg {
   font-size: 12px;
   vertical-align: baseline;
+}
+.empty-job-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 450px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.empty-job-content {
+  text-align: center;
+  max-width: 450px;
+}
+
+.empty-job-icon {
+  width: 90px;
+  height: 90px;
+  background: #e9f1ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+
+.empty-job-icon i {
+  font-size: 40px;
+  color: #2f6fed;
+}
+
+.empty-job-content h4 {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.empty-job-content p {
+  color: #6c757d;
+  font-size: 14px;
 }

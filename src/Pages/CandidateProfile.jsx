@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 import Select from "react-select";
-
+import CreatableSelect from "react-select/creatable";
 function CandidateProfile() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -24,11 +24,30 @@ function CandidateProfile() {
     "Post Doctorate",
     "Professional Degree",
   ];
+  const jobTypeOptions = [
+    { value: "Immediate", label: "Immediate" },
+    { value: "Temporary", label: "Temporary" },
+    { value: "Freelance", label: "Freelance" },
+    { value: "Permanent", label: "Permanent" },
+  ];
   const [salaryRanges, setSalaryRanges] = useState([]);
+  const [isEditingLinks, setIsEditingLinks] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const { logout, updateProfileImage, updateName } = useAuth();
+  const [editWork, setEditWork] = useState(false);
+  const [editEducation, setEditEducation] = useState(false);
+  const [editingLanguageId, setEditingLanguageId] = useState(null);
+  const [showAllCertificates, setShowAllCertificates] = useState(false);
   const DEFAULT_IMAGE = "jobPortal/assets/images/dashboard/images.png";
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [showAllExp, setShowAllExp] = useState(false);
+  const [editSkills, setEditSkills] = useState(false);
+  const [profileDetails, setProfileDetails] = useState("");
+
   const [jobTypes, setJobTypes] = useState([]);
+  const [showAllEducation, setShowAllEducation] = useState(false);
+  const [editSummary, setEditSummary] = useState(false);
+  const [editCareerGoals, setEditCareerGoals] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
@@ -41,11 +60,11 @@ function CandidateProfile() {
   const [certificateEditMode, setCertificateEditMode] = useState(false);
 
   const PROFICIENCY_LEVELS = [
-    { label: "Basic", code: "A1/A2" },
-    { label: "Limited working", code: "B1" },
-    { label: "Professional working", code: "B2" },
-    { label: "Full professional", code: "C1" },
-    { label: "Native / Bilingual", code: "C2" },
+    { label: "Basic", code: "Basic" },
+    { label: "Limited working", code: "Limited working" },
+    { label: "Professional working", code: "Professional working" },
+    { label: "Full professional", code: "Full professional" },
+    { label: "Native / Bilingual", code: "Native / Bilingual" },
   ];
 
   const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
@@ -53,6 +72,7 @@ function CandidateProfile() {
     language_id: "", // only when editing
     language: "", // language name from dropdown
     proficiency: "",
+    comment: "", // NEW FIELD
   });
   useEffect(() => {
     fetch(`${API_BASE_URL}getActiveSalaryRangeList`)
@@ -168,13 +188,13 @@ function CandidateProfile() {
   const [educationList, setEducationList] = useState([]);
   const [careerGoalsData, setCareerGoalsData] = useState({
     desiredJobTitle: "",
-    employmentType: "",
+    employmentType: [],
     occupationType: "",
     availabilityToJoin: "",
     eligibleToWork: false,
     salaryAmount: "",
     salaryType: "Hourly",
-    salaryCurrency: "EUR",
+    salaryCurrency: "MAD",
     lookingForJob: "",
   });
   const [workExperienceData, setWorkExperienceData] = useState({
@@ -190,7 +210,7 @@ function CandidateProfile() {
     EmploymentType: "",
     workLocation: "",
     salaryAmount: "",
-    salaryCurrency: "USD",
+    salaryCurrency: "MAD",
     salaryType: "Monthly",
   });
   const [profileVisible, setProfileVisible] = useState(true); // ✅ default true
@@ -244,6 +264,8 @@ function CandidateProfile() {
       });
 
       console.log("Profile data:", res.data);
+
+      setProfileDetails(res.data.profileStats);
       setProfileVisible(res.data.profile?.profileVisible);
       setProfileData(res.data.profile); // ✅ set API response into state
       setCheckStatus(res.data.sectionStatus);
@@ -382,6 +404,7 @@ function CandidateProfile() {
         language_id: languageForm.language_id || undefined,
         language: languageForm.language,
         proficiency: languageForm.proficiency,
+        comment: languageForm.comment,
       };
 
       const res = await axios.post(`${API_BASE_URL}updateLanguages`, payload, {
@@ -394,6 +417,7 @@ function CandidateProfile() {
           _id: res.data.language?._id || res.data.language_id, // make sure to take backend id
           language: languageForm.language,
           proficiency: languageForm.proficiency,
+          comment: languageForm.comment,
         };
 
         const updated = languageForm.language_id
@@ -408,7 +432,12 @@ function CandidateProfile() {
         toast.success(
           languageForm.language_id ? "Language updated!" : "Language added!",
         );
-        setLanguageForm({ language_id: "", language: "", proficiency: "" });
+        setLanguageForm({
+          language_id: "",
+          language: "",
+          proficiency: "",
+          comment: "",
+        });
         setLanguageEditMode(false);
       }
     } catch (err) {
@@ -453,6 +482,7 @@ function CandidateProfile() {
       language_id: lang._id,
       language: lang.language,
       proficiency: lang.proficiency,
+      comment: lang.comment || "",
     });
     setLanguageEditMode(true);
     const collapse = document.getElementById("collapseLanguages");
@@ -585,59 +615,7 @@ function CandidateProfile() {
       }
     }
   };
-  // const handleUploadCoverLetter = async (e) => {
-  //   const files = e.target.files;
-  //   if (!files.length) return;
 
-  //   if (coverLetters.length >= 3) {
-  //     toast.error(
-  //       "You can upload only up to 3 cover letters. Please delete one first.",
-  //       {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       }
-  //     );
-  //     return;
-  //   }
-
-  //   const token = localStorage.getItem("token");
-  //   for (let file of files) {
-  //     if (coverLetters.length >= 3) break;
-
-  //     const formData = new FormData();
-  //     formData.append("coverLetter", file);
-
-  //     try {
-  //       const response = await axios.put(
-  //         `${API_BASE_URL}updateCoverLetter`,
-  //         formData,
-  //         { headers: { Authorization: `Bearer ${token}` } }
-  //       );
-
-  //       if (response.status === 200) {
-  //         setCoverLetters((prev) => [
-  //           ...prev,
-  //           {
-  //             name: file.name,
-  //             url: response.data.coverLetterUrl, // ✅ backend returns this
-  //             _id: String(response.data.coverLetterId || Date.now()), // always string
-  //           },
-  //         ]);
-  //         await fetchProfile();
-  //         toast.success("Cover letter uploaded successfully!", {
-  //           autoClose: 2000,
-  //           theme: "colored",
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error("Upload cover letter error:", error);
-  //       toast.error("Failed to upload cover letter", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //     }
-  //   }
-  // };
   const handleSelect = (c) => {
     const formatted = `${c.emoji.toUpperCase()} +${c.phonecode} ${c.name}`;
     setCountryCode(formatted); // input shows exact format
@@ -722,59 +700,6 @@ function CandidateProfile() {
     }
   };
 
-  // const handleUploadCv = async (e) => {
-  //   const files = e.target.files;
-  //   if (!files.length) return;
-
-  //   // ✅ Validation: max 3 CVs allowed
-  //   if (cvFiles.length >= 3) {
-  //     toast.error("You can upload only up to 3 CVs. Please delete one first.", {
-  //       autoClose: 2000,
-  //       theme: "colored",
-  //     });
-  //     return;
-  //   }
-
-  //   const token = localStorage.getItem("token");
-
-  //   for (let file of files) {
-  //     if (cvFiles.length >= 3) break; // ✅ stop if already 3
-
-  //     const formData = new FormData();
-  //     formData.append("resume", file);
-
-  //     try {
-  //       const response = await axios.put(
-  //         `${API_BASE_URL}updateResumeUrl`,
-  //         formData,
-  //         { headers: { Authorization: `Bearer ${token}` } }
-  //       );
-
-  //       if (response.status === 200) {
-  //         setCvFiles((prev) => [
-  //           ...prev,
-  //           {
-  //             name: file.name,
-  //             url: response.data.resumeUrl,
-  //             _id: String(response.data.resumeId || Date.now()), // ✅ always string
-  //           },
-  //         ]);
-  //         await fetchProfile();
-
-  //         toast.success("CV uploaded successfully!", {
-  //           autoClose: 2000,
-  //           theme: "colored",
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error("Upload CV error:", error);
-  //       toast.error("Failed to upload CV", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //     }
-  //   }
-  // };
   const handleDeleteCoverLetter = async (clId) => {
     try {
       const token = localStorage.getItem("token");
@@ -863,7 +788,7 @@ function CandidateProfile() {
       eligibleToWork: profileData.careerGoals?.eligibleToWork || false,
       salaryAmount: profileData.careerGoals?.salaryAmount || "",
       salaryType: profileData.careerGoals?.salaryType || "Hourly",
-      salaryCurrency: profileData.careerGoals?.salaryCurrency || "EUR",
+      salaryCurrency: profileData.careerGoals?.salaryCurrency || "MAD",
       lookingForJob: profileData.careerGoals?.lookingForJob || "",
     });
     setEditMode(true);
@@ -886,7 +811,10 @@ function CandidateProfile() {
   // Save Career Goals
   const handleSaveGoals = async () => {
     try {
-      if (!careerGoalsData.desiredJobTitle?.trim()) {
+      if (
+        !careerGoalsData.desiredJobTitle ||
+        careerGoalsData.desiredJobTitle.length === 0
+      ) {
         toast.error("Please enter a Desired Job Title", {
           autoClose: 2000,
           theme: "colored",
@@ -894,7 +822,10 @@ function CandidateProfile() {
         return;
       }
 
-      if (!careerGoalsData.employmentType) {
+      if (
+        !careerGoalsData.employmentType ||
+        careerGoalsData.employmentType.length === 0
+      ) {
         toast.error("Please select a Job Type", {
           autoClose: 2000,
           theme: "colored",
@@ -902,7 +833,10 @@ function CandidateProfile() {
         return;
       }
 
-      if (!careerGoalsData.occupationType) {
+      if (
+        !careerGoalsData.occupationType ||
+        careerGoalsData.occupationType.length === 0
+      ) {
         toast.error("Please select a Desired Occupation Type", {
           autoClose: 2000,
           theme: "colored",
@@ -937,17 +871,6 @@ function CandidateProfile() {
         return;
       }
 
-      // if (
-      //   !careerGoalsData.salaryAmount ||
-      //   isNaN(careerGoalsData.salaryAmount)
-      // ) {
-      //   toast.error("Please enter a valid Salary Amount", {
-      //     autoClose: 2000,
-      //     theme: "colored",
-      //   });
-      //   return;
-      // }
-
       if (!careerGoalsData.lookingForJob) {
         toast.error("Please select a job opportunity", {
           autoClose: 2000,
@@ -957,14 +880,23 @@ function CandidateProfile() {
       }
       const token = localStorage.getItem("token");
 
-      // ✅ Map form keys -> API keys
       const payload = {
-        DesiredJobTitle: careerGoalsData.desiredJobTitle,
-        DesiredEmploymentType: careerGoalsData.employmentType,
-        DesiredOccupationType: careerGoalsData.occupationType,
+        DesiredJobTitle: careerGoalsData.desiredJobTitle.map(
+          (item) => item.value,
+        ),
+
+        DesiredEmploymentType: careerGoalsData.employmentType.map(
+          (item) => item.value,
+        ),
+
+        DesiredOccupationType: careerGoalsData.occupationType.map(
+          (item) => item.value,
+        ),
+
         availabilityToJoin: careerGoalsData.availabilityToJoin,
+
         MinimumDesiredSalary: {
-          amount: careerGoalsData.salaryAmount,
+          amount: String(careerGoalsData.salaryAmount),
           currency: careerGoalsData.salaryCurrency,
           type: careerGoalsData.salaryType,
         },
@@ -1116,8 +1048,7 @@ function CandidateProfile() {
         }));
 
         // ✅ exit edit mode
-        setEditMode(false);
-
+        setEditCareerGoals(false);
         if (profileData?.professionalSummary) {
           toast.success("Professional Summary updated successfully!", {
             autoClose: 2000,
@@ -1692,7 +1623,6 @@ function CandidateProfile() {
         jobTitle,
         startDate,
         endDate,
-        yearOfExperience,
         currentlyWorkingHere,
         currentlyWorkingHereEmp,
         Description,
@@ -1750,18 +1680,6 @@ function CandidateProfile() {
         return;
       }
 
-      // ✅ Experience validation
-      if (
-        !yearOfExperience ||
-        isNaN(yearOfExperience) ||
-        yearOfExperience <= 0
-      ) {
-        toast.error("Please enter valid Years of Experience", {
-          theme: "colored",
-        });
-        return;
-      }
-
       if (!EmploymentType?.trim()) {
         toast.error("Please select Employment Type", { theme: "colored" });
         return;
@@ -1777,30 +1695,24 @@ function CandidateProfile() {
         return;
       }
 
-      // if (Number.isNaN(Number(salaryAmount)) || Number(salaryAmount) <= 0) {
-      //   toast.error("Please enter valid Salary Amount", { theme: "colored" });
-      //   return;
-      // }
-
       if (!salaryType) {
         toast.error("Please select Payroll Frequency", { theme: "colored" });
         return;
       }
 
-      // ✅ Clean Description — only send if not empty
+      // ✅ Clean Description
       const cleanDescription =
         Description && Description.trim() !== ""
           ? Description.trim()
           : undefined;
 
-      // ✅ Construct Payload (remove empty fields)
+      // ✅ Construct Payload
       const payload = {
         workHistory_id: workExperienceData.workHistory_id || undefined,
         companyName: companyName.trim(),
         jobTitle: jobTitle.trim(),
         startDate,
         endDate: currentlyWorkingHere ? undefined : endDate || undefined,
-        yearOfExperience,
         currentlyWorkingHere,
         keep_employer_anonymous: currentlyWorkingHereEmp,
         ...(cleanDescription && { Description: cleanDescription }),
@@ -1836,6 +1748,7 @@ function CandidateProfile() {
         }));
 
         setEditMode(false);
+
         toast.success("Work experience saved successfully!", {
           theme: "colored",
         });
@@ -2196,18 +2109,33 @@ function CandidateProfile() {
   };
 
   const handleAddSkill = async () => {
-    if (!newSkill.trim()) return;
+    const trimmedSkill = newSkill.trim();
+
+    if (!trimmedSkill) {
+      toast.error("Please enter a skill", { theme: "colored" });
+      return;
+    }
+
+    // 🚫 Prevent duplicate
+    if (skills.includes(trimmedSkill)) {
+      toast.warning("Skill already added", { theme: "colored" });
+      return;
+    }
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}updateSkills`,
-        { skills: [...skills, newSkill.trim()] },
+        { skills: [...skills, trimmedSkill] },
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.status === 200) {
-        setSkills(res.data.skills); // API should return updated skills
+        setSkills(res.data.skills || [...skills, trimmedSkill]);
         setNewSkill("");
+
+        // ✅ mark section completed
+        setCheckStatus((prev) => ({ ...prev, skills: 1 }));
+
         toast.success("Skill added successfully!", { theme: "colored" });
       }
     } catch (error) {
@@ -2226,7 +2154,15 @@ function CandidateProfile() {
       );
 
       if (res.status === 200) {
-        setSkills((prev) => prev.filter((s) => s !== skill));
+        const updatedSkills = skills.filter((s) => s !== skill);
+
+        setSkills(updatedSkills);
+
+        // ✅ if all skills removed → show Add button again
+        if (updatedSkills.length === 0) {
+          setCheckStatus((prev) => ({ ...prev, skills: 0 }));
+        }
+        await fetchProfile();
         toast.success("Skill deleted successfully!", { theme: "colored" });
       }
     } catch (error) {
@@ -2274,7 +2210,10 @@ function CandidateProfile() {
     setReason("");
     setComments("");
   };
-
+  const toArray = (value) => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  };
   return (
     <>
       <ToastContainer />
@@ -2299,23 +2238,28 @@ function CandidateProfile() {
           </div>
           {/* End Breadcrumb Area */}
           {/*Start My Profile Area*/}
-          <div className="my-profile-area">
-            <div className="profile-form-content">
-              <h3>My Account</h3>
-              <div className="candidates-detail-main-area">
-                <div className="candidates-img-detail-info">
-                  <div className="candidates-img-info">
-                    {/* Candidate Image */}
+          <div class="saas-profile-container">
+            <div class="saas-layout-grid">
+              <div class="saas-left-sidebar">
+                <div className="saas-card profile-overview-card">
+                  <div className="saas-avatar-wrapper">
+                    {/* Avatar Image */}
                     {isLoadingJobs ? (
                       <JobListLoader />
                     ) : (
                       <img
-                        src={cleanImageUrl(image)}
                         alt="Candidate"
-                        crossorigin="anonymous"
+                        className="saas-avatar"
+                        crossOrigin="anonymous"
+                        src={
+                          image
+                            ? cleanImageUrl(image)
+                            : "https://randomuser.me/api/portraits/women/44.jpg"
+                        }
                       />
                     )}
-                    {/* Hidden file input */}
+
+                    {/* Hidden File Input */}
                     <input
                       type="file"
                       accept="image/*"
@@ -2324,3543 +2268,2273 @@ function CandidateProfile() {
                       onChange={handleFileChange}
                     />
 
-                    {/* Edit icon */}
+                    {/* Camera Edit Button */}
                     <div
-                      className="img-edit-icon"
+                      className="saas-avatar-edit-btn"
+                      title="Upload Photo"
                       onClick={() => fileInputRef.current.click()}
+                      style={{ cursor: "pointer" }}
                     >
-                      <i className="fas fa-pencil-alt" />
+                      <i className="fas fa-camera" />
                     </div>
                   </div>
-                  <div className="candidates-details-info">
-                    <h3>
-                      <strong>Name:</strong> {profileData.first_name}{" "}
-                      {profileData.last_name}
-                    </h3>
+                  <h3 className="profile-name">
+                    {" "}
+                    {profileData.first_name} {profileData.last_name}
+                  </h3>
+                  <p className="profile-title">{profileData.position}</p>
+                  <div className="profile-stats-grid">
+                    <div className="stat-item">
+                      <span className="stat-value">
+                        {profileDetails?.experienceCount || 0}
+                      </span>
+                      <span className="stat-label">Exp</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-value">
+                        {profileDetails?.educationCount || 0}
+                      </span>
+                      <span className="stat-label">Edu</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-value">
+                        {profileDetails?.skillsCount || 0}
+                      </span>
+                      <span className="stat-label">Skills</span>
+                    </div>
+                  </div>
+                  <div className="completion-bar-container">
+                    <div className="progress-label">
+                      <span>Profile Completion</span>
+                      <span>85%</span>
+                    </div>
+                    <div className="progress-track">
+                      <div className="progress-fill" style={{ width: "85%" }} />
+                    </div>
+                  </div>
+                  <div className="visibility-toggle-wrapper justify-content-center mt-3 mb-4">
+                    <label className="switch mb-0">
+                      <input
+                        type="checkbox"
+                        checked={profileVisible}
+                        onChange={handleToggleVisibility}
+                      />
+                      <span className="slider round" />
+                    </label>
 
-                    <h3>
-                      <strong>Position:</strong> {profileData.position}
-                    </h3>
-                    <h3>
-                      <strong>Email:</strong> {formatEmail(profileData.email)}
-                    </h3>
+                    <span className="visibility-label ml-2">
+                      <i className="fa-regular fa-eye mr-1" />
+                      {profileVisible ? "Public" : "Private"}
+                    </span>
+                  </div>
+                  <button className="saas-btn-primary sticky-save-btn">
+                    <i className="fas fa-save" /> Save All Changes
+                  </button>
+                  <div className="mt-3 w-100">
+                    <button
+                      className="btn btn-outline-primary w-100"
+                      onClick={(e) => {
+                        setShowModal(true);
+                      }}
+                    >
+                      <i className="fas fa-file-pdf" /> CV Auto Extractor
+                    </button>
 
-                    <h3>
-                      <strong>Contact:</strong> {profileData.phone}
-                    </h3>
-                    <h3>
-                      <strong>Address:</strong> {profileData.city}
-                    </h3>
+                    <input
+                      accept=".pdf,.doc,.docx"
+                      type="file"
+                      style={{ display: "none" }}
+                    />
                   </div>
                 </div>
-                <div className="profile-visibility-info-area">
-                  <span className="visibility-icon-content">
-                    <i className="fa-regular fa-eye" />{" "}
-                    {profileVisible ? "Visible" : "Hidden"}
-                  </span>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={profileVisible}
-                      onChange={handleToggleVisibility}
-                    />
-                    <span className="slider round" />
-                  </label>
-                  <h6
-                    style={{
-                      "font-weight": "500",
-                      "font-size": "13px",
-                      "margin-top": "10px",
-                    }}
-                  >
-                    {profileVisible
-                      ? "Your profile is visible to employers and recruiters!"
-                      : "Make your profile information visible to employers and recruiters and get more job offers!"}
-                  </h6>
-                  <div className="candidate-personal-info-cv-linkedin-upload-btn">
-                    <div className="candidate-personal-info-upload-cv-btn">
-                      <a
-                        href="#"
-                        className="default-btn btn"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowModal(true);
+              </div>
+              <div className="saas-main-content">
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-user" /> Personal Information
+                    </h4>
+
+                    {editPersonal ? (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setEditPersonal(false)}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => {
+                          setPersonalDetails({
+                            firstName: profileData?.first_name || "",
+                            lastName: profileData?.last_name || "",
+                            email: profileData?.email || "",
+                            phone: profileData?.phone || "",
+                            countryCode: profileData?.countryCode || "",
+                            birthYear: profileData?.date_of_birth
+                              ? new Date(profileData.date_of_birth)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : "",
+                            gender: profileData?.gender || "",
+                            city: profileData?.city || "",
+                            nationality: profileData?.Nationality || "",
+                          });
+                          setEditPersonal(true);
                         }}
                       >
-                        <i className="fa-solid fa-file" />
-                        CV Auto Extractor
-                      </a>
-                      {showModal && (
-                        <div className="modal show d-block" tabIndex="-1">
-                          <div className="modal-dialog">
-                            <div className="modal-content">
-                              <div className="modal-header">
-                                <h5 className="modal-title">Upload CV</h5>
-                                <button
-                                  type="button"
-                                  className="btn-close"
-                                  onClick={() => {
-                                    setShowModal(false);
-                                    setFile(null); // clear selected file
-                                    setFormData1((prev) => ({
-                                      ...prev,
-                                      attachment: null, // clear from formData
-                                    }));
-                                  }}
-                                />
-                              </div>
+                        <i className="fas fa-pencil-alt" /> Edit
+                      </button>
+                    )}
+                  </div>
 
-                              <div className="modal-body">
-                                <div className="form-group">
-                                  <div
-                                    className="custom-file-upload text-center"
-                                    onDragOver={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.classList.add(
-                                        "drag-active",
-                                      );
-                                    }}
-                                    onDragLeave={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.classList.remove(
-                                        "drag-active",
-                                      );
-                                    }}
-                                    onDrop={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.classList.remove(
-                                        "drag-active",
-                                      );
+                  {editPersonal ? (
+                    /* ================= EDIT FORM ================= */
+                    <form className="saas-form-grid row">
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">First Name</label>
+                        <input
+                          className="saas-input"
+                          type="text"
+                          value={personalDetails.firstName}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
 
-                                      const droppedFiles = e.dataTransfer.files;
-                                      if (
-                                        droppedFiles &&
-                                        droppedFiles.length > 0
-                                      ) {
-                                        // ✅ Reuse your existing handler
-                                        const fakeEvent = {
-                                          target: { files: droppedFiles },
-                                        };
-                                        handleFileChange1(fakeEvent);
-                                      }
-                                    }}
-                                  >
-                                    <label
-                                      htmlFor="file-upload"
-                                      className="fw-bold"
-                                    >
-                                      Upload Your File (PDF/DOC/DOCX)
-                                    </label>
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Last Name</label>
+                        <input
+                          className="saas-input"
+                          type="text"
+                          value={personalDetails.lastName}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              lastName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
 
-                                    <input
-                                      type="file"
-                                      id="file-upload"
-                                      accept=".pdf,.doc,.docx"
-                                      required
-                                      onChange={handleFileChange1}
-                                      className="input-hidden"
-                                    />
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Email</label>
+                        <input
+                          className="saas-input"
+                          type="email"
+                          value={personalDetails.email}
+                          readOnly
+                        />
+                      </div>
 
-                                    <label
-                                      htmlFor="file-upload"
-                                      className="file-text cursor-pointer"
-                                    >
-                                      <i
-                                        className="fas fa-cloud-upload-alt"
-                                        style={{
-                                          fontSize: "30px",
-                                          color: "#007bff",
-                                        }}
-                                      />
-                                      <br />
-                                      Click to Upload or drag & drop
-                                    </label>
+                      {/* Phone */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Phone</label>
 
-                                    {error && (
-                                      <div className="invalid-feedback d-block mt-2">
-                                        {error}
-                                      </div>
-                                    )}
-                                    {file && (
-                                      <div className="mt-2 text-success">
-                                        Selected: {file.name}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="text-center">
-                                    <button
-                                      type="button"
-                                      className="mt-3 default-btn btn"
-                                      onClick={uploadResume}
-                                      disabled={isUploading || isExtracting}
-                                    >
-                                      {isUploading || isExtracting ? (
-                                        <>
-                                          <span
-                                            className="spinner-border spinner-border-sm me-2"
-                                            role="status"
-                                          />
-                                          {isUploading
-                                            ? "Uploading..."
-                                            : "Extracting Resume..."}
-                                        </>
-                                      ) : (
-                                        "Upload"
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              {(isUploading || isExtracting) && (
-                                <div
-                                  className="position-absolute top-0 start-0 w-100 h-100 d-flex
-       justify-content-center align-items-center bg-white bg-opacity-75"
-                                  style={{ zIndex: 1050 }}
-                                >
-                                  <div className="text-center">
-                                    <div className="spinner-border text-primary mb-3" />
-                                    <p className="fw-bold">
-                                      {isUploading
-                                        ? "Uploading resume..."
-                                        : "Extracting information from resume..."}
-                                    </p>
-                                  </div>
-                                </div>
+                        <div className="d-flex gap-2">
+                          <div style={{ width: "140px" }}>
+                            <Select
+                              options={countryOptions}
+                              value={countryOptions.find(
+                                (option) =>
+                                  String(option.value) ===
+                                  String(personalDetails.countryCode),
                               )}
-                            </div>
+                              onChange={(selected) =>
+                                setPersonalDetails({
+                                  ...personalDetails,
+                                  countryCode: selected.value,
+                                })
+                              }
+                              isSearchable
+                            />
                           </div>
-                        </div>
-                      )}
-                      {/* Modal */}
-                      <div
-                        className="modal fade"
-                        id="exampleModal"
-                        tabIndex={-1}
-                        aria-labelledby="exampleModalLabel"
-                        aria-hidden="true"
-                      >
-                        <div className="modal-dialog">
-                          <div className="modal-content">
-                            <div className="modal-header">
-                              <h5
-                                className="modal-title"
-                                id="exampleModalLabel"
-                              >
-                                Upload CV
-                              </h5>
-                              <button
-                                type="button"
-                                className="btn-close"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                              />
-                            </div>
-                            <div className="modal-body">
-                              <div className="form-group">
-                                <div className="custom-file-upload text-center">
-                                  <label>
-                                    {" "}
-                                    Upload Your File (PDF/DOC/DOCX)
-                                  </label>
 
-                                  {/* Hidden File Input */}
-                                  <input
-                                    type="file"
-                                    id="file-upload"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    // accept="*/*"
-                                    style={{ display: "none" }}
-                                    onChange={(e) => {
-                                      handleUploadCv(e);
-
-                                      // Close modal after upload
-                                      const modalEl =
-                                        document.getElementById("exampleModal");
-                                      const modal =
-                                        window.bootstrap.Modal.getInstance(
-                                          modalEl,
-                                        );
-                                      modal.hide();
-                                    }}
-                                    required
-                                  />
-
-                                  {/* Clickable + Drag & Drop Area */}
-                                  <div
-                                    className="file-text cursor-pointer border-primary p-3 rounded"
-                                    onClick={() =>
-                                      document
-                                        .getElementById("file-upload")
-                                        .click()
-                                    }
-                                    onDragOver={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.style.backgroundColor =
-                                        "#f1f9ff"; // light blue shade
-                                      e.currentTarget.style.border =
-                                        "2px dashed #007bff";
-                                    }}
-                                    onDragLeave={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.style.backgroundColor =
-                                        "transparent";
-                                      e.currentTarget.style.border =
-                                        "1px solid #007bff";
-                                    }}
-                                    onDrop={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.currentTarget.style.backgroundColor =
-                                        "transparent";
-                                      e.currentTarget.style.border =
-                                        "1px solid #007bff";
-
-                                      const files = e.dataTransfer.files;
-                                      if (files && files.length > 0) {
-                                        const fakeEvent = { target: { files } };
-                                        handleUploadCv(fakeEvent);
-
-                                        // Close modal after drop
-                                        const modalEl =
-                                          document.getElementById(
-                                            "exampleModal",
-                                          );
-                                        const modal =
-                                          window.bootstrap.Modal.getInstance(
-                                            modalEl,
-                                          );
-                                        modal.hide();
-                                      }
-                                    }}
-                                    style={{
-                                      cursor: "pointer",
-
-                                      transition: "all 0.2s ease",
-                                    }}
-                                  >
-                                    <i
-                                      className="fas fa-cloud-upload-alt"
-                                      style={{
-                                        fontSize: "30px",
-                                        color: "#007bff",
-                                      }}
-                                    />
-                                    <br />
-                                    <label style={{ cursor: "pointer" }}>
-                                      Click to Upload or drag &amp; drop
-                                    </label>
-                                  </div>
-
-                                  <div className="invalid-feedback mt-2">
-                                    Please select a file.
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="candidate-profile-detail-info">
-              <div className="accordion" id="accordionExample">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingOne">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Personal Details</h3>
-                        {checkStatus.personalDetails === 0 ? (
-                          <i
-                            className="fa-solid fa-plus"
-                            onClick={() => {
+                          <input
+                            className="saas-input"
+                            type="text"
+                            value={personalDetails.phone}
+                            onChange={(e) =>
                               setPersonalDetails({
-                                firstName: "",
-                                lastName: "",
-                                email: "",
-                                phone: "",
-                                countryCode: "",
-                                birthYear: "",
-                                gender: "",
-                                city: "",
-                                nationality: "",
-                              }); // empty for new
-                              setEditPersonal(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseOne"); // ✅ FIXED
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        ) : (
-                          <i
-                            className="fas fa-pencil-alt"
-                            onClick={() => {
-                              // pre-fill form with existing data
-
-                              setPersonalDetails({
-                                firstName: profileData?.first_name || "",
-                                lastName: profileData?.last_name || "",
-                                email: profileData?.email || "",
-                                phone: profileData?.phone || "",
-                                countryCode: profileData?.countryCode || "",
-                                birthYear: profileData?.date_of_birth
-                                  ? new Date(profileData.date_of_birth)
-                                      .toISOString()
-                                      .split("T")[0]
-                                  : "", // ✅ formats to "2025-08-29"
-                                gender: profileData?.gender || "",
-                                city: profileData?.city || "",
-                                nationality: profileData?.Nationality || "",
-                              });
-
-                              setEditPersonal(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseOne"); // ✅ FIXED
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        )}
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseOne"
-                        aria-expanded="false"
-                        aria-controls="collapseOne"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    id="collapseOne"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingOne"
-                    data-bs-parent="#accordionExample"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {editPersonal || checkStatus.personalDetails === 0 ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>First Name</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Enter Your First Name"
-                                        value={personalDetails.firstName}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            firstName: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Last Name</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Enter Your Last Name"
-                                        value={personalDetails.lastName}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            lastName: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Email (cannot change)</label>
-                                      <input
-                                        className="form-control"
-                                        placeholder="Email"
-                                        type="email"
-                                        readOnly
-                                        value={personalDetails.email}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            email: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div
-                                    className="col-lg-6 col-md-12"
-                                    ref={containerRef}
-                                    style={{ position: "relative" }}
-                                  >
-                                    <div className="form-group">
-                                      <label>Country code</label>
-
-                                      <Select
-                                        options={countryOptions}
-                                        placeholder="Select country code"
-                                        isSearchable={true}
-                                        value={countryOptions.find(
-                                          (opt) =>
-                                            String(opt.value) ===
-                                            personalDetails.countryCode,
-                                        )}
-                                        onChange={(selected) => {
-                                          setPersonalDetails((prev) => ({
-                                            ...prev,
-                                            countryCode: String(selected.value), // ✅ FIX HERE
-                                          }));
-                                        }}
-                                        styles={{
-                                          control: (base) => ({
-                                            ...base,
-                                            height: "45px",
-                                            borderColor: "#ced4da",
-                                          }),
-                                        }}
-                                      />
-                                    </div>
-
-                                    {open && (
-                                      <ul
-                                        className="list-group"
-                                        style={{
-                                          position: "absolute",
-                                          width: "100%",
-                                          maxHeight: "250px",
-                                          overflowY: "auto",
-                                          zIndex: 9999,
-                                        }}
-                                      >
-                                        {filteredCountries.length > 0 ? (
-                                          filteredCountries.map((c) => (
-                                            <li
-                                              key={c._id}
-                                              className="list-group-item list-group-item-action d-flex align-items-center"
-                                              onClick={() => handleSelect(c)}
-                                              style={{ cursor: "pointer" }}
-                                            >
-                                              {c.emoji?.toUpperCase()} +
-                                              {c.phonecode} {c.name}
-                                            </li>
-                                          ))
-                                        ) : (
-                                          <li className="list-group-item text-muted text-center">
-                                            No country code found
-                                          </li>
-                                        )}
-                                      </ul>
-                                    )}
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Phone Number</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Enter Your Phone Number"
-                                        value={personalDetails.phone}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            phone: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Year Of Birth</label>
-                                      <input
-                                        className="form-control"
-                                        type="date"
-                                        max={
-                                          new Date(
-                                            new Date().setFullYear(
-                                              new Date().getFullYear() - 18,
-                                            ),
-                                          )
-                                            .toISOString()
-                                            .split("T")[0]
-                                        }
-                                        value={personalDetails.birthYear}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            birthYear: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Gender Identity</label>
-                                      <select
-                                        className="form-control"
-                                        value={personalDetails.gender}
-                                        placeholder="Enter your gender identity"
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            gender: e.target.value,
-                                          })
-                                        }
-                                      >
-                                        <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Country</label>
-                                      <select
-                                        className="form-select form-control"
-                                        value={personalDetails.nationality}
-                                        onChange={(e) =>
-                                          setPersonalDetails({
-                                            ...personalDetails,
-                                            nationality: e.target.value,
-                                          })
-                                        }
-                                      >
-                                        <option value="">Select Country</option>
-                                        {countries?.length > 0 &&
-                                          countries.map((country, idx) => (
-                                            <option
-                                              key={idx}
-                                              value={country.name || country}
-                                            >
-                                              {country.name || country}
-                                            </option>
-                                          ))}
-                                      </select>
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group position-relative">
-                                      <label>City</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Enter city"
-                                        name="city"
-                                        value={personalDetails.city}
-                                        onChange={handleCitySearch}
-                                        autoComplete="off"
-                                      />
-
-                                      {/* Suggestions Dropdown */}
-                                      {loading && (
-                                        <div className="suggestion-box">
-                                          Searching...
-                                        </div>
-                                      )}
-                                      {!loading &&
-                                        citySuggestions?.length > 0 && (
-                                          <ul
-                                            className="list-group position-absolute w-100"
-                                            style={{
-                                              zIndex: 1000,
-                                              maxHeight: "200px",
-                                              overflowY: "auto",
-                                            }}
-                                          >
-                                            {citySuggestions?.map((city) => (
-                                              <li
-                                                key={city._id}
-                                                className="list-group-item list-group-item-action"
-                                                onClick={() =>
-                                                  handleSelectCity(city)
-                                                }
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                {city.name}, {city.state_name},{" "}
-                                                {city.country_name}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        )}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSavePersonal}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => setEditPersonal(false)}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="user-all-detail-info-main">
-                            <div className="user-all-details-info">
-                              <div className="row">
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>First name</label>
-                                    <p>{profileData.first_name || "N/A"}</p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Last name</label>
-                                    <p>{profileData.last_name || "N/A"}</p>
-                                  </div>
-                                </div>
-                                <div className="divder-line-info" />
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Email (cannot change)</label>
-                                    <p>{profileData.email || "N/A"}</p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Country Code</label>
-                                    <p>
-                                      <p>
-                                        +{profileData?.countryCode || "N/A"}
-                                      </p>
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Phone number</label>
-                                    <p>{profileData?.phone || "N/A"}</p>
-                                  </div>
-                                </div>
-                                <div className="divder-line-info" />
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Year of birth</label>
-                                    <p>
-                                      {profileData.date_of_birth
-                                        ? new Date(profileData.date_of_birth)
-                                            .toISOString()
-                                            .split("T")[0]
-                                        : "N/A"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Gender Identity</label>
-                                    <p>{profileData.gender || "N/A"}</p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Country</label>
-                                    <p>{profileData.Nationality || "N/A"}</p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>City</label>
-                                    <p>{profileData.city || "N/A"}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="accordion" id="professionalSummary">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingTwo">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Professional Summary</h3>
-
-                        {/* ✅ Show icon conditionally */}
-                        {checkStatus.professionalSummary === 0 ? (
-                          <i
-                            className="fa-solid fa-plus"
-                            onClick={() => {
-                              setSummary(""); // empty for new
-                              setEditMode(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseTwo");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        ) : (
-                          <i
-                            className="fas fa-pencil-alt"
-                            onClick={() => {
-                              // pre-fill textarea with existing summary
-                              setSummary(
-                                profileData?.professionalSummary || "",
-                              );
-                              setEditMode(true);
-
-                              // expand accordion
-                              const collapseElement =
-                                document.getElementById("collapseTwo");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        )}
-                      </div>
-
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseTwo"
-                        aria-expanded="true"
-                        aria-controls="collapseTwo"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseTwo"
-                    className="accordion-collapse collapse collapse"
-                    aria-labelledby="headingTwo"
-                    data-bs-parent="#professionalSummary"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {editMode || checkStatus.professionalSummary === 0 ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label>Professional Summary</label>
-                                      <textarea
-                                        className="form-control"
-                                        placeholder="Write Brief Bio Or Introduction"
-                                        rows={7}
-                                        value={summary}
-                                        onChange={(e) =>
-                                          setSummary(e.target.value)
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSave}
-                                  >
-                                    Save
-                                  </button>
-                                  {/* <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => {
-                                      setEditMode(false);
-                                    }}
-                                  >
-                                    Cancel
-                                  </button> */}
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => {
-                                      setEditMode(false);
-
-                                      // also collapse the accordion manually
-                                      const collapseElement =
-                                        document.getElementById("collapseTwo");
-                                      if (
-                                        collapseElement &&
-                                        collapseElement.classList.contains(
-                                          "show",
-                                        )
-                                      ) {
-                                        new window.bootstrap.Collapse(
-                                          collapseElement,
-                                          { toggle: true },
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          /* ✅ Otherwise show user info */
-                          <div className="user-all-detail-info-main">
-                            <div className="user-all-details-info">
-                              <div className="row">
-                                <div className="col-lg-12 col-md-12">
-                                  <div className="form-group">
-                                    <label>Professional Summary</label>
-                                    <p>
-                                      {profileData?.professionalSummary ||
-                                        "No professional summary added yet."}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="coveLatter">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingFour">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>My CVs</h3>
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseFour"
-                        aria-expanded="true"
-                        aria-controls="collapseFour"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseFour"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingFour"
-                    data-bs-parent="#myCvs"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form">
-                          <form>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
-                                {/* ✅ CV LIST */}
-                                {cvFiles.length > 0 ? (
-                                  cvFiles.map((cv, index) => {
-                                    // Case 1: API response object → has `_id` + `url`
-                                    // Case 2: Newly uploaded file → has `name` but no `url`
-                                    const fileUrl =
-                                      typeof cv === "string"
-                                        ? `${API_IMAGE_URL}${cv}`
-                                        : cv?.url
-                                          ? `${API_IMAGE_URL}${cv.url}`
-                                          : null;
-
-                                    const fileName =
-                                      typeof cv === "string"
-                                        ? decodeURIComponent(
-                                            cv.split("/").pop(),
-                                          )
-                                        : cv?.url
-                                          ? decodeURIComponent(
-                                              cv.url.split("/").pop(),
-                                            )
-                                          : cv?.name || "Unknown file";
-
-                                    return (
-                                      <div
-                                        key={cv._id || index}
-                                        className="upload-download-dlt-cv d-flex justify-content-between align-items-center mb-2"
-                                      >
-                                        {/* File name */}
-                                        <div className="upload-cv-info-area">
-                                          <p>
-                                            <i className="fas fa-file-alt" />{" "}
-                                            {fileName}
-                                          </p>
-                                        </div>
-
-                                        {/* 3-dot menu */}
-                                        <div className="download-dlt-cv position-relative">
-                                          <i
-                                            className="fas fa-ellipsis-v"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={() =>
-                                              setMenuOpenId(
-                                                menuOpenId === (cv._id || index)
-                                                  ? null
-                                                  : cv._id || index,
-                                              )
-                                            }
-                                          />
-                                          {menuOpenId === (cv._id || index) && (
-                                            <div className="download-edit-info">
-                                              <ul>
-                                                {fileUrl && (
-                                                  <li
-                                                    onClick={() =>
-                                                      window.open(
-                                                        fileUrl,
-                                                        "_blank",
-                                                      )
-                                                    }
-                                                  >
-                                                    <i className="fa-solid fa-arrow-down" />{" "}
-                                                    Download
-                                                  </li>
-                                                )}
-                                                <li
-                                                  onClick={() =>
-                                                    handleDeleteCv(
-                                                      cv._id || index,
-                                                    )
-                                                  }
-                                                >
-                                                  <i className="fa-solid fa-trash" />{" "}
-                                                  Delete
-                                                </li>
-                                              </ul>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })
-                                ) : (
-                                  <p
-                                    className="text-center"
-                                    style={{ padding: "2px" }}
-                                  >
-                                    No CVs uploaded yet.
-                                  </p>
-                                )}
-
-                                {/* ✅ Upload Input */}
-                                {/* ✅ Upload Input */}
-                                <div className="upload-cv-area mt-3">
-                                  <input
-                                    type="file"
-                                    name="resume"
-                                    accept=".pdf,.doc,.docx"
-                                    multiple
-                                    onChange={handleUploadCv}
-                                    disabled={cvFiles.length >= 3} // 🚫 disable when limit reached
-                                  />
-                                  {cvFiles.length >= 3 && (
-                                    <p className="text-danger mt-2">
-                                      You can upload up to 3 CVs. To upload a
-                                      new CV, delete an existing one.
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="coveLatter">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingFour">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Cover Letter</h3>
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseFour1"
-                        aria-expanded="true"
-                        aria-controls="collapseFour1"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseFour1"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingFour"
-                    data-bs-parent="#coveLatter"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form">
-                          <form>
-                            <div className="row">
-                              <div className="col-lg-12 col-md-12">
-                                {/* ✅ CV LIST */}
-                                {coverLetters.length > 0 ? (
-                                  coverLetters.map((cl, index) => {
-                                    const fileUrl =
-                                      typeof cl === "string"
-                                        ? `${API_IMAGE_URL}${cl}`
-                                        : cl?.url
-                                          ? `${API_IMAGE_URL}${cl.url}`
-                                          : null;
-
-                                    const fileName =
-                                      typeof cl === "string"
-                                        ? decodeURIComponent(
-                                            cl.split("/").pop(),
-                                          )
-                                        : cl?.url
-                                          ? decodeURIComponent(
-                                              cl.url.split("/").pop(),
-                                            )
-                                          : cl?.name || "Unknown file";
-
-                                    return (
-                                      <div
-                                        key={cl._id || index}
-                                        className="upload-download-dlt-cv d-flex justify-content-between align-items-center mb-2"
-                                      >
-                                        <div className="upload-cv-info-area">
-                                          <p>
-                                            <i className="fas fa-file-alt" />{" "}
-                                            {fileName}
-                                          </p>
-                                        </div>
-
-                                        <div className="download-dlt-cv position-relative">
-                                          <i
-                                            className="fas fa-ellipsis-v"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={() =>
-                                              setMenuOpenIdCL(
-                                                menuOpenIdCL ===
-                                                  (cl._id || index)
-                                                  ? null
-                                                  : cl._id || index,
-                                              )
-                                            }
-                                          />
-                                          {menuOpenIdCL ===
-                                            (cl._id || index) && (
-                                            <div className="download-edit-info">
-                                              <ul>
-                                                {fileUrl && (
-                                                  <li
-                                                    onClick={() =>
-                                                      window.open(
-                                                        fileUrl,
-                                                        "_blank",
-                                                      )
-                                                    }
-                                                  >
-                                                    <i className="fa-solid fa-arrow-down" />{" "}
-                                                    Download
-                                                  </li>
-                                                )}
-                                                <li
-                                                  onClick={() =>
-                                                    handleDeleteCoverLetter(
-                                                      cl._id || index,
-                                                    )
-                                                  }
-                                                >
-                                                  <i className="fa-solid fa-trash" />{" "}
-                                                  Delete
-                                                </li>
-                                              </ul>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })
-                                ) : (
-                                  <p
-                                    className="text-center"
-                                    style={{ padding: "2px" }}
-                                  >
-                                    No Cover Letters uploaded yet.
-                                  </p>
-                                )}
-
-                                {/* ✅ Upload Input */}
-                                <div className="upload-cv-area mt-3">
-                                  <input
-                                    type="file"
-                                    name="coverLetter"
-                                    accept=".pdf, .doc, .docx"
-                                    multiple
-                                    onChange={handleUploadCoverLetter}
-                                    disabled={coverLetters.length >= 3}
-                                  />
-                                  {coverLetters.length >= 3 && (
-                                    <p className="text-danger mt-2">
-                                      You can upload up to 3 Cover Letters. To
-                                      upload a new one, delete an existing one.
-                                    </p>
-                                  )}
-                                </div>
-
-                                {/* ✅ Upload Input */}
-                                {/* ✅ Upload Input */}
-                              </div>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="accordionCareerGoals">
-                {" "}
-                {/* ✅ unique parent ID */}
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingCareerGoals">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Career Goals</h3>
-                        {checkStatus.careerGoals === 0 ? (
-                          <i
-                            className="fa-solid fa-plus"
-                            onClick={() => {
-                              setCareerGoalsData({
-                                desiredJobTitle: "",
-                                employmentType: "",
-                                occupationType: "",
-                                availabilityToJoin: "Immediate",
-                                salaryAmount: "",
-                                salaryCurrency: "MAD",
-                                salaryType: "Hourly",
-                                lookingForJob: "",
-                                eligibleToWork: false,
-                              });
-                              setEditMode(true);
-
-                              const collapseElement = document.getElementById(
-                                "collapseCareerGoals",
-                              );
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        ) : (
-                          <i
-                            className="fas fa-pencil-alt"
-                            onClick={() => {
-                              setCareerGoalsData({
-                                desiredJobTitle:
-                                  profileData.career_goals?.DesiredJobTitle ||
-                                  "",
-                                employmentType:
-                                  profileData.career_goals
-                                    ?.DesiredEmploymentType || "",
-                                occupationType:
-                                  profileData.career_goals
-                                    ?.DesiredOccupationType || "",
-
-                                availabilityToJoin:
-                                  profileData.career_goals
-                                    ?.availabilityToJoin || "Immediate",
-                                salaryAmount:
-                                  profileData.career_goals?.MinimumDesiredSalary
-                                    ?.amount || "",
-                                salaryCurrency:
-                                  profileData.career_goals?.MinimumDesiredSalary
-                                    ?.currency || "EUR",
-                                salaryType:
-                                  profileData.career_goals?.MinimumDesiredSalary
-                                    ?.type || "Hourly",
-                                lookingForJob:
-                                  profileData.career_goals?.jobSearchStatus ||
-                                  "",
-                                eligibleToWork:
-                                  profileData.eligibleToWorkInFrance ?? false,
-                              });
-                              setEditMode(true);
-
-                              const collapseElement = document.getElementById(
-                                "collapseCareerGoals",
-                              );
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        )}
-                      </div>
-
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseCareerGoals"
-                        aria-expanded="false"
-                        aria-controls="collapseCareerGoals"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseCareerGoals"
-                    className="accordion-collapse collapse" // ✅ 'collapse' only, no 'show'
-                    aria-labelledby="headingCareerGoals"
-                    data-bs-parent="#accordionCareerGoals"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {editMode || checkStatus.careerGoals === 0 ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  {/* Desired Job Title */}
-                                  <div className="col-lg-6 col-md-12">
-                                    <div className="form-group">
-                                      <label>Desired Job Title</label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        name="desiredJobTitle"
-                                        value={careerGoalsData.desiredJobTitle}
-                                        onChange={handleCareerGoalsChange}
-                                        placeholder="Desired Job Title"
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Employment Type */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Job Type</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="employmentType"
-                                        value={careerGoalsData.employmentType}
-                                        onChange={handleCareerGoalsChange}
-                                      >
-                                        <option value="">
-                                          Select Employment Type
-                                        </option>
-
-                                        {jobTypes?.map((job) => (
-                                          <option
-                                            key={job._id}
-                                            value={job.name}
-                                          >
-                                            {job.name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* Occupation Type */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Desired Occupation Type</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="occupationType"
-                                        value={careerGoalsData.occupationType}
-                                        onChange={handleCareerGoalsChange}
-                                      >
-                                        <option value="">
-                                          Select Occupation Type
-                                        </option>
-
-                                        {occupationTypes?.map((item) => (
-                                          <option
-                                            key={item._id}
-                                            value={item.name}
-                                          >
-                                            {item.name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* Is Available */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Available to Join</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="availabilityToJoin"
-                                        value={
-                                          careerGoalsData.availabilityToJoin
-                                        }
-                                        onChange={handleCareerGoalsChange}
-                                      >
-                                        <option disabled>
-                                          Select Available to Join
-                                        </option>
-
-                                        <option value="Immediate">
-                                          Immediate
-                                        </option>
-                                        <option value="15 Days">15 Days</option>
-                                        <option value="30 days">30 days</option>
-                                        <option value="45 Days">45 Days</option>
-                                        <option value="60 Days">60 Days</option>
-                                        <option value="90 Days">90 Days</option>
-                                        <option value="Negotiable">
-                                          Negotiable
-                                        </option>
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* Eligible to work */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Other Preferences</label>
-                                      <div className="currently-working-here">
-                                        <input
-                                          type="checkbox"
-                                          id="eligibleToWork"
-                                          name="eligibleToWork"
-                                          className="mb-2"
-                                          checked={
-                                            careerGoalsData.eligibleToWork
-                                          }
-                                          onChange={handleCareerGoalsChange}
-                                        />
-                                        <label htmlFor="eligibleToWork">
-                                          I am eligible to work in France
-                                        </label>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Salary */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>
-                                        Minimum Desired Salary (Gross)
-                                      </label>
-                                      <div className="form-group mb-2">
-                                        {[
-                                          "Hourly",
-                                          "Daily",
-                                          "Monthly",
-                                          "Yearly",
-                                        ].map((type) => (
-                                          <span key={type} className="me-2">
-                                            <input
-                                              type="radio"
-                                              id={type}
-                                              name="salaryType"
-                                              value={type}
-                                              checked={
-                                                careerGoalsData.salaryType ===
-                                                type
-                                              }
-                                              onChange={handleCareerGoalsChange}
-                                            />
-                                            &nbsp;
-                                            <label htmlFor={type}>{type}</label>
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="col-lg-3 col-md-6">
-                                    <div className="form-group">
-                                      <select
-                                        className="form-select form-control"
-                                        name="salaryCurrency"
-                                        value={careerGoalsData.salaryCurrency}
-                                        onChange={handleCareerGoalsChange}
-                                      >
-                                        <option value="MAD">MAD</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="USD">USD</option>
-                                        <option value="JPY">JPY</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="AUD">AUD</option>
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* <div className="col-lg-9 col-md-9">
-                                    <div className="form-group">
-                                      <select
-                                        className="form-control mb-2"
-                                        name="salaryAmount"
-                                        value={careerGoalsData.salaryAmount}
-                                        onChange={handleCareerGoalsChange}
-                                      >
-                                        <option value="">
-                                          Select Desired Salary
-                                        </option>
-
-                                        {salaryRanges.map((item) => (
-                                          <option
-                                            key={item._id}
-                                            value={item.range}
-                                          >
-                                            {item.range}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div> */}
-                                  <div className="col-lg-9 col-md-9">
-                                    <div className="form-group">
-                                      <input
-                                        type="text"
-                                        className="form-control mb-2"
-                                        name="salaryAmount"
-                                        placeholder="Enter Desired Salary"
-                                        value={careerGoalsData.salaryAmount}
-                                        onChange={handleCareerGoalsChange}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Looking for job */}
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label>
-                                        Looking for a new job opportunity?
-                                      </label>
-                                      <div className="form-group">
-                                        <input
-                                          type="radio"
-                                          id="immediate"
-                                          name="lookingForJob"
-                                          value="Yes, I need one as soon as possible"
-                                          checked={
-                                            careerGoalsData.lookingForJob ===
-                                            "Yes, I need one as soon as possible"
-                                          }
-                                          onChange={handleCareerGoalsChange}
-                                        />
-                                        &nbsp;
-                                        <label htmlFor="immediate">
-                                          Yes, I need one as soon as possible
-                                        </label>
-                                        <input
-                                          type="radio"
-                                          id="open"
-                                          name="lookingForJob"
-                                          value="Open to the right opportunity"
-                                          checked={
-                                            careerGoalsData.lookingForJob ===
-                                            "Open to the right opportunity"
-                                          }
-                                          onChange={handleCareerGoalsChange}
-                                          className="ms-2"
-                                        />
-                                        &nbsp;
-                                        <label htmlFor="open">
-                                          Open to the right opportunity
-                                        </label>
-                                        <input
-                                          type="radio"
-                                          id="no"
-                                          name="lookingForJob"
-                                          value="No, I'm not looking"
-                                          checked={
-                                            careerGoalsData.lookingForJob ===
-                                            "No, I'm not looking"
-                                          }
-                                          onChange={handleCareerGoalsChange}
-                                          className="ms-2"
-                                        />
-                                        &nbsp;
-                                        <label htmlFor="no">
-                                          No, I'm not looking
-                                        </label>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Save/Cancel Buttons */}
-                                <div className="save-cancel-btn-info mt-3">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSaveGoals}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => setEditMode(false)}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          // Display Existing Career Goals
-                          <div className="user-all-detail-info-main">
-                            <div className="user-all-details-info">
-                              <div className="row">
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Desired Job Title</label>
-                                    <p>
-                                      {profileData.career_goals
-                                        ?.DesiredJobTitle || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Job Type</label>
-                                    <p>
-                                      {profileData.career_goals
-                                        ?.DesiredEmploymentType || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Desired Occupation Type</label>
-                                    <p>
-                                      {profileData.career_goals
-                                        ?.DesiredOccupationType || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="divder-line-info" />
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Available to Join</label>
-                                    <p>
-                                      {profileData.career_goals
-                                        ?.availabilityToJoin || ""}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>Eligible to work in</label>
-                                    <p>
-                                      {profileData.eligibleToWorkInFrance
-                                        ? "France"
-                                        : "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="divder-line-info" />
-
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>
-                                      Minimum Desired Salary (Gross)
-                                    </label>
-                                    <p>
-                                      {profileData.career_goals
-                                        ?.MinimumDesiredSalary
-                                        ? `${profileData.career_goals.MinimumDesiredSalary.currency} ${profileData.career_goals.MinimumDesiredSalary.amount} / ${profileData.career_goals.MinimumDesiredSalary.type}`
-                                        : "-"}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="col-lg-6 col-md-6">
-                                  <div className="form-group">
-                                    <label>
-                                      Looking for a new job opportunity?
-                                    </label>
-                                    <p>
-                                      {" "}
-                                      {profileData.career_goals
-                                        ?.jobSearchStatus || "-"}{" "}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="yourRole">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingSix">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>About your role</h3>
-                        {checkStatus.aboutRole === 0 ? (
-                          <i
-                            className="fa-solid fa-plus"
-                            onClick={() => {
-                              setAboutRole({
-                                jobTitle: "",
-                                yearsOfExperience: "",
-                                jobCategory: "",
-                              });
-                              setEditAboutRole(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseSix");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        ) : (
-                          <i
-                            className="fas fa-pencil-alt"
-                            onClick={() => {
-                              setAboutRole({
-                                jobTitle:
-                                  profileData?.aboutRole?.jobTitle || "",
-                                yearsOfExperience:
-                                  profileData?.aboutRole?.yearOfExperience ||
-                                  "",
-                                jobCategory:
-                                  profileData?.aboutRole?.jobCategory || "",
-                              });
-                              setEditAboutRole(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseSix");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        )}
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed" // ✅ keep 'collapsed'
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseSix"
-                        aria-expanded="false" // ✅ should be false when closed
-                        aria-controls="collapseSix"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    id="collapseSix"
-                    className="accordion-collapse collapse" // ✅ note: 'collapse' only, not 'show'
-                    aria-labelledby="headingSix"
-                    data-bs-parent="#yourRole"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {editAboutRole || checkStatus.aboutRole === 0 ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Job Title</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Job Title"
-                                        value={aboutRole.jobTitle}
-                                        onChange={(e) =>
-                                          setAboutRole({
-                                            ...aboutRole,
-                                            jobTitle: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Years of experience</label>
-                                      <input
-                                        className="form-control"
-                                        type="number"
-                                        placeholder="Years of Experience"
-                                        value={aboutRole.yearsOfExperience}
-                                        onChange={(e) =>
-                                          setAboutRole({
-                                            ...aboutRole,
-                                            yearsOfExperience: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Job Category</label>
-                                      <select
-                                        className="form-select form-control"
-                                        value={aboutRole.jobCategory}
-                                        onChange={(e) =>
-                                          setAboutRole({
-                                            ...aboutRole,
-                                            jobCategory: e.target.value,
-                                          })
-                                        }
-                                      >
-                                        <option value="">
-                                          Select Job Category
-                                        </option>
-
-                                        {/* ✅ Map dynamic categories from API */}
-                                        {categoryList?.map((category) => (
-                                          <option
-                                            key={category._id}
-                                            value={category.name}
-                                          >
-                                            {category.name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSaveAboutRole}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => setEditAboutRole(false)}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="user-all-detail-info-main">
-                            <div className="user-all-details-info">
-                              <div className="row">
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Job Title</label>
-                                    <p>
-                                      {profileData?.aboutRole?.jobTitle ||
-                                        "Not provided"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Years of experience</label>
-                                    <p>
-                                      {profileData?.aboutRole
-                                        ?.yearOfExperience || "Not provided"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="col-lg-4 col-md-6">
-                                  <div className="form-group">
-                                    <label>Job category</label>
-                                    <p>
-                                      {profileData?.aboutRole?.jobCategory ||
-                                        "Not provided"}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="accordionWorkExperience">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingSeven">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Work Experience</h3>
-
-                        {/* ✅ Always show only Add button */}
-                        <i
-                          className="fa-solid fa-plus"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setWorkExperienceData({
-                              workHistory_id: "",
-                              companyName: "",
-                              jobTitle: "",
-                              startDate: "",
-                              endDate: "",
-                              yearOfExperience: "",
-                              currentlyWorkingHere: false,
-                              currentlyWorkingHereEmp: false,
-                              Description: "",
-                              EmploymentType: "",
-                              workLocation: "",
-                              salaryAmount: "",
-                              salaryCurrency: "MAD",
-                              salaryType: "Monthly",
-                            });
-                            setEditMode(true);
-
-                            // Open collapse when adding
-                            const collapseElement =
-                              document.getElementById("collapseSeven");
-                            if (
-                              collapseElement &&
-                              !collapseElement.classList.contains("show")
-                            ) {
-                              new window.bootstrap.Collapse(collapseElement, {
-                                toggle: true,
-                              });
+                                ...personalDetails,
+                                phone: e.target.value,
+                              })
                             }
-                          }}
-                        />
-                      </div>
-
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseSeven"
-                        aria-expanded="true"
-                        aria-controls="collapseSeven"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseSeven"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingSeven"
-                    data-bs-parent="#accordionWorkExperience"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form-content from-all-input">
-                          <div className="profile-form">
-                            {editMode ? (
-                              /* ✅ FORM SECTION */
-                              <form>
-                                <div className="row">
-                                  {/* Job Title */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Job Title</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="jobTitle"
-                                        value={workExperienceData.jobTitle}
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Years of Experience */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Years of Experience</label>
-                                      <input
-                                        className="form-control"
-                                        type="number"
-                                        name="yearOfExperience"
-                                        value={
-                                          workExperienceData.yearOfExperience
-                                        }
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Company Name */}
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label>Company Name</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="companyName"
-                                        value={workExperienceData.companyName}
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="currently-working-here">
-                                    <input
-                                      type="checkbox"
-                                      id="CurrentlyWorking"
-                                      name="currentlyWorkingHereEmp"
-                                      checked={
-                                        workExperienceData.currentlyWorkingHereEmp
-                                      }
-                                      onChange={handleChangeOfWork}
-                                    />
-                                    <label htmlFor="CurrentlyWorking">
-                                      &nbsp;Keep my current employer anonymous
-                                    </label>
-                                  </div>
-                                  {/* Start / End Date */}
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Start Date</label>
-                                      <input
-                                        className="form-control"
-                                        type="date"
-                                        name="startDate"
-                                        value={workExperienceData.startDate}
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>End Date</label>
-                                      <input
-                                        className="form-control"
-                                        type="date"
-                                        name="endDate"
-                                        value={workExperienceData.endDate}
-                                        onChange={handleChangeOfWork}
-                                        disabled={
-                                          workExperienceData.currentlyWorkingHere
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Checkbox */}
-                                  <div className="currently-working-here">
-                                    <input
-                                      type="checkbox"
-                                      id="CurrentlyWorking"
-                                      name="currentlyWorkingHere"
-                                      checked={
-                                        workExperienceData.currentlyWorkingHere
-                                      }
-                                      onChange={handleChangeOfWork}
-                                    />
-                                    <label htmlFor="CurrentlyWorking">
-                                      &nbsp; I Am Currently Working Here
-                                    </label>
-                                  </div>
-
-                                  {/* Achievements */}
-                                  <div className="col-lg-12">
-                                    <div className="form-group">
-                                      <label>Achievements</label>
-                                      <textarea
-                                        className="form-control"
-                                        name="Description"
-                                        value={workExperienceData.Description}
-                                        onChange={handleChangeOfWork}
-                                        rows={7}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Employment Type */}
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label>Employment Type</label>
-
-                                      <select
-                                        className="form-select form-control"
-                                        name="EmploymentType"
-                                        value={
-                                          workExperienceData.EmploymentType ||
-                                          ""
-                                        }
-                                        onChange={handleChangeOfWork}
-                                      >
-                                        <option value="">
-                                          Select employment type
-                                        </option>
-
-                                        {jobTypes?.map((job) => (
-                                          <option
-                                            key={job._id}
-                                            value={job.name}
-                                          >
-                                            {job.name}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* Work Location */}
-                                  {/* <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label>Work Location</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        name="workLocation"
-                                        value={workExperienceData.workLocation}
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div> */}
-                                  {/* Work Location with Auto Search */}
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group position-relative">
-                                      <label>Work Location</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        placeholder="Search city"
-                                        name="workLocation"
-                                        value={workExperienceData.workLocation}
-                                        onChange={handleWorkLocationSearch} // 👈 new handler
-                                        autoComplete="off"
-                                      />
-
-                                      {/* Suggestions Dropdown */}
-                                      {loading && (
-                                        <div className="suggestion-box">
-                                          Searching...
-                                        </div>
-                                      )}
-                                      {!loading &&
-                                        citySuggestions.length > 0 && (
-                                          <ul
-                                            className="list-group position-absolute w-100"
-                                            style={{
-                                              zIndex: 1000,
-                                              maxHeight: "200px",
-                                              overflowY: "auto",
-                                            }}
-                                          >
-                                            {citySuggestions.map((city) => (
-                                              <li
-                                                key={city._id}
-                                                className="list-group-item list-group-item-action"
-                                                onClick={() =>
-                                                  handleSelectWorkLocation(city)
-                                                }
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                {city.name}, {city.state_name},{" "}
-                                                {city.country_name}
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        )}
-                                    </div>
-                                  </div>
-
-                                  {/* Salary */}
-                                  <div className="col-lg-2 col-md-2">
-                                    <div className="form-group">
-                                      <label>Currency</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="salaryCurrency"
-                                        value={
-                                          workExperienceData.salaryCurrency
-                                        }
-                                        onChange={handleChangeOfWork}
-                                      >
-                                        <option value="MAD"> MAD</option>
-
-                                        <option value="USD">USD</option>
-
-                                        <option value="EUR">EUR</option>
-                                        <option value="JPY">JPY</option>
-                                        <option value="GBP">GBP</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Salary Amount</label>
-                                      <input
-                                        className="form-control"
-                                        type="number"
-                                        name="salaryAmount"
-                                        value={workExperienceData.salaryAmount}
-                                        onChange={handleChangeOfWork}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-4 col-md-4">
-                                    <div className="form-group">
-                                      <label>Payroll Frequency</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="salaryType"
-                                        value={workExperienceData.salaryType}
-                                        onChange={handleChangeOfWork}
-                                      >
-                                        <option value="Hourly">Hourly</option>
-                                        <option value="Daily">Daily</option>
-                                        <option value="Monthly">Monthly</option>
-                                        <option value="Yearly">Yearly</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    onClick={handleSaveWorkExperience}
-                                    className="default-btn btn"
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditMode(false)}
-                                    className="default-btn btn"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            ) : (
-                              /* ✅ LIST VIEW SECTION (Multiple Items) */
-
-                              <div className="user-all-detail-info-main">
-                                {profileData?.workHistory &&
-                                profileData.workHistory.length > 0 ? (
-                                  profileData?.workHistory?.map(
-                                    (exp, index) => (
-                                      <div
-                                        key={index}
-                                        className="user-all-details-info"
-                                      >
-                                        {/* ✏️ Edit button */}
-                                        <div className="work-exprinace-edit">
-                                          <i
-                                            className="fas fa-pencil-alt"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={() => {
-                                              setWorkExperienceData({
-                                                workHistory_id: exp._id || "",
-                                                companyName:
-                                                  exp.companyName || "",
-                                                jobTitle: exp.jobTitle || "",
-                                                startDate:
-                                                  exp.startDate?.split(
-                                                    "T",
-                                                  )[0] || "",
-                                                endDate:
-                                                  exp.endDate?.split("T")[0] ||
-                                                  "",
-                                                yearOfExperience:
-                                                  exp.yearOfExperience || "",
-                                                currentlyWorkingHere:
-                                                  exp.currentlyWorkingHere ||
-                                                  false,
-                                                currentlyWorkingHereEmp:
-                                                  exp.keep_employer_anonymous ||
-                                                  false,
-
-                                                Description:
-                                                  exp.Description || "",
-                                                EmploymentType:
-                                                  exp.EmploymentType || "",
-                                                workLocation:
-                                                  exp.workLocation || "",
-                                                salaryAmount:
-                                                  exp.currentSalary?.amount ||
-                                                  "",
-                                                salaryCurrency:
-                                                  exp.currentSalary?.currency ||
-                                                  "USD",
-                                                salaryType:
-                                                  exp.currentSalary
-                                                    ?.payrollFrequency ||
-                                                  "Monthly",
-                                              });
-                                              setEditMode(true);
-
-                                              const collapseElement =
-                                                document.getElementById(
-                                                  "collapseSeven",
-                                                );
-                                              if (
-                                                collapseElement &&
-                                                !collapseElement.classList.contains(
-                                                  "show",
-                                                )
-                                              ) {
-                                                new window.bootstrap.Collapse(
-                                                  collapseElement,
-                                                  { toggle: true },
-                                                );
-                                              }
-                                            }}
-                                          />
-                                          <i
-                                            className="fas fa-trash ms-2"
-                                            style={{
-                                              cursor: "pointer",
-                                            }}
-                                            onClick={() =>
-                                              handleDeleteWorkExperience(
-                                                exp._id,
-                                              )
-                                            }
-                                          />
-                                        </div>
-
-                                        {/* Work experience display */}
-                                        <div className="row">
-                                          <div className="col-lg-12 col-md-12">
-                                            <div className="form-group">
-                                              <label>{exp.jobTitle}</label>
-                                              <p>
-                                                {exp.startDate?.split("T")[0]} -{" "}
-                                                {exp.currentlyWorkingHere
-                                                  ? "Present"
-                                                  : exp.endDate?.split("T")[0]}
-                                              </p>
-                                              <p>
-                                                <i className="fa-regular fa-building" />{" "}
-                                                {exp.companyName}
-                                              </p>
-                                              <p>{exp.EmploymentType}</p>
-                                              <label>Years of Experience</label>
-                                              <p>{exp.yearOfExperience}</p>
-                                            </div>
-                                            <div className="divder-line-info" />
-                                          </div>
-
-                                          <div className="col-lg-12 col-md-12">
-                                            <div className="form-group">
-                                              <label>Achievements</label>
-                                              <p>{exp.Description}</p>
-                                            </div>
-                                            <div className="form-group">
-                                              <label>Work Location</label>
-                                              <p>{exp.workLocation}</p>
-                                            </div>
-                                            <div className="divder-line-info" />
-                                          </div>
-
-                                          <div className="col-lg-12 col-md-12">
-                                            <div className="form-group">
-                                              <label>Salary</label>
-                                              <p>
-                                                {exp.currentSalary?.currency}{" "}
-                                                {exp.currentSalary?.amount}
-                                              </p>
-                                              <label>Payroll frequency</label>
-                                              <p>
-                                                {
-                                                  exp.currentSalary
-                                                    ?.payrollFrequency
-                                                }
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="divder-line-info-otherCompany" />
-                                        </div>
-                                      </div>
-                                    ),
-                                  )
-                                ) : (
-                                  <p className="text-muted">
-                                    No work experience added yet.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="educationDetail">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingEducation">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Education</h3>
-                        {/* Add new education */}
-                        <i
-                          className="fa-solid fa-plus"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setEducationForm({
-                              education_id: "",
-                              degree: "",
-                              University: "",
-                              startDate: "",
-                              endDate: "",
-                              currentlyStudyingHere: false,
-                            });
-                            setIsEditing(true);
-
-                            const collapseElement =
-                              document.getElementById("collapseEducation");
-                            if (
-                              collapseElement &&
-                              !collapseElement.classList.contains("show")
-                            ) {
-                              new window.bootstrap.Collapse(collapseElement, {
-                                toggle: true,
-                              });
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseEducation"
-                        aria-expanded="true"
-                        aria-controls="collapseEducation"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseEducation"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingEducation"
-                    data-bs-parent="#educationDetail"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {isEditing ? (
-                          // ✅ Education form
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Degree</label>
-                                      <select
-                                        className="form-select form-control"
-                                        name="degree"
-                                        value={educationForm.degree}
-                                        onChange={handleInputChange}
-                                      >
-                                        <option value="">Select Degree</option>
-                                        {degreeOptions.map((degree, index) => (
-                                          <option key={index} value={degree}>
-                                            {degree}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>University</label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Enter University"
-                                        name="University"
-                                        value={educationForm.University}
-                                        onChange={handleInputChange}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Start Date</label>
-                                      <input
-                                        type="date"
-                                        className="form-control"
-                                        name="startDate"
-                                        value={educationForm.startDate}
-                                        onChange={handleInputChange}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>End Date</label>
-                                      <input
-                                        type="date"
-                                        className="form-control"
-                                        name="endDate"
-                                        value={educationForm.endDate}
-                                        onChange={handleInputChange}
-                                        disabled={
-                                          educationForm.currentlyStudyingHere
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="currently-working-here">
-                                  <input
-                                    type="checkbox"
-                                    id="studying"
-                                    name="currentlyStudyingHere"
-                                    checked={
-                                      educationForm.currentlyStudyingHere
-                                    }
-                                    onChange={handleInputChange}
-                                  />
-                                  <label htmlFor="studying">
-                                    I am currently studying here
-                                  </label>
-                                </div>
-
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSaveEducation}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => {
-                                      setIsEditing(false);
-                                      setEducationForm({
-                                        education_id: "",
-                                        degree: "",
-                                        University: "",
-                                        startDate: "",
-                                        endDate: "",
-                                        currentlyStudyingHere: false,
-                                      });
-                                    }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          // ✅ Education list
-                          <div className="user-all-detail-info-main">
-                            {educationList.length > 0 ? (
-                              educationList.map((edu) => (
-                                <div
-                                  key={edu._id}
-                                  className="user-all-details-info"
-                                >
-                                  {" "}
-                                  <div className="work-exprinace-edit">
-                                    <i
-                                      className="fas fa-pencil-alt"
-                                      style={{ cursor: "pointer" }}
-                                      onClick={() => {
-                                        setEducationForm({
-                                          education_id: edu._id,
-                                          degree: edu.degree,
-                                          University: edu.University,
-                                          startDate: edu.startDate?.slice(
-                                            0,
-                                            10,
-                                          ),
-                                          endDate: edu.endDate?.slice(0, 10),
-                                          currentlyStudyingHere:
-                                            edu.currentlyStudyingHere,
-                                        });
-                                        setIsEditing(true);
-                                        const collapseElement =
-                                          document.getElementById(
-                                            "collapseEducation",
-                                          );
-                                        if (
-                                          collapseElement &&
-                                          !collapseElement.classList.contains(
-                                            "show",
-                                          )
-                                        ) {
-                                          new window.bootstrap.Collapse(
-                                            collapseElement,
-                                            { toggle: true },
-                                          );
-                                        }
-                                      }}
-                                    />
-                                    <i
-                                      className="fas fa-trash ms-2"
-                                      style={{
-                                        cursor: "pointer",
-                                      }}
-                                      onClick={() =>
-                                        handleDeleteEducation(edu._id)
-                                      }
-                                    />
-                                  </div>
-                                  <div className="row">
-                                    <div className="col-lg-6 col-md-6">
-                                      <div className="form-group">
-                                        <label>Degree</label>
-                                        <p>{edu.degree}</p>
-                                      </div>
-                                    </div>
-                                    <div className="col-lg-6 col-md-6">
-                                      <div className="form-group">
-                                        <label>University</label>
-                                        <p>{edu.University}</p>
-                                      </div>
-                                    </div>
-                                    <div className="col-lg-6 col-md-6">
-                                      <div className="form-group">
-                                        <label>Start Date</label>
-                                        <p>{edu.startDate?.slice(0, 10)}</p>
-                                      </div>
-                                    </div>
-                                    <div className="col-lg-6 col-md-6">
-                                      <div className="form-group">
-                                        <label>End Date</label>
-                                        <p>
-                                          {edu.currentlyStudyingHere
-                                            ? "Present"
-                                            : edu.endDate?.slice(0, 10)}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="divder-line-info" />
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-center m-2">
-                                No education details added yet.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="skillsTechnologies">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingNine">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Skills &amp; Technologies</h3>
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseNine"
-                        aria-expanded="true"
-                        aria-controls="collapseNine"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseNine"
-                    className="accordion-collapse collapse " // ✅ Always open
-                    aria-labelledby="headingNine"
-                    data-bs-parent="#skillsTechnologies"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        <div className="profile-form skills-technologies-info">
-                          <div className="row">
-                            <div className="col-lg-12 col-md-12">
-                              <div className="enter-skill-info">
-                                <div className="form-group">
-                                  <input
-                                    className="form-control"
-                                    type="text"
-                                    placeholder="Enter Skills"
-                                    value={newSkill}
-                                    onChange={(e) =>
-                                      setNewSkill(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="skill-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleAddSkill}
-                                  >
-                                    Add Skills
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* ✅ Skills List */}
-                              <div className="enter-skill-tag-info">
-                                <ul>
-                                  {skills?.length > 0 ? (
-                                    skills?.map((skill, index) => (
-                                      <li key={index}>
-                                        {skill}{" "}
-                                        <i
-                                          className="fa-solid fa-xmark"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={() =>
-                                            handleDeleteSkill(skill)
-                                          }
-                                        />
-                                      </li>
-                                    ))
-                                  ) : (
-                                    <p>No skills added yet.</p>
-                                  )}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="languagesDetail">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingLanguages">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Languages</h3>
-                        <i
-                          className="fa-solid fa-plus"
-                          style={{ cursor: "pointer" }}
-                          onClick={openAddForm}
-                        />
-                      </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseLanguages"
-                        aria-expanded="true"
-                        aria-controls="collapseLanguages"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseLanguages"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingLanguages"
-                    data-bs-parent="#languagesDetail"
-                  >
-                    <div className="accordion-body">
-                      {languageEditMode ? (
-                        <div className="profile-form-content from-all-input">
-                          <div className="profile-form">
-                            <form>
-                              <div className="form-group">
-                                <label>Language</label>
-                                <select
-                                  className="form-select form-control"
-                                  name="language"
-                                  value={languageForm.language}
-                                  onChange={(e) =>
-                                    setLanguageForm((p) => ({
-                                      ...p,
-                                      language: e.target.value,
-                                    }))
-                                  }
-                                >
-                                  <option value="">Select Language</option>
-                                  {Array.isArray(masterLanguages) &&
-                                    masterLanguages.map((lang) => (
-                                      <option key={lang._id} value={lang.name}>
-                                        {lang.name}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-
-                              <div className="language-acitve-inactive-info d-flex flex-wrap mt-3">
-                                {PROFICIENCY_LEVELS.map((lvl) => (
-                                  <div
-                                    key={lvl.code}
-                                    className={`language-select-info ${
-                                      languageForm.proficiency === lvl.code
-                                        ? "active"
-                                        : ""
-                                    }`}
-                                    onClick={() =>
-                                      setLanguageForm((p) => ({
-                                        ...p,
-                                        proficiency: lvl.code,
-                                      }))
-                                    }
-                                  >
-                                    <h6>{lvl.label}</h6>
-                                    <p>{lvl.code}</p>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className="save-cancel-btn-info mt-3">
-                                <button
-                                  type="button"
-                                  className="default-btn btn me-2"
-                                  onClick={handleSaveLanguage}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  className="default-btn btn"
-                                  onClick={() => setLanguageEditMode(false)}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="user-all-detail-info-main">
-                          {userLanguages.length > 0 ? (
-                            userLanguages.map((lang) => (
-                              <div
-                                key={lang._id}
-                                className="user-all-details-info"
-                              >
-                                <div className="work-exprinace-edit">
-                                  <i
-                                    className="fas fa-pencil-alt"
-                                    onClick={() => openEditForm(lang)}
-                                  />
-                                  <i
-                                    className="fas fa-trash ms-2"
-                                    style={{ cursor: "pointer" }}
-                                    onClick={() =>
-                                      handleDeleteLanguage(lang._id)
-                                    }
-                                  />
-                                </div>
-                                <div className="form-group">
-                                  <label>{lang.language}</label>
-                                  <p>{lang.proficiency}</p>
-                                </div>
-                                <div className="divder-line-info" />
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-center ">
-                              No languages added yet.
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="certificatesDetail">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingCertificates">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>Certificates</h3>
-
-                        {/* ✅ Always show only the plus icon */}
-                        <i
-                          className="fa-solid fa-plus"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            setFormData({
-                              certificate_id: "",
-                              title: "",
-                              issueDate: "",
-                            });
-                            setCertificateEditMode(true);
-
-                            const collapseElement = document.getElementById(
-                              "collapseCertificates",
-                            );
-                            if (
-                              collapseElement &&
-                              !collapseElement.classList.contains("show")
-                            ) {
-                              new window.bootstrap.Collapse(collapseElement, {
-                                toggle: true,
-                              });
-                            }
-                          }}
-                        />
-                      </div>
-
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseCertificates"
-                        aria-expanded="true"
-                        aria-controls="collapseCertificates"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    id="collapseCertificates"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingCertificates"
-                    data-bs-parent="#candidateCertificates"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {certificateEditMode ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Certificate Title</label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Enter Certificate Title"
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleChange}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>Issue Date</label>
-                                      <input
-                                        type="date"
-                                        className="form-control"
-                                        name="issueDate"
-                                        value={formData.issueDate}
-                                        onChange={handleChange}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSaveCertificate}
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() =>
-                                      setCertificateEditMode(false)
-                                    }
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="user-all-detail-info-main">
-                            {profileData.certificates?.length > 0 ? (
-                              profileData.certificates.map((cert) => (
-                                <div
-                                  key={cert._id}
-                                  className="user-all-details-info"
-                                >
-                                  {/* ✏️ Edit button only inside certificate card */}
-                                  <div className="work-exprinace-edit">
-                                    <i
-                                      className="fas fa-pencil-alt"
-                                      onClick={() => {
-                                        setFormData({
-                                          certificate_id: cert._id,
-                                          title: cert.title,
-                                          issueDate: cert.issueDate.slice(
-                                            0,
-                                            10,
-                                          ),
-                                        });
-                                        setCertificateEditMode(true);
-
-                                        const collapseElement =
-                                          document.getElementById(
-                                            "collapseCertificates",
-                                          );
-                                        if (
-                                          collapseElement &&
-                                          !collapseElement.classList.contains(
-                                            "show",
-                                          )
-                                        ) {
-                                          new window.bootstrap.Collapse(
-                                            collapseElement,
-                                            {
-                                              toggle: true,
-                                            },
-                                          );
-                                        }
-                                      }}
-                                      style={{ cursor: "pointer" }}
-                                    />
-                                    <i
-                                      className="fas fa-trash ms-2"
-                                      style={{
-                                        cursor: "pointer",
-                                      }}
-                                      onClick={() =>
-                                        handleDeleteCertificate(cert._id)
-                                      }
-                                    />
-                                  </div>
-
-                                  <div className="row">
-                                    <div className="col-lg-12 col-md-12">
-                                      <div className="form-group">
-                                        <label>{cert.title}</label>
-                                        <p>
-                                          Issue Date:{" "}
-                                          {cert?.issueDate?.slice(0, 10)}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-center">
-                                No certificates added yet.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="accordion" id="portfolioLinks">
-                <div className="accordion-item">
-                  <div className="accordion-header" id="headingTwelve">
-                    <div className="accordion-button collapsed" type="button">
-                      <div className="input-info-edit-area">
-                        <h3>LinkedIn/Portfolio Links</h3>
-
-                        {checkStatus.links === 0 ? (
-                          <i
-                            className="fa-solid fa-plus"
-                            onClick={() => {
-                              // open with empty fields
-                              setPortfolioLinks({
-                                personalWebsite: "",
-                                github: "",
-                                linkedin: "",
-                              });
-                              setEditPortfolioLinks(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseTwelve");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
                           />
-                        ) : (
-                          <i
-                            className="fas fa-pencil-alt"
-                            onClick={() => {
-                              // pre-fill with saved API values
-                              setPortfolioLinks({
-                                personalWebsite:
-                                  profileData?.links?.portfolio || "",
-                                github: profileData?.links?.github || "",
-                                linkedin: profileData?.links?.linkedin || "",
-                              });
-                              setEditPortfolioLinks(true);
-
-                              const collapseElement =
-                                document.getElementById("collapseTwelve");
-                              if (
-                                collapseElement &&
-                                !collapseElement.classList.contains("show")
-                              ) {
-                                new window.bootstrap.Collapse(collapseElement, {
-                                  toggle: true,
-                                });
-                              }
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        )}
+                        </div>
                       </div>
-                      <span
-                        className="ms-auto accordion-icon-toggle collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseTwelve"
-                        aria-expanded="true"
-                        aria-controls="collapseTwelve"
-                      >
-                        <i className="fa-solid fa-angle-up" />
-                        <i className="fa-solid fa-angle-down" />
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    id="collapseTwelve"
-                    className="accordion-collapse collapse"
-                    aria-labelledby="headingTwelve"
-                    data-bs-parent="#portfolioLinks"
-                  >
-                    <div className="accordion-body">
-                      <div className="candidate-blank-form-detail-edit-info">
-                        {editPortfolioLinks || checkStatus.links === 0 ? (
-                          <div className="profile-form-content from-all-input">
-                            <div className="profile-form">
-                              <form>
-                                <div className="row">
-                                  <div className="col-lg-12 col-md-12">
-                                    <div className="form-group">
-                                      <label> Personal website</label>
-                                      <input
-                                        className="form-control"
-                                        type="url"
-                                        placeholder="Add personal website"
-                                        value={portfolioLinks.personalWebsite}
-                                        onChange={(e) =>
-                                          setPortfolioLinks({
-                                            ...portfolioLinks,
-                                            personalWebsite: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>GitHub</label>
-                                      <input
-                                        className="form-control"
-                                        type="url"
-                                        placeholder="GitHub"
-                                        value={portfolioLinks.github}
-                                        onChange={(e) =>
-                                          setPortfolioLinks({
-                                            ...portfolioLinks,
-                                            github: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-6 col-md-6">
-                                    <div className="form-group">
-                                      <label>LinkedIn</label>
-                                      <input
-                                        className="form-control"
-                                        type="url"
-                                        placeholder="LinkedIn"
-                                        value={portfolioLinks.linkedin}
-                                        onChange={(e) =>
-                                          setPortfolioLinks({
-                                            ...portfolioLinks,
-                                            linkedin: e.target.value,
-                                          })
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="save-cancel-btn-info">
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={handleSavePortfolioLinks}
-                                  >
-                                    Save
-                                  </button>
-                                  {/* <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => {
-                                      setPortfolioLinks({
-                                        personalWebsite:
-                                          profileData?.portfolioLinks
-                                            ?.personalWebsite || "",
-                                        github:
-                                          profileData?.portfolioLinks?.github ||
-                                          "",
-                                        linkedin:
-                                          profileData?.portfolioLinks
-                                            ?.linkedin || "",
-                                      });
-                                      setEditPortfolioLinks(false);
-                                    }}
-                                  >
-                                    Cancel
-                                  </button> */}
-                                  <button
-                                    type="button"
-                                    className="default-btn btn"
-                                    onClick={() => {
-                                      // reset state
-                                      setPortfolioLinks({
-                                        personalWebsite:
-                                          profileData?.links?.portfolio || "",
-                                        github:
-                                          profileData?.links?.github || "",
-                                        linkedin:
-                                          profileData?.links?.linkedin || "",
-                                      });
-                                      setEditPortfolioLinks(false);
 
-                                      // ✅ also close accordion if open
-                                      const collapseElement =
-                                        document.getElementById(
-                                          "collapseTwelve",
-                                        );
-                                      if (
-                                        collapseElement &&
-                                        collapseElement.classList.contains(
-                                          "show",
-                                        )
-                                      ) {
-                                        const collapseInstance =
-                                          window.bootstrap.Collapse.getInstance(
-                                            collapseElement,
-                                          );
-                                        if (collapseInstance) {
-                                          collapseInstance.hide(); // close it
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="user-all-detail-info-main">
-                            <div className="user-all-details-info">
-                              <div className="row">
-                                <div className="col-lg-12 col-md-12">
-                                  <div className="form-group">
-                                    <label>Add personal website</label>
-                                    <p>
-                                      {profileData?.links?.portfolio ? (
-                                        <a
-                                          href={profileData?.links?.portfolio}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          {profileData?.links?.portfolio}
-                                        </a>
-                                      ) : (
-                                        "N/A"
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="divder-line-info" />
-                                <div className="col-lg-12 col-md-12">
-                                  <div className="form-group">
-                                    <label>GitHub</label>
-                                    <p>
-                                      {profileData?.links?.github ? (
-                                        <a
-                                          href={profileData?.links?.github}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          {profileData?.links?.github}
-                                        </a>
-                                      ) : (
-                                        "N/A"
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="divder-line-info" />
-                                <div className="col-lg-12 col-md-12">
-                                  <div className="form-group">
-                                    <label>LinkedIn</label>
-                                    <p>
-                                      {profileData?.links?.linkedin ? (
-                                        <a
-                                          href={profileData?.links?.linkedin}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          {profileData?.links?.linkedin}
-                                        </a>
-                                      ) : (
-                                        "N/A"
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Date of Birth</label>
+                        <input
+                          className="saas-input"
+                          type="date"
+                          value={personalDetails.birthYear}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              birthYear: e.target.value,
+                            })
+                          }
+                        />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="candidate-blank-form-detail-edit-info">
-                <div className="profile-form-content delete-account-info">
-                  <div className="input-info-edit-area">
-                    <h3>Delete Account</h3>
-                  </div>
-                  <div className="profile-form">
+
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Gender</label>
+                        <select
+                          className="saas-select"
+                          value={personalDetails.gender}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              gender: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Country</label>
+                        <select
+                          className="saas-select"
+                          value={personalDetails.nationality}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              nationality: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Select Country</option>
+                          {countries?.map((c, idx) => (
+                            <option key={idx} value={c.name || c}>
+                              {c.name || c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">City</label>
+                        <input
+                          className="saas-input"
+                          type="text"
+                          value={personalDetails.city}
+                          onChange={(e) =>
+                            setPersonalDetails({
+                              ...personalDetails,
+                              city: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="col-12 text-end mt-3">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={handleSavePersonal}
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* ================= VIEW MODE ================= */
                     <div className="row">
-                      <div className="col-lg-12">
-                        <div className="delete-account">
-                          <p>
-                            If you want to permanently delete your account,
-                            <span>
-                              <a
-                                herf="#"
-                                data-bs-toggle="modal"
-                                data-bs-target="#exampleModaldlt"
-                              >
-                                click here.
-                              </a>
-                            </span>
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">Full Name</label>
+                        <p className="fw-bold">
+                          {profileData.first_name} {profileData.last_name}
+                        </p>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">Email</label>
+                        <p className="fw-bold">{profileData.email}</p>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">Phone</label>
+                        <p className="fw-bold">
+                          +{profileData.countryCode} {profileData.phone}
+                        </p>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">Location</label>
+                        <p className="fw-bold">
+                          {profileData.city}, {profileData.Nationality}
+                        </p>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">
+                          Date of Birth
+                        </label>
+                        <p className="fw-bold">
+                          {profileData.date_of_birth
+                            ? new Date(profileData.date_of_birth)
+                                .toISOString()
+                                .split("T")[0]
+                            : "N/A"}
+                        </p>
+                      </div>
+
+                      <div className="col-md-6 mb-3">
+                        <label className="text-muted small">Gender</label>
+                        <p className="fw-bold">{profileData.gender}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-file-alt" /> Professional Summary
+                    </h4>
+
+                    {editSummary ? (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setEditSummary(false)}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => {
+                          setEditCareerGoals(false); // close other section
+                          setSummary(profileData?.professionalSummary || "");
+                          setEditSummary(true);
+                        }}
+                      >
+                        {checkStatus.professionalSummary === 0 ? (
+                          "Add"
+                        ) : (
+                          <>
+                            <i className="fas fa-pencil-alt"></i> Edit
+                          </>
+                        )}{" "}
+                      </button>
+                    )}
+                  </div>
+
+                  {editSummary ? (
+                    /* ================= EDIT MODE ================= */
+                    <div>
+                      <div className="saas-form-group">
+                        <textarea
+                          className="saas-textarea"
+                          rows={6}
+                          placeholder="Write a brief bio or professional summary..."
+                          value={summary}
+                          onChange={(e) => setSummary(e.target.value)}
+                        />
+
+                        <div className="d-flex justify-content-between mt-2">
+                          <small className="text-muted">
+                            {summary?.length || 0} characters
+                          </small>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-info"
+                          >
+                            <i className="fas fa-magic" /> AI Enhancement
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-end mt-3">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            handleSave();
+                            setEditSummary(false); // close after save
+                          }}
+                        >
+                          Save Summary
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* ================= VIEW MODE ================= */
+                    <div className="profile-summary-content">
+                      {profileData?.professionalSummary ? (
+                        <>
+                          <p
+                            className="text-muted"
+                            style={{ whiteSpace: "pre-wrap" }}
+                          >
+                            {expanded
+                              ? profileData.professionalSummary
+                              : profileData.professionalSummary.slice(0, 200) +
+                                "..."}
+                          </p>
+
+                          {profileData.professionalSummary.length > 200 && (
+                            <button
+                              className="btn shadow-none p-0 text-primary"
+                              style={{ background: "transparent" }}
+                              onClick={() => setExpanded(!expanded)}
+                            >
+                              {expanded ? "Afficher moins" : "Afficher plus"}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p>No professional summary added yet.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="saas-card">
+                  {/* CARD HEADER */}
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-bullseye" /> Career Goals
+                    </h4>
+
+                    {editMode ? (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => setEditMode(false)}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => {
+                          const goals = profileData?.career_goals || {};
+
+                          setCareerGoalsData({
+                            desiredJobTitle: toArray(goals.DesiredJobTitle).map(
+                              (item) => ({
+                                value: item,
+                                label: item,
+                              }),
+                            ),
+
+                            employmentType: toArray(
+                              goals.DesiredEmploymentType,
+                            ).map((item) => ({
+                              value: item,
+                              label: item,
+                            })),
+
+                            occupationType: toArray(
+                              goals.DesiredOccupationType,
+                            ).map((item) => ({
+                              value: item,
+                              label: item,
+                            })),
+
+                            availabilityToJoin:
+                              goals.availabilityToJoin || "Immediate",
+
+                            salaryAmount:
+                              goals?.MinimumDesiredSalary?.amount || "",
+
+                            salaryCurrency:
+                              goals?.MinimumDesiredSalary?.currency || "MAD",
+
+                            salaryType:
+                              goals?.MinimumDesiredSalary?.type || "Monthly",
+
+                            lookingForJob: goals?.jobSearchStatus || "",
+
+                            eligibleToWork:
+                              profileData?.eligibleToWorkInFrance ?? false,
+                          });
+
+                          setEditMode(true);
+                        }}
+                      >
+                        <i className="fas fa-pencil-alt" /> Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {/* ================= EDIT FORM ================= */}
+                  {editMode ? (
+                    <form className="saas-form-grid row">
+                      {/* Desired Job Title */}
+                      <div className="col-12 saas-form-group">
+                        <label className="saas-label">
+                          Desired Job Title (Max 3)
+                        </label>
+
+                        <CreatableSelect
+                          isMulti
+                          placeholder="Type a title and press enter"
+                          value={careerGoalsData.desiredJobTitle}
+                          onChange={(selected) => {
+                            if (selected.length <= 3) {
+                              setCareerGoalsData({
+                                ...careerGoalsData,
+                                desiredJobTitle: selected,
+                              });
+                            }
+                          }}
+                          classNamePrefix="react-select"
+                        />
+                      </div>
+                      {/* Employment Type */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">
+                          Employment Type (Max 3)
+                        </label>
+
+                        <Select
+                          isMulti
+                          options={jobTypes?.map((job) => ({
+                            value: job.name,
+                            label: job.name,
+                          }))}
+                          value={careerGoalsData.employmentType}
+                          onChange={(selected) => {
+                            if (selected.length <= 3) {
+                              setCareerGoalsData({
+                                ...careerGoalsData,
+                                employmentType: selected,
+                              });
+                            }
+                          }}
+                          classNamePrefix="react-select"
+                          placeholder="Select types"
+                        />
+                      </div>
+
+                      {/* Job Type */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Job Type (Max 3)</label>
+
+                        <Select
+                          isMulti
+                          options={jobTypeOptions}
+                          placeholder="Select Job Type"
+                          value={careerGoalsData.occupationType}
+                          onChange={(selected) => {
+                            if (selected.length <= 3) {
+                              setCareerGoalsData({
+                                ...careerGoalsData,
+                                occupationType: selected,
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Available to Join */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Available to Join</label>
+                        <select
+                          className="saas-select"
+                          name="availabilityToJoin"
+                          value={careerGoalsData.availabilityToJoin}
+                          onChange={handleCareerGoalsChange}
+                        >
+                          <option value="">Select Availability</option>
+                          <option value="Immediate">Immediate</option>
+                          <option value="1 month">1 month</option>
+                          <option value="1-3 months">1-3 months</option>
+                          <option value="More">More</option>
+                        </select>
+                      </div>
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Minimum Salary</label>
+
+                        <div className="d-flex gap-2">
+                          <select
+                            className="saas-input"
+                            name="salaryAmount"
+                            value={careerGoalsData.salaryAmount}
+                            onChange={handleCareerGoalsChange}
+                          >
+                            <option value="">Select Range</option>
+                            <option value="0-5000">0 - 5000</option>
+                            <option value="5000-10000">5000 - 10000</option>
+                            <option value="10000-15000">
+                              10000 - 15000 dh
+                            </option>
+                            <option value="15000-20000">
+                              15000 - 20000 dh
+                            </option>
+                            <option value="20000+">20000+ dh</option>
+                          </select>
+
+                          <select
+                            className="saas-select"
+                            name="salaryCurrency"
+                            value={careerGoalsData.salaryCurrency}
+                            onChange={handleCareerGoalsChange}
+                            style={{ width: "100px" }}
+                          >
+                            <option value="">Currency</option>
+                            <option value="MAD">MAD</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Salary Frequency */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">Salary Frequency</label>
+
+                        <select
+                          className="saas-select"
+                          name="salaryType"
+                          value={careerGoalsData.salaryType}
+                          onChange={handleCareerGoalsChange}
+                        >
+                          <option value="Hourly">Hourly</option>
+                          <option value="Daily">Daily</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+
+                      {/* Eligible to Work */}
+                      <div className="col-12 mt-2">
+                        <label className="d-flex align-items-center gap-2">
+                          <input
+                            type="checkbox"
+                            name="eligibleToWork"
+                            checked={careerGoalsData.eligibleToWork}
+                            onChange={handleCareerGoalsChange}
+                          />
+                          <span>I am eligible to work in France</span>
+                        </label>
+                      </div>
+
+                      {/* Looking for job */}
+                      <div className="col-12 mt-4">
+                        <h6 className="fw-bold mb-3">
+                          Looking for a new job opportunity?
+                        </h6>
+
+                        <div className="d-flex flex-column gap-2">
+                          {[
+                            "Yes, I need one as soon as possible",
+                            "Open to the right opportunity",
+                            "No, I'm not looking",
+                          ].map((item) => (
+                            <label
+                              key={item}
+                              className="d-flex align-items-center gap-2"
+                              style={{ cursor: "pointer" }}
+                            >
+                              <input
+                                type="radio"
+                                name="lookingForJob"
+                                value={item}
+                                checked={careerGoalsData.lookingForJob === item}
+                                onChange={handleCareerGoalsChange}
+                              />
+                              <span>{item}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* SAVE BUTTON */}
+                      <div className="col-12 mt-3 text-end">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={handleSaveGoals}
+                        >
+                          Save Goals
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* ================= DISPLAY MODE ================= */
+                    <div className="career-goals-display">
+                      <div className="row">
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Desired Title
+                          </label>
+                          <p className="fw-bold">
+                            {Array.isArray(
+                              profileData?.career_goals?.DesiredJobTitle,
+                            )
+                              ? profileData.career_goals.DesiredJobTitle.join(
+                                  ", ",
+                                )
+                              : profileData?.career_goals?.DesiredJobTitle ||
+                                "-"}
                           </p>
                         </div>
-                        {/* Modal */}
-                        <div
-                          className="modal fade"
-                          id="exampleModaldlt"
-                          tabIndex={-1}
-                          aria-labelledby="exampleModaldlt"
-                          aria-hidden="true"
-                        >
-                          <div className="modal-dialog">
-                            <div className="modal-content">
-                              <div className="modal-header">
-                                <h5
-                                  className="modal-title"
-                                  id="exampleModaldlt"
-                                >
-                                  Delete Account
-                                </h5>
-                                <button
-                                  type="button"
-                                  className="btn-close"
-                                  data-bs-dismiss="modal"
-                                  aria-label="Close"
-                                  onClick={resetDeleteForm}
-                                />
-                              </div>
-                              <div className="modal-body">
-                                <div className="candidate-personal-dlt-details">
-                                  <div className="candidate-personal-dlt-details-heading">
-                                    <h4>We are sorry to see you go!</h4>
-                                    <p>
-                                      Tell us why you would like to delete your
-                                      account.
-                                    </p>
-                                  </div>
-                                  <p>
-                                    Please select your favorite Web language:
-                                  </p>
-                                  <ul>
-                                    {[
-                                      "I never got a job interview",
-                                      "I have a privacy concern",
-                                      "I have a duplicate account",
-                                      "I'm getting too many emails",
-                                      "Other reason",
-                                    ].map((r, idx) => (
-                                      <li key={idx}>
-                                        <input
-                                          type="radio"
-                                          name="reason"
-                                          value={r}
-                                          checked={reason === r}
-                                          onChange={(e) =>
-                                            setReason(e.target.value)
-                                          }
-                                        />
 
-                                        <label>{r}</label>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                  <div className="form-group">
-                                    <label>Comments</label>
-                                    <textarea
-                                      className="form-control"
-                                      placeholder="write the reason here...."
-                                      rows={3}
-                                      value={comments}
-                                      onChange={(e) =>
-                                        setComments(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                </div>
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Employment Type
+                          </label>
+                          <p className="fw-bold">
+                            {Array.isArray(
+                              profileData?.career_goals?.DesiredEmploymentType,
+                            )
+                              ? profileData.career_goals.DesiredEmploymentType.join(
+                                  ", ",
+                                )
+                              : profileData?.career_goals
+                                  ?.DesiredEmploymentType || "-"}
+                          </p>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">Job Type</label>
+                          <p className="fw-bold">
+                            {Array.isArray(
+                              profileData?.career_goals?.DesiredOccupationType,
+                            )
+                              ? profileData.career_goals.DesiredOccupationType.join(
+                                  ", ",
+                                )
+                              : profileData?.career_goals
+                                  ?.DesiredOccupationType || "-"}
+                          </p>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Salary Expectation
+                          </label>
+                          <p className="fw-bold">
+                            {profileData?.career_goals?.MinimumDesiredSalary
+                              ? `${profileData.career_goals.MinimumDesiredSalary.amount} ${profileData.career_goals.MinimumDesiredSalary.currency} / ${profileData.career_goals.MinimumDesiredSalary.type}`
+                              : "-"}
+                          </p>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Available to Join
+                          </label>
+                          <p className="fw-bold">
+                            {profileData?.career_goals?.availabilityToJoin ||
+                              "-"}
+                          </p>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Looking for a Job
+                          </label>
+                          <p className="fw-bold">
+                            {profileData?.career_goals?.jobSearchStatus || "-"}
+                          </p>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="text-muted small">
+                            Work Eligibility
+                          </label>
+                          <p className="fw-bold">
+                            {profileData?.eligibleToWorkInFrance ? "Yes" : "No"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="saas-card mb-4" id="aboutRole">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-user-tie" /> About your role
+                    </h4>
+
+                    {editAboutRole || checkStatus.aboutRole === 0 ? null : (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => {
+                          setAboutRole({
+                            jobTitle: profileData?.aboutRole?.jobTitle || "",
+                            yearsOfExperience:
+                              profileData?.aboutRole?.yearOfExperience || "",
+                            jobCategory:
+                              profileData?.aboutRole?.jobCategory || "",
+                          });
+                          setEditAboutRole(true);
+                        }}
+                      >
+                        <i className="fas fa-pencil-alt" /> Edit
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="saas-card-body">
+                    {editAboutRole || checkStatus.aboutRole === 0 ? (
+                      /* ================= FORM ================= */
+                      <form className="saas-form-grid row">
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Job Title</label>
+                          <input
+                            className="saas-input"
+                            type="text"
+                            value={aboutRole.jobTitle}
+                            onChange={(e) =>
+                              setAboutRole({
+                                ...aboutRole,
+                                jobTitle: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">
+                            Years of experience
+                          </label>
+                          <input
+                            className="saas-input"
+                            type="number"
+                            value={aboutRole.yearsOfExperience}
+                            onChange={(e) =>
+                              setAboutRole({
+                                ...aboutRole,
+                                yearsOfExperience: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        <div className="col-md-12 saas-form-group">
+                          <label className="saas-label">Job Category</label>
+
+                          <select
+                            className="saas-select"
+                            value={aboutRole.jobCategory}
+                            onChange={(e) =>
+                              setAboutRole({
+                                ...aboutRole,
+                                jobCategory: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Select Category</option>
+
+                            {categoryList?.map((category) => (
+                              <option key={category._id} value={category.name}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="col-12 mt-3 text-end">
+                          <button
+                            type="button"
+                            className="btn btn-link shadow-none text-decoration-underline text-secondary p-0 m-0 me-3"
+                            onClick={() => setEditAboutRole(false)}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleSaveAboutRole}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* ================= DISPLAY ================= */
+                      <div className="about-role-display">
+                        <div className="row">
+                          <div className="col-md-6 mb-3">
+                            <label className="text-muted small mb-1">
+                              Job Title
+                            </label>
+                            <p className="fw-medium mb-0">
+                              {profileData?.aboutRole?.jobTitle ||
+                                "Not provided"}
+                            </p>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <label className="text-muted small mb-1">
+                              Years of experience
+                            </label>
+                            <p className="fw-medium mb-0">
+                              {profileData?.aboutRole?.yearOfExperience ||
+                                "Not provided"}{" "}
+                              Years
+                            </p>
+                          </div>
+
+                          <div className="col-md-6 mb-3">
+                            <label className="text-muted small mb-1">
+                              Job Category
+                            </label>
+                            <p className="fw-medium mb-0">
+                              {profileData?.aboutRole?.jobCategory ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-briefcase" /> Work Experience
+                    </h4>
+
+                    {editWork ? (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setEditWork(false)}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => {
+                          setWorkExperienceData({
+                            workHistory_id: "",
+                            companyName: "",
+                            jobTitle: "",
+                            startDate: "",
+                            endDate: "",
+                            currentlyWorkingHere: false,
+                            currentlyWorkingHereEmp: false,
+                            Description: "",
+                            EmploymentType: "",
+                            workLocation: "",
+                            salaryAmount: "",
+                            salaryCurrency: "MAD",
+                            salaryType: "Monthly",
+                          });
+                          setEditWork(true);
+                        }}
+                      >
+                        <i className="fas fa-plus" /> Add
+                      </button>
+                    )}
+                  </div>
+
+                  {editWork ? (
+                    /* ================= EDIT FORM ================= */
+                    <div className="saas-form-content">
+                      <form className="saas-form-grid row">
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Job Title</label>
+                          <input
+                            className="saas-input"
+                            type="text"
+                            name="jobTitle"
+                            value={workExperienceData.jobTitle}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Company</label>
+                          <input
+                            className="saas-input"
+                            type="text"
+                            name="companyName"
+                            value={workExperienceData.companyName}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+                        <div className="currently-working-here">
+                          <input
+                            type="checkbox"
+                            id="CurrentlyWorking"
+                            name="currentlyWorkingHereEmp"
+                            checked={workExperienceData.currentlyWorkingHereEmp}
+                            onChange={handleChangeOfWork}
+                          />
+                          <label htmlFor="CurrentlyWorking">
+                            &nbsp;Keep my current employer anonymous
+                          </label>
+                        </div>
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Employment Type</label>
+                          <select
+                            className="saas-input"
+                            name="EmploymentType"
+                            value={workExperienceData.EmploymentType}
+                            onChange={handleChangeOfWork}
+                          >
+                            <option value="">Select type</option>
+                            {jobTypes?.map((job) => (
+                              <option key={job._id} value={job.name}>
+                                {job.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Work Location</label>
+                          <input
+                            className="saas-input"
+                            type="text"
+                            name="workLocation"
+                            value={workExperienceData.workLocation}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div> */}
+                        <div className="col-md-6 saas-form-group">
+                          <div className="form-group position-relative">
+                            <label>Work Location</label>
+                            <input
+                              className="form-control"
+                              type="text"
+                              placeholder="Search city"
+                              name="workLocation"
+                              value={workExperienceData.workLocation}
+                              onChange={handleWorkLocationSearch} // 👈 new handler
+                              autoComplete="off"
+                            />
+
+                            {/* Suggestions Dropdown */}
+                            {loading && (
+                              <div className="suggestion-box">Searching...</div>
+                            )}
+                            {!loading && citySuggestions.length > 0 && (
+                              <ul
+                                className="list-group position-absolute w-100"
+                                style={{
+                                  zIndex: 1000,
+                                  maxHeight: "200px",
+                                  overflowY: "auto",
+                                }}
+                              >
+                                {citySuggestions.map((city) => (
+                                  <li
+                                    key={city._id}
+                                    className="list-group-item list-group-item-action"
+                                    onClick={() =>
+                                      handleSelectWorkLocation(city)
+                                    }
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    {city.name}, {city.state_name},{" "}
+                                    {city.country_name}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">Start Date</label>
+                          <input
+                            className="saas-input"
+                            type="date"
+                            name="startDate"
+                            value={workExperienceData.startDate}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">End Date</label>
+                          <input
+                            className="saas-input"
+                            type="date"
+                            name="endDate"
+                            value={workExperienceData.endDate}
+                            disabled={workExperienceData.currentlyWorkingHere}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+
+                        <div className="col-12 mb-3">
+                          <label className="d-flex align-items-center gap-2">
+                            <input
+                              type="checkbox"
+                              name="currentlyWorkingHere"
+                              checked={workExperienceData.currentlyWorkingHere}
+                              onChange={handleChangeOfWork}
+                            />
+                            <span>I currently work here</span>
+                          </label>
+                        </div>
+
+                        <div className="col-md-4 saas-form-group">
+                          <label className="saas-label">Salary Amount</label>
+                          <input
+                            className="saas-input"
+                            type="number"
+                            name="salaryAmount"
+                            value={workExperienceData.salaryAmount}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+                        <div className="col-md-4 saas-form-group">
+                          <label className="saas-label">Currency</label>
+                          <select
+                            className="saas-input"
+                            name="salaryCurrency"
+                            value={workExperienceData.salaryCurrency}
+                            onChange={handleChangeOfWork}
+                          >
+                            <option value="MAD">MAD</option>
+                          </select>
+                        </div>
+
+                        <div className="col-md-4 saas-form-group">
+                          <label className="saas-label">Frequency</label>
+                          <select
+                            className="saas-input"
+                            name="salaryType"
+                            value={workExperienceData.salaryType}
+                            onChange={handleChangeOfWork}
+                          >
+                            <option value="Hourly">Hourly</option>
+                            <option value="Daily">Daily</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Yearly">Yearly</option>
+                          </select>
+                        </div>
+                        <div className="col-12 saas-form-group">
+                          <label className="saas-label">
+                            Description / Achievements
+                          </label>
+                          <textarea
+                            className="saas-textarea"
+                            rows={4}
+                            name="Description"
+                            value={workExperienceData.Description}
+                            onChange={handleChangeOfWork}
+                          />
+                        </div>
+                        <div className="col-12 text-end">
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary me-2"
+                            onClick={() => setEditWork(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => {
+                              handleSaveWorkExperience();
+                              setEditWork(false);
+                            }}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    /* ================= LIST VIEW ================= */
+                    /* ================= LIST VIEW ================= */
+                    <div className="experience-list">
+                      {profileData?.workHistory?.length > 0 ? (
+                        <>
+                          {(showAllExp
+                            ? profileData.workHistory
+                            : profileData.workHistory.slice(0, 1)
+                          ).map((exp, index) => (
+                            <div
+                              key={index}
+                              className="d-flex gap-3 mb-4 border-bottom pb-3 last-no-border"
+                            >
+                              {/* ICON */}
+                              <div
+                                className="exp-icon"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  background: "rgb(239, 246, 255)",
+                                  borderRadius: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "rgb(37, 99, 235)",
+                                }}
+                              >
+                                <i className="fas fa-briefcase" />
                               </div>
-                              <div className="delete-account-popup-btn modal-footer">
+
+                              {/* CONTENT */}
+                              <div className="flex-grow-1">
+                                <h5 className="mb-1 fw-bold">{exp.jobTitle}</h5>
+
+                                <p className="mb-1 text-muted">
+                                  {exp.companyName} •{" "}
+                                  {exp.workLocation || "N/A"} •{" "}
+                                  {exp.EmploymentType || "Full Time"}
+                                </p>
+
+                                <p className="small text-muted mb-1">
+                                  {exp.startDate?.split("T")[0]} -{" "}
+                                  {exp.currentlyWorkingHere
+                                    ? "Present"
+                                    : exp.endDate?.split("T")[0]}
+                                </p>
+
+                                {exp?.currentSalary?.amount && (
+                                  <p className="small text-muted mb-2">
+                                    <i className="fas fa-money-bill-wave me-1" />
+                                    {exp.currentSalary.amount}{" "}
+                                    {exp.currentSalary.currency} /{" "}
+                                    {exp.currentSalary.payrollFrequency}
+                                  </p>
+                                )}
+
+                                {exp.Description && (
+                                  <p className="small mb-0 mt-2">
+                                    {exp.Description}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* ACTION BUTTONS */}
+                              <div className="action-btns">
                                 <button
-                                  type="button"
-                                  className="default-btn btn"
-                                  onClick={handleDelete}
-                                  disabled={!reason || !comments.trim()}
+                                  className="btn btn-sm text-primary"
+                                  onClick={() => {
+                                    setWorkExperienceData({
+                                      workHistory_id: exp._id || "",
+                                      companyName: exp.companyName || "",
+                                      jobTitle: exp.jobTitle || "",
+                                      startDate:
+                                        exp.startDate?.split("T")[0] || "",
+                                      endDate: exp.endDate?.split("T")[0] || "",
+
+                                      currentlyWorkingHere:
+                                        exp.currentlyWorkingHere || false,
+                                      currentlyWorkingHereEmp:
+                                        exp.keep_employer_anonymous || false,
+
+                                      Description: exp.Description || "",
+                                      EmploymentType: exp.EmploymentType || "",
+                                      workLocation: exp.workLocation || "",
+                                      salaryAmount:
+                                        exp.currentSalary?.amount || "",
+                                      salaryCurrency:
+                                        exp.currentSalary?.currency || "MAD",
+                                      salaryType:
+                                        exp.currentSalary?.payrollFrequency ||
+                                        "Monthly",
+                                    });
+                                    setEditWork(true);
+                                  }}
                                 >
-                                  Submit
+                                  <i className="fas fa-pencil-alt" />
+                                </button>
+
+                                <button
+                                  className="btn btn-sm text-danger"
+                                  onClick={() =>
+                                    handleDeleteWorkExperience(exp._id)
+                                  }
+                                >
+                                  <i className="fas fa-trash" />
                                 </button>
                               </div>
                             </div>
+                          ))}
+
+                          {/* SHOW MORE BUTTON */}
+                          {profileData.workHistory.length > 1 && (
+                            <div className="text-center mt-2">
+                              <button
+                                className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                                onClick={() => setShowAllExp(!showAllExp)}
+                              >
+                                {showAllExp
+                                  ? "Afficher moins"
+                                  : "Afficher plus d'expériences"}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-muted">
+                          No work experience added yet.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-graduation-cap" /> Education
+                    </h4>
+
+                    {editEducation ? (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => {
+                          setEditEducation(false);
+                          setEducationForm({
+                            education_id: "",
+                            degree: "",
+                            University: "",
+                            startDate: "",
+                            endDate: "",
+                            currentlyStudyingHere: false,
+                          });
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => {
+                          setEducationForm({
+                            education_id: "",
+                            degree: "",
+                            University: "",
+                            startDate: "",
+                            endDate: "",
+                            currentlyStudyingHere: false,
+                          });
+                          setEditEducation(true);
+                        }}
+                      >
+                        <i className="fas fa-plus" /> Add
+                      </button>
+                    )}
+                  </div>
+
+                  {editEducation ? (
+                    /* ================= FORM ================= */
+                    <div className="saas-form-content">
+                      <form className="row">
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">Degree</label>
+                          <select
+                            className="saas-input"
+                            name="degree"
+                            value={educationForm.degree}
+                            onChange={handleInputChange}
+                          >
+                            <option value="">Select Degree</option>
+                            {degreeOptions.map((degree, index) => (
+                              <option key={index} value={degree}>
+                                {degree}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">
+                            Institution / University
+                          </label>
+                          <input
+                            type="text"
+                            className="saas-input"
+                            name="University"
+                            value={educationForm.University}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">Start Date</label>
+                          <input
+                            type="date"
+                            className="saas-input"
+                            name="startDate"
+                            value={educationForm.startDate}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">End Date</label>
+                          <input
+                            type="date"
+                            className="saas-input"
+                            name="endDate"
+                            value={educationForm.endDate}
+                            disabled={educationForm.currentlyStudyingHere}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+
+                        <div className="col-12 mb-3">
+                          <label className="d-flex align-items-center gap-2">
+                            <input
+                              type="checkbox"
+                              name="currentlyStudyingHere"
+                              checked={educationForm.currentlyStudyingHere}
+                              onChange={handleInputChange}
+                            />
+                            <span>I am currently studying here</span>
+                          </label>
+                        </div>
+
+                        <div className="col-12 text-end">
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary me-2"
+                            onClick={() => {
+                              setEditEducation(false);
+                              setEducationForm({
+                                education_id: "",
+                                degree: "",
+                                University: "",
+                                startDate: "",
+                                endDate: "",
+                                currentlyStudyingHere: false,
+                              });
+                            }}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => {
+                              handleSaveEducation();
+                              setEditEducation(false);
+                            }}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    /* ================= LIST ================= */
+                    <div className="education-list">
+                      {educationList?.length > 0 ? (
+                        <>
+                          {(showAllEducation
+                            ? educationList
+                            : educationList.slice(0, 1)
+                          ).map((edu) => (
+                            <div
+                              key={edu._id}
+                              className="d-flex gap-3 mb-4 border-bottom pb-3 last-no-border"
+                            >
+                              <div
+                                className="edu-icon"
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  background: "rgb(255, 247, 237)",
+                                  borderRadius: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "rgb(249, 115, 22)",
+                                }}
+                              >
+                                <i className="fas fa-graduation-cap" />
+                              </div>
+
+                              <div className="flex-grow-1">
+                                <h5 className="mb-1 fw-bold">{edu.degree}</h5>
+                                <p className="mb-1 text-muted">
+                                  {edu.University}
+                                </p>
+                                <p className="small text-muted mb-0">
+                                  {edu.startDate?.slice(0, 10)} -{" "}
+                                  {edu.currentlyStudyingHere
+                                    ? "Present"
+                                    : edu.endDate?.slice(0, 10)}
+                                </p>
+                              </div>
+
+                              <div className="action-btns">
+                                <button
+                                  className="btn btn-sm text-primary"
+                                  onClick={() => {
+                                    setEducationForm({
+                                      education_id: edu._id,
+                                      degree: edu.degree,
+                                      University: edu.University,
+                                      startDate: edu.startDate?.slice(0, 10),
+                                      endDate: edu.endDate?.slice(0, 10),
+                                      currentlyStudyingHere:
+                                        edu.currentlyStudyingHere,
+                                    });
+                                    setEditEducation(true);
+                                  }}
+                                >
+                                  <i className="fas fa-pencil-alt" />
+                                </button>
+
+                                <button
+                                  className="btn btn-sm text-danger"
+                                  onClick={() => handleDeleteEducation(edu._id)}
+                                >
+                                  <i className="fas fa-trash" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {educationList.length > 1 && (
+                            <div className="text-center mt-2">
+                              {!showAllEducation ? (
+                                <button
+                                  className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                                  onClick={() => setShowAllEducation(true)}
+                                >
+                                  Voir plus de formations
+                                </button>
+                              ) : (
+                                <button
+                                  className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                                  onClick={() => setShowAllEducation(false)}
+                                >
+                                  Afficher moins
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-muted">
+                          No education details added yet.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-lightbulb" /> Skills & Technologies
+                    </h4>
+
+                    {editSkills ? (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setEditSkills(false)}
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setEditSkills(true)}
+                      >
+                        {skills.length === 0 ? "Add" : "Edit"}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="saas-card-body">
+                    {editSkills ? (
+                      <>
+                        {/* Input Area */}
+                        <div className="d-flex gap-2 mb-3">
+                          <input
+                            className="saas-input"
+                            placeholder="Add a skill (e.g. React, Node.js)"
+                            type="text"
+                            value={newSkill}
+                            onChange={(e) => setNewSkill(e.target.value)}
+                          />
+                          <button
+                            className="btn btn-primary"
+                            type="button"
+                            onClick={handleAddSkill}
+                          >
+                            Add
+                          </button>
+                        </div>
+
+                        {/* Editable Skills */}
+                        <div className="d-flex flex-wrap gap-2">
+                          {skills.length > 0 ? (
+                            skills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="badge bg-light text-dark border p-2 d-flex align-items-center gap-2"
+                              >
+                                {skill}
+                                <i
+                                  className="fas fa-times text-danger"
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => handleDeleteSkill(skill)}
+                                />
+                              </span>
+                            ))
+                          ) : (
+                            <p className="text-muted">No skills added yet.</p>
+                          )}
+                        </div>
+
+                        {/* Save Button */}
+                      </>
+                    ) : (
+                      <>
+                        {/* View Mode */}
+                        <div className="d-flex flex-wrap gap-2">
+                          {skills.length > 0 ? (
+                            skills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="badge bg-light text-dark border p-2"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          ) : (
+                            <p className="text-muted">No skills added yet.</p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-globe" /> Languages
+                    </h4>
+
+                    {!languageEditMode && (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={openAddForm}
+                      >
+                        <i className="fas fa-plus" />{" "}
+                        {userLanguages.length === 0 ? "Add" : "Add"}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="saas-card-body">
+                    {languageEditMode ? (
+                      /* ================= FORM MODE ================= */
+                      <div className="saas-form-content">
+                        <div className="saas-form-group">
+                          <label className="saas-label">Language</label>
+                          <select
+                            className="saas-select"
+                            value={languageForm.language}
+                            onChange={(e) =>
+                              setLanguageForm((prev) => ({
+                                ...prev,
+                                language: e.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Select Language</option>
+                            {Array.isArray(masterLanguages) &&
+                              masterLanguages.map((lang) => (
+                                <option key={lang._id} value={lang.name}>
+                                  {lang.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        <div className="saas-form-group">
+                          <label className="saas-label">Proficiency</label>
+                          <div className="d-flex flex-wrap gap-2 mt-2">
+                            {PROFICIENCY_LEVELS.map((lvl) => (
+                              <div
+                                key={lvl.code}
+                                className={`badge p-2 border ${
+                                  languageForm.proficiency === lvl.code
+                                    ? "bg-primary text-white"
+                                    : "bg-white text-dark"
+                                }`}
+                                style={{ cursor: "pointer" }}
+                                onClick={() =>
+                                  setLanguageForm((prev) => ({
+                                    ...prev,
+                                    proficiency: lvl.code,
+                                  }))
+                                }
+                              >
+                                {lvl.label}
+                              </div>
+                            ))}
                           </div>
                         </div>
+                        <div class="saas-form-group mt-3">
+                          <label class="saas-label">
+                            Comment/Certificates (e.g., TOEFL, TOEIC)
+                          </label>
+                          <input
+                            className="saas-input"
+                            placeholder="Add comments or certificates"
+                            type="text"
+                            value={languageForm.comment}
+                            onChange={(e) =>
+                              setLanguageForm((prev) => ({
+                                ...prev,
+                                comment: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="text-end mt-3">
+                          <button
+                            className="btn btn-outline-secondary me-2"
+                            onClick={() => setLanguageEditMode(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="btn btn-primary"
+                            onClick={handleSaveLanguage}
+                          >
+                            {editingLanguageId ? "Update" : "Save"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ================= VIEW MODE ================= */
+                      <div className="language-list">
+                        {userLanguages.length > 0 ? (
+                          userLanguages.map((lang) => (
+                            <div
+                              key={lang._id}
+                              className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2"
+                            >
+                              <div>
+                                <h6 className="mb-0 fw-bold">
+                                  {lang.language}
+                                </h6>
+                                <small className="text-muted">
+                                  {lang.proficiency}
+                                </small>
+                                <p class="mb-0 text-muted small">
+                                  <i class="fas fa-file-alt me-1"></i>
+                                  {lang.comment}
+                                </p>
+                              </div>
+
+                              <div>
+                                <button
+                                  className="btn btn-sm text-primary"
+                                  onClick={() => openEditForm(lang)}
+                                >
+                                  <i className="fas fa-pencil-alt" />
+                                </button>
+                                <button
+                                  className="btn btn-sm text-danger"
+                                  onClick={() => handleDeleteLanguage(lang._id)}
+                                >
+                                  <i className="fas fa-trash" />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted">No languages added yet.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="saas-card">
+                  <div className="saas-card-header">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-certificate" /> Certificates
+                    </h4>
+
+                    {!certificateEditMode && (
+                      <button
+                        className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
+                        onClick={() => {
+                          setFormData({
+                            certificate_id: "",
+                            title: "",
+                            issueDate: "",
+                          });
+                          setCertificateEditMode(true);
+                        }}
+                      >
+                        <i className="fas fa-plus" /> Add
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="saas-card-body">
+                    {certificateEditMode ? (
+                      /* ================= FORM MODE ================= */
+                      <div className="row">
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">
+                            Certificate Title
+                          </label>
+                          <input
+                            type="text"
+                            className="saas-input"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                          />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                          <label className="saas-label">Issue Date</label>
+                          <input
+                            type="date"
+                            className="saas-input"
+                            name="issueDate"
+                            value={formData.issueDate}
+                            onChange={handleChange}
+                          />
+                        </div>
+
+                        <div className="col-12 text-end">
+                          <button
+                            className="btn btn-outline-secondary me-2"
+                            onClick={() => setCertificateEditMode(false)}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            className="btn btn-primary"
+                            onClick={handleSaveCertificate}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ================= VIEW MODE ================= */
+                      <div>
+                        {profileData.certificates?.length > 0 ? (
+                          <>
+                            {(showAllCertificates
+                              ? profileData.certificates
+                              : profileData.certificates.slice(0, 1)
+                            ).map((cert) => (
+                              <div
+                                key={cert._id}
+                                className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2"
+                              >
+                                <div>
+                                  <h6 className="fw-bold mb-0">{cert.title}</h6>
+                                  <small className="text-muted">
+                                    Issue Date: {cert?.issueDate?.slice(0, 10)}
+                                  </small>
+                                </div>
+
+                                <div>
+                                  <button
+                                    className="btn btn-sm text-primary"
+                                    onClick={() => {
+                                      setFormData({
+                                        certificate_id: cert._id,
+                                        title: cert.title,
+                                        issueDate: cert.issueDate.slice(0, 10),
+                                      });
+                                      setCertificateEditMode(true);
+                                    }}
+                                  >
+                                    <i className="fas fa-pencil-alt" />
+                                  </button>
+
+                                  <button
+                                    className="btn btn-sm text-danger"
+                                    onClick={() =>
+                                      handleDeleteCertificate(cert._id)
+                                    }
+                                  >
+                                    <i className="fas fa-trash" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* SHOW MORE / SHOW LESS BUTTON */}
+                            {profileData.certificates.length > 1 && (
+                              <div className="text-center mt-2">
+                                {!showAllCertificates ? (
+                                  <button
+                                    className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                                    onClick={() => setShowAllCertificates(true)}
+                                  >
+                                    Voir plus de certifications
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                                    onClick={() =>
+                                      setShowAllCertificates(false)
+                                    }
+                                  >
+                                    Afficher moins
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-muted">
+                            No certificates added yet.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {!isEditingLinks ? (
+                  // ================= VIEW MODE =================
+                  <div className="saas-card">
+                    <div className="saas-card-header">
+                      <h4 className="saas-card-title">
+                        <i className="fas fa-link" /> Portfolio & Social Links
+                      </h4>
+
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => {
+                          setPortfolioLinks({
+                            personalWebsite:
+                              profileData?.links?.portfolio || "",
+                            github: profileData?.links?.github || "",
+                            linkedin: profileData?.links?.linkedin || "",
+                          });
+
+                          setIsEditingLinks(true);
+                        }}
+                      >
+                        {profileData?.links ? "Edit" : "Add"}
+                      </button>
+                    </div>
+
+                    <div className="d-flex flex-wrap gap-3">
+                      {profileData?.links?.portfolio && (
+                        <a
+                          href={profileData.links.portfolio}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-outline-secondary btn-sm"
+                        >
+                          <i class="fas fa-globe me-1"></i>Website
+                        </a>
+                      )}
+
+                      {profileData?.links?.linkedin && (
+                        <a
+                          href={profileData.links.linkedin}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-outline-secondary btn-sm"
+                        >
+                          <i class="fab fa-linkedin me-1"></i> LinkedIn
+                        </a>
+                      )}
+
+                      {profileData?.links?.github && (
+                        <a
+                          href={profileData.links.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-outline-secondary btn-sm"
+                        >
+                          <i class="fab fa-github me-1"></i> GitHub
+                        </a>
+                      )}
+
+                      {!profileData?.links && <p>No links added yet.</p>}
+                    </div>
+                  </div>
+                ) : (
+                  // ================= EDIT MODE =================
+                  <div className="saas-card">
+                    <div className="saas-card-header">
+                      <h4 className="saas-card-title">
+                        <i className="fas fa-link" /> Portfolio & Social Links
+                      </h4>
+
+                      <button
+                        className="btn btn-sm btn-link"
+                        onClick={() => setIsEditingLinks(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    <div className="saas-form-grid row">
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">
+                          <i className="fas fa-globe me-1" /> Personal Website
+                        </label>
+                        <input
+                          className="saas-input"
+                          type="url"
+                          value={portfolioLinks.personalWebsite}
+                          onChange={(e) =>
+                            setPortfolioLinks({
+                              ...portfolioLinks,
+                              personalWebsite: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">
+                          <i className="fab fa-linkedin me-1" /> LinkedIn
+                        </label>
+                        <input
+                          className="saas-input"
+                          type="url"
+                          value={portfolioLinks.linkedin}
+                          onChange={(e) =>
+                            setPortfolioLinks({
+                              ...portfolioLinks,
+                              linkedin: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="col-md-6 saas-form-group">
+                        <label class="saas-label">
+                          <i class="fab fa-github me-1"></i> GitHub
+                        </label>
+                        <input
+                          className="saas-input"
+                          type="url"
+                          value={portfolioLinks.github}
+                          onChange={(e) =>
+                            setPortfolioLinks({
+                              ...portfolioLinks,
+                              github: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="col-12 text-end mt-2">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => {
+                            handleSavePortfolioLinks();
+                            setIsEditingLinks(false);
+                          }}
+                        >
+                          Save Links
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="saas-card">
+                  <div className="saas-card-header d-flex justify-content-between align-items-center">
+                    <h4 className="saas-card-title">
+                      <i className="fas fa-folder-open" /> Documents
+                    </h4>
+
+                    <span className="badge bg-light text-dark">
+                      {cvFiles.length + coverLetters.length} Files
+                    </span>
+                  </div>
+
+                  <div className="row">
+                    {/* ================= CV SECTION ================= */}
+                    <div className="col-md-6 border-end">
+                      <h6 className="text-muted mb-3 text-uppercase small fw-bold">
+                        Resumes / CVs
+                      </h6>
+
+                      <div className="d-flex flex-column gap-2">
+                        {/* ✅ CV LIST */}
+                        {cvFiles.length > 0 ? (
+                          cvFiles.map((cv, index) => {
+                            const fileUrl =
+                              typeof cv === "string"
+                                ? `${API_IMAGE_URL}${cv}`
+                                : cv?.url
+                                  ? `${API_IMAGE_URL}${cv.url}`
+                                  : null;
+
+                            const fileName =
+                              typeof cv === "string"
+                                ? decodeURIComponent(cv.split("/").pop())
+                                : cv?.url
+                                  ? decodeURIComponent(cv.url.split("/").pop())
+                                  : cv?.name || "Unknown file";
+
+                            return (
+                              <div
+                                key={cv._id || index}
+                                className="d-flex justify-content-between align-items-center bg-light p-2 rounded border"
+                              >
+                                <div className="d-flex align-items-center gap-2 overflow-hidden">
+                                  <i className="fas fa-file-pdf text-danger" />
+                                  <span
+                                    className="text-truncate small"
+                                    style={{ maxWidth: "150px" }}
+                                  >
+                                    {fileName}
+                                  </span>
+                                </div>
+
+                                <div>
+                                  {fileUrl && (
+                                    <i
+                                      className="fas fa-download text-muted me-2"
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() =>
+                                        window.open(fileUrl, "_blank")
+                                      }
+                                    />
+                                  )}
+                                  <i
+                                    className="fas fa-trash text-danger"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() =>
+                                      handleDeleteCv(cv._id || index)
+                                    }
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p className="small text-muted">
+                            No CVs uploaded yet.
+                          </p>
+                        )}
+
+                        {/* ✅ Upload Box */}
+                        {cvFiles.length < 3 && (
+                          <div className="upload-box text-center p-3 border border-dashed rounded bg-white mt-2">
+                            <label style={{ cursor: "pointer" }}>
+                              <i className="fas fa-cloud-upload-alt text-primary mb-1" />
+                              <p className="small text-muted mb-0">Upload CV</p>
+                              <input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                multiple
+                                hidden
+                                onChange={handleUploadCv}
+                              />
+                            </label>
+                          </div>
+                        )}
+
+                        {cvFiles.length >= 3 && (
+                          <p className="text-danger small">
+                            Max 3 CVs allowed. Delete one to upload new.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ================= COVER LETTER SECTION ================= */}
+                    <div className="col-md-6 ps-md-4">
+                      <h6 className="text-muted mb-3 text-uppercase small fw-bold mt-3 mt-md-0">
+                        Cover Letters
+                      </h6>
+
+                      <div className="d-flex flex-column gap-2">
+                        {/* ✅ Cover Letter List */}
+                        {coverLetters.length > 0 ? (
+                          coverLetters.map((cl, index) => {
+                            const fileUrl =
+                              typeof cl === "string"
+                                ? `${API_IMAGE_URL}${cl}`
+                                : cl?.url
+                                  ? `${API_IMAGE_URL}${cl.url}`
+                                  : null;
+
+                            const fileName =
+                              typeof cl === "string"
+                                ? decodeURIComponent(cl.split("/").pop())
+                                : cl?.url
+                                  ? decodeURIComponent(cl.url.split("/").pop())
+                                  : cl?.name || "Unknown file";
+
+                            return (
+                              <div
+                                key={cl._id || index}
+                                className="d-flex justify-content-between align-items-center bg-light p-2 rounded border"
+                              >
+                                <div className="d-flex align-items-center gap-2 overflow-hidden">
+                                  <i className="fas fa-file-word text-primary" />
+                                  <span
+                                    className="text-truncate small"
+                                    style={{ maxWidth: "150px" }}
+                                  >
+                                    {fileName}
+                                  </span>
+                                </div>
+
+                                <div>
+                                  {fileUrl && (
+                                    <i
+                                      className="fas fa-download text-muted me-2"
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() =>
+                                        window.open(fileUrl, "_blank")
+                                      }
+                                    />
+                                  )}
+                                  <i
+                                    className="fas fa-trash text-danger"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() =>
+                                      handleDeleteCoverLetter(cl._id || index)
+                                    }
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p className="small text-muted">
+                            No Cover Letters uploaded yet.
+                          </p>
+                        )}
+
+                        {/* ✅ Upload Box */}
+                        {coverLetters.length < 3 && (
+                          <div className="upload-box text-center p-3 border border-dashed rounded bg-white mt-2">
+                            <label style={{ cursor: "pointer" }}>
+                              <i className="fas fa-cloud-upload-alt text-primary mb-1" />
+                              <p className="small text-muted mb-0">
+                                Upload Cover Letter
+                              </p>
+                              <input
+                                type="file"
+                                accept=".pdf,.doc,.docx"
+                                multiple
+                                hidden
+                                onChange={handleUploadCoverLetter}
+                              />
+                            </label>
+                          </div>
+                        )}
+
+                        {coverLetters.length >= 3 && (
+                          <p className="text-danger small">
+                            Max 3 Cover Letters allowed.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -5896,6 +4570,139 @@ function CandidateProfile() {
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Upload CV</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => {
+                    setShowModal(false);
+                    setFile(null); // clear selected file
+                    setFormData1((prev) => ({
+                      ...prev,
+                      attachment: null, // clear from formData
+                    }));
+                  }}
+                />
+              </div>
+
+              <div className="modal-body">
+                <div className="form-group">
+                  <div
+                    className="custom-file-upload text-center"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.add("drag-active");
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove("drag-active");
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove("drag-active");
+
+                      const droppedFiles = e.dataTransfer.files;
+                      if (droppedFiles && droppedFiles.length > 0) {
+                        // ✅ Reuse your existing handler
+                        const fakeEvent = {
+                          target: { files: droppedFiles },
+                        };
+                        handleFileChange1(fakeEvent);
+                      }
+                    }}
+                  >
+                    <label htmlFor="file-upload" className="fw-bold">
+                      Upload Your File (PDF/DOC/DOCX)
+                    </label>
+
+                    <input
+                      type="file"
+                      id="file-upload"
+                      accept=".pdf,.doc,.docx"
+                      required
+                      onChange={handleFileChange1}
+                      className="input-hidden"
+                    />
+
+                    <label
+                      htmlFor="file-upload"
+                      className="file-text cursor-pointer"
+                    >
+                      <i
+                        className="fas fa-cloud-upload-alt"
+                        style={{
+                          fontSize: "30px",
+                          color: "#007bff",
+                        }}
+                      />
+                      <br />
+                      Click to Upload or drag & drop
+                    </label>
+
+                    {error && (
+                      <div className="invalid-feedback d-block mt-2">
+                        {error}
+                      </div>
+                    )}
+                    {file && (
+                      <div className="mt-2 text-success">
+                        Selected: {file.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      className="mt-3 default-btn btn"
+                      onClick={uploadResume}
+                      disabled={isUploading || isExtracting}
+                    >
+                      {isUploading || isExtracting ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                          />
+                          {isUploading
+                            ? "Uploading..."
+                            : "Extracting Resume..."}
+                        </>
+                      ) : (
+                        "Upload"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {(isUploading || isExtracting) && (
+                <div
+                  className="position-absolute top-0 start-0 w-100 h-100 d-flex
+       justify-content-center align-items-center bg-white bg-opacity-75"
+                  style={{ zIndex: 1050 }}
+                >
+                  <div className="text-center">
+                    <div className="spinner-border text-primary mb-3" />
+                    <p className="fw-bold">
+                      {isUploading
+                        ? "Uploading resume..."
+                        : "Extracting information from resume..."}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

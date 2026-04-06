@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 
 function CandinatesList() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { userId } = location.state || {};
   console.log(userId);
   const reviewSectionRef = useRef(null);
@@ -45,7 +46,7 @@ function CandinatesList() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedEducation, setSelectedEducation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState("");
-  const [perPage, setPerPage] = useState(10); // default
+  const [perPage, setPerPage] = useState(100000); // default
   const [totalResults, setTotalResults] = useState(0);
   const [sortBy, setSortBy] = useState("");
   const [country, setCountry] = useState([]);
@@ -131,6 +132,7 @@ function CandinatesList() {
 
       if (res.data.success) {
         toast.success("Candidate bookmarked successfully ");
+        fetchCandidates();
       } else {
         toast.warning(res.data.message); // handles already bookmarked
       }
@@ -211,8 +213,8 @@ function CandinatesList() {
 
       // 🔹 Query params (remain in URL)
       const queryParams = {
-        page,
-        limit,
+        page: page,
+        limit: perPage,
         skills: selectedSkills.length ? selectedSkills.join(",") : undefined,
         city: selectedCountry && selectedCity ? selectedCity : undefined,
         country: selectedCountry || undefined,
@@ -257,7 +259,50 @@ function CandinatesList() {
   useEffect(() => {
     fetchCandidates(currentPage, perPage);
   }, [currentPage, perPage]);
+  const handleUnlockContact = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const response = await axios.post(
+        `${API_BASE_URL}viewCandidate/${candidateDetails.userId._id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!response.data.success) {
+        toast.error(response.data.message);
+
+        // 🚀 Navigate only if credits exhausted
+        if (response.data.is_exhausted === 1) {
+          setTimeout(() => {
+            navigate("/add-plan");
+          }, 2000);
+        }
+
+        return;
+      }
+
+      // ✅ Unlock success
+      setCandidateDetails((prev) => ({
+        ...prev,
+        isUnlocked: true,
+      }));
+    } catch (error) {
+      const message = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+
+      toast.error(message || "Something went wrong");
+
+      // 🚀 Navigate only if exhausted
+      if (exhausted === 1) {
+        setTimeout(() => {
+          navigate("/add-plan");
+        }, 2000);
+      }
+    }
+  };
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -310,25 +355,10 @@ function CandinatesList() {
     }
   };
 
-  const filteredCities = cityList.filter((city) =>
-    city.name.toLowerCase().includes(citySearchTerm.toLowerCase()),
-  );
-
   const updateCities = (updatedCities) => {
     setSelectedCities(updatedCities);
   };
 
-  const toggleCity = (cityName) => {
-    updateCities(
-      selectedCities.includes(cityName)
-        ? selectedCities.filter((c) => c !== cityName)
-        : [...selectedCities, cityName],
-    );
-  };
-
-  const handleRemoveCity = (cityName) => {
-    updateCities(selectedCities.filter((c) => c !== cityName));
-  };
   useEffect(() => {
     fetchCountry();
 
@@ -344,12 +374,6 @@ function CandinatesList() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const toggleEducation = (value) => {
-    setSelectedEducation((prev) =>
-      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
-    );
-  };
 
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -950,7 +974,19 @@ function CandinatesList() {
           >
             <div className="row">
               <div className="col-lg-4">
-                <div className="d-flex justify-content-end mb-2">
+                <div className="d-flex justify-content-end mb-2 ">
+                  <select
+                    className="per-page-select me-2"
+                    value={perPage}
+                    onChange={(e) => {
+                      setPerPage(Number(e.target.value));
+                      setCurrentPage(1); // reset to first page
+                    }}
+                  >
+                    <option value={20}>Show: 20</option>
+                    <option value={100}>Show: 100</option>
+                    <option value={500}>Show: 500</option>
+                  </select>
                   {/* Sort */}
                   <select
                     className="form-select form-select-sm shadow-none"
@@ -1044,36 +1080,6 @@ function CandinatesList() {
                                       />
                                     </button>
 
-                                    {/* <ul className="dropdown-menu dropdown-menu-end shadow border-0">
-                                      <li>
-                                        <button
-                                          className="dropdown-item d-flex align-items-center gap-2"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleBookmark(
-                                              user?._id,
-                                              candidate.jobId,
-                                            );
-                                          }}
-                                        >
-                                          <i className="fa-regular fa-folder" />
-                                          <span style={{ fontSize: "13px" }}>
-                                            Save to Default Folder
-                                          </span>
-                                        </button>
-                                      </li>
-
-                                      <li>
-                                        <hr className="dropdown-divider" />
-                                      </li>
-
-                                      <li>
-                                        <button className="dropdown-item text-primary">
-                                          <i className="fa-solid fa-plus me-2" />
-                                          Create New Folder
-                                        </button>
-                                      </li>
-                                    </ul> */}
                                     <ul className="dropdown-menu dropdown-menu-end shadow border-0">
                                       {/* DEFAULT SAVE */}
                                       <li>
@@ -1255,14 +1261,15 @@ function CandinatesList() {
                                     </p>
                                   </div>
                                   <div className="d-flex gap-2">
-                                    <button
-                                      className="btn btn-primary btn-sm"
-                                      onClick={handleDownloadCV}
-                                    >
-                                      <i className="fa-solid fa-download me-1" />{" "}
-                                      Download CV
-                                    </button>
-
+                                    {candidateDetails?.isUnlocked && (
+                                      <button
+                                        className="btn btn-primary btn-sm"
+                                        onClick={handleDownloadCV}
+                                      >
+                                        <i className="fa-solid fa-download me-1" />{" "}
+                                        Download CV
+                                      </button>
+                                    )}
                                     <a
                                       href={
                                         candidateDetails?.links?.linkedin || "#"
@@ -1383,25 +1390,9 @@ function CandinatesList() {
                                               ?.Nationality || "Not Provided"}
                                     </span>
                                   </div>
-                                  <div className="w-100">
-                                    <button
-                                      className="btn btn-light btn-sm border text-muted"
-                                      style={{
-                                        fontSize: "11px",
-                                        padding: "2px 8px",
-                                      }}
-                                      onClick={() =>
-                                        setShowContact(!showContact)
-                                      }
-                                    >
-                                      <i className="fa-regular fa-eye me-1" />
-                                      {showContact
-                                        ? "Masquer les coordonnées"
-                                        : "Afficher les coordonnées"}
-                                    </button>
-                                  </div>
 
-                                  {showContact && (
+                                  {candidateDetails?.isUnlocked ? (
+                                    // ✅ If already unlocked → show contact directly
                                     <div className="w-100 d-flex flex-wrap gap-3 mt-2">
                                       <div className="d-flex align-items-center gap-1">
                                         <i className="fa-regular fa-envelope" />
@@ -1419,6 +1410,21 @@ function CandinatesList() {
                                           : candidateDetails?.userId?.phone ||
                                             "Not Provided"}
                                       </div>
+                                    </div>
+                                  ) : (
+                                    // 🔒 If locked → show button
+                                    <div className="w-100">
+                                      <button
+                                        className="btn btn-light btn-sm border text-muted"
+                                        style={{
+                                          fontSize: "11px",
+                                          padding: "2px 8px",
+                                        }}
+                                        onClick={handleUnlockContact}
+                                      >
+                                        <i className="fa-regular fa-eye me-1" />
+                                        Afficher les coordonnées
+                                      </button>
                                     </div>
                                   )}
                                 </div>
@@ -1439,19 +1445,20 @@ function CandinatesList() {
                                 </div>
                                 <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
                                   {/* Send Message Button */}
-                                  <Link
-                                    to="/messaging-system"
-                                    state={{
-                                      candidateId:
-                                        candidateDetails?.userId?._id,
-                                      candidate: candidateDetails,
-                                    }}
-                                    className="btn btn-warning btn-sm text-white"
-                                  >
-                                    <i className="fa-solid fa-envelope me-1"></i>
-                                    Send Message
-                                  </Link>
-
+                                  {candidateDetails?.isUnlocked && (
+                                    <Link
+                                      to="/messaging-system"
+                                      state={{
+                                        candidateId:
+                                          candidateDetails?.userId?._id,
+                                        candidate: candidateDetails,
+                                      }}
+                                      className="btn btn-warning btn-sm text-white"
+                                    >
+                                      <i className="fa-solid fa-envelope me-1"></i>
+                                      Send Message
+                                    </Link>
+                                  )}
                                   {/* Rating Button */}
                                   <button
                                     type="button"
@@ -1678,22 +1685,34 @@ function CandinatesList() {
 
                                   <div>
                                     <h6 className="fw-bold mb-1">
-                                      {candidateDetails.career_goals.DesiredJobTitle?.toLowerCase().replace(
-                                        /^\w/,
-                                        (c) => c.toUpperCase(),
-                                      ) || "Not Provided"}
+                                      {Array.isArray(
+                                        candidateDetails?.career_goals
+                                          ?.DesiredJobTitle,
+                                      )
+                                        ? candidateDetails.career_goals.DesiredJobTitle.join(
+                                            ", ",
+                                          )
+                                        : "Not Provided"}
                                     </h6>
 
                                     <p className="text-muted mb-1 small">
-                                      {candidateDetails.career_goals.DesiredEmploymentType?.toLowerCase().replace(
-                                        /^\w/,
-                                        (c) => c.toUpperCase(),
-                                      ) || "-"}{" "}
+                                      {Array.isArray(
+                                        candidateDetails?.career_goals
+                                          ?.DesiredEmploymentType,
+                                      )
+                                        ? candidateDetails.career_goals.DesiredEmploymentType.join(
+                                            ", ",
+                                          )
+                                        : "-"}{" "}
                                       •{" "}
-                                      {candidateDetails.career_goals.DesiredOccupationType?.toLowerCase().replace(
-                                        /^\w/,
-                                        (c) => c.toUpperCase(),
-                                      ) || "-"}
+                                      {Array.isArray(
+                                        candidateDetails?.career_goals
+                                          ?.DesiredOccupationType,
+                                      )
+                                        ? candidateDetails.career_goals.DesiredOccupationType.join(
+                                            ", ",
+                                          )
+                                        : "-"}
                                     </p>
 
                                     <div className="mt-2 small text-muted">

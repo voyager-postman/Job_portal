@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
-
 const Employers = () => {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);

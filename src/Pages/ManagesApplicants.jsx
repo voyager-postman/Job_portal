@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 function ManagesApplicants() {
+  const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token");
   const cityDropdownRef = useRef(null);
@@ -529,6 +530,63 @@ function ManagesApplicants() {
     setActiveFolder(folderId);
     setCurrentPage(1);
   };
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Applied":
+        return {
+          backgroundColor: "#eef2f7",
+          color: "#5f6b7a",
+        };
+
+      case "Preselected":
+        return {
+          backgroundColor: "#e7f1ff",
+          color: "#0d6efd",
+        };
+
+      case "Contacted":
+        return {
+          backgroundColor: "#ede9fe",
+          color: "#6f42c1",
+        };
+
+      case "HR Interview":
+        return {
+          backgroundColor: "#fff8e1",
+          color: "#b26a00",
+        };
+
+      case "Technical Interview":
+        return {
+          backgroundColor: "#e6f4ea",
+          color: "#1e7e34",
+        };
+
+      case "Offered":
+        return {
+          backgroundColor: "#d1f7e8",
+          color: "#0f9d58",
+        };
+
+      case "Hired":
+        return {
+          backgroundColor: "#d4edda",
+          color: "#198754",
+        };
+
+      case "Rejected":
+        return {
+          backgroundColor: "#fdecea",
+          color: "#d93025",
+        };
+
+      default:
+        return {
+          backgroundColor: "#eef2f7",
+          color: "#5f6b7a",
+        };
+    }
+  };
   const handleBookmarkCandidate = async (candidateId, folderId) => {
     try {
       const res = await axios.post(
@@ -554,6 +612,55 @@ function ManagesApplicants() {
         toast.warning("Already bookmarked in this folder ⚠️");
       } else {
         toast.error("Something went wrong ");
+      }
+    }
+  };
+  const handleUnlockContact = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const candidateId = selectedCandidate?.userId?._id;
+      const jobId = selectedCandidate?.jobId?._id;
+
+      const response = await axios.post(
+        `${API_BASE_URL}viewCandidatePerJob/${candidateId}/${jobId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.data.success) {
+        toast.error(response.data.message);
+
+        // 🚀 Navigate only if credits exhausted
+        if (response.data.is_exhausted === 1) {
+          setTimeout(() => {
+            navigate("/add-plan");
+          }, 2000);
+        }
+
+        return;
+      }
+
+      // ✅ Unlock success
+      setSelectedCandidate((prev) => ({
+        ...prev,
+        isUnlocked: true,
+      }));
+    } catch (error) {
+      const message = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+
+      toast.error(message || "Something went wrong");
+
+      // 🚀 Navigate only if credits exhausted
+      if (exhausted === 1) {
+        setTimeout(() => {
+          navigate("/add-plan");
+        }, 2000);
       }
     }
   };
@@ -1175,7 +1282,7 @@ function ManagesApplicants() {
                   </div>
                   <div
                     className="candidate-list-scroll"
-                    style={{ maxHeight: "800px", overflowY: "auto" }}
+                    style={{ maxHeight: "800px" }}
                   >
                     {candidates.map((item) => {
                       const profile = item.userId?.candidateProfile;
@@ -1365,8 +1472,13 @@ function ManagesApplicants() {
                                   <span className="text-muted">•</span>
 
                                   <span
-                                    className="badge bg-secondary"
-                                    style={{ fontSize: "10px" }}
+                                    className="badge py-1 px-2"
+                                    style={{
+                                      fontSize: "11px",
+                                      borderRadius: "20px",
+                                      fontWeight: 500,
+                                      ...getStatusStyle(item.status),
+                                    }}
                                   >
                                     {item.status}
                                   </span>
@@ -1452,27 +1564,29 @@ function ManagesApplicants() {
                                 </p>
                               </div>
                               <div className="d-flex gap-2">
-                                <button
-                                  className="btn btn-primary btn-sm"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    const fileUrl = getResumeUrl();
+                                {selectedCandidate?.isUnlocked && (
+                                  <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      const fileUrl = getResumeUrl();
 
-                                    if (!fileUrl) {
-                                      toast.error("No resume uploaded");
-                                      return;
-                                    }
+                                      if (!fileUrl) {
+                                        toast.error("No resume uploaded");
+                                        return;
+                                      }
 
-                                    // open in new tab
-                                    window.open(
-                                      `${API_IMAGE_URL}${fileUrl}`,
-                                      "_blank",
-                                    );
-                                  }}
-                                >
-                                  <i className="fa-solid fa-download me-1" />{" "}
-                                  Download CV
-                                </button>
+                                      // open in new tab
+                                      window.open(
+                                        `${API_IMAGE_URL}${fileUrl}`,
+                                        "_blank",
+                                      );
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-download me-1" />{" "}
+                                    Download CV
+                                  </button>
+                                )}
                                 <button
                                   className="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
                                   title="LinkedIn Profile"
@@ -1687,7 +1801,7 @@ function ManagesApplicants() {
                               className="row g-2 mt-1"
                               style={{ "font-size": "13px" }}
                             >
-                              <div className="col-12">
+                              {/* <div className="col-12">
                                 <button
                                   className="btn btn-light btn-sm border text-muted"
                                   style={{
@@ -1701,8 +1815,8 @@ function ManagesApplicants() {
                                     ? "Masquer les coordonnées"
                                     : "Afficher les coordonnées"}
                                 </button>
-                              </div>
-                              {showContact && (
+                              </div> */}
+                              {/* {showContact && (
                                 <div className="w-100 d-flex flex-wrap gap-3 mt-2">
                                   <div className="d-flex align-items-center gap-1">
                                     <i className="fa-regular fa-envelope" />
@@ -1719,6 +1833,41 @@ function ManagesApplicants() {
                                       : selectedCandidate?.userId?.phone ||
                                         "Not Provided"}
                                   </div>
+                                </div>
+                              )} */}
+                              {selectedCandidate?.isUnlocked ? (
+                                // ✅ If already unlocked → show contact directly
+                                <div className="w-100 d-flex flex-wrap gap-3 mt-2">
+                                  <div className="d-flex align-items-center gap-1">
+                                    <i className="fa-regular fa-envelope" />
+                                    {selectedCandidate?.userId?.email ||
+                                      "Not Provided"}
+                                  </div>
+
+                                  <div className="d-flex align-items-center gap-1">
+                                    <i className="fa-solid fa-phone" />
+                                    {selectedCandidate?.userId?.countryCode
+                                      ? `+${selectedCandidate.userId.countryCode} ${
+                                          selectedCandidate?.userId?.phone || ""
+                                        }`
+                                      : selectedCandidate?.userId?.phone ||
+                                        "Not Provided"}
+                                  </div>
+                                </div>
+                              ) : (
+                                // 🔒 If locked → show button
+                                <div className="w-100">
+                                  <button
+                                    className="btn btn-light btn-sm border text-muted"
+                                    style={{
+                                      fontSize: "11px",
+                                      padding: "2px 8px",
+                                    }}
+                                    onClick={handleUnlockContact}
+                                  >
+                                    <i className="fa-regular fa-eye me-1" />
+                                    Afficher les coordonnées
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -1915,18 +2064,19 @@ function ManagesApplicants() {
                                     ))}
                                 </ul>
                               </div>
-
-                              <Link
-                                to="/messaging-system"
-                                state={{
-                                  candidateId: selectedCandidate?.userId?._id,
-                                  candidate: selectedCandidate,
-                                }}
-                                className="btn btn-warning text-white btn-sm"
-                              >
-                                <i className="fa-solid fa-envelope me-1" /> Send
-                                Message
-                              </Link>
+                              {selectedCandidate?.isUnlocked && (
+                                <Link
+                                  to="/messaging-system"
+                                  state={{
+                                    candidateId: selectedCandidate?.userId?._id,
+                                    candidate: selectedCandidate,
+                                  }}
+                                  className="btn btn-warning text-white btn-sm"
+                                >
+                                  <i className="fa-solid fa-envelope me-1" />{" "}
+                                  Send Message
+                                </Link>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1944,8 +2094,8 @@ function ManagesApplicants() {
 
                             <p className="text-muted">
                               {selectedCandidate?.userId?.candidateProfile
-                                ?.aboutRole?.jobTitle
-                                ? `Currently working as ${selectedCandidate.userId.candidateProfile.aboutRole.jobTitle}.`
+                                ?.professionalSummary
+                                ? `Currently working as ${selectedCandidate.userId.candidateProfile.professionalSummary}.`
                                 : "No professional summary added."}
                             </p>
                           </div>

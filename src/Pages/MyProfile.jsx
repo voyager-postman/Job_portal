@@ -64,7 +64,7 @@ function MyProfile() {
           const moroccoIndex = countryList.findIndex(
             (c) =>
               c.name?.toLowerCase() === "morocco" ||
-              c.code?.toUpperCase() === "MA"
+              c.code?.toUpperCase() === "MA",
           );
 
           if (moroccoIndex > -1) {
@@ -217,8 +217,8 @@ function MyProfile() {
         JSON.stringify({
           type: payload.salaryType || "Yearly",
           amount: payload.salaryAmount || "",
-          currency: "USD",
-        })
+          currency: "MAD",
+        }),
       );
     }
 
@@ -239,7 +239,7 @@ function MyProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -407,7 +407,7 @@ function MyProfile() {
         data,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       if (res.data.success && res.data.jobId) {
@@ -551,7 +551,7 @@ function MyProfile() {
   const importFromLinkedIn = () => {
     try {
       window.location.assign(
-        "https://sisccltd.com/job_portal/api/linkedin/parse"
+        "https://sisccltd.com/job_portal/api/linkedin/parse",
       );
     } catch (err) {
       console.error(err);
@@ -701,21 +701,21 @@ function MyProfile() {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         e.currentTarget.classList.add(
-                                          "drag-active"
+                                          "drag-active",
                                         );
                                       }}
                                       onDragLeave={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         e.currentTarget.classList.remove(
-                                          "drag-active"
+                                          "drag-active",
                                         );
                                       }}
                                       onDrop={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         e.currentTarget.classList.remove(
-                                          "drag-active"
+                                          "drag-active",
                                         );
 
                                         const droppedFiles =
@@ -1112,7 +1112,7 @@ function MyProfile() {
               </div>
 
               <div className="col-lg-12 col-md-12">
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label>
                     Please Select Your Desired Salary <span>(optional)</span>
                   </label>
@@ -1132,6 +1132,21 @@ function MyProfile() {
                       </option>
                     ))}
                   </select>
+                </div> */}
+                <div className="form-group">
+                  <label>
+                    Please Enter Your Desired Salary <span>(optional)</span>
+                  </label>
+
+                  <input
+                    type="number" // you can change to "number" if needed
+                    name="salaryAmount"
+                    value={formData.salaryAmount}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Enter Desired Salary"
+                    disabled={!isManualEnabled}
+                  />
                 </div>
               </div>
 

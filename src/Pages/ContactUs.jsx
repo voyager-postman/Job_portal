@@ -1,10 +1,92 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios"
-
+import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function ContactUs() {
+  const [contactData, setContactData] = useState({});
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+    subject: "",
+    agree: false,
+  });
+
+  // ✅ Get Contact Info
+  const getContactInfo = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getContactUs`);
+
+      if (res.data.success) {
+        setContactData(res.data.data);
+      }
+    } catch (error) {
+      console.error("Contact info error:", error);
+    }
+  };
+
+  useEffect(() => {
+    getContactInfo();
+  }, []);
+
+  // ✅ Handle Input Change
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  // ✅ Submit Form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.message
+    ) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    if (!formData.agree) {
+      toast.warning("Please agree to terms and privacy policy");
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}sendContactMessage`,
+        formData,
+      );
+
+      if (res.data.success) {
+        toast.success("Message sent successfully ");
+
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          message: "",
+          subject: "",
+          agree: false,
+        });
+      }
+    } catch (error) {
+      console.error("Send message error:", error);
+      toast.error("Something went wrong");
+    }
+  };
   return (
     <>
+      <ToastContainer position="top-right" autoClose={3000} />
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
           <img
@@ -40,10 +122,7 @@ function ContactUs() {
                     <i className="fa-solid fa-location-dot" />
                   </div>
                   <h3>Our location</h3>
-                  <span>
-                    CA 560 bush st &amp; 20th ave, apt 5 san francisco,230909,
-                    canada
-                  </span>
+                  <span>{contactData.location?.address}</span>{" "}
                 </div>
               </div>
               <div className="single-contact-info-box">
@@ -52,22 +131,11 @@ function ContactUs() {
                     <i className="fa-solid fa-envelope" />
                   </div>
                   <h3>Email Us</h3>
-                  <a href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#543c3138383b143339353d387a373b39">
-                    <span
-                      className="__cf_email__"
-                      data-cfemail="4b232e2727240b2c262a222765282426"
-                    >
-                      [email&nbsp;protected]
-                    </span>
-                  </a>
-                  <a href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#5d1b3c251d3a303c3431733e3230">
-                    <span
-                      className="__cf_email__"
-                      data-cfemail="5a1c3b221a3d373b333674393537"
-                    >
-                      [email&nbsp;protected]
-                    </span>
-                  </a>
+                  {contactData.emails?.map((e, i) => (
+                    <a key={i} href={`mailto:${e}`}>
+                      {e}
+                    </a>
+                  ))}
                 </div>
               </div>
               <div className="single-contact-info-box">
@@ -76,19 +144,20 @@ function ContactUs() {
                     <i className="fa-solid fa-envelope" />
                   </div>
                   <h3>Phone</h3>
-                  <a href="tel:+44587154756">+44 587 154756</a>
-                  <a href="tel:+55555514574">+55555514574</a>
+                  {contactData.phones?.map((p, i) => (
+                    <a key={i} href={`tel:${p}`}>
+                      {p}
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
             <div className="col-lg-8">
               <div className="contact-map">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12711295.912702927!2d-97.8942370839028!3d38.93897514662292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54eab584e432360b%3A0x1c3bb99243deb742!2sUnited%20States!5e0!3m2!1sen!2sbd!4v1654928837073!5m2!1sen!2sbd"
-                  style={{ border: "0" }}
-                  allowFullScreen
+                  src={`https://maps.google.com/maps?q=${contactData.location?.lat},${contactData.location?.lng}&z=15&output=embed`}
+                  style={{ border: "0", width: "100%", height: "400px" }}
                   loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
             </div>
@@ -99,10 +168,10 @@ function ContactUs() {
         <div className="container">
           <div className="section-title">
             <span>SEND MESSAGE</span>
-            <h2>Ready To Get Started?</h2>
+            <h2>{contactData.sendMessageSection?.heading}</h2>
           </div>
           <div className="contact-form">
-            <form id="contactForm">
+            <form onSubmit={handleSubmit}>
               <div className="row">
                 <div className="col-lg-6 col-sm-6">
                   <div className="form-group">
@@ -110,10 +179,9 @@ function ContactUs() {
                       type="text"
                       name="name"
                       placeholder="Name"
-                      id="name"
                       className="form-control"
-                      required
-                      data-error="Please enter your name"
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                     <div className="help-block with-errors" />
                   </div>
@@ -123,11 +191,10 @@ function ContactUs() {
                     <input
                       type="email"
                       name="email"
-                      id="email"
                       placeholder="Email"
                       className="form-control"
-                      required
-                      data-error="Please enter your email"
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                     <div className="help-block with-errors" />
                   </div>
@@ -136,12 +203,11 @@ function ContactUs() {
                   <div className="form-group">
                     <input
                       type="text"
-                      name="phone_number"
-                      id="phone_number"
-                      placeholder="Number"
-                      required
-                      data-error="Please enter your number"
+                      name="phone"
+                      placeholder="Phone"
                       className="form-control"
+                      value={formData.phone}
+                      onChange={handleChange}
                     />
                     <div className="help-block with-errors" />
                   </div>
@@ -150,12 +216,11 @@ function ContactUs() {
                   <div className="form-group">
                     <input
                       type="text"
-                      name="msg_subject"
-                      id="msg_subject"
-                      className="form-control"
+                      name="subject"
                       placeholder="Subject"
-                      required
-                      data-error="Please enter your subject"
+                      className="form-control"
+                      value={formData.subject}
+                      onChange={handleChange}
                     />
                     <div className="help-block with-errors" />
                   </div>
@@ -164,14 +229,11 @@ function ContactUs() {
                   <div className="form-group">
                     <textarea
                       name="message"
-                      className="form-control"
                       placeholder="Message"
-                      id="message"
-                      cols={30}
-                      rows={6}
-                      required
-                      data-error="Write your message"
-                      defaultValue={""}
+                      className="form-control"
+                      rows="6"
+                      value={formData.message}
+                      onChange={handleChange}
                     />
                     <div className="help-block with-errors" />
                   </div>
@@ -179,13 +241,13 @@ function ContactUs() {
                 <div className="form-group">
                   <div className="form-check">
                     <input
-                      name="gridCheck"
-                      defaultValue="I agree to the terms and privacy policy."
-                      className="form-check-input"
                       type="checkbox"
-                      id="gridCheck"
-                      required
+                      name="agree"
+                      className="form-check-input"
+                      checked={formData.agree}
+                      onChange={handleChange}
                     />
+
                     <label className="form-check-label" htmlFor="gridCheck">
                       I agree to the <a href="terms-conditions.html">terms</a>{" "}
                       and <a href="privacy-policy.html">privacy policy</a>

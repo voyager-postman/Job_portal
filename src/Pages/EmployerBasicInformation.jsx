@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import axios from "axios"
+import axios from "axios";
 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -61,7 +61,7 @@ const EmployerBasicInformation = () => {
   useEffect(() => {
     // Set default location — Noida
     setMapUrl(
-      "https://www.google.com/maps?q=28.522404036526275,77.23701088488971&z=15&output=embed"
+      "https://www.google.com/maps?q=28.522404036526275,77.23701088488971&z=15&output=embed",
     );
   }, []);
   const handleSelectCity = (city) => {
@@ -87,13 +87,13 @@ const EmployerBasicInformation = () => {
         const res = await axios.get(`${API_BASE_URL}get/countries`);
         if (res.data && Array.isArray(res.data.countries)) {
           let filtered = res.data.countries.filter(
-            (c) => c.name?.toLowerCase() !== "western sahara"
+            (c) => c.name?.toLowerCase() !== "western sahara",
           );
 
           const morocco = filtered.find(
             (c) =>
               String(c.phonecode) === "212" ||
-              c.name?.toLowerCase() === "morocco"
+              c.name?.toLowerCase() === "morocco",
           );
 
           if (morocco) {
@@ -266,7 +266,7 @@ const EmployerBasicInformation = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (response.data.success) {
         // ⭐ CLEAN & PROPER SWEETALERT MESSAGE
@@ -277,7 +277,7 @@ const EmployerBasicInformation = () => {
           confirmButtonText: "OK",
           confirmButtonColor: "#3085d6",
         });
-
+        localStorage.clear();
         navigate("/");
         return;
       } else {
@@ -290,7 +290,7 @@ const EmployerBasicInformation = () => {
       } else {
         toast.error(
           error.response?.data?.message ||
-            "Profile creation failed. Please try again."
+            "Profile creation failed. Please try again.",
         );
       }
     } finally {
@@ -308,7 +308,7 @@ const EmployerBasicInformation = () => {
     try {
       const res = await axios.post(
         "http://localhost:4000/api/recruiter/profile",
-        formData
+        formData,
       );
       console.log("API Response:", res.data);
       navigate("/employer-dashboard");
@@ -359,7 +359,8 @@ const EmployerBasicInformation = () => {
         <div className="employer-profile-basic-info-heading">
           <div className="section-title">
             <h2>
-              Employer Profile <label className="oragneColor">Basic Info</label>{" "}
+              Employer Profile{" "}
+              <label className="oragneColor">Basic Info</label>{" "}
             </h2>
             <p>
               These fields are mandatory before you publish a job post.

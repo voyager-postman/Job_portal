@@ -10,6 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 function RecruiterLists() {
   const navigate = useNavigate();
+    const [limit, setLimit] = useState(10); // ✅ Define limit state here
+  const [globalFilter, setGlobalFilter] = useState("");
   const [data, setData] = useState([]);
   const getRecruiterList = () => {
     const token = localStorage.getItem("token");
@@ -214,7 +216,14 @@ function RecruiterLists() {
               <div className="profile-form">
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
-                    <TableView columns={columns} data={data} />
+                    <TableView
+                      columns={columns}
+                      data={data}
+                      limit={limit}
+                      setLimit={setLimit}
+                      globalFilter={globalFilter}
+                      setGlobalFilter={setGlobalFilter}
+                    />
                   </div>
                 </div>
               </div>

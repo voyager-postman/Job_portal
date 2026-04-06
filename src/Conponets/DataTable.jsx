@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -5,21 +6,13 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 
-export const TableView = ({
-  columns = [],
-  data = [],
-  limit,
-  setLimit,
-  globalFilter,
-  setGlobalFilter,
-  customElement = <></>,
-}) => {
+export const TableView = ({ columns = [], data = [], limit, setLimit, customElement = <></> }) => {
+  const [globalFilter, setGlobalFilter] = useState("");
+
   const table = useReactTable({
     data,
     columns,
-    state: {
-      globalFilter,
-    },
+    state: { globalFilter },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -29,13 +22,9 @@ export const TableView = ({
     <div className="top-space-search-reslute">
       <div className="tab-content px-2 md:!px-4">
         <div className="parentProduceSearch">
-          {/* 🔹 ENTRIES */}
           <div className="entries">
             <small>show</small>{" "}
-            <select
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-            >
+            <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -44,12 +33,11 @@ export const TableView = ({
             <small>entries</small>
           </div>
 
-          {/* 🔹 SEARCH */}
           <div className="table-search-box-info">
             <input
               type="search"
               placeholder="search"
-              value={globalFilter ?? ""}
+              value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
             />
           </div>
@@ -64,10 +52,7 @@ export const TableView = ({
                 <tr key={group.id}>
                   {group.headers.map((header) => (
                     <th key={header.id}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
@@ -86,10 +71,7 @@ export const TableView = ({
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>
@@ -99,6 +81,7 @@ export const TableView = ({
           </table>
         </div>
       </div>
+      
     </div>
   );
 };

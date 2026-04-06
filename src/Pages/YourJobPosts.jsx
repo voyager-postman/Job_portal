@@ -36,11 +36,70 @@ function YourJobPosts() {
     }
   }, [location.state]);
 
+  // const handleCreate = async () => {
+  //   if (!jobTitle || !jobCategory) {
+  //     toast.error("Please fill all required fields");
+  //     return;
+  //   }
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const tempTitle = jobTitle;
+  //     const tempCategory = jobCategory;
+
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}createJob`,
+  //       { jobTitle: tempTitle, jobCategory: tempCategory },
+  //       { headers: { Authorization: `Bearer ${token}` } },
+  //     );
+
+  //     console.log("Job Created:", response.data);
+  //     const createdJob = response.data.job;
+  //     toast.success("Job created successfully!");
+
+  //     // Clear inputs AFTER successful navigation
+  //     setJobTitle("");
+  //     setJobCategory("");
+
+  //     const modalElement = document.getElementById("exampleModal");
+  //     const modal = window.bootstrap.Modal.getInstance(modalElement);
+  //     modal.hide();
+
+  //     // If you want to copy the draft here:
+  //     // await copyDraft(createdJob._id, tempTitle, tempCategory);
+
+  //     navigate(`/job-details-form/${createdJob._id}`, {
+  //       state: { jobData: createdJob },
+  //     });
+  //   } catch (error) {
+  //     const status = error.response?.status;
+  //     const errorMessage = error.response?.data?.message;
+
+  //     console.log("Status:", status);
+  //     console.log("Message:", errorMessage);
+
+  //     if (status === 400 && errorMessage?.includes("credits")) {
+  //       toast.warning(errorMessage, {
+  //         autoClose: 5000,
+  //       });
+
+  //       setTimeout(() => {
+  //         const modalElement = document.getElementById("exampleModal");
+  //         const modal = window.bootstrap.Modal.getInstance(modalElement);
+  //         modal.hide();
+
+  //         navigate("/add-plan"); // change if needed
+  //       }, 2000);
+  //       return;
+  //     }
+  //     toast.error(errorMessage || "Something went wrong");
+  //   }
+  // };
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
       toast.error("Please fill all required fields");
       return;
     }
+
     try {
       const token = localStorage.getItem("token");
       const tempTitle = jobTitle;
@@ -54,9 +113,9 @@ function YourJobPosts() {
 
       console.log("Job Created:", response.data);
       const createdJob = response.data.job;
+
       toast.success("Job created successfully!");
 
-      // Clear inputs AFTER successful navigation
       setJobTitle("");
       setJobCategory("");
 
@@ -64,18 +123,39 @@ function YourJobPosts() {
       const modal = window.bootstrap.Modal.getInstance(modalElement);
       modal.hide();
 
-      // If you want to copy the draft here:
-      // await copyDraft(createdJob._id, tempTitle, tempCategory);
-
       navigate(`/job-details-form/${createdJob._id}`, {
         state: { jobData: createdJob },
       });
     } catch (error) {
-      console.error("Error creating job:", error);
-      toast.error(error.response?.data?.message);
+      const status = error.response?.status;
+      const errorMessage = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+
+      console.log("Status:", status);
+      console.log("Message:", errorMessage);
+      console.log("Exhausted:", exhausted);
+
+      // 🚀 Credit exhausted condition
+      if (
+        status === 400 &&
+        (exhausted === 1 || errorMessage?.includes("credits"))
+      ) {
+        toast.warning(errorMessage, { autoClose: 5000 });
+
+        setTimeout(() => {
+          const modalElement = document.getElementById("exampleModal");
+          const modal = window.bootstrap.Modal.getInstance(modalElement);
+          modal.hide();
+
+          navigate("/add-plan");
+        }, 5000);
+
+        return;
+      }
+
+      toast.error(errorMessage || "Something went wrong");
     }
   };
-
   useEffect(() => {
     const handleClick = (e) => {
       if (e.target.classList.contains("menu-icon")) {
@@ -674,14 +754,19 @@ function YourJobPosts() {
                     {loading ? (
                       <p>Loading jobs...</p>
                     ) : jobs.length === 0 ? (
-                      <div className="job-post-info-heading text-center">
-                        <h2
-                          style={{
-                            alignItems: "center",
-                          }}
-                        >
-                          {getEmptyMessage()}
-                        </h2>
+                      <div className="empty-job-wrapper">
+                        <div className="empty-job-content">
+                          <div className="empty-job-icon">
+                            <i className="fa-solid fa-briefcase"></i>
+                          </div>
+
+                          <h4>{getEmptyMessage()}</h4>
+
+                          <p>
+                            Start by creating a new job post or change the
+                            filter to see more results.
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       jobs.map((job) => (
@@ -756,7 +841,11 @@ function YourJobPosts() {
                                         ? cityText.slice(0, 20) + "..."
                                         : cityText;
                                     })()
-                                  : "Not provided"}
+                                  : job.companyId?.city
+                                    ? job.companyId.city.length > 20
+                                      ? job.companyId.city.slice(0, 20) + "..."
+                                      : job.companyId.city
+                                    : "Not provided"}
                               </li>
                               <li>
                                 <i className="fa-solid fa-calendar-days"></i>{" "}
@@ -777,55 +866,59 @@ function YourJobPosts() {
                     )}
                   </div>
                 </div>
-                <div className="paginations mb-30">
-                  <ul>
-                    {/* Previous button */}
-                    <li>
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage > 1)
-                            handlePageChange(currentPage - 1);
-                        }}
-                        className={currentPage === 1 ? "disabled" : ""}
-                      >
-                        <i className="fa-solid fa-angle-left" />
-                      </a>
-                    </li>
-                    {/* Page numbers */}
-                    {Array.from({ length: totalPages }, (_, i) => (
-                      <li key={i + 1}>
+                {jobs.length > 0 && totalPages > 1 && (
+                  <div className="paginations mb-30">
+                    <ul>
+                      {/* Previous button */}
+                      <li>
                         <a
                           href="#"
-                          className={currentPage === i + 1 ? "active" : ""}
                           onClick={(e) => {
                             e.preventDefault();
-                            handlePageChange(i + 1);
+                            if (currentPage > 1)
+                              handlePageChange(currentPage - 1);
                           }}
+                          className={currentPage === 1 ? "disabled" : ""}
                         >
-                          {i + 1}
+                          <i className="fa-solid fa-angle-left" />
                         </a>
                       </li>
-                    ))}
+                      {/* Page numbers */}
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <li key={i + 1}>
+                          <a
+                            href="#"
+                            className={currentPage === i + 1 ? "active" : ""}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(i + 1);
+                            }}
+                          >
+                            {i + 1}
+                          </a>
+                        </li>
+                      ))}
 
-                    {/* Next button */}
-                    <li>
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage < totalPages)
-                            handlePageChange(currentPage + 1);
-                        }}
-                        className={currentPage === totalPages ? "disabled" : ""}
-                      >
-                        {" "}
-                        <i className="fa-solid fa-angle-right" />
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+                      {/* Next button */}
+                      <li>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages)
+                              handlePageChange(currentPage + 1);
+                          }}
+                          className={
+                            currentPage === totalPages ? "disabled" : ""
+                          }
+                        >
+                          {" "}
+                          <i className="fa-solid fa-angle-right" />
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -1,9 +1,14 @@
-import React, { useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import mixitup from "mixitup";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
 import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import AOS from "aos";
 const steps = [
@@ -38,21 +43,75 @@ const steps = [
 ];
 
 function AboutUs() {
+  const [homeData, setHomeData] = useState({});
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation("global");
   const containerRef = useRef(null);
+  const [stats, setStats] = useState([]);
+
+  const getStats = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getHomePageStats`);
+
+      const data = res.data.data;
+
+      const formattedStats = [
+        {
+          icon: "flaticon-bag",
+          count: data.jobsAdded || 0,
+          label: "Jobs Added",
+          showPlus: true,
+        },
+        {
+          icon: "flaticon-office-building",
+          count: data.companies || 0,
+          label: "Companies",
+        },
+        {
+          icon: "flaticon-cv",
+          count: data.resumes || 0,
+          label: "Resume",
+        },
+        {
+          icon: "flaticon-member",
+          count: data.jobSeeker || 0,
+          label: "Members",
+        },
+      ];
+
+      setStats(formattedStats);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getStats();
+  }, []);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
     triggerOnce: true,
   });
-  const stats = [
-    { icon: "flaticon-bag", count: 15000, label: "Jobs Added", showPlus: true },
-    { icon: "flaticon-office-building", count: 123842, label: "Companies" },
-    { icon: "flaticon-cv", count: 20554, label: "Resume" },
-    { icon: "flaticon-member", count: 18435, label: "Members" },
-  ];
+
   useEffect(() => {
     AOS.init({ once: true });
   }, []);
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}getHomePage`);
 
+        const data = res.data?.data;
+
+        setHomeData(data);
+
+        // trending keywords
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
   useEffect(() => {
     if (containerRef.current) {
       mixitup(containerRef.current, {
@@ -65,6 +124,11 @@ function AboutUs() {
       });
     }
   }, []);
+  const fifthTitle = homeData?.fifthSection?.mainTitle || "";
+  const fifthWords = fifthTitle.trim().split(" ");
+
+  const fifthImages = homeData?.fifthSection?.images || [];
+
   return (
     <>
       {/* <div className="page-banner-area bg-f0f4fc">
@@ -117,7 +181,6 @@ function AboutUs() {
                   src="/jobPortal/assets/images/cv/candidate-with-cv.png"
                   alt="Image"
                 />
-               
               </div>
             </div>
             <div className="col-lg-6">
@@ -210,151 +273,63 @@ function AboutUs() {
             <div className="col-lg-6">
               <div className="cv-img-area pr-15">
                 <div className="row">
-                  <div
-                    className="col-lg-6 col-md-6"
-                    data-aos="fade-up"
-                    data-aos-duration={1200}
-                    data-aos-delay={600}
-                  >
-                    <div className="cv-img-1">
-                      <img
-                        src="/jobPortal/assets/images/cv/cv-img-1.png"
-                        alt="Image"
-                      />
+                  {fifthImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="col-lg-6 col-md-6"
+                      data-aos-duration={1200}
+                      data-aos-delay={600 + index * 200}
+                    >
+                      <div className={`cv-img-${index + 1}`}>
+                        <img
+                          crossorigin="anonymous"
+                          src={`${API_IMAGE_URL}${img}`}
+                          alt="CV"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div
-                    className="col-lg-6 col-md-6"
-                    data-aos="fade-down"
-                    data-aos-duration={1200}
-                    data-aos-delay={800}
-                  >
-                    <div className="cv-img-2">
-                      <img
-                        src="/jobPortal/assets/images/cv/cv-img-2.png"
-                        alt="Image"
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
-               
               </div>
             </div>
             <div className="col-lg-6">
               <div className="cv-content pl-15">
-                <h2>Put Your CV In Front Of The Great For Employers To See</h2>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor labore et dolore magna aliqua. Quis ipsum
-                  suspendisse ultrices gravida risus viverra maecenas accumsan
-                  lacus vel facilisis dolore magna.
-                </p>
+                <h2>
+                  {fifthWords.slice(0, -3).join(" ")}{" "}
+                  <label className="oragneColor">
+                    {fifthWords.slice(-3).join(" ")}
+                  </label>
+                </h2>
+
+                <p>{homeData?.fifthSection?.mainTitleDescription}</p>
+
                 <div className="cv-btn">
                   <a
-                    href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#8cefe3e2f8edeff8cce6edeeeda2efe3e1a2"
+                    href="#!"
                     className="default-btn btn mr-20"
+                    onClick={(e) => {
+                      e.preventDefault();
+
+                      const userId = localStorage.getItem("user_id");
+                      const userRole = localStorage.getItem("user_role");
+
+                      if (userId && userRole === "JobSeeker") {
+                        navigate("/candidate-profile"); // ✅ go to candidate profile
+                      } else {
+                        navigate("/login"); // ❌ not logged in or not jobseeker
+                      }
+                    }}
                   >
-                    Upload Your CV
+                    {t("header.uploadYourCV")}
                   </a>
-                 
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="reviews-area bg-f0f5f7 pt-100 pb-70">
-        <div className="container">
-          <div className="section-title">
-            <h2>Review Of The Users</h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod
-            </p>
-          </div>
-          <div className="row justify-content-center">
-            <div className="col-lg-4 col-md-6">
-              <div className="single-review-box style-2">
-                <div className="top-content">
-                  {/* <div className="review-img">
-                    <img
-                      src="/jobPortal/assets/images/review/review-img-1.png"
-                      alt="Image"
-                    />
-                  </div> */}
-                  <h3>Nikolas Brooten</h3>
-                  <span>Digital Marketer</span>
-                  <div className="ratings">
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                  </div>
-                </div>
-                <p>
-                  “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                  justo, congue sit amet massa vel porttitor semper magna. Orci
-                  varius amet”
-                </p>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="single-review-box style-2">
-                <div className="top-content">
-                  {/* <div className="review-img">
-                    <img
-                      src="/jobPortal/assets/images/review/review-img-2.png"
-                      alt="Image"
-                    />
-                  </div> */}
-                  <h3>Jennifer Rose</h3>
-                  <span>IT Specialist</span>
-                  <div className="ratings">
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                  </div>
-                </div>
-                <p>
-                  “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                  justo, congue sit amet massa vel porttitor semper magna. Orci
-                  varius amet”
-                </p>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="single-review-box style-2">
-                <div className="top-content">
-                  {/* <div className="review-img">
-                    <img
-                      src="/jobPortal/assets/images/review/review-img-3.png"
-                      alt="Image"
-                    />
-                  </div> */}
-                  <h3>Camelia Renesa</h3>
-                  <span>Web Designer</span>
-                  <div className="ratings">
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                    <i className="fa-solid fa-star" />
-                  </div>
-                </div>
-                <p>
-                  “Morbi porttitor ligula id varius consectetur. Integer ipsum
-                  justo, congue sit amet massa vel porttitor semper magna. Orci
-                  varius amet”
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="team-area pt-100 pb-70">
+     
+     <div className="reviews-area bg-f0f5f7 pt-100 pb-70">
         <div className="container">
           <div className="title">
             <div className="row align-items-center">
@@ -367,13 +342,7 @@ function AboutUs() {
                   </p>
                 </div>
               </div>
-              <div className="col-lg-4 col-md-3">
-                <div className="browse-btn">
-                  <a href="company.html" className="default-btn btn">
-                    View All Categories
-                  </a>
-                </div>
-              </div>
+              
             </div>
           </div>
           <div className="row">

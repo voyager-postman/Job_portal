@@ -56,13 +56,20 @@ function JobDetailsForm() {
   // ---- Initialize once with either state job or empty
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
-    jobCategory: jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
-    minimumLevel: jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
-    employmentType: jobFromState.employmentType?._id || jobFromState.employmentType || "",
+    jobCategory:
+      jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
+    minimumLevel:
+      jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
+    employmentType:
+      jobFromState.employmentType?._id || jobFromState.employmentType || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
-    city: Array.isArray(jobFromState.city) ? jobFromState.city : Array.isArray(jobFromState.cities) ? jobFromState.cities : [],
+    city: Array.isArray(jobFromState.city)
+      ? jobFromState.city
+      : Array.isArray(jobFromState.cities)
+        ? jobFromState.cities
+        : [],
     region: jobFromState.region || "",
     Country: jobFromState.country?._id || jobFromState.country || "",
     shortDescription: jobFromState.shortDescription || "",
@@ -72,8 +79,8 @@ function JobDetailsForm() {
     confidentialJobPost: jobFromState.confidentialJobPost || false,
     referenceId: jobFromState.referenceId || "",
     enableEmailNotification: jobFromState.enableEmailNotification || false,
-    enableHighlightedJob: jobFromState.enableHighlightedJob || false,
-    enableHomePageVisibility: jobFromState.enableHomePageVisibility || false,
+    // enableHighlightedJob: jobFromState.enableHighlightedJob || false,
+    // enableHomePageVisibility: jobFromState.enableHomePageVisibility || false,
     enableFeaturedJob: jobFromState.enableFeaturedJob || false,
     enableRemovalRelevantJobs: jobFromState.enableRemovalRelevantJobs || false,
     ExternalApplyLink: jobFromState.ExternalApplyLink || "",
@@ -94,7 +101,11 @@ function JobDetailsForm() {
   }));
 
   const [selectedCities, setSelectedCities] = useState(
-    Array.isArray(jobFromState.city) ? jobFromState.city : Array.isArray(jobFromState.cities) ? jobFromState.cities : [],
+    Array.isArray(jobFromState.city)
+      ? jobFromState.city
+      : Array.isArray(jobFromState.cities)
+        ? jobFromState.cities
+        : [],
   );
 
   // ---- Fetch if page was refreshed (no state) but we have an id
@@ -109,7 +120,11 @@ function JobDetailsForm() {
           const job = res.data?.data || res.data?.job || res.data;
           if (!job) return;
 
-          const jobCities = Array.isArray(job.city) ? job.city : Array.isArray(job.cities) ? job.cities : [];
+          const jobCities = Array.isArray(job.city)
+            ? job.city
+            : Array.isArray(job.cities)
+              ? job.cities
+              : [];
 
           setFormData((prev) => ({
             ...prev,
@@ -129,8 +144,8 @@ function JobDetailsForm() {
             confidentialJobPost: job.confidentialJobPost || false,
             enableRemovalRelevantJobs: job.enableRemovalRelevantJobs || false,
             enableFeaturedJob: job.enableFeaturedJob || false,
-            enableHighlightedJob: job.enableHighlightedJob || false,
-            enableHomePageVisibility: job.enableHomePageVisibility || false,
+            // enableHighlightedJob: job.enableHighlightedJob || false,
+            // enableHomePageVisibility: job.enableHomePageVisibility || false,
             referenceId: job.referenceId || "",
             enableEmailNotification: job.enableEmailNotification || false,
             ExternalApplyLink: job.ExternalApplyLink || "",
@@ -614,11 +629,11 @@ function JobDetailsForm() {
         "enableRemovalRelevantJobs",
         data.enableRemovalRelevantJobs,
       );
-      formDataToSend.append("enableHighlightedJob", data.enableHighlightedJob);
-      formDataToSend.append(
-        "enableHomePageVisibility",
-        data.enableHomePageVisibility,
-      );
+      // formDataToSend.append("enableHighlightedJob", data.enableHighlightedJob);
+      // formDataToSend.append(
+      //   "enableHomePageVisibility",
+      //   data.enableHomePageVisibility,
+      // );
       formDataToSend.append("enableFeaturedJob", data.enableFeaturedJob);
       formDataToSend.append("referenceId", data.referenceId || "");
       formDataToSend.append(
@@ -677,6 +692,17 @@ function JobDetailsForm() {
         });
       }
     } catch (error) {
+      const message = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+
+      toast.error(message || "Something went wrong while publishing the job.");
+
+      if (exhausted === 1) {
+        setTimeout(() => {
+          navigate("/add-plan");
+        }, 2000);
+      }
+
       console.error("❌ Error creating job:", error.response || error);
     }
   };
@@ -731,11 +757,11 @@ function JobDetailsForm() {
                     Options
                   </a>
                 </li>
-                <li className="nav-item">
+                {/* <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu3">
                     Job Promotion
                   </a>
-                </li>
+                </li> */}
                 <li className="nav-item">
                   <a className="nav-link" data-bs-toggle="tab" href="#menu4">
                     Publish
@@ -1272,16 +1298,16 @@ function JobDetailsForm() {
 
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
-                    <h3>External Retry Period Days</h3>
+                    <h3>Allow Retry After Failure</h3>
                     <span className="heading-small-description">
-                      Set the number of days the system should wait before
-                      retrying an external process.
+                      Enable this to allow candidates to retry the assessment if
+                      it fails.
                     </span>
                   </div>
 
                   <div className="job-option-branding-content-switch">
                     <div className="job-option-branding-content">
-                      <p>Enable Retry period</p>
+                      <p>Enable Retry</p>
                     </div>
                     <div className="job-option-branding-switch">
                       <label className="switch">
@@ -1298,7 +1324,7 @@ function JobDetailsForm() {
                   {formData.validation_required && (
                     <div className="col-lg-12 col-md-12 mt-2">
                       <div className="form-group">
-                        <label>Retry Period days</label>
+                        <label>Retry Cooldown (days)</label>
                         <span className="text-danger">*</span>
                         <input
                           className="form-control mt-2"
@@ -1306,10 +1332,13 @@ function JobDetailsForm() {
                           name="retry_period_days"
                           value={formData.retry_period_days}
                           onChange={handleChange}
-                          placeholder="Enter the retry period days"
+                          placeholder="Enter retry cooldown days"
                           min="1"
                           disabled={!formData.validation_required}
                         />
+                        <small className="text-muted">
+                          (0 = immediate retry)
+                        </small>
                       </div>
                     </div>
                   )}
@@ -1469,7 +1498,7 @@ function JobDetailsForm() {
                 </div>
               </div>
 
-              <div id="menu3" className="tab-pane fade">
+              {/* <div id="menu3" className="tab-pane fade">
                 <div className="job-option-branding-input-area">
                   <div className="job-option-branding-heading">
                     <h3>Featured Job</h3>
@@ -1561,7 +1590,7 @@ function JobDetailsForm() {
                     </a>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div id="menu4" className="tab-pane fade">
                 <div className="publish-job-payment-details">
@@ -1647,8 +1676,12 @@ function JobDetailsForm() {
                             onClick={() => {
                               // Set default expiry to 30 days from today
                               const defaultExpiry = new Date();
-                              defaultExpiry.setDate(defaultExpiry.getDate() + 30);
-                              setExpiresAt(defaultExpiry.toISOString().split('T')[0]);
+                              defaultExpiry.setDate(
+                                defaultExpiry.getDate() + 30,
+                              );
+                              setExpiresAt(
+                                defaultExpiry.toISOString().split("T")[0],
+                              );
                               setShowExpireDate(true);
                             }}
                             className="default-btn btn"
@@ -1705,17 +1738,94 @@ function JobDetailsForm() {
 
                     {showExpireDate && (
                       <div className="schedule-modal-overlay">
-                        <div className="schedule-modal">
-                          <h3>Set Job Expiry Date</h3>
-                          <p className="text-muted small mt-2">Default expiry is set to 30 days. You can select a different date if needed.</p>
-                          <label className="mt-3">Select Expire Date</label>
+                        <div className="schedule-modal feature-modal">
+                          <h3>Featured Your Job</h3>
+                          <p className="text-muted small">
+                            Increase visibility of your job post with these
+                            promotion options.
+                          </p>
+
+                          {/* FEATURED JOB */}
+                          <div className="job-option-branding-content-switch">
+                            <div className="job-option-branding-content">
+                              <p>Featured Job</p>
+                              <span className="feature-desc">
+                                Priority placement — job appears at top of list
+                              </span>
+                            </div>
+
+                            <div className="job-option-branding-switch">
+                              <label className="switch">
+                                {/* <input
+                                  type="checkbox"
+                                  name="enableFeaturedJob"
+                                  checked={formData.enableFeaturedJob}
+                                  onChange={handleChange}
+                                /> */}
+                                <input
+                                  type="checkbox"
+                                  name="enableFeaturedJob"
+                                  checked={formData.enableFeaturedJob}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      enableFeaturedJob: e.target.checked,
+                                    }))
+                                  }
+                                />
+                                <span className="slider round"></span>
+                              </label>
+                            </div>
+                          </div>
+                          {/* {formData.isFeatured && ( */}
+                          <div className="col-lg-12 mt-3">
+                            <div className="card border-warning shadow-sm">
+                              <div className="card-body">
+                                <h6 className="text-warning mb-3">
+                                  ⭐ Featured Job Benefits
+                                </h6>
+
+                                <ul className="mb-0">
+                                  <li>
+                                    Job will appear on the{" "}
+                                    <strong>Homepage</strong>
+                                  </li>
+                                  <li>
+                                    Job will be highlighted in{" "}
+                                    <strong>Search Results</strong>
+                                  </li>
+                                  <li>
+                                    Job will appear in{" "}
+                                    <strong>Highlighted Listings</strong>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                          {/* )} */}
+
+                          <hr />
+
+                          {/* EXPIRY DATE */}
+                          <h5 className="mt-3">Set Job Expiry Date</h5>
+
+                          <p className="text-muted small">
+                            Default expiry is set to 30 days. You can change it
+                            if required.
+                          </p>
+
                           <input
                             type="date"
-                            className="form-control mt-1"
+                            className="form-control mt-2"
                             value={expiresAt}
-                            min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                            min={
+                              new Date(Date.now() + 86400000)
+                                .toISOString()
+                                .split("T")[0]
+                            }
                             onChange={(e) => setExpiresAt(e.target.value)}
                           />
+
                           <div className="modal-button-group mt-4">
                             <button
                               className="default-btn btn"
@@ -1724,6 +1834,7 @@ function JobDetailsForm() {
                                   toast.error("Please select an expiry date");
                                   return;
                                 }
+
                                 handlePublishJob(
                                   formData,
                                   "published",
@@ -1732,7 +1843,7 @@ function JobDetailsForm() {
                                 );
                               }}
                             >
-                              Publish
+                              Publish Job
                             </button>
 
                             <button
@@ -1747,7 +1858,7 @@ function JobDetailsForm() {
                     )}
                   </div>
 
-                  <div className="job-payment-detail-box-info">
+                  {/* <div className="job-payment-detail-box-info">
                     <div className="job-payment-detail-info">
                       <h4>Payment details</h4>
                     </div>
@@ -1795,7 +1906,7 @@ function JobDetailsForm() {
                       </div>
                     </div>
                     <div className="job-payment-divider"></div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
