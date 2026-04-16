@@ -11,6 +11,18 @@ function CandinatesList() {
   const { userId } = location.state || {};
   console.log(userId);
   const reviewSectionRef = useRef(null);
+  const experienceRef = useRef(null);
+  const educationRef = useRef(null);
+  const availabilityRef = useRef(null);
+  const salaryRef = useRef(null);
+  const experienceLevels = [
+    { label: "- de 1 an", value: "0-1" },
+    { label: "1–2 ans", value: "1-2" },
+    { label: "3–4 ans", value: "3-4" },
+    { label: "5–10 ans", value: "5-10" },
+    { label: "11–15 ans", value: "11-15" },
+    { label: "+ de 15 ans", value: "15+" },
+  ];
   const [folders, setFolders] = useState([]);
   const token = localStorage.getItem("token");
   const [candidates, setCandidates] = useState([]);
@@ -20,6 +32,12 @@ function CandinatesList() {
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [listLoading, setListLoading] = useState(false);
+  const [minValue, setMinValue] = useState(0);
+  const [maxValue, setMaxValue] = useState(5000);
+  const [status, setStatus] = useState("");
+  const [selectedJob, setSelectedJob] = useState(location.state?.jobId || "");
+  const [showAllExperience, setShowAllExperience] = useState(false);
+
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [rating, setRating] = useState(0); // selected rating
@@ -31,6 +49,10 @@ function CandinatesList() {
   const [showContact, setShowContact] = useState(false);
   const [candidate, setCandidate] = useState(null);
   console.log(">>>>>>>>>>>>>>>>>>>>>>>");
+  const [search, setSearch] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedExperience, setSelectedExperience] = useState([]);
+  const [showExperienceDropdown, setShowExperienceDropdown] = useState(false);
   const [showEducationOptions, setShowEducationOptions] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [candidateDetails, setCandidateDetails] = useState(null);
@@ -39,13 +61,18 @@ function CandinatesList() {
   const debounceTimer = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedSalary, setSelectedSalary] = useState("");
-  const [selectedAvailability, setSelectedAvailability] = useState("");
+  const [selectedEducation, setSelectedEducation] = useState([]);
+  const [showEducationDropdown, setShowEducationDropdown] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState([]);
+  const [showAvailabilityDropdown, setShowAvailabilityDropdown] =
+    useState(false);
+  const [selectedSalary, setSelectedSalary] = useState([]);
+  const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
+  const [isFreelancer, setIsFreelancer] = useState(false);
+
   const [selectedCountry, setSelectedCountry] = useState(null);
   const cityDropdownRef = useRef(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedEducation, setSelectedEducation] = useState([]);
-  const [selectedExperience, setSelectedExperience] = useState("");
   const [perPage, setPerPage] = useState(100000); // default
   const [totalResults, setTotalResults] = useState(0);
   const [sortBy, setSortBy] = useState("");
@@ -67,9 +94,9 @@ function CandinatesList() {
     "Post Doctorate",
     "Professional Degree",
   ];
-
+  const availabilityOptions = ["Immediate", "1 month", "1-3 months", "More"];
   useEffect(() => {
-    if (candidates.length > 0) {
+    if (candidates.length > 0 && !selectedCandidateId) {
       setSelectedCandidateId(candidates[0]?.userId?._id);
     }
   }, [candidates]);
@@ -118,6 +145,36 @@ function CandinatesList() {
 
     fetchFolders();
   }, []);
+  // const handleBookmarkCandidate = async (candidateId, folderId) => {
+  //   try {
+  //     const res = await axios.post(
+  //       `${API_BASE_URL}bookmarkCandidate`,
+  //       { candidateId, folderId },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     if (res.data.success) {
+  //       toast.success("Candidate bookmarked successfully ");
+
+  //       fetchCandidates();
+  //     } else {
+  //       toast.warning(res.data.message); // handles already bookmarked
+  //     }
+  //   } catch (error) {
+  //     if (
+  //       error.response &&
+  //       error.response.data?.message === "Already bookmarked in this folder"
+  //     ) {
+  //       toast.warning("Already bookmarked in this folder ⚠️");
+  //     } else {
+  //       toast.error("Something went wrong ");
+  //     }
+  //   }
+  // };
   const handleBookmarkCandidate = async (candidateId, folderId) => {
     try {
       const res = await axios.post(
@@ -131,23 +188,42 @@ function CandinatesList() {
       );
 
       if (res.data.success) {
-        toast.success("Candidate bookmarked successfully ");
-        fetchCandidates();
+        toast.success("Candidate bookmarked successfully");
+
+        // ✅ UPDATE LIST
+        setCandidates((prev) =>
+          prev.map((c) =>
+            String(c?.userId?._id) === String(candidateId)
+              ? { ...c, isBookmarked: true }
+              : c,
+          ),
+        );
+
+        // ✅ UPDATE DETAILS (🔥 MAIN FIX)
+        setCandidateDetails((prev) => {
+          if (!prev) return prev;
+
+          if (String(prev?.userId?._id) === String(candidateId)) {
+            return {
+              ...prev,
+              isBookmarked: true,
+            };
+          }
+          return prev;
+        });
       } else {
-        toast.warning(res.data.message); // handles already bookmarked
+        toast.warning(res.data.message);
       }
     } catch (error) {
       if (
-        error.response &&
-        error.response.data?.message === "Already bookmarked in this folder"
+        error.response?.data?.message === "Already bookmarked in this folder"
       ) {
-        toast.warning("Already bookmarked in this folder ⚠️");
+        toast.warning("Already bookmarked ⚠️");
       } else {
-        toast.error("Something went wrong ");
+        toast.error("Something went wrong");
       }
     }
   };
-
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -164,6 +240,105 @@ function CandinatesList() {
 
     fetchSeniorityLevels();
   }, []);
+  const toggleExperience = (exp) => {
+    if (selectedExperience.includes(exp)) {
+      setSelectedExperience(selectedExperience.filter((e) => e !== exp));
+    } else {
+      setSelectedExperience([...selectedExperience, exp]);
+    }
+  };
+  const toggleEducation = (edu) => {
+    if (selectedEducation.includes(edu)) {
+      setSelectedEducation(selectedEducation.filter((e) => e !== edu));
+    } else {
+      setSelectedEducation([...selectedEducation, edu]);
+    }
+  };
+  const toggleAvailability = (value) => {
+    if (selectedAvailability.includes(value)) {
+      setSelectedAvailability(
+        selectedAvailability.filter((item) => item !== value),
+      );
+    } else {
+      setSelectedAvailability([...selectedAvailability, value]);
+    }
+  };
+  const toggleSalary = (value) => {
+    if (selectedSalary.includes(value)) {
+      setSelectedSalary(selectedSalary.filter((item) => item !== value));
+    } else {
+      setSelectedSalary([...selectedSalary, value]);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        experienceRef.current &&
+        !experienceRef.current.contains(event.target)
+      ) {
+        setShowExperienceDropdown(false);
+      }
+
+      if (
+        educationRef.current &&
+        !educationRef.current.contains(event.target)
+      ) {
+        setShowEducationDropdown(false);
+      }
+
+      if (
+        availabilityRef.current &&
+        !availabilityRef.current.contains(event.target)
+      ) {
+        setShowAvailabilityDropdown(false);
+      }
+
+      if (salaryRef.current && !salaryRef.current.contains(event.target)) {
+        setShowSalaryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const handleResetFilters = () => {
+    // Reset all filters
+    setSelectedSkills([]);
+    setSelectedExperience([]);
+    setSelectedEducation([]);
+    setSelectedSalary([]);
+    setSelectedAvailability([]);
+    setSelectedCountry("");
+    setSelectedCity("");
+    setStatus("");
+    setSelectedJob("");
+
+    // Reset TJM
+    setMinValue(0);
+    setMaxValue(5000);
+    setIsFreelancer(false);
+
+    // Reset UI
+    setShowExperienceDropdown(false);
+    setShowSalaryDropdown(false);
+    setShowEducationDropdown(false);
+    setShowAvailabilityDropdown(false);
+
+    // Reset search
+    setSearch("");
+
+    // Reset pagination
+    setCurrentPage(1);
+
+    // ✅ CALL API AFTER SMALL DELAY (IMPORTANT)
+    setTimeout(() => {
+      fetchCandidates(1);
+    }, 0);
+  };
   useEffect(() => {
     const fetchSalaryRanges = async () => {
       try {
@@ -180,7 +355,15 @@ function CandinatesList() {
 
     fetchSalaryRanges();
   }, []);
-
+  const clearEducation = () => {
+    setSelectedEducation([]);
+  };
+  const clearAvailability = () => {
+    setSelectedAvailability([]);
+  };
+  const clearSalary = () => {
+    setSelectedSalary([]);
+  };
   const handleDownloadCV = () => {
     const resumes = candidateDetails?.resumeUrls;
 
@@ -198,7 +381,8 @@ function CandinatesList() {
     window.open(fileUrl, "_blank");
   };
   console.log(selectedSalary);
-  const fetchCandidates = async (page = 1, limit = perPage) => {
+
+  const fetchCandidates = async (page = 1) => {
     try {
       setLoading(true);
 
@@ -211,25 +395,50 @@ function CandinatesList() {
         sortOrder = order;
       }
 
-      // 🔹 Query params (remain in URL)
+      // ✅ QUERY PARAMS (URL)
       const queryParams = {
-        page: page,
+        page,
         limit: perPage,
-        skills: selectedSkills.length ? selectedSkills.join(",") : undefined,
-        city: selectedCountry && selectedCity ? selectedCity : undefined,
-        country: selectedCountry || undefined,
-        education: selectedEducation || undefined,
 
-        experience: selectedExperience || undefined,
-        keyword: keyword.trim() || undefined,
+        skills:
+          selectedSkills?.length > 0 ? selectedSkills.join(",") : undefined,
+
+        city: selectedCity || undefined,
+        country: selectedCountry || undefined,
+
+        education:
+          selectedEducation?.length > 0
+            ? selectedEducation.join(",")
+            : undefined,
+
+        experience:
+          selectedExperience?.length > 0
+            ? selectedExperience.join(",")
+            : undefined,
+
+        keyword: keyword?.trim() || undefined,
+
         sortBy: sortField || undefined,
         order: sortOrder || undefined,
+
+        tjm: isFreelancer ? `${minValue}-${maxValue}` : undefined,
+        freelance: isFreelancer,
       };
 
-      // 🔹 Body params (NO + encoding issue here)
+      // ✅ ✅ FIXED HERE (ARRAY → STRING)
       const bodyData = {
-        salary: selectedSalary || undefined,
-        availability: selectedAvailability || undefined,
+        salary:
+          selectedSalary?.length > 0
+            ? selectedSalary
+                .map(
+                  (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
+                )
+                .join(",")
+            : undefined,
+        availability:
+          selectedAvailability?.length > 0
+            ? selectedAvailability.join(",")
+            : undefined,
       };
 
       console.log("Query Params:", queryParams);
@@ -237,25 +446,24 @@ function CandinatesList() {
 
       const response = await axios.post(
         `${API_BASE_URL}getCandidateList`,
-        bodyData, // ✅ send salary + availability in body
+        bodyData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          params: queryParams, // ✅ others in query
+          params: queryParams,
         },
       );
 
-      setCandidates(response.data.data || []);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalResults(response.data.totalCount || 0);
+      setCandidates(response.data?.data || []);
+      setTotalPages(response.data?.totalPages || 1);
+      setTotalResults(response.data?.totalCount || 0);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch Candidates Error:", err);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchCandidates(currentPage, perPage);
   }, [currentPage, perPage]);
@@ -303,6 +511,17 @@ function CandinatesList() {
       }
     }
   };
+  const handleMinChange = (e) => {
+    const value = Math.min(Number(e.target.value), maxValue - 50);
+    setMinValue(value);
+  };
+
+  const handleMaxChange = (e) => {
+    const value = Math.max(Number(e.target.value), minValue + 50);
+    setMaxValue(value);
+  };
+  const minPercent = (minValue / 5000) * 100;
+  const maxPercent = (maxValue / 5000) * 100;
   const handleBookmark = async (candidateId, jobId) => {
     try {
       const res = await axios.post(
@@ -311,19 +530,31 @@ function CandinatesList() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // Show message from backend
       toast.success(res.data.message);
 
-      fetchCandidates();
-    } catch (err) {
-      console.error("Error bookmarking candidate:", err);
+      // ✅ UPDATE LIST
+      setCandidates((prev) =>
+        prev.map((c) =>
+          String(c?.userId?._id) === String(candidateId)
+            ? { ...c, isBookmarked: !c.isBookmarked }
+            : c,
+        ),
+      );
 
-      // If backend sends error message
-      if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error("Failed to bookmark candidate!");
-      }
+      // ✅ UPDATE DETAILS
+      setCandidateDetails((prev) => {
+        if (!prev) return prev;
+
+        if (String(prev?.userId?._id) === String(candidateId)) {
+          return {
+            ...prev,
+            isBookmarked: !prev.isBookmarked,
+          };
+        }
+        return prev;
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed!");
     }
   };
 
@@ -393,6 +624,9 @@ function CandinatesList() {
     selectedCountry,
     selectedSalary, // ✅ ADD THIS
     selectedAvailability, // ✅ ADD THIS
+    isFreelancer, // ✅ add
+    minValue, // ✅ add
+    maxValue, // ✅ add
     sortBy,
     perPage,
   ]);
@@ -487,7 +721,9 @@ function CandinatesList() {
   };
   const autoJobFolders = folders.filter((folder) => folder.type === "AUTO_JOB");
   const customFolders = folders.filter((folder) => folder.type === "CUSTOM");
-
+  const clearExperience = () => {
+    setSelectedExperience([]);
+  };
   return (
     <>
       <ToastContainer />
@@ -513,488 +749,874 @@ function CandinatesList() {
               </li>
             </ol>
           </div>
-          <div className="employer-dashboard-common-heading">
-            <h2>Candidate Search</h2>
+          <div class="employer-dashboard-common-heading  pb-3">
+            <h2>All Candidates</h2>
           </div>
-          <section
-            className="employer-candidate-filter-info-area"
-            style={{ padding: "20px 0px" }}
-          >
-            <div className="row">
-              {/* Search Box */}
-              <div className="col-12 mb-4">
-                <div
-                  className="employer-candidate-search-box"
-                  style={{
-                    display: "flex",
-                    "-webkit-align-items": "center",
-                    "-webkit-box-align": "center",
-                    "-ms-flex-align": "center",
-                    "align-items": "center",
-                    background: "rgb(255, 255, 255)",
-                    padding: "15px 20px",
-                    "border-radius": "8px",
-                    "box-shadow": "rgba(0, 0, 0, 0.05) 0px 2px 10px",
-                  }}
-                >
-                  <div
-                    className="employer-candidate-input-icon"
+          <div className="bg-white p-4 rounded shadow-sm border mt-3 mb-4 ">
+            <div className="row g-3 mb-4">
+              <div className="col-12">
+                <div className="d-flex gap-2">
+                  <div className="flex-grow-1 position-relative">
+                    <i
+                      className="fa-solid fa-magnifying-glass position-absolute"
+                      style={{
+                        left: "15px",
+                        top: "50%",
+                        "-webkit-transform": "translateY(-50%)",
+                        "-ms-transform": "translateY(-50%)",
+                        transform: "translateY(-50%)",
+                        color: "rgb(102, 102, 102)",
+                      }}
+                    />
+                    <input
+                      className="form-control ps-5 py-2"
+                      placeholder="Rechercher par titre, compétences, mots-clés..."
+                      type="text"
+                      value={keyword}
+                      onChange={(e) => {
+                        setKeyword(e.target.value);
+                        setCurrentPage(1); // reset page
+                      }}
+                      style={{
+                        height: "45px",
+                        "border-radius": "8px",
+                        "background-color": "rgb(240, 245, 247)",
+                      }}
+                    />
+                  </div>
+                  <button
+                    className="btn btn-outline-secondary px-3 d-flex align-items-center gap-2"
                     style={{
-                      "-webkit-flex": "1 1 0%",
-                      "-ms-flex": "1 1 0%",
-                      flex: "1 1 0%",
-                      display: "flex",
-                      "-webkit-align-items": "center",
-                      "-webkit-box-align": "center",
-                      "-ms-flex-align": "center",
-                      "align-items": "center",
+                      height: "45px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      border: "1px solid rgb(221, 221, 221)",
+                    }}
+                    onClick={() => setShowFilter(!showFilter)}
+                  >
+                    <i
+                      className={`fa-solid ${
+                        showFilter ? "fa-chevron-up" : "fa-filter"
+                      }`}
+                    />
+                    {showFilter ? "Hide Filters" : "Show Filters"}
+                  </button>
+                  <button
+                    className="btn btn-primary px-4 fw-bold"
+                    onClick={() => {
+                      setCurrentPage(1);
+                      fetchApplicants(1); // ✅ CALL API
+                    }}
+                    style={{
+                      height: "45px",
+                      "border-radius": "8px",
+                      background: "rgb(243, 122, 71)",
+                      border: "none",
                     }}
                   >
-                    <div
-                      className="employer-candidate-icon"
-                      style={{
-                        "margin-right": "15px",
-                        color: "rgb(102, 102, 102)",
-                        "font-size": "18px",
-                      }}
-                    >
-                      <i className="fa-solid fa-magnifying-glass" />
-                    </div>
-                    <div
-                      className="employer-candidate-input-area"
-                      style={{ width: "100%" }}
-                    >
-                      <input
-                        className="form-control"
-                        placeholder="Find Candidat by Profile title , Competance , experiance .."
-                        type="text"
-                        value={keyword}
-                        onChange={(e) => {
-                          setKeyword(e.target.value);
-                          setCurrentPage(1); // reset page
-                        }}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          height: "100%",
-                          "font-size": "16px",
-                          padding: "10px 0px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div
-                    className="employer-candidate-btn-area"
-                    style={{ "margin-left": "15px" }}
-                  >
-                    <button
-                      className="default-btn btn"
-                      onClick={() => {
-                        setCurrentPage(1);
-                        // If you have API call function, call it here
-                        // fetchCandidates();
-                      }}
-                      style={{ padding: "10px 25px", "border-radius": "5px" }}
-                    >
-                      Find Candidate
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Filters Section */}
-              <div className="col-12">
-                <div className="p-3 bg-white shadow-sm rounded border">
-                  <div className="row g-2">
-                    {/* Country */}
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              fontSize: "13px",
-                              marginBottom: "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Country
-                          </h3>
-
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                fontSize: "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedCountry || ""}
-                              onChange={(e) => {
-                                const selectedOption =
-                                  e.target.options[e.target.selectedIndex];
-
-                                const countryId =
-                                  selectedOption.getAttribute("data-id"); // numeric id
-
-                                const countryObjectId = e.target.value; // name (as before)
-
-                                // setSelectedCountry(countryObjectId);
-                                // setSelectedCities([]); // Reset cities when country changes
-                                setSelectedCountry(countryObjectId);
-
-                                // ⭐ RESET EVERYTHING RELATED TO CITY
-                                setSelectedCity(""); // very important
-                                setSelectedCities([]); // if using multi city
-                                setCityList([]);
-                                if (countryId) {
-                                  fetchCitiesByCountry(countryId);
-                                } else {
-                                  setCityList([]);
-                                }
-
-                                setCurrentPage(1);
-                              }}
-                            >
-                              <option value="">All Country</option>
-
-                              {country.map((count) => (
-                                <option
-                                  key={count._id}
-                                  value={count.name}
-                                  data-id={count.id}
-                                >
-                                  {count.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* City */}
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              fontSize: "13px",
-                              marginBottom: "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            City
-                          </h3>
-
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                fontSize: "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedCity || ""}
-                              onChange={(e) => {
-                                setSelectedCity(e.target.value);
-                                setCurrentPage(1);
-                              }}
-                              disabled={!selectedCountry} // disable if no country selected
-                            >
-                              <option value="">All Cities</option>
-
-                              {cityList.map((city) => (
-                                <option key={city._id} value={city.name}>
-                                  {city.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              fontSize: "13px",
-                              marginBottom: "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Skills
-                          </h3>
-
-                          <div className="form-group">
-                            {/* Input */}
-                            <input
-                              type="text"
-                              className="form-control border-0 bg-light rounded-pill px-3 shadow-none"
-                              placeholder="Type skill & press Enter"
-                              value={skillInput}
-                              style={{
-                                fontSize: "12px",
-                                height: "38px",
-                              }}
-                              onChange={(e) => setSkillInput(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && skillInput.trim()) {
-                                  e.preventDefault();
-
-                                  if (
-                                    !selectedSkills.includes(skillInput.trim())
-                                  ) {
-                                    setSelectedSkills((prev) => [
-                                      ...prev,
-                                      skillInput.trim(),
-                                    ]);
-                                  }
-
-                                  setSkillInput("");
-                                }
-                              }}
-                            />
-
-                            {/* Selected Skills */}
-                            {selectedSkills.length > 0 && (
-                              <div className="mt-2 d-flex flex-wrap gap-2">
-                                {selectedSkills.map((skill) => (
-                                  <span
-                                    key={skill}
-                                    className="d-flex align-items-center"
-                                    style={{
-                                      background: "#0d6efd",
-                                      color: "white",
-                                      borderRadius: "12px",
-                                      padding: "3px 10px",
-                                      fontSize: "11px",
-                                    }}
-                                  >
-                                    {skill}
-                                    <span
-                                      style={{
-                                        cursor: "pointer",
-                                        marginLeft: "6px",
-                                      }}
-                                      onClick={() =>
-                                        setSelectedSkills((prev) =>
-                                          prev.filter((s) => s !== skill),
-                                        )
-                                      }
-                                    >
-                                      ✕
-                                    </span>
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              "font-size": "13px",
-                              "margin-bottom": "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Experience
-                          </h3>
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                "font-size": "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedExperience}
-                              onChange={(e) =>
-                                setSelectedExperience(e.target.value)
-                              }
-                            >
-                              <option value="">All Levels</option>
-
-                              {seniorityLevels.map((level) => (
-                                <option key={level._id} value={level.name}>
-                                  {level.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              fontSize: "13px",
-                              marginBottom: "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Education
-                          </h3>
-
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                fontSize: "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedEducation}
-                              onChange={(e) => {
-                                setSelectedEducation(e.target.value);
-                                setCurrentPage(1);
-                              }}
-                            >
-                              <option value="">Any Degree</option>
-
-                              {educationLevels.map((edu) => (
-                                <option key={edu} value={edu}>
-                                  {edu}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Skills */}
-
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              "font-size": "13px",
-                              "margin-bottom": "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Salary
-                          </h3>
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                "font-size": "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedSalary}
-                              onChange={(e) =>
-                                setSelectedSalary(e.target.value)
-                              }
-                            >
-                              <option value="">All Salary</option>
-
-                              {salaryRanges.map((item) => (
-                                <option key={item._id} value={item.range}>
-                                  {item.range}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Experience */}
-                    <div className="col-12 col-md-4 col-lg">
-                      <div className="employer-candidate-filter-box">
-                        <div className="single-sidebar-widget keyword">
-                          <h3
-                            style={{
-                              "font-size": "13px",
-                              "margin-bottom": "8px",
-                              color: "rgb(102, 102, 102)",
-                            }}
-                          >
-                            Availability
-                          </h3>
-                          <div className="form-group">
-                            <select
-                              className="form-select border-0 bg-light rounded-pill px-3 shadow-none"
-                              style={{
-                                fontSize: "12px",
-                                height: "38px",
-                                cursor: "pointer",
-                              }}
-                              value={selectedAvailability}
-                              onChange={(e) =>
-                                setSelectedAvailability(e.target.value)
-                              }
-                            >
-                              <option value="">Any Status</option>
-                              <option value="Immediate">Immediate</option>
-                              <option value="15 Days">15 Days</option>
-                              <option value="30 Days">30 Days</option>
-                              <option value="45 Days">45 Days</option>
-                              <option value="60 Days">60 Days</option>
-                              <option value="90 Days">90 Days</option>
-                              <option value="Negotiable">Negotiable</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Education */}
-                  </div>
-
-                  <div className="d-flex justify-content-end mt-4">
-                    <button
-                      className="btn btn-primary btn-sm px-5 fw-bold"
-                      onClick={() => {
-                        setCurrentPage(1);
-                        fetchCandidates(1, perPage);
-                      }}
-                    >
-                      Apply Filter
-                    </button>
-                  </div>
+                    Find Candidate
+                  </button>
                 </div>
               </div>
             </div>
-          </section>
-          <section
-            className="employer-candidate-info-area"
-            style={{ padding: "0px 20px 40px" }}
-          >
+
+            {showFilter && (
+              <>
+                <div className="advanced-filters-section mt-4 p-4 border rounded-4 bg-white shadow-sm">
+                  <div className="d-flex align-items-center gap-2 mb-4">
+                    <div
+                      style={{
+                        width: "4px",
+                        height: "20px",
+                        "background-color": "rgb(243, 122, 71)",
+                        "border-radius": "4px",
+                      }}
+                    />
+                    <h2
+                      className="m-0 fw-bold"
+                      style={{ "font-size": "16px", color: "rgb(26, 26, 26)" }}
+                    >
+                      Filtres Avancés
+                    </h2>
+                  </div>
+                  <div className="row g-3 mb-4">
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={experienceRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Experience
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowExperienceDropdown(!showExperienceDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedExperience.length === 0
+                              ? "All Levels"
+                              : `${selectedExperience.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showExperienceDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showExperienceDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedExperience.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearExperience}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {experienceLevels.map((level) => (
+                              <div
+                                key={level.value}
+                                onClick={() => toggleExperience(level.value)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedExperience.includes(
+                                    level.value,
+                                  )}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {level.label}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={educationRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Education
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowEducationDropdown(!showEducationDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedEducation.length === 0
+                              ? "Any"
+                              : `${selectedEducation.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showEducationDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showEducationDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedEducation.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearEducation}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {educationLevels.map((edu, index) => (
+                              <div
+                                key={index}
+                                onClick={() => toggleEducation(edu)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedEducation.includes(edu)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {edu}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={availabilityRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Availability
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowAvailabilityDropdown(
+                              !showAvailabilityDropdown,
+                            )
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedAvailability.length === 0
+                              ? "Any Status"
+                              : `${selectedAvailability.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showAvailabilityDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showAvailabilityDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedAvailability.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearAvailability}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {availabilityOptions.map((item, index) => (
+                              <div
+                                key={index}
+                                onClick={() => toggleAvailability(item)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedAvailability.includes(item)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {item}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={salaryRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Salary
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowSalaryDropdown(!showSalaryDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedSalary.length === 0
+                              ? "Any"
+                              : `${selectedSalary.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showSalaryDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showSalaryDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedSalary.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearSalary}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {salaryRanges.map((item) => (
+                              <div
+                                key={item._id}
+                                onClick={() => toggleSalary(item.range)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedSalary.includes(item.range)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {item.range}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row g-4 align-items-start border-top pt-4">
+                    <div className="col-12 col-md-5">
+                      <div className="single-sidebar-widget">
+                        <label
+                          className="fw-bold mb-2 d-block"
+                          style={{
+                            fontSize: "13px",
+                            color: "rgb(75, 85, 99)",
+                          }}
+                        >
+                          Compétences
+                        </label>
+
+                        {/* INPUT */}
+                        <div className="position-relative">
+                          <input
+                            className="form-control"
+                            placeholder="Ex: React, Node, SQL..."
+                            type="text"
+                            value={skillInput}
+                            onChange={(e) => setSkillInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && skillInput.trim()) {
+                                e.preventDefault();
+
+                                if (
+                                  !selectedSkills.includes(skillInput.trim())
+                                ) {
+                                  setSelectedSkills((prev) => [
+                                    ...prev,
+                                    skillInput.trim(),
+                                  ]);
+                                }
+
+                                setSkillInput("");
+                              }
+                            }}
+                            style={{
+                              fontSize: "14px",
+                              padding: "10px 15px",
+                              borderRadius: "8px",
+                              backgroundColor: "rgb(240, 245, 247)",
+                              height: "45px",
+                              border: "1px solid rgb(226, 232, 240)",
+                            }}
+                          />
+
+                          <i
+                            className="fa-solid fa-tags position-absolute"
+                            style={{
+                              right: "15px",
+                              top: "15px",
+                              color: "rgb(148, 163, 184)",
+                            }}
+                          />
+                        </div>
+
+                        {/* SKILL TAGS */}
+                        {selectedSkills.length > 0 && (
+                          <div className="d-flex flex-wrap gap-2 mt-2">
+                            {selectedSkills.map((skill) => (
+                              <span
+                                key={skill}
+                                className="badge bg-white text-dark border d-flex align-items-center gap-2 py-2 px-3 shadow-sm rounded-pill"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {skill}
+
+                                <i
+                                  className="fa-solid fa-xmark text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                  }}
+                                  onClick={() =>
+                                    setSelectedSkills((prev) =>
+                                      prev.filter((s) => s !== skill),
+                                    )
+                                  }
+                                />
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7">
+                      <div className="d-flex flex-column h-100">
+                        <label
+                          className="fw-bold mb-2 d-block"
+                          style={{
+                            "font-size": "13px",
+                            color: "rgb(75, 85, 99)",
+                          }}
+                        >
+                          Localisation
+                        </label>
+                        <div className="row g-2 mb-3">
+                          <div className="col-6">
+                            <input
+                              className="form-control"
+                              placeholder="Pays..."
+                              type="text"
+                              value={selectedCountry || ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+
+                                setSelectedCountry(value);
+                                setSelectedCities([]);
+                                setSelectedCity("");
+                                setCityList([]);
+
+                                // find country id from country list
+                                const selectedCountryObj = country.find(
+                                  (c) =>
+                                    c.name.toLowerCase() ===
+                                    value.toLowerCase(),
+                                );
+
+                                if (selectedCountryObj?.id) {
+                                  fetchCitiesByCountry(selectedCountryObj.id);
+                                }
+
+                                setCurrentPage(1);
+                              }}
+                              style={{
+                                fontSize: "14px",
+                                borderRadius: "8px",
+                                height: "45px",
+                                backgroundColor: "rgb(240, 245, 247)",
+                                border: "1px solid rgb(226, 232, 240)",
+                              }}
+                            />
+                          </div>
+                          <div className="col-6">
+                            <div className="position-relative">
+                              <input
+                                className="form-control"
+                                placeholder="Ville..."
+                                type="text"
+                                value={selectedCity || ""}
+                                onChange={(e) => {
+                                  setSelectedCity(e.target.value);
+                                  setCurrentPage(1);
+                                }}
+                                // disabled={!selectedCountry}
+                                style={{
+                                  fontSize: "14px",
+                                  borderRadius: "8px",
+                                  height: "45px",
+                                  backgroundColor: "rgb(240, 245, 247)",
+                                  border: "1px solid rgb(226, 232, 240)",
+                                  paddingLeft: "35px",
+                                }}
+                              />
+                              <i
+                                className="fa-solid fa-location-dot position-absolute"
+                                style={{
+                                  left: "12px",
+                                  top: "15px",
+                                  color: "rgb(148, 163, 184)",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className="d-flex align-items-center gap-4 py-2 px-3 border rounded-3"
+                          style={{ backgroundColor: "rgb(248, 250, 251)" }}
+                        >
+                          {/* SWITCH */}
+                          <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                            <input
+                              className="form-check-input"
+                              id="freelancerSwitchApplicants"
+                              type="checkbox"
+                              checked={isFreelancer}
+                              onChange={(e) =>
+                                setIsFreelancer(e.target.checked)
+                              }
+                              style={{
+                                cursor: "pointer",
+                                width: "35px",
+                                height: "18px",
+                              }}
+                            />
+                            <label
+                              className="form-check-label fw-bold"
+                              htmlFor="freelancerSwitchApplicants"
+                              style={{
+                                fontSize: "13px",
+                                cursor: "pointer",
+                                color: "rgb(51, 65, 85)",
+                              }}
+                            >
+                              Recherche Freelance
+                            </label>
+                          </div>
+
+                          {/* SHOW ONLY WHEN TRUE */}
+                          {isFreelancer && (
+                            <div className="flex-grow-1 d-flex align-items-center gap-3 ms-2 border-start ps-4">
+                              <span
+                                className="fw-bold text-muted text-nowrap"
+                                style={{
+                                  fontSize: "11px",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.5px",
+                                }}
+                              >
+                                Budget TJM (MAD)
+                              </span>
+
+                              <div
+                                className="flex-grow-1 position-relative"
+                                style={{ height: "30px", minWidth: "150px" }}
+                              >
+                                <div
+                                  className="range-slider-container w-100 m-0"
+                                  style={{
+                                    height: "4px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                  }}
+                                >
+                                  <div
+                                    className="range-slider-track"
+                                    style={{ height: "4px" }}
+                                  />
+                                  <div
+                                    className="range-slider-progress"
+                                    style={{
+                                      height: "4px",
+                                      left: "0%",
+                                      right: "0%",
+                                    }}
+                                  />
+
+                                  <div
+                                    className="range-slider-container w-100 m-0 position-relative"
+                                    style={{
+                                      height: "4px",
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                    }}
+                                  >
+                                    <div
+                                      className="range-slider-track"
+                                      style={{ height: "4px" }}
+                                    />
+
+                                    <div
+                                      className="range-slider-progress"
+                                      style={{
+                                        height: "4px",
+                                        left: `${minPercent}%`,
+                                        right: `${100 - maxPercent}%`,
+                                      }}
+                                    />
+
+                                    {/* MIN */}
+                                    <input
+                                      className="range-slider-input"
+                                      min={0}
+                                      max={5000}
+                                      step={50}
+                                      type="range"
+                                      value={minValue}
+                                      onChange={handleMinChange}
+                                    />
+
+                                    {/* MAX */}
+                                    <input
+                                      className="range-slider-input"
+                                      min={0}
+                                      max={5000}
+                                      step={50}
+                                      type="range"
+                                      value={maxValue}
+                                      onChange={handleMaxChange}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div
+                                className="badge bg-white text-primary border shadow-sm px-2 py-1"
+                                style={{
+                                  fontSize: "12px",
+                                  minWidth: "110px",
+                                }}
+                              >
+                                {minValue} - {maxValue} DH
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button
+                      className="btn btn-link text-decoration-none text-muted d-flex align-items-center gap-2 px-3 fw-bold"
+                      style={{
+                        "font-size": "13px",
+                        "-webkit-transition": "0.2s",
+                        transition: "0.2s",
+                      }}
+                      onClick={handleResetFilters}
+                    >
+                      <i className="fa-solid fa-rotate-left" />
+                      Réinitialiser tous les filtres
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <section className="employer-candidate-info-area">
             <div className="row">
-              <div className="col-lg-4">
-                <div className="d-flex justify-content-end mb-2 ">
-                  <select
-                    className="per-page-select me-2"
-                    value={perPage}
-                    onChange={(e) => {
-                      setPerPage(Number(e.target.value));
-                      setCurrentPage(1); // reset to first page
-                    }}
+              <div
+                className="col-lg-4 d-none d-lg-block"
+                style={{
+                  "-webkit-flex": "0 0 30%",
+                  "-ms-flex": "0 0 30%",
+                  flex: "0 0 30%",
+                  "max-width": "30%",
+                }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-3 bg-white p-2 rounded border-0 shadow-sm px-3">
+                  <div
+                    className="text-muted fw-bold"
+                    style={{ "font-size": "13px" }}
                   >
-                    <option value={20}>Show: 20</option>
-                    <option value={100}>Show: 100</option>
-                    <option value={500}>Show: 500</option>
-                  </select>
-                  {/* Sort */}
+                    Total:{" "}
+                    <span className="text-primary">({totalResults || 0})</span>
+                  </div>
                   <select
-                    className="form-select form-select-sm shadow-none"
-                    style={{ width: "auto", fontSize: "12px" }}
                     value={sortBy}
                     onChange={(e) => {
                       setSortBy(e.target.value);
                       setCurrentPage(1);
+                    }}
+                    className="form-select form-select-sm border-0 bg-light fw-bold"
+                    style={{
+                      width: "auto",
+                      "font-size": "12px",
+                      cursor: "pointer",
                     }}
                   >
                     <option value="">Sort By (Newest First)</option>
@@ -1010,10 +1632,12 @@ function CandinatesList() {
                     </option>
                   </select>
                 </div>
-
                 <div
                   className="candidate-list-scroll"
-                  style={{ maxHeight: "800px", overflowY: "auto" }}
+                  style={{
+                    "max-height": "calc(-100px + 100vh)",
+                    "overflow-y": "auto",
+                  }}
                 >
                   {candidates.length > 0 ? (
                     candidates.map((candidate, index) => {
@@ -1026,13 +1650,11 @@ function CandinatesList() {
                             setSelectedCandidateId(user._id);
                           }}
                           key={candidate._id || index}
-                          className="card mb-2 border-0 shadow-sm"
-                          style={{
-                            cursor: "pointer",
-                            borderLeft: "4px solid #0d6efd",
-                            transition: "0.2s",
-                            background: "#fff",
-                          }}
+                          className={`card mb-3 border-0 shadow-sm candidate-list-card-candidate ${
+                            String(selectedCandidateId) === String(user._id)
+                              ? "active"
+                              : ""
+                          }`}
                         >
                           <div className="card-body p-3">
                             <div className="d-flex align-items-start">
@@ -1061,7 +1683,7 @@ function CandinatesList() {
 
                                   <div className="dropdown">
                                     <button
-                                      className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
+                                      className="btn btn-link text-warning p-0 no-caret"
                                       type="button"
                                       data-bs-toggle="dropdown"
                                       style={{
@@ -1154,12 +1776,6 @@ function CandinatesList() {
                                 </div>
 
                                 {/* Job Title */}
-                                <p
-                                  className="mb-1 text-muted"
-                                  style={{ fontSize: "12px" }}
-                                >
-                                  {role.jobTitle || "Not specified"}
-                                </p>
 
                                 {/* Experience + Location */}
                                 <div
@@ -1167,6 +1783,7 @@ function CandinatesList() {
                                   style={{ fontSize: "12px" }}
                                 >
                                   <span className="text-primary fw-bold">
+                                    <i class="fa-solid fa-briefcase"></i>{" "}
                                     {role.yearOfExperience
                                       ? `${role.yearOfExperience} Years`
                                       : "N/A"}
@@ -1176,10 +1793,11 @@ function CandinatesList() {
 
                                   <span className="text-muted">
                                     <span className="text-muted">
-                                      {user?.city && user?.Nationality
-                                        ? `${user.city}, ${user.Nationality}`
+                                      <i class="fa-solid fa-location-dot text-danger"></i>
+                                      &nbsp;
+                                      {user?.city
+                                        ? `${user.city}`
                                         : user?.city ||
-                                          user?.Nationality ||
                                           "Location not available"}
                                     </span>
                                   </span>
@@ -1191,20 +1809,25 @@ function CandinatesList() {
                       );
                     })
                   ) : (
-                    <p className="text-center">No candidates found.</p>
+                    <div className="text-center p-5 bg-white rounded border shadow-sm">
+                      <p className="text-muted mb-0">
+                        No candidates found in this folder/filter.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div className="col-lg-8">
-                <div
-                  className="card border-0 shadow-sm"
-                  style={{
-                    minHeight: "600px",
-                    maxHeight: "800px",
-                    overflowY: "auto",
-                  }}
-                >
+              <div
+                className="col-lg-8"
+                style={{
+                  "-webkit-flex": "0 0 70%",
+                  "-ms-flex": "0 0 70%",
+                  flex: "0 0 70%",
+                  "max-width": "70%",
+                }}
+              >
+                <div className="card border-0 shadow-sm">
                   <div className="card-body p-4">
                     {detailsLoading ? (
                       <div
@@ -1218,234 +1841,288 @@ function CandinatesList() {
                       </div>
                     ) : candidateDetails ? (
                       <>
-                        <div
-                          className="card border-0 shadow-sm"
-                          style={{ "min-height": "600px" }}
-                        >
-                          <div className="card-body p-4">
-                            <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4">
-                              <img
-                                alt="profile"
-                                className="rounded"
-                                crossOrigin="anonymous"
-                                src={
-                                  cleanImageUrl(
-                                    candidateDetails?.userId?.profileImage,
-                                  ) || "assets/images/userIcon.png"
-                                }
-                                style={{
-                                  width: "120px",
-                                  height: "120px",
-                                  "object-fit": "cover",
-                                }}
-                              />
-                              <div className="flex-grow-1">
-                                <div className="d-flex justify-content-between align-items-start">
-                                  <div>
-                                    <h4 className="fw-bold mb-1">
-                                      {candidateDetails?.userId?.first_name
-                                        ?.toLowerCase()
-                                        .replace(/^\w/, (c) =>
-                                          c.toUpperCase(),
-                                        ) || "Not Provided"}{" "}
-                                      {candidateDetails?.userId?.last_name
-                                        ?.toLowerCase()
-                                        .replace(/^\w/, (c) => c.toUpperCase())}
-                                    </h4>
-                                    <p className="text-muted mb-2">
-                                      {candidateDetails?.aboutRole?.jobTitle
-                                        ?.toLowerCase()
-                                        .replace(/^\w/, (c) =>
-                                          c.toUpperCase(),
-                                        ) || "Not Provided"}{" "}
-                                    </p>
-                                  </div>
-                                  <div className="d-flex gap-2">
-                                    {candidateDetails?.isUnlocked && (
-                                      <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={handleDownloadCV}
-                                      >
-                                        <i className="fa-solid fa-download me-1" />{" "}
-                                        Download CV
-                                      </button>
+                        <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4 align-items-center align-items-md-start">
+                          <div class="position-relative">
+                            <img
+                              crossOrigin="anonymous"
+                              alt="profile"
+                              className="rounded shadow-sm"
+                              style={{
+                                width: "120px",
+                                height: "120px",
+                                "object-fit": "cover",
+                                border: "3px solid rgb(255, 255, 255)",
+                              }}
+                              src={
+                                cleanImageUrl(
+                                  candidateDetails.userId?.profileImage,
+                                ) || "assets/images/userIcon.png"
+                              }
+                            />
+                            <span
+                              className="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
+                              title="Profile Visible"
+                              style={{ width: "15px", height: "15px" }}
+                            />
+                          </div>
+                          <div className="flex-grow-1">
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <h4 className="fw-bold mb-1">
+                                  {candidateDetails?.userId?.first_name}{" "}
+                                  {candidateDetails?.userId?.last_name}
+                                </h4>
+                                <p
+                                  className="text-primary fw-medium mb-2"
+                                  style={{ "font-size": "16px" }}
+                                >
+                                  {" "}
+                                  {candidateDetails?.aboutRole?.jobTitle
+                                    ?.toLowerCase()
+                                    .replace(/^\w/, (c) => c.toUpperCase()) ||
+                                    "Not Provided"}{" "}
+                                </p>
+                              </div>
+                              <div className="d-flex gap-2">
+                                {candidateDetails?.isUnlocked && (
+                                  <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={handleDownloadCV}
+                                  >
+                                    <i className="fa-solid fa-download me-1" />{" "}
+                                    Download CV
+                                  </button>
+                                )}
+
+                                <div className="dropdown">
+                                  <button
+                                    className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    title="Bookmark Candidate"
+                                    style={{
+                                      width: "32px",
+                                      height: "32px",
+                                      padding: "0px",
+                                    }}
+                                  >
+                                    <i
+                                      className={
+                                        candidateDetails.isBookmarked
+                                          ? "fa-solid fa-bookmark"
+                                          : "fa-regular fa-bookmark"
+                                      }
+                                    />
+                                  </button>
+                                  <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li>
+                                      <h6 className="dropdown-header">
+                                        Manual Folders
+                                      </h6>
+                                    </li>
+
+                                    {customFolders.length > 0 ? (
+                                      customFolders.map((folder) => (
+                                        <li key={folder._id}>
+                                          <button
+                                            className="dropdown-item d-flex align-items-center gap-2"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleBookmarkCandidate(
+                                                candidateDetails?.userId?._id,
+                                                folder._id,
+                                              );
+                                            }}
+                                          >
+                                            <i className="fa-regular fa-folder" />
+                                            <span style={{ fontSize: "13px" }}>
+                                              {folder.name}
+                                            </span>
+                                          </button>
+                                        </li>
+                                      ))
+                                    ) : (
+                                      <li>
+                                        <span className="dropdown-item text-muted small">
+                                          No custom folders available
+                                        </span>
+                                      </li>
                                     )}
-                                    <a
-                                      href={
-                                        candidateDetails?.links?.linkedin || "#"
-                                      }
-                                      target={
-                                        candidateDetails?.links?.linkedin
-                                          ? "_blank"
-                                          : "_self"
-                                      }
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => {
-                                        if (
-                                          !candidateDetails?.links?.linkedin
-                                        ) {
-                                          e.preventDefault(); // stop navigation
-                                          toast.info(
-                                            "LinkedIn profile not provided",
-                                          );
-                                        }
-                                      }}
-                                      className="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
-                                      style={{ width: "32px", height: "32px" }}
-                                    >
-                                      <i className="fa-brands fa-linkedin-in" />
-                                    </a>
-                                    <div className="dropdown">
+
+                                    <li>
+                                      <hr className="dropdown-divider" />
+                                    </li>
+                                    <li>
                                       <button
-                                        className="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center dropdown-toggle no-caret"
-                                        type="button"
-                                        data-bs-toggle="dropdown"
-                                        title="Bookmark Candidate"
+                                        className="dropdown-item d-flex align-items-center gap-2"
+                                        onClick={handleCreateFolder}
+                                      >
+                                        <i className="fa-solid fa-plus me-2" />
+                                        Create New Folder
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              className="d-flex flex-wrap justify-content-center justify-content-md-start gap-3 text-muted mb-2"
+                              style={{ "font-size": "13px" }}
+                            >
+                              <span className="d-flex align-items-center gap-1">
+                                <i className="fa-solid fa-location-dot text-danger" />
+                                {candidateDetails?.userId?.city &&
+                                candidateDetails?.userId?.Nationality
+                                  ? `${candidateDetails.userId.city
+                                      .toLowerCase()
+                                      .replace(/^\w/, (c) =>
+                                        c.toUpperCase(),
+                                      )}, ${candidateDetails.userId.Nationality}`
+                                  : candidateDetails?.userId?.city
+                                    ? candidateDetails.userId.city
+                                        .toLowerCase()
+                                        .replace(/^\w/, (c) => c.toUpperCase())
+                                    : candidateDetails?.userId?.Nationality ||
+                                      "Not Provided"}
+                              </span>
+                              <span className="d-flex align-items-center gap-1">
+                                <i className="fa-solid fa-briefcase text-info" />
+                                {candidateDetails?.aboutRole?.yearOfExperience
+                                  ? `${candidateDetails.aboutRole.yearOfExperience}+ Years Exp.`
+                                  : "N/A"}
+                              </span>
+                            </div>
+
+                            <div class="mt-3">
+                              {candidateDetails?.isUnlocked ? (
+                                // ✅ If already unlocked → show contact directly
+                                <div className="animate__animated animate__fadeInUp mt-">
+                                  <div
+                                    className="p-3 bg-light rounded border d-flex align-items-center gap-4"
+                                    style={{
+                                      borderLeft: "4px solid rgb(243, 122, 71)",
+                                      flexWrap: "nowrap",
+                                      overflowX: "auto", // optional if screen is small
+                                    }}
+                                  >
+                                    <div className="d-flex align-items-center gap-2">
+                                      <div
+                                        className="bg-white rounded-circle p-2 shadow-sm border"
                                         style={{
                                           width: "32px",
                                           height: "32px",
-                                          padding: "0px",
+                                          display: "flex",
+                                          "-webkit-align-items": "center",
+                                          "-webkit-box-align": "center",
+                                          "-ms-flex-align": "center",
+                                          "align-items": "center",
+                                          "-webkit-box-pack": "center",
+                                          "-webkit-justify-content": "center",
+                                          "-ms-flex-pack": "center",
+                                          "justify-content": "center",
                                         }}
                                       >
                                         <i
-                                          className={
-                                            candidateDetails.isBookmarked
-                                              ? "fa-solid fa-bookmark"
-                                              : "fa-regular fa-bookmark"
-                                          }
+                                          className="fa-regular fa-envelope text-primary"
+                                          style={{ "font-size": "14px" }}
                                         />
-                                      </button>
-                                      <ul className="dropdown-menu dropdown-menu-end shadow border-0">
-                                        <li>
-                                          <h6 className="dropdown-header">
-                                            Manual Folders
-                                          </h6>
-                                        </li>
-
-                                        {customFolders.length > 0 ? (
-                                          customFolders.map((folder) => (
-                                            <li key={folder._id}>
-                                              <button
-                                                className="dropdown-item d-flex align-items-center gap-2"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleBookmarkCandidate(
-                                                    candidateDetails?.userId
-                                                      ?._id,
-                                                    folder._id,
-                                                  );
-                                                }}
-                                              >
-                                                <i className="fa-regular fa-folder" />
-                                                <span
-                                                  style={{ fontSize: "13px" }}
-                                                >
-                                                  {folder.name}
-                                                </span>
-                                              </button>
-                                            </li>
-                                          ))
-                                        ) : (
-                                          <li>
-                                            <span className="dropdown-item text-muted small">
-                                              No custom folders available
-                                            </span>
-                                          </li>
-                                        )}
-
-                                        <li>
-                                          <hr className="dropdown-divider" />
-                                        </li>
-                                        <li>
-                                          <button
-                                            className="dropdown-item d-flex align-items-center gap-2"
-                                            onClick={handleCreateFolder}
-                                          >
-                                            <i className="fa-solid fa-plus me-2" />
-                                            Create New Folder
-                                          </button>
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="d-flex flex-wrap gap-2 mt-3 text-sm text-muted">
-                                  <div className="w-100 d-flex align-items-center gap-1">
-                                    <i className="fa-solid fa-location-dot" />
-                                    <span className="text-muted">
-                                      {candidateDetails?.userId?.city &&
-                                      candidateDetails?.userId?.Nationality
-                                        ? `${candidateDetails.userId.city
-                                            .toLowerCase()
-                                            .replace(/^\w/, (c) =>
-                                              c.toUpperCase(),
-                                            )}, ${candidateDetails.userId.Nationality}`
-                                        : candidateDetails?.userId?.city
-                                          ? candidateDetails.userId.city
-                                              .toLowerCase()
-                                              .replace(/^\w/, (c) =>
-                                                c.toUpperCase(),
-                                              )
-                                          : candidateDetails?.userId
-                                              ?.Nationality || "Not Provided"}
-                                    </span>
-                                  </div>
-
-                                  {candidateDetails?.isUnlocked ? (
-                                    // ✅ If already unlocked → show contact directly
-                                    <div className="w-100 d-flex flex-wrap gap-3 mt-2">
-                                      <div className="d-flex align-items-center gap-1">
-                                        <i className="fa-regular fa-envelope" />
-                                        {candidateDetails?.userId?.email ||
-                                          "Not Provided"}
                                       </div>
-
-                                      <div className="d-flex align-items-center gap-1">
-                                        <i className="fa-solid fa-phone" />
-                                        {candidateDetails?.userId?.countryCode
-                                          ? `+${candidateDetails.userId.countryCode} ${
-                                              candidateDetails?.userId?.phone ||
-                                              ""
-                                            }`
-                                          : candidateDetails?.userId?.phone ||
+                                      <div>
+                                        <div
+                                          className="text-muted small"
+                                          style={{ "font-size": "10px" }}
+                                        >
+                                          Email
+                                        </div>
+                                        <div
+                                          className="fw-bold small"
+                                          style={{ "font-size": "12px" }}
+                                        >
+                                          {candidateDetails?.userId?.email ||
                                             "Not Provided"}
+                                        </div>
                                       </div>
                                     </div>
-                                  ) : (
-                                    // 🔒 If locked → show button
-                                    <div className="w-100">
-                                      <button
-                                        className="btn btn-light btn-sm border text-muted"
+                                    <div className="d-flex align-items-center gap-2 border-start ps-4">
+                                      <div
+                                        className="bg-white rounded-circle p-2 shadow-sm border"
                                         style={{
-                                          fontSize: "11px",
-                                          padding: "2px 8px",
+                                          width: "32px",
+                                          height: "32px",
+                                          display: "flex",
+                                          "-webkit-align-items": "center",
+                                          "-webkit-box-align": "center",
+                                          "-ms-flex-align": "center",
+                                          "align-items": "center",
+                                          "-webkit-box-pack": "center",
+                                          "-webkit-justify-content": "center",
+                                          "-ms-flex-pack": "center",
+                                          "justify-content": "center",
                                         }}
-                                        onClick={handleUnlockContact}
                                       >
-                                        <i className="fa-regular fa-eye me-1" />
-                                        Afficher les coordonnées
-                                      </button>
+                                        <i
+                                          className="fa-solid fa-phone text-success"
+                                          style={{ "font-size": "14px" }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <div
+                                          className="text-muted small"
+                                          style={{ "font-size": "10px" }}
+                                        >
+                                          Phone
+                                        </div>
+                                        <div
+                                          className="fw-bold small"
+                                          style={{ "font-size": "12px" }}
+                                        >
+                                          {candidateDetails?.userId?.countryCode
+                                            ? `+${candidateDetails.userId.countryCode} ${
+                                                candidateDetails?.userId
+                                                  ?.phone || ""
+                                              }`
+                                            : candidateDetails?.userId?.phone ||
+                                              "Not Provided"}
+                                        </div>
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-
-                                <div className="d-flex flex-wrap gap-2 mt-3">
-                                  {candidateDetails?.skills &&
-                                  candidateDetails.skills.length > 0 ? (
-                                    candidateDetails.skills.map(
-                                      (skill, index) => (
-                                        <span className="badge bg-light text-dark border px-2 py-1 user-select-none">
-                                          {skill}
-                                        </span>
-                                      ),
-                                    )
-                                  ) : (
-                                    <li>No skills listed</li>
-                                  )}
-                                </div>
-                                <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
-                                  {/* Send Message Button */}
-                                  {candidateDetails?.isUnlocked && (
+                                    <div className="border-start ps-4">
+                                      <a
+                                        href={
+                                          candidateDetails?.links?.linkedin ||
+                                          "#"
+                                        }
+                                        target={
+                                          candidateDetails?.links?.linkedin
+                                            ? "_blank"
+                                            : "_self"
+                                        }
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          if (
+                                            !candidateDetails?.links?.linkedin
+                                          ) {
+                                            e.preventDefault(); // stop navigation
+                                            toast.info(
+                                              "LinkedIn profile not provided",
+                                            );
+                                          }
+                                        }}
+                                        className="bg-white rounded-circle shadow-sm border text-info d-flex align-items-center justify-content-center hover-scale transition-all"
+                                        style={{
+                                          width: "38px",
+                                          height: "38px",
+                                          color: "rgb(0, 119, 181)",
+                                        }}
+                                      >
+                                        <i
+                                          className="fa-brands fa-linkedin"
+                                          style={{ fontSize: "22px" }}
+                                        />
+                                      </a>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3">
                                     <Link
                                       to="/messaging-system"
                                       state={{
@@ -1453,585 +2130,606 @@ function CandinatesList() {
                                           candidateDetails?.userId?._id,
                                         candidate: candidateDetails,
                                       }}
-                                      className="btn btn-warning btn-sm text-white"
+                                      className="btn btn-warning text-white btn-sm shadow-sm gap-2 fw-bold "
                                     >
-                                      <i className="fa-solid fa-envelope me-1"></i>
-                                      Send Message
+                                      <i
+                                        className="fa-solid fa-envelope"
+                                        style={{ marginRight: "5px" }}
+                                      />
+                                      Envoyer un message
                                     </Link>
-                                  )}
-                                  {/* Rating Button */}
+                                  </div>
+                                </div>
+                              ) : (
+                                // 🔒 If locked → show button
+                                <div className="w-100">
                                   <button
-                                    type="button"
-                                    className="btn btn-primary btn-sm"
-                                    onClick={() => setShowModal(true)}
+                                    onClick={handleUnlockContact}
+                                    className="btn btn-light btn-sm border text-primary fw-bold"
+                                    style={{
+                                      "font-size": "12px",
+                                      padding: "6px 15px",
+                                      "border-radius": "20px",
+                                    }}
                                   >
-                                    <i className="fa-solid fa-star me-1"></i>
-                                    Rating
+                                    <i className="fa-regular fa-eye me-2" />
+                                    Afficher les coordonnées
                                   </button>
                                 </div>
-                              </div>
+                              )}
                             </div>
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">About Candidate</h5>
+                          </div>
+                        </div>
+
+                        <div className="row g-4 mt-2">
+                          <div className="col-12 col-xl-8">
+                            <div className="mb-5">
+                              <h5 className="fw-bold d-flex align-items-center gap-2 mb-3">
+                                <span
+                                  style={{
+                                    width: "4px",
+                                    height: "18px",
+                                    background: "rgb(243, 122, 71)",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                                Professional Summary
+                              </h5>
+
                               <p
                                 className="text-muted"
-                                style={{ "line-height": "1.6" }}
+                                style={{
+                                  lineHeight: "1.7",
+                                  whiteSpace: "pre-line",
+                                }}
                               >
-                                {candidateDetails?.professionalSummary || "N/A"}
+                                {candidateDetails?.professionalSummary
+                                  ? candidateDetails?.professionalSummary
+                                  : "No professional summary added."}
                               </p>
                             </div>
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">Experience</h5>
-
-                              {candidateDetails?.workHistory &&
-                              candidateDetails.workHistory.length > 0 ? (
-                                candidateDetails.workHistory.map(
-                                  (work, index) => {
-                                    const isLast =
-                                      index ===
-                                      candidateDetails.workHistory.length - 1;
-
-                                    const startDate = new Date(work.startDate);
-                                    const endDateObj = work.currentlyWorkingHere
-                                      ? null
-                                      : new Date(work.endDate);
-
-                                    return (
-                                      <div
-                                        key={index}
-                                        className="position-relative d-flex gap-3 pb-4"
-                                      >
-                                        {/* LEFT SIDE (ICON + LINE) */}
-                                        <div className="d-flex flex-column align-items-center position-relative">
-                                          {/* ICON */}
-                                          <div
-                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                            style={{
-                                              width: "40px",
-                                              height: "40px",
-                                              zIndex: 1,
-                                            }}
-                                          >
-                                            <i className="fa-solid fa-briefcase text-primary" />
-                                          </div>
-
-                                          {/* VERTICAL LINE */}
-                                          {!isLast && (
-                                            <div
-                                              style={{
-                                                position: "absolute",
-                                                top: "40px",
-                                                left: "50%",
-                                                transform: "translateX(-50%)",
-                                                width: "2px",
-                                                height: "100%",
-                                                backgroundColor: "#e9ecef",
-                                              }}
-                                            />
-                                          )}
-                                        </div>
-
-                                        {/* RIGHT SIDE CONTENT */}
-                                        <div>
-                                          <h6 className="fw-bold mb-1">
-                                            {work.jobTitle
-                                              ?.toLowerCase()
-                                              .replace(/^\w/, (c) =>
-                                                c.toUpperCase(),
-                                              ) || "Not Provided"}
-                                          </h6>
-
-                                          <p className="text-muted mb-1 small">
-                                            {work.companyName} •{" "}
-                                            {startDate.toLocaleDateString(
-                                              "en-GB",
-                                              {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                              },
-                                            )}{" "}
-                                            -{" "}
-                                            {work.currentlyWorkingHere
-                                              ? "Present"
-                                              : endDateObj?.toLocaleDateString(
-                                                  "en-GB",
-                                                  {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                  },
-                                                )}
-                                          </p>
-
-                                          <p className="text-muted small">
-                                            {work.Description}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  },
-                                )
-                              ) : (
-                                <p>No work experience available</p>
-                              )}
-                            </div>
-
-                            <div>
-                              <h5 className="fw-bold mb-3">Education</h5>
-
-                              {candidateDetails?.education &&
-                              candidateDetails.education.length > 0 ? (
-                                candidateDetails.education.map((edu, index) => {
-                                  const isLast =
-                                    index ===
-                                    candidateDetails.education.length - 1;
-
-                                  const startDate = new Date(edu.startDate);
-                                  const endDateObj = edu.currentlyStudyingHere
-                                    ? null
-                                    : new Date(edu.endDate);
-
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="position-relative d-flex gap-3 pb-4"
-                                    >
-                                      {/* LEFT SIDE (ICON + LINE) */}
-                                      <div className="d-flex flex-column align-items-center position-relative">
-                                        {/* ICON */}
-                                        <div
-                                          className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                          style={{
-                                            width: "40px",
-                                            height: "40px",
-                                            zIndex: 1,
-                                          }}
-                                        >
-                                          <i className="fa-solid fa-graduation-cap text-success" />
-                                        </div>
-
-                                        {/* VERTICAL LINE */}
-                                        {!isLast && (
-                                          <div
-                                            style={{
-                                              position: "absolute",
-                                              top: "40px",
-                                              left: "50%",
-                                              transform: "translateX(-50%)",
-                                              width: "2px",
-                                              height: "100%",
-                                              backgroundColor: "#e9ecef",
-                                            }}
-                                          />
-                                        )}
-                                      </div>
-
-                                      {/* RIGHT SIDE CONTENT */}
-                                      <div>
-                                        <h6 className="fw-bold mb-1">
-                                          {edu.degree
-                                            ?.toLowerCase()
-                                            .replace(/^\w/, (c) =>
-                                              c.toUpperCase(),
-                                            ) || "Not Provided"}
-                                        </h6>
-
-                                        <p className="text-muted mb-1 small">
-                                          {edu.University || "Not Provided"} •{" "}
-                                          {startDate.toLocaleDateString(
-                                            "en-GB",
-                                            {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            },
-                                          )}{" "}
-                                          -{" "}
-                                          {edu.currentlyStudyingHere
-                                            ? "Present"
-                                            : endDateObj?.toLocaleDateString(
-                                                "en-GB",
-                                                {
-                                                  day: "2-digit",
-                                                  month: "short",
-                                                  year: "numeric",
-                                                },
-                                              )}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              ) : (
-                                <p>No education information available</p>
-                              )}
-                            </div>
-
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">Career Goals</h5>
-
-                              {candidateDetails?.career_goals ? (
-                                <div className="d-flex gap-3">
-                                  {/* LEFT ICON + LINE */}
-                                  <div className="d-flex flex-column align-items-center">
-                                    <div
-                                      className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                      style={{ width: "40px", height: "40px" }}
-                                    >
-                                      <i className="fa-solid fa-bullseye text-warning" />
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <h6 className="fw-bold mb-1">
-                                      {Array.isArray(
-                                        candidateDetails?.career_goals
-                                          ?.DesiredJobTitle,
-                                      )
-                                        ? candidateDetails.career_goals.DesiredJobTitle.join(
-                                            ", ",
-                                          )
-                                        : "Not Provided"}
-                                    </h6>
-
-                                    <p className="text-muted mb-1 small">
-                                      {Array.isArray(
-                                        candidateDetails?.career_goals
-                                          ?.DesiredEmploymentType,
-                                      )
-                                        ? candidateDetails.career_goals.DesiredEmploymentType.join(
-                                            ", ",
-                                          )
-                                        : "-"}{" "}
-                                      •{" "}
-                                      {Array.isArray(
-                                        candidateDetails?.career_goals
-                                          ?.DesiredOccupationType,
-                                      )
-                                        ? candidateDetails.career_goals.DesiredOccupationType.join(
-                                            ", ",
-                                          )
-                                        : "-"}
-                                    </p>
-
-                                    <div className="mt-2 small text-muted">
-                                      <p className="mb-1">
-                                        <strong>Eligible to work in:</strong>{" "}
-                                        {candidateDetails.eligibleToWorkInFrance
-                                          ? "France"
-                                          : "-"}
-                                      </p>
-
-                                      {candidateDetails.career_goals
-                                        .MinimumDesiredSalary ? (
-                                        <p className="mb-1">
-                                          <strong>Minimum Salary:</strong>{" "}
-                                          {
-                                            candidateDetails.career_goals
-                                              .MinimumDesiredSalary.currency
-                                          }{" "}
-                                          {
-                                            candidateDetails.career_goals
-                                              .MinimumDesiredSalary.amount
-                                          }{" "}
-                                          /{" "}
-                                          {
-                                            candidateDetails.career_goals
-                                              .MinimumDesiredSalary.type
-                                          }
-                                        </p>
-                                      ) : (
-                                        <p className="mb-1">
-                                          <strong>Minimum Salary:</strong> Not
-                                          specified
-                                        </p>
-                                      )}
-
-                                      <p className="mb-0">
-                                        <strong>Job Search Status:</strong>{" "}
-                                        {candidateDetails.career_goals
-                                          .jobSearchStatus || "Not specified"}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <p>No career goals specified</p>
-                              )}
-                            </div>
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">About Your Role</h5>
-
-                              {candidateDetails?.aboutRole ? (
-                                <div className="d-flex gap-3">
-                                  {/* LEFT ICON + LINE */}
-                                  <div className="d-flex flex-column align-items-center">
-                                    <div
-                                      className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                      style={{ width: "40px", height: "40px" }}
-                                    >
-                                      <i className="fa-solid fa-user-tie text-primary" />
-                                    </div>
-                                  </div>
-
-                                  {/* RIGHT CONTENT */}
-                                  <div>
-                                    <h6 className="fw-bold mb-1">
-                                      {candidateDetails.aboutRole.jobTitle
-                                        ?.toLowerCase()
-                                        .replace(/^\w/, (c) =>
-                                          c.toUpperCase(),
-                                        ) || "Not Provided"}
-                                    </h6>
-
-                                    <p className="text-muted mb-1 small">
-                                      {candidateDetails.aboutRole
-                                        .yearOfExperience || 0}{" "}
-                                      Years Experience
-                                    </p>
-
-                                    <p className="text-muted small">
-                                      {candidateDetails.aboutRole.jobCategory
-                                        ?.toLowerCase()
-                                        .replace(/^\w/, (c) =>
-                                          c.toUpperCase(),
-                                        ) || "Not Provided"}
-                                    </p>
-                                  </div>
-                                </div>
-                              ) : (
-                                <p>No role information available</p>
-                              )}
-                            </div>
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">Languages</h5>
-
-                              {candidateDetails?.languages &&
-                              candidateDetails.languages.length > 0 ? (
-                                candidateDetails.languages.map(
-                                  (lang, index) => {
-                                    const isLast =
-                                      index ===
-                                      candidateDetails.languages.length - 1;
-
-                                    return (
-                                      <div
-                                        key={lang._id}
-                                        className="position-relative d-flex gap-3 pb-4"
-                                      >
-                                        {/* LEFT SIDE (ICON + LINE) */}
-                                        <div className="d-flex flex-column align-items-center position-relative">
-                                          {/* ICON */}
-                                          <div
-                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                            style={{
-                                              width: "40px",
-                                              height: "40px",
-                                              zIndex: 1,
-                                            }}
-                                          >
-                                            <i className="fa-solid fa-language text-info" />
-                                          </div>
-
-                                          {/* VERTICAL LINE */}
-                                          {!isLast && (
-                                            <div
-                                              style={{
-                                                position: "absolute",
-                                                top: "40px",
-                                                left: "50%",
-                                                transform: "translateX(-50%)",
-                                                width: "2px",
-                                                height: "100%",
-                                                backgroundColor: "#e9ecef",
-                                              }}
-                                            />
-                                          )}
-                                        </div>
-
-                                        {/* RIGHT SIDE CONTENT */}
-                                        <div>
-                                          <h6 className="fw-bold mb-1">
-                                            {lang.language
-                                              ?.toLowerCase()
-                                              .replace(/^\w/, (c) =>
-                                                c.toUpperCase(),
-                                              )}
-                                          </h6>
-
-                                          <p className="text-muted small mb-0">
-                                            {lang.proficiency
-                                              ?.toLowerCase()
-                                              .replace(/^\w/, (c) =>
-                                                c.toUpperCase(),
-                                              )}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  },
-                                )
-                              ) : (
-                                <p>No languages listed</p>
-                              )}
-                            </div>
-
-                            <div className="mb-4">
-                              <h5 className="fw-bold mb-3">Certificates</h5>
-
-                              {candidateDetails?.certificates &&
-                              candidateDetails.certificates.length > 0 ? (
-                                candidateDetails.certificates.map(
-                                  (cert, index) => {
-                                    const isLast =
-                                      index ===
-                                      candidateDetails.certificates.length - 1;
-
-                                    return (
-                                      <div
-                                        key={cert._id}
-                                        className="position-relative d-flex gap-3 pb-4"
-                                      >
-                                        {/* LEFT SIDE (ICON + LINE) */}
-                                        <div className="d-flex flex-column align-items-center position-relative">
-                                          {/* ICON */}
-                                          <div
-                                            className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                                            style={{
-                                              width: "40px",
-                                              height: "40px",
-                                              zIndex: 1,
-                                            }}
-                                          >
-                                            <i className="fa-solid fa-certificate text-danger" />
-                                          </div>
-
-                                          {/* VERTICAL LINE */}
-                                          {!isLast && (
-                                            <div
-                                              style={{
-                                                position: "absolute",
-                                                top: "40px",
-                                                left: "50%",
-                                                transform: "translateX(-50%)",
-                                                width: "2px",
-                                                height: "100%",
-                                                backgroundColor: "#e9ecef",
-                                              }}
-                                            />
-                                          )}
-                                        </div>
-
-                                        {/* RIGHT SIDE CONTENT */}
-                                        <div>
-                                          <h6 className="fw-bold mb-1">
-                                            {cert?.title
-                                              ?.toLowerCase()
-                                              .replace(/^\w/, (c) =>
-                                                c.toUpperCase(),
-                                              ) || "Not Provided"}
-                                          </h6>
-
-                                          <p className="text-muted small mb-0">
-                                            Issued:{" "}
-                                            {cert?.issueDate
-                                              ? new Date(
-                                                  cert.issueDate,
-                                                ).getFullYear()
-                                              : "Not Provided"}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  },
-                                )
-                              ) : (
-                                <p>No certificates available</p>
-                              )}
-                            </div>
-                            <div
-                              className="mt-5 border-top pt-4"
-                              ref={reviewSectionRef}
-                            >
+                            <div className="mb-5">
                               <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h5 className="fw-bold mb-0">Reviews</h5>
+                                <h5 className="fw-bold d-flex align-items-center gap-2">
+                                  <span
+                                    style={{
+                                      width: "4px",
+                                      height: "18px",
+                                      background: "rgb(243, 122, 71)",
+                                      borderRadius: "4px",
+                                    }}
+                                  />
+                                  Work Experience
+                                </h5>
 
-                                {reviews.length > 0 && (
-                                  <div className="d-flex align-items-center gap-2">
-                                    <div className="text-warning fs-5">
-                                      {renderStars(averageRating)}
-                                    </div>
-                                    <span className="fw-semibold">
-                                      {averageRating}
-                                    </span>
-                                    <span className="text-muted small">
-                                      ({reviews.length} reviews)
-                                    </span>
-                                  </div>
+                                {candidateDetails?.workHistory?.length > 2 && (
+                                  <button
+                                    className="btn btn-link btn-sm text-decoration-none fw-bold"
+                                    onClick={() =>
+                                      setShowAllExperience(!showAllExperience)
+                                    }
+                                  >
+                                    {showAllExperience
+                                      ? "Voir moins"
+                                      : "Voir plus"}{" "}
+                                    ({candidateDetails?.workHistory?.length})
+                                  </button>
                                 )}
                               </div>
 
-                              {reviews.length > 0 ? (
-                                reviews.map((item, index) => {
-                                  const name =
-                                    item?.senderCompany?.brandName ||
-                                    item?.sender?.first_name ||
-                                    "Anonymous";
+                              <div className="experience-timeline position-relative ps-4">
+                                <div
+                                  className="position-absolute start-0 h-100 border-start border-2 border-light-subtle"
+                                  style={{ left: "16px" }}
+                                />
 
-                                  const profileImage = item?.senderCompany?.logo
-                                    ? `${API_IMAGE_URL}${item.senderCompany.logo}`
-                                    : "/jobPortal/assets/images/dashboard/images1.png";
-
-                                  return (
+                                {candidateDetails?.workHistory?.length > 0 ? (
+                                  (showAllExperience
+                                    ? candidateDetails.workHistory
+                                    : candidateDetails.workHistory.slice(0, 2)
+                                  ).map((work, index) => (
                                     <div
-                                      className="border rounded p-3 mb-3 shadow-sm"
                                       key={index}
+                                      className="experience-item position-relative mb-4"
                                     >
-                                      <div className="d-flex gap-3">
-                                        <img
-                                          crossOrigin="anonymous"
-                                          src={profileImage}
-                                          alt="user"
-                                          className="rounded-circle"
-                                          style={{
-                                            width: "50px",
-                                            height: "50px",
-                                            objectFit: "cover",
-                                          }}
-                                          onError={(e) =>
-                                            (e.target.src =
-                                              "/jobPortal/assets/images/dashboard/images1.png")
-                                          }
-                                        />
+                                      {/* Timeline dot */}
+                                      <div
+                                        className="position-absolute bg-white border border-primary rounded-circle"
+                                        style={{
+                                          left: "-27px",
+                                          top: "0px",
+                                          width: "12px",
+                                          height: "12px",
+                                          zIndex: "1",
+                                        }}
+                                      />
 
-                                        <div className="flex-grow-1">
-                                          <div className="d-flex justify-content-between">
-                                            <h6 className="mb-1 fw-semibold">
-                                              {name}
+                                      {/* Job Title + Years */}
+                                      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+                                        <h6 className="fw-bold mb-0">
+                                          {work.jobTitle || "NA"}
+                                        </h6>
+
+                                        <span className="badge bg-light text-muted border px-2 py-1">
+                                          {work.startDate
+                                            ? new Date(
+                                                work.startDate,
+                                              ).getFullYear()
+                                            : "NA"}{" "}
+                                          -{" "}
+                                          {work.currentlyWorkingHere
+                                            ? "Present"
+                                            : work.endDate
+                                              ? new Date(
+                                                  work.endDate,
+                                                ).getFullYear()
+                                              : "NA"}
+                                        </span>
+                                      </div>
+
+                                      {/* Company + Location */}
+                                      <div className="text-primary fw-medium small mb-2">
+                                        {work.keep_employer_anonymous
+                                          ? "Confidential"
+                                          : work.companyName || "NA"}{" "}
+                                        •{" "}
+                                        {work.workLocation ||
+                                          "Location not provided"}
+                                      </div>
+
+                                      {/* Description */}
+                                      {work.Description && (
+                                        <p className="text-muted small mb-0">
+                                          {work.Description || "N/A"}
+                                        </p>
+                                      )}
+
+                                      {/* Salary */}
+                                      {/* {work.currentSalary && (
+                                        <p className="text-muted small mt-1">
+                                          Salary: {work.currentSalary.amount}{" "}
+                                          {work.currentSalary.currency} (
+                                          {work.currentSalary.payrollFrequency})
+                                        </p>
+                                      )} */}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-muted small">
+                                    No experience added
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="mb-5">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="fw-bold d-flex align-items-center gap-2">
+                                  <span
+                                    style={{
+                                      width: "4px",
+                                      height: "18px",
+                                      background: "rgb(243, 122, 71)",
+                                      borderRadius: "4px",
+                                    }}
+                                  />
+                                  Education
+                                </h5>
+                              </div>
+
+                              <div className="education-list d-flex flex-column gap-3">
+                                {candidateDetails?.education?.length > 0 ? (
+                                  candidateDetails.education.map(
+                                    (edu, index) => (
+                                      <div
+                                        key={index}
+                                        className="edu-card p-3 bg-light rounded-3 border-0 transition-hover"
+                                      >
+                                        <div className="d-flex gap-3">
+                                          {/* ICON */}
+                                          <div className="bg-white rounded p-2 border shadow-sm h-100">
+                                            <i className="fa-solid fa-graduation-cap text-primary fs-4" />
+                                          </div>
+
+                                          {/* CONTENT */}
+                                          <div>
+                                            <h6 className="fw-bold mb-1">
+                                              {edu.diplomaTitle || "NA"}
                                             </h6>
-                                            <small className="text-muted">
-                                              {new Date(
-                                                item?.createdAt,
-                                              ).toLocaleDateString()}
-                                            </small>
+
+                                            <div className="text-muted small mb-1">
+                                              {edu.University || "NA"}
+                                            </div>
+
+                                            <span
+                                              className="text-primary fw-medium"
+                                              style={{ fontSize: "11px" }}
+                                            >
+                                              {edu.level || "Level"} :{" "}
+                                              {edu.degree || "NA"} •{" "}
+                                              {edu.startDate
+                                                ? new Date(
+                                                    edu.startDate,
+                                                  ).getFullYear()
+                                                : "NA"}{" "}
+                                              -{" "}
+                                              {edu.currentlyStudyingHere
+                                                ? "Present"
+                                                : edu.endDate
+                                                  ? new Date(
+                                                      edu.endDate,
+                                                    ).getFullYear()
+                                                  : "NA"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ),
+                                  )
+                                ) : (
+                                  <p className="text-muted small">
+                                    No education added
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold d-flex align-items-center gap-2 mb-3">
+                                <span
+                                  style={{
+                                    width: "4px",
+                                    height: "18px",
+                                    background: "rgb(243, 122, 71)",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                                Technical Skills
+                              </h5>
+
+                              <div className="d-flex flex-wrap gap-2 mt-3">
+                                {candidateDetails?.skills?.length > 0 ? (
+                                  candidateDetails.skills.map(
+                                    (skill, index) => (
+                                      <span
+                                        key={index}
+                                        className="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3 py-2"
+                                        style={{
+                                          borderRadius: "6px",
+                                          fontSize: "13px",
+                                        }}
+                                      >
+                                        {skill}
+                                      </span>
+                                    ),
+                                  )
+                                ) : (
+                                  <span className="text-muted small">
+                                    No skills added
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-12 col-xl-4">
+                            <div
+                              className="sticky-md-top"
+                              style={{ top: "20px" }}
+                            >
+                              <div
+                                className="card border-0 shadow-sm mb-4"
+                                style={{
+                                  backgroundColor: "rgb(252, 252, 253)",
+                                }}
+                              >
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-bullseye text-primary" />
+                                    Career Preferences
+                                  </h6>
+
+                                  {candidateDetails?.career_goals ? (
+                                    <div className="d-flex flex-column gap-3 mt-3">
+                                      {/* Desired Roles */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Desired Roles
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredJobTitle,
+                                          )
+                                            ? candidateDetails.career_goals.DesiredJobTitle.join(
+                                                ", ",
+                                              )
+                                            : candidateDetails.career_goals
+                                                ?.DesiredJobTitle || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Contract Types */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Contract Types
+                                        </div>
+
+                                        <div className="d-flex flex-wrap gap-1">
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredEmploymentType,
+                                          ) ? (
+                                            candidateDetails.career_goals.DesiredEmploymentType.map(
+                                              (type, index) => (
+                                                <span
+                                                  key={index}
+                                                  className="badge bg-white text-dark border px-2 py-1"
+                                                  style={{ fontSize: "10px" }}
+                                                >
+                                                  {type}
+                                                </span>
+                                              ),
+                                            )
+                                          ) : candidateDetails.career_goals
+                                              ?.DesiredEmploymentType ? (
+                                            <span className="badge bg-white text-dark border px-2 py-1">
+                                              {
+                                                candidateDetails.career_goals
+                                                  .DesiredEmploymentType
+                                              }
+                                            </span>
+                                          ) : (
+                                            <span className="text-muted small">
+                                              NA
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Occupation Type */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Occupation Type
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                  
+
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredJobCategory,
+                                          )
+                                            ? candidateDetails.career_goals.DesiredJobCategory.join(
+                                                ", ",
+                                              )
+                                            : candidateDetails.career_goals
+                                                ?.DesiredJobCategory || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Job Search Status */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Job Search Status
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                          {candidateDetails.career_goals
+                                            ?.jobSearchStatus || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Work Eligibility */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Work Eligibility (France)
+                                        </div>
+
+                                        <div className="fw-bold small d-flex align-items-center gap-2">
+                                          {candidateDetails?.eligibleToWorkInFrance ? (
+                                            <span className="text-success d-flex align-items-center gap-1">
+                                              <i className="fa-solid fa-circle-check" />{" "}
+                                              Eligible
+                                            </span>
+                                          ) : (
+                                            <span className="text-danger d-flex align-items-center gap-1">
+                                              <i className="fa-solid fa-circle-xmark" />{" "}
+                                              Not Eligible
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Availability + Salary */}
+                                      <div className="row g-2">
+                                        <div className="col-6">
+                                          <div
+                                            className="text-muted text-uppercase mb-1"
+                                            style={{ fontSize: "10px" }}
+                                          >
+                                            Availability
                                           </div>
 
-                                          <div className="text-warning mb-2">
-                                            {renderStars(item?.rating)}
+                                          <div className="fw-bold small text-success">
+                                            {candidateDetails.career_goals
+                                              ?.availabilityToJoin || "NA"}
+                                          </div>
+                                        </div>
+
+                                        <div className="col-6 text-end">
+                                          <div
+                                            className="text-muted text-uppercase mb-1"
+                                            style={{ fontSize: "10px" }}
+                                          >
+                                            Min Salary
                                           </div>
 
-                                          <p className="mb-0 text-muted">
-                                            {truncateText(item?.message, 150)}
-                                          </p>
+                                          <div className="fw-bold small">
+                                            {candidateDetails.career_goals
+                                              ?.MinimumDesiredSalary?.amount ||
+                                              "NA"}{" "}
+                                            {
+                                              candidateDetails.career_goals
+                                                ?.MinimumDesiredSalary?.currency
+                                            }{" "}
+                                            {candidateDetails.career_goals
+                                              ?.MinimumDesiredSalary?.type
+                                              ? `/ ${candidateDetails.career_goals.MinimumDesiredSalary.type}`
+                                              : ""}
+                                          </div>
+                                        </div>
+
+                                        {/* TJM */}
+                                        <div className="mt-2 pt-2 border-top border-light-subtle d-flex justify-content-between">
+                                          <div className="text-muted small fw-bold">
+                                            TJM
+                                          </div>
+
+                                          <div
+                                            className="fw-bold text-info"
+                                            style={{ fontSize: "13px" }}
+                                          >
+                                            {candidateDetails.career_goals?.TJM
+                                              ?.amount
+                                              ? `${candidateDetails.career_goals.TJM.amount} ${candidateDetails.career_goals.TJM.currency}/j`
+                                              : "NA"}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  );
-                                })
-                              ) : (
-                                <p className="text-muted">No reviews yet.</p>
-                              )}
+                                  ) : (
+                                    <p className="text-muted small">
+                                      No career goals specified
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="card border-0 shadow-sm mb-4">
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-language text-primary" />
+                                    Languages
+                                  </h6>
+
+                                  <div className="d-flex flex-column gap-3 mt-3">
+                                    {candidateDetails?.languages?.length > 0 ? (
+                                      candidateDetails.languages.map(
+                                        (lang, index) => (
+                                          <div
+                                            key={index}
+                                            className="d-flex justify-content-between align-items-center pb-2 border-bottom border-light"
+                                          >
+                                            <div>
+                                              <div className="fw-bold small">
+                                                {lang.language || "NA"}
+                                              </div>
+
+                                              <div
+                                                className="text-muted"
+                                                style={{ fontSize: "11px" }}
+                                              >
+                                                {lang.proficiency || "NA"}
+                                              </div>
+                                            </div>
+
+                                            <span
+                                              className="badge bg-light text-dark border px-2 py-1"
+                                              style={{ fontSize: "10px" }}
+                                            >
+                                              {lang.level || "NA"}
+                                            </span>
+                                          </div>
+                                        ),
+                                      )
+                                    ) : (
+                                      <span className="text-muted small">
+                                        No languages added
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="card border-0 shadow-sm">
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-medal text-warning" />
+                                    Certifications
+                                  </h6>
+
+                                  <div className="d-flex flex-column gap-3 mt-3">
+                                    {candidateDetails?.userId?.candidateProfile
+                                      ?.certificates?.length > 0 ? (
+                                      candidateDetails.userId.candidateProfile.certificates.map(
+                                        (cer) => (
+                                          <div
+                                            key={cer._id}
+                                            className="d-flex align-items-start gap-2"
+                                          >
+                                            <i
+                                              className="fa-solid fa-circle-check text-success mt-1"
+                                              style={{ fontSize: "12px" }}
+                                            />
+
+                                            <div>
+                                              <div
+                                                className="fw-bold small"
+                                                style={{ lineHeight: "1.2" }}
+                                              >
+                                                {cer.title || "NA"}
+                                              </div>
+
+                                              <div
+                                                className="text-muted"
+                                                style={{ fontSize: "11px" }}
+                                              >
+                                                Issued:{" "}
+                                                {cer.issueDate
+                                                  ? new Date(
+                                                      cer.issueDate,
+                                                    ).toLocaleDateString()
+                                                  : "NA"}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ),
+                                      )
+                                    ) : (
+                                      <p className="text-muted small">
+                                        No certificates added
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -2042,7 +2740,7 @@ function CandinatesList() {
                         style={{ minHeight: "500px" }}
                       >
                         <p className="text-muted">
-                          Select a candidate to view details
+                          Sélectionnez un candidat pour voir les détails
                         </p>
                       </div>
                     )}

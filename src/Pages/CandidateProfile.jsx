@@ -179,6 +179,7 @@ function CandidateProfile() {
   const [educationForm, setEducationForm] = useState({
     education_id: "",
     degree: "",
+    diplomaTitle: "", // ✅ new field
     University: "",
     startDate: "",
     endDate: "",
@@ -186,16 +187,29 @@ function CandidateProfile() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [educationList, setEducationList] = useState([]);
+  // const [careerGoalsData, setCareerGoalsData] = useState({
+  //   desiredJobTitle: "",
+  //   employmentType: [],
+  //   occupationType: "",
+  //   availabilityToJoin: "",
+  //   eligibleToWork: false,
+  //   salaryAmount: "",
+  //   salaryType: "Hourly",
+  //   salaryCurrency: "MAD",
+  //   lookingForJob: "",
+  // });
   const [careerGoalsData, setCareerGoalsData] = useState({
-    desiredJobTitle: "",
+    desiredJobTitle: [],
     employmentType: [],
-    occupationType: "",
+    DesiredJobCategory: [],
     availabilityToJoin: "",
     eligibleToWork: false,
     salaryAmount: "",
-    salaryType: "Hourly",
+    salaryType: "Monthly",
     salaryCurrency: "MAD",
     lookingForJob: "",
+    TJM: "",
+    TJMCurrency: "MAD",
   });
   const [workExperienceData, setWorkExperienceData] = useState({
     workHistory_id: "",
@@ -245,7 +259,7 @@ function CandidateProfile() {
   const [aboutRole, setAboutRole] = useState({
     jobTitle: "",
     yearsOfExperience: "",
-    jobCategory: "",
+    jobCategory: [], // ✅ array for multi select
   });
   const [portfolioLinks, setPortfolioLinks] = useState({
     personalWebsite: "",
@@ -777,27 +791,6 @@ function CandidateProfile() {
     }));
     setCitySuggestions([]); // ✅ hide dropdown after selecting
   };
-  // Prefill form for edit
-  const handleEdit = () => {
-    setCareerGoalsData({
-      desiredJobTitle: profileData.careerGoals?.desiredJobTitle || "",
-      employmentType: profileData.careerGoals?.employmentType || "",
-      occupationType: profileData.careerGoals?.occupationType || "",
-      availabilityToJoin:
-        profileData.careerGoals?.availabilityToJoin || "Immediate",
-      eligibleToWork: profileData.careerGoals?.eligibleToWork || false,
-      salaryAmount: profileData.careerGoals?.salaryAmount || "",
-      salaryType: profileData.careerGoals?.salaryType || "Hourly",
-      salaryCurrency: profileData.careerGoals?.salaryCurrency || "MAD",
-      lookingForJob: profileData.careerGoals?.lookingForJob || "",
-    });
-    setEditMode(true);
-
-    const collapseElement = document.getElementById("collapseCareerGoals");
-    if (collapseElement && !collapseElement.classList.contains("show")) {
-      new window.bootstrap.Collapse(collapseElement, { toggle: true });
-    }
-  };
 
   // Section-specific change handler
   const handleCareerGoalsChange = (e) => {
@@ -809,7 +802,142 @@ function CandidateProfile() {
   };
 
   // Save Career Goals
+  // const handleSaveGoals = async () => {
+  //   try {
+  //     if (
+  //       !careerGoalsData.desiredJobTitle ||
+  //       careerGoalsData.desiredJobTitle.length === 0
+  //     ) {
+  //       toast.error("Please enter a Desired Job Title", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (
+  //       !careerGoalsData.employmentType ||
+  //       careerGoalsData.employmentType.length === 0
+  //     ) {
+  //       toast.error("Please select a Job Type", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (
+  //       !careerGoalsData.occupationType ||
+  //       careerGoalsData.occupationType.length === 0
+  //     ) {
+  //       toast.error("Please select a Desired Occupation Type", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!careerGoalsData.availabilityToJoin) {
+  //       toast.error("Please select a Available to join", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!careerGoalsData.salaryType) {
+  //       toast.error(
+  //         "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
+  //         {
+  //           autoClose: 2000,
+  //           theme: "colored",
+  //         },
+  //       );
+  //       return;
+  //     }
+
+  //     if (!careerGoalsData.salaryCurrency) {
+  //       toast.error("Please select a Salary Currency", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+
+  //     if (!careerGoalsData.lookingForJob) {
+  //       toast.error("Please select a job opportunity", {
+  //         autoClose: 2000,
+  //         theme: "colored",
+  //       });
+  //       return;
+  //     }
+  //     const token = localStorage.getItem("token");
+
+  //     const payload = {
+  //       DesiredJobTitle: careerGoalsData.desiredJobTitle.map(
+  //         (item) => item.value,
+  //       ),
+
+  //       DesiredEmploymentType: careerGoalsData.employmentType.map(
+  //         (item) => item.value,
+  //       ),
+
+  //       DesiredOccupationType: careerGoalsData.occupationType.map(
+  //         (item) => item.value,
+  //       ),
+
+  //       availabilityToJoin: careerGoalsData.availabilityToJoin,
+
+  //       MinimumDesiredSalary: {
+  //         amount: String(careerGoalsData.salaryAmount),
+  //         currency: careerGoalsData.salaryCurrency,
+  //         type: careerGoalsData.salaryType,
+  //       },
+  //       jobSearchStatus: careerGoalsData.lookingForJob,
+  //       eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
+  //     };
+  //     const response = await axios.put(
+  //       `${API_BASE_URL}updateCareerGoals`,
+  //       payload,
+  //       { headers: { Authorization: `Bearer ${token}` } },
+  //     );
+
+  //     if (response.status === 200) {
+  //       setProfileData((prev) => ({
+  //         ...prev,
+  //         career_goals: {
+  //           DesiredJobTitle: payload.DesiredJobTitle,
+  //           DesiredEmploymentType: payload.DesiredEmploymentType,
+  //           DesiredOccupationType: payload.DesiredOccupationType,
+  //           MinimumDesiredSalary: payload.MinimumDesiredSalary,
+  //           jobSearchStatus: payload.jobSearchStatus,
+  //           availabilityToJoin: payload.availabilityToJoin,
+  //         },
+  //         eligibleToWorkInFrance: payload.eligibleToWorkInFrance,
+  //       }));
+
+  //       setCheckStatus((prev) => ({ ...prev, careerGoals: 1 }));
+  //       setEditMode(false);
+
+  //       toast.success(
+  //         profileData.career_goals
+  //           ? "Career Goals updated successfully!"
+  //           : "Career Goals added successfully!",
+  //         { autoClose: 2000, theme: "colored" },
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving career goals:", error);
+  //     toast.error("Failed to save Career Goals", {
+  //       autoClose: 2000,
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
   const handleSaveGoals = async () => {
+    const isFreelanceSelected = careerGoalsData.employmentType?.some(
+      (item) => item.value === "Freelance",
+    );
     try {
       if (
         !careerGoalsData.desiredJobTitle ||
@@ -834,10 +962,10 @@ function CandidateProfile() {
       }
 
       if (
-        !careerGoalsData.occupationType ||
-        careerGoalsData.occupationType.length === 0
+        !careerGoalsData.DesiredJobCategory ||
+        careerGoalsData.DesiredJobCategory.length === 0
       ) {
-        toast.error("Please select a Desired Occupation Type", {
+        toast.error("Please select a Job Category", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -845,22 +973,22 @@ function CandidateProfile() {
       }
 
       if (!careerGoalsData.availabilityToJoin) {
-        toast.error("Please select a Available to join", {
+        toast.error("Please select availability to join", {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
 
-      if (!careerGoalsData.salaryType) {
-        toast.error(
-          "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
-          {
+      // ✅ TJM validation
+      if (isFreelanceSelected) {
+        if (!careerGoalsData.TJM) {
+          toast.error("Please enter TJM (Taux Journalier Moyen)", {
             autoClose: 2000,
             theme: "colored",
-          },
-        );
-        return;
+          });
+          return;
+        }
       }
 
       if (!careerGoalsData.salaryCurrency) {
@@ -878,6 +1006,7 @@ function CandidateProfile() {
         });
         return;
       }
+
       const token = localStorage.getItem("token");
 
       const payload = {
@@ -889,9 +1018,11 @@ function CandidateProfile() {
           (item) => item.value,
         ),
 
-        DesiredOccupationType: careerGoalsData.occupationType.map(
+        DesiredJobCategory: careerGoalsData.DesiredJobCategory.map(
           (item) => item.value,
         ),
+
+        TJM: String(careerGoalsData.TJM),
 
         availabilityToJoin: careerGoalsData.availabilityToJoin,
 
@@ -900,9 +1031,11 @@ function CandidateProfile() {
           currency: careerGoalsData.salaryCurrency,
           type: careerGoalsData.salaryType,
         },
+
         jobSearchStatus: careerGoalsData.lookingForJob,
         eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
       };
+
       const response = await axios.put(
         `${API_BASE_URL}updateCareerGoals`,
         payload,
@@ -915,7 +1048,8 @@ function CandidateProfile() {
           career_goals: {
             DesiredJobTitle: payload.DesiredJobTitle,
             DesiredEmploymentType: payload.DesiredEmploymentType,
-            DesiredOccupationType: payload.DesiredOccupationType,
+            DesiredJobCategory: payload.DesiredJobCategory,
+            TJM: payload.TJM,
             MinimumDesiredSalary: payload.MinimumDesiredSalary,
             jobSearchStatus: payload.jobSearchStatus,
             availabilityToJoin: payload.availabilityToJoin,
@@ -941,7 +1075,6 @@ function CandidateProfile() {
       });
     }
   };
-
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -1085,7 +1218,16 @@ function CandidateProfile() {
         });
         return;
       }
-
+      if (
+        !educationForm.diplomaTitle ||
+        educationForm.diplomaTitle.trim() === ""
+      ) {
+        toast.error("Please enter Titre de Diplôme", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        return;
+      }
       if (!educationForm.University) {
         toast.error("Please enter a valid University", {
           autoClose: 2000,
@@ -1143,6 +1285,7 @@ function CandidateProfile() {
       const payload = {
         education_id: educationForm.education_id,
         degree: educationForm.degree,
+        diplomaTitle: educationForm.diplomaTitle,
         University: educationForm.University,
         startDate: educationForm.startDate,
         currentlyStudyingHere: educationForm.currentlyStudyingHere,
@@ -1182,7 +1325,7 @@ function CandidateProfile() {
           endDate: "",
           currentlyStudyingHere: false,
         });
-
+        await fetchProfile();
         toast.success(
           educationForm.education_id
             ? "Education updated successfully!"
@@ -1190,6 +1333,8 @@ function CandidateProfile() {
           { autoClose: 2000, theme: "colored" },
         );
       }
+
+      setEditEducation(false);
       await fetchProfile();
     } catch (error) {
       console.error("Error saving education:", error);
@@ -1538,7 +1683,7 @@ function CandidateProfile() {
         });
         return;
       }
-      if (!aboutRole.jobCategory) {
+      if (!aboutRole.jobCategory || aboutRole.jobCategory.length === 0) {
         toast.error("Job category is required", {
           autoClose: 2000,
           theme: "colored",
@@ -1550,9 +1695,8 @@ function CandidateProfile() {
       const payload = {
         jobTitle: aboutRole.jobTitle,
         yearOfExperience: aboutRole.yearsOfExperience,
-        jobCategory: aboutRole.jobCategory,
+        jobCategory: aboutRole.jobCategory.map((item) => item.value), // ✅ send array
       };
-
       const response = await axios.put(
         `${API_BASE_URL}updateAboutRole`,
         payload,
@@ -1681,17 +1825,12 @@ function CandidateProfile() {
       }
 
       if (!EmploymentType?.trim()) {
-        toast.error("Please select Employment Type", { theme: "colored" });
+        toast.error("Please select Job Type", { theme: "colored" });
         return;
       }
 
       if (!workLocation?.trim()) {
         toast.error("Please enter Work Location", { theme: "colored" });
-        return;
-      }
-
-      if (!salaryCurrency) {
-        toast.error("Please select Salary Currency", { theme: "colored" });
         return;
       }
 
@@ -1719,7 +1858,6 @@ function CandidateProfile() {
         EmploymentType,
         workLocation: workLocation.trim(),
         currentSalary: {
-          payrollFrequency: salaryType,
           amount: salaryAmount,
           currency: salaryCurrency,
         },
@@ -1747,8 +1885,8 @@ function CandidateProfile() {
           workExperience: 1,
         }));
 
-        setEditMode(false);
-
+        setEditWork(false);
+        await fetchProfile();
         toast.success("Work experience saved successfully!", {
           theme: "colored",
         });
@@ -1864,7 +2002,7 @@ function CandidateProfile() {
         setCheckStatus((prev) => ({ ...prev, links: 1 }));
 
         // ✅ exit edit mode
-        setEditPortfolioLinks(false);
+        setIsEditingLinks(false);
 
         toast.success("Portfolio links updated successfully!", {
           position: "top-right",
@@ -2135,7 +2273,7 @@ function CandidateProfile() {
 
         // ✅ mark section completed
         setCheckStatus((prev) => ({ ...prev, skills: 1 }));
-
+        await fetchProfile();
         toast.success("Skill added successfully!", { theme: "colored" });
       }
     } catch (error) {
@@ -2214,6 +2352,9 @@ function CandidateProfile() {
     if (!value) return [];
     return Array.isArray(value) ? value : [value];
   };
+  const isFreelanceSelected = careerGoalsData?.employmentType?.some(
+    (item) => item.value === "Freelance",
+  );
   return (
     <>
       <ToastContainer />
@@ -2567,14 +2708,18 @@ function CandidateProfile() {
                       <div className="col-md-6 mb-3">
                         <label className="text-muted small">Phone</label>
                         <p className="fw-bold">
-                          +{profileData.countryCode} {profileData.phone}
+                          {profileData?.phone
+                            ? `+${profileData?.countryCode} ${profileData?.phone}`
+                            : "N/A"}
                         </p>
                       </div>
 
                       <div className="col-md-6 mb-3">
                         <label className="text-muted small">Location</label>
                         <p className="fw-bold">
-                          {profileData.city}, {profileData.Nationality}
+                          {profileData?.city && profileData?.Nationality
+                            ? `${profileData.city}, ${profileData.Nationality}`
+                            : "NA"}
                         </p>
                       </div>
 
@@ -2593,7 +2738,7 @@ function CandidateProfile() {
 
                       <div className="col-md-6 mb-3">
                         <label className="text-muted small">Gender</label>
-                        <p className="fw-bold">{profileData.gender}</p>
+                        <p className="fw-bold">{profileData.gender || "N/A"}</p>
                       </div>
                     </div>
                   )}
@@ -2735,8 +2880,8 @@ function CandidateProfile() {
                               label: item,
                             })),
 
-                            occupationType: toArray(
-                              goals.DesiredOccupationType,
+                            DesiredJobCategory: toArray(
+                              goals.DesiredJobCategory,
                             ).map((item) => ({
                               value: item,
                               label: item,
@@ -2747,19 +2892,25 @@ function CandidateProfile() {
 
                             salaryAmount:
                               goals?.MinimumDesiredSalary?.amount || "",
-
                             salaryCurrency:
                               goals?.MinimumDesiredSalary?.currency || "MAD",
-
                             salaryType:
                               goals?.MinimumDesiredSalary?.type || "Monthly",
 
                             lookingForJob: goals?.jobSearchStatus || "",
+                            TJM:
+                              typeof goals?.TJM === "object"
+                                ? goals?.TJM?.amount
+                                : goals?.TJM || "",
+
+                            TJMCurrency:
+                              typeof goals?.TJM === "object"
+                                ? goals?.TJM?.currency
+                                : "MAD",
 
                             eligibleToWork:
                               profileData?.eligibleToWorkInFrance ?? false,
                           });
-
                           setEditMode(true);
                         }}
                       >
@@ -2794,9 +2945,7 @@ function CandidateProfile() {
                       </div>
                       {/* Employment Type */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">
-                          Employment Type (Max 3)
-                        </label>
+                        <label className="saas-label">Job Type (Max 3)</label>
 
                         <Select
                           isMulti
@@ -2820,24 +2969,41 @@ function CandidateProfile() {
 
                       {/* Job Type */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Job Type (Max 3)</label>
+                        <label className="saas-label">Job Category</label>
 
                         <Select
                           isMulti
-                          options={jobTypeOptions}
-                          placeholder="Select Job Type"
-                          value={careerGoalsData.occupationType}
-                          onChange={(selected) => {
-                            if (selected.length <= 3) {
-                              setCareerGoalsData({
-                                ...careerGoalsData,
-                                occupationType: selected,
-                              });
-                            }
-                          }}
+                          options={categoryList?.map((category) => ({
+                            value: category.name,
+                            label: category.name,
+                          }))}
+                          placeholder="Select Job Category"
+                          value={careerGoalsData.DesiredJobCategory}
+                          onChange={(selected) =>
+                            setCareerGoalsData({
+                              ...careerGoalsData,
+                              DesiredJobCategory: selected,
+                            })
+                          }
                         />
                       </div>
+                      {/* TJM */}
+                      {isFreelanceSelected && (
+                        <div className="col-md-6 saas-form-group">
+                          <label className="saas-label">
+                            TJM (Taux Journalier Moyen) en MAD
+                          </label>
 
+                          <input
+                            type="number"
+                            className="saas-input"
+                            name="TJM"
+                            value={careerGoalsData.TJM}
+                            onChange={handleCareerGoalsChange}
+                            placeholder="Enter TJM"
+                          />
+                        </div>
+                      )}
                       {/* Available to Join */}
                       <div className="col-md-6 saas-form-group">
                         <label className="saas-label">Available to Join</label>
@@ -2854,8 +3020,10 @@ function CandidateProfile() {
                           <option value="More">More</option>
                         </select>
                       </div>
-                      <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Minimum Salary</label>
+                      {/* <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">
+                          Minimum Salary (MAD / Monthly)
+                        </label>
 
                         <div className="d-flex gap-2">
                           <select
@@ -2883,29 +3051,42 @@ function CandidateProfile() {
                             onChange={handleCareerGoalsChange}
                             style={{ width: "100px" }}
                           >
-                            <option value="">Currency</option>
+                            <option value="MAD">MAD</option>
+                          </select>
+                        </div>
+                      </div> */}
+                      <div className="col-md-6 saas-form-group">
+                        <label className="saas-label">
+                          Minimum Salary (MAD / Monthly)
+                        </label>
+
+                        <div className="d-flex gap-2">
+                          <select
+                            className="saas-input"
+                            name="salaryAmount"
+                            value={careerGoalsData.salaryAmount}
+                            onChange={handleCareerGoalsChange}
+                          >
+                            <option value="">Select Range</option>
+
+                            {salaryRanges?.map((range) => (
+                              <option key={range._id} value={range.range}>
+                                {range.range}
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            className="saas-select"
+                            name="salaryCurrency"
+                            value={careerGoalsData.salaryCurrency}
+                            onChange={handleCareerGoalsChange}
+                            style={{ width: "100px" }}
+                          >
                             <option value="MAD">MAD</option>
                           </select>
                         </div>
                       </div>
-
-                      {/* Salary Frequency */}
-                      <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Salary Frequency</label>
-
-                        <select
-                          className="saas-select"
-                          name="salaryType"
-                          value={careerGoalsData.salaryType}
-                          onChange={handleCareerGoalsChange}
-                        >
-                          <option value="Hourly">Hourly</option>
-                          <option value="Daily">Daily</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                        </select>
-                      </div>
-
                       {/* Eligible to Work */}
                       <div className="col-12 mt-2">
                         <label className="d-flex align-items-center gap-2">
@@ -2981,9 +3162,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="text-muted small">
-                            Employment Type
-                          </label>
+                          <label className="text-muted small">Job Type</label>
                           <p className="fw-bold">
                             {Array.isArray(
                               profileData?.career_goals?.DesiredEmploymentType,
@@ -2997,18 +3176,37 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="text-muted small">Job Type</label>
+                          <label className="text-muted small">
+                            Job Category
+                          </label>
                           <p className="fw-bold">
                             {Array.isArray(
-                              profileData?.career_goals?.DesiredOccupationType,
+                              profileData?.career_goals?.DesiredJobCategory,
                             )
-                              ? profileData.career_goals.DesiredOccupationType.join(
+                              ? profileData.career_goals.DesiredJobCategory.join(
                                   ", ",
                                 )
-                              : profileData?.career_goals
-                                  ?.DesiredOccupationType || "-"}
+                              : profileData?.career_goals?.DesiredJobCategory ||
+                                "-"}
                           </p>
                         </div>
+                        {profileData?.career_goals?.DesiredEmploymentType?.includes(
+                          "Freelance",
+                        ) && (
+                          <div className="col-md-6 mb-3">
+                            <label className="text-muted small">
+                              TJM (Taux Journalier Moyen)
+                            </label>
+                            <p className="fw-bold">
+                              {profileData?.career_goals?.TJM
+                                ? typeof profileData.career_goals.TJM ===
+                                  "object"
+                                  ? `${profileData.career_goals.TJM.amount} ${profileData.career_goals.TJM.currency}`
+                                  : `${profileData.career_goals.TJM} MAD`
+                                : "-"}
+                            </p>
+                          </div>
+                        )}
 
                         <div className="col-md-6 mb-3">
                           <label className="text-muted small">
@@ -3016,6 +3214,7 @@ function CandidateProfile() {
                           </label>
                           <p className="fw-bold">
                             {profileData?.career_goals?.MinimumDesiredSalary
+                              ?.amount
                               ? `${profileData.career_goals.MinimumDesiredSalary.amount} ${profileData.career_goals.MinimumDesiredSalary.currency} / ${profileData.career_goals.MinimumDesiredSalary.type}`
                               : "-"}
                           </p>
@@ -3062,12 +3261,21 @@ function CandidateProfile() {
                       <button
                         className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
                         onClick={() => {
+                          const categories =
+                            profileData?.aboutRole?.jobCategory;
+
                           setAboutRole({
                             jobTitle: profileData?.aboutRole?.jobTitle || "",
                             yearsOfExperience:
                               profileData?.aboutRole?.yearOfExperience || "",
-                            jobCategory:
-                              profileData?.aboutRole?.jobCategory || "",
+                            jobCategory: Array.isArray(categories)
+                              ? categories.map((item) => ({
+                                  value: item,
+                                  label: item,
+                                }))
+                              : categories
+                                ? [{ value: categories, label: categories }]
+                                : [],
                           });
                           setEditAboutRole(true);
                         }}
@@ -3114,26 +3322,26 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-12 saas-form-group">
-                          <label className="saas-label">Job Category</label>
+                          <label className="saas-label">
+                            Job Category (Select multiple)
+                          </label>
 
-                          <select
-                            className="saas-select"
+                          <Select
+                            isMulti
+                            options={categoryList?.map((category) => ({
+                              value: category.name,
+                              label: category.name,
+                            }))}
                             value={aboutRole.jobCategory}
-                            onChange={(e) =>
+                            onChange={(selected) =>
                               setAboutRole({
                                 ...aboutRole,
-                                jobCategory: e.target.value,
+                                jobCategory: selected,
                               })
                             }
-                          >
-                            <option value="">Select Category</option>
-
-                            {categoryList?.map((category) => (
-                              <option key={category._id} value={category.name}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Select Category"
+                            classNamePrefix="react-select"
+                          />
                         </div>
 
                         <div className="col-12 mt-3 text-end">
@@ -3184,8 +3392,12 @@ function CandidateProfile() {
                               Job Category
                             </label>
                             <p className="fw-medium mb-0">
-                              {profileData?.aboutRole?.jobCategory ||
-                                "Not provided"}
+                              {Array.isArray(
+                                profileData?.aboutRole?.jobCategory,
+                              )
+                                ? profileData.aboutRole.jobCategory.join(", ")
+                                : profileData?.aboutRole?.jobCategory ||
+                                  "Not provided"}
                             </p>
                           </div>
                         </div>
@@ -3258,20 +3470,9 @@ function CandidateProfile() {
                             onChange={handleChangeOfWork}
                           />
                         </div>
-                        <div className="currently-working-here">
-                          <input
-                            type="checkbox"
-                            id="CurrentlyWorking"
-                            name="currentlyWorkingHereEmp"
-                            checked={workExperienceData.currentlyWorkingHereEmp}
-                            onChange={handleChangeOfWork}
-                          />
-                          <label htmlFor="CurrentlyWorking">
-                            &nbsp;Keep my current employer anonymous
-                          </label>
-                        </div>
+
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Employment Type</label>
+                          <label className="saas-label">Job Type</label>
                           <select
                             className="saas-input"
                             name="EmploymentType"
@@ -3287,23 +3488,39 @@ function CandidateProfile() {
                           </select>
                         </div>
 
-                        {/* <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Work Location</label>
+                        <div className="col-md-4 saas-form-group">
+                          <label className="saas-label">
+                            {workExperienceData.EmploymentType === "Freelance"
+                              ? "TJM (Taux Journalier Moyen)"
+                              : `Salary Amount (${workExperienceData.salaryCurrency} / ${workExperienceData.salaryType})`}
+                          </label>
                           <input
                             className="saas-input"
-                            type="text"
-                            name="workLocation"
-                            value={workExperienceData.workLocation}
+                            type="number"
+                            name="salaryAmount"
+                            value={workExperienceData.salaryAmount}
                             onChange={handleChangeOfWork}
                           />
-                        </div> */}
+                        </div>
+                        <div className="col-md-2 saas-form-group">
+                          <label className="saas-label">Currency</label>
+                          <select
+                            className="saas-input"
+                            name="salaryCurrency"
+                            value={workExperienceData.salaryCurrency}
+                            onChange={handleChangeOfWork}
+                          >
+                            <option value="MAD">MAD</option>
+                          </select>
+                        </div>
+
                         <div className="col-md-6 saas-form-group">
                           <div className="form-group position-relative">
                             <label>Work Location</label>
                             <input
                               className="form-control"
                               type="text"
-                              placeholder="Search city"
+                              placeholder="City,Country"
                               name="workLocation"
                               value={workExperienceData.workLocation}
                               onChange={handleWorkLocationSearch} // 👈 new handler
@@ -3340,6 +3557,7 @@ function CandidateProfile() {
                             )}
                           </div>
                         </div>
+                        <div className="col-md-6 saas-form-group"></div>
                         <div className="col-md-6 saas-form-group">
                           <label className="saas-label">Start Date</label>
                           <input
@@ -3363,7 +3581,7 @@ function CandidateProfile() {
                           />
                         </div>
 
-                        <div className="col-12 mb-3">
+                        <div className="col-6 mb-3">
                           <label className="d-flex align-items-center gap-2">
                             <input
                               type="checkbox"
@@ -3374,42 +3592,21 @@ function CandidateProfile() {
                             <span>I currently work here</span>
                           </label>
                         </div>
-
-                        <div className="col-md-4 saas-form-group">
-                          <label className="saas-label">Salary Amount</label>
-                          <input
-                            className="saas-input"
-                            type="number"
-                            name="salaryAmount"
-                            value={workExperienceData.salaryAmount}
-                            onChange={handleChangeOfWork}
-                          />
-                        </div>
-                        <div className="col-md-4 saas-form-group">
-                          <label className="saas-label">Currency</label>
-                          <select
-                            className="saas-input"
-                            name="salaryCurrency"
-                            value={workExperienceData.salaryCurrency}
-                            onChange={handleChangeOfWork}
-                          >
-                            <option value="MAD">MAD</option>
-                          </select>
-                        </div>
-
-                        <div className="col-md-4 saas-form-group">
-                          <label className="saas-label">Frequency</label>
-                          <select
-                            className="saas-input"
-                            name="salaryType"
-                            value={workExperienceData.salaryType}
-                            onChange={handleChangeOfWork}
-                          >
-                            <option value="Hourly">Hourly</option>
-                            <option value="Daily">Daily</option>
-                            <option value="Monthly">Monthly</option>
-                            <option value="Yearly">Yearly</option>
-                          </select>
+                        <div className="col-6 mb-3">
+                          <div className="currently-working-here">
+                            <input
+                              type="checkbox"
+                              id="CurrentlyWorking"
+                              name="currentlyWorkingHereEmp"
+                              checked={
+                                workExperienceData.currentlyWorkingHereEmp
+                              }
+                              onChange={handleChangeOfWork}
+                            />
+                            <label htmlFor="CurrentlyWorking">
+                              &nbsp;Keep my current employer anonymous
+                            </label>
+                          </div>
                         </div>
                         <div className="col-12 saas-form-group">
                           <label className="saas-label">
@@ -3436,7 +3633,6 @@ function CandidateProfile() {
                             className="btn btn-primary"
                             onClick={() => {
                               handleSaveWorkExperience();
-                              setEditWork(false);
                             }}
                           >
                             Save
@@ -3482,7 +3678,7 @@ function CandidateProfile() {
                                 <p className="mb-1 text-muted">
                                   {exp.companyName} •{" "}
                                   {exp.workLocation || "N/A"} •{" "}
-                                  {exp.EmploymentType || "Full Time"}
+                                  {`Job Type: ${exp.EmploymentType || "Full Time"}`}
                                 </p>
 
                                 <p className="small text-muted mb-1">
@@ -3495,12 +3691,27 @@ function CandidateProfile() {
                                 {exp?.currentSalary?.amount && (
                                   <p className="small text-muted mb-2">
                                     <i className="fas fa-money-bill-wave me-1" />
-                                    {exp.currentSalary.amount}{" "}
-                                    {exp.currentSalary.currency} /{" "}
-                                    {exp.currentSalary.payrollFrequency}
+
+                                    {exp?.EmploymentType === "Freelance" ? (
+                                      <>
+                                        <strong>
+                                          TJM (Taux Journalier Moyen)
+                                        </strong>{" "}
+                                        <br />
+                                        {exp?.currentSalary?.amount}{" "}
+                                        {exp?.currentSalary?.currency || "MAD"}
+                                      </>
+                                    ) : (
+                                      <>
+                                        {exp?.currentSalary?.amount}{" "}
+                                        {exp?.currentSalary?.currency || "MAD"}{" "}
+                                        /{" "}
+                                        {exp?.currentSalary?.payrollFrequency ||
+                                          "Monthly"}
+                                      </>
+                                    )}
                                   </p>
                                 )}
-
                                 {exp.Description && (
                                   <p className="small mb-0 mt-2">
                                     {exp.Description}
@@ -3591,6 +3802,7 @@ function CandidateProfile() {
                           setEducationForm({
                             education_id: "",
                             degree: "",
+                            diplomaTitle: "", // ✅ added
                             University: "",
                             startDate: "",
                             endDate: "",
@@ -3607,6 +3819,7 @@ function CandidateProfile() {
                           setEducationForm({
                             education_id: "",
                             degree: "",
+                            diplomaTitle: "", // ✅ added
                             University: "",
                             startDate: "",
                             endDate: "",
@@ -3625,6 +3838,17 @@ function CandidateProfile() {
                     <div className="saas-form-content">
                       <form className="row">
                         <div className="col-md-6 mb-3">
+                          <label className="saas-label">Titre de Diplôme</label>
+                          <input
+                            type="text"
+                            className="saas-input"
+                            name="diplomaTitle"
+                            value={educationForm.diplomaTitle}
+                            onChange={handleInputChange}
+                            placeholder="Enter diploma title"
+                          />
+                        </div>
+                        <div className="col-md-6 mb-3">
                           <label className="saas-label">Degree</label>
                           <select
                             className="saas-input"
@@ -3641,13 +3865,14 @@ function CandidateProfile() {
                           </select>
                         </div>
 
-                        <div className="col-md-6 mb-3">
+                        <div className="col-md-12 mb-3">
                           <label className="saas-label">
                             Institution / University
                           </label>
                           <input
                             type="text"
                             className="saas-input"
+                            placeholder="Faculté Science, Université Mohamed V, Rabat"
                             name="University"
                             value={educationForm.University}
                             onChange={handleInputChange}
@@ -3698,6 +3923,7 @@ function CandidateProfile() {
                               setEducationForm({
                                 education_id: "",
                                 degree: "",
+                                diplomaTitle: "", // ✅ added
                                 University: "",
                                 startDate: "",
                                 endDate: "",
@@ -3713,7 +3939,7 @@ function CandidateProfile() {
                             className="btn btn-primary"
                             onClick={() => {
                               handleSaveEducation();
-                              setEditEducation(false);
+                              // setEditEducation(false);
                             }}
                           >
                             Save
@@ -3751,7 +3977,9 @@ function CandidateProfile() {
                               </div>
 
                               <div className="flex-grow-1">
-                                <h5 className="mb-1 fw-bold">{edu.degree}</h5>
+                                <h5 className="mb-1 fw-bold">
+                                  {edu.diplomaTitle}-{edu.degree}
+                                </h5>
                                 <p className="mb-1 text-muted">
                                   {edu.University}
                                 </p>
@@ -3770,6 +3998,7 @@ function CandidateProfile() {
                                     setEducationForm({
                                       education_id: edu._id,
                                       degree: edu.degree,
+                                      diplomaTitle: edu.diplomaTitle || "", // ✅ added
                                       University: edu.University,
                                       startDate: edu.startDate?.slice(0, 10),
                                       endDate: edu.endDate?.slice(0, 10),
@@ -4333,7 +4562,6 @@ function CandidateProfile() {
                           className="btn btn-primary"
                           onClick={() => {
                             handleSavePortfolioLinks();
-                            setIsEditingLinks(false);
                           }}
                         >
                           Save Links

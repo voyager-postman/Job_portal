@@ -3,8 +3,10 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { useTranslation } from "react-i18next";
 
 function Blog() {
+  const { t, i18n } = useTranslation("global");
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(15);
   const [blogData, setBlogData] = useState([]);
@@ -73,12 +75,12 @@ function Blog() {
               <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
                   <div class="inner-page-banner-title">
-                    <h2>Blog</h2>
+                    <h2>{t("header.blog")}</h2>
                     <ul>
                       <li class="menu-divide-arrow">
-                        <Link to="/">Home</Link>
+                        <Link to="/">{t("header.home")}</Link>
                       </li>
-                      <li>Blog List</li>
+                      <li>{t("header.blog_list")}</li>
                     </ul>
                   </div>
                 </div>
@@ -104,9 +106,7 @@ function Blog() {
                       <Link to={`/blogDetails/${blog._id}`}>
                         <img
                           crossorigin="anonymous"
-                          src={
-                            cleanImageUrl(blog.bannerImage)
-                          }
+                          src={cleanImageUrl(blog.bannerImage)}
                           alt="Image"
                         />
                       </Link>
@@ -142,7 +142,7 @@ function Blog() {
                           to={`/blogDetails/${blog._id}`}
                           className="read-more default-btn btn"
                         >
-                          Read More
+                          {t("header.read_more")}
                         </Link>
                       </div>
                     </div>

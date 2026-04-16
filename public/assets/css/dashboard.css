@@ -3194,8 +3194,9 @@ input:checked + .slider:before {
 
 .skill-btn-info .default-btn {
   border-radius: 5px !important;
-  padding: 13px 20px !important;
+  padding: 7px 20px !important;
   margin-left: 25px;
+  
 }
 
 .enter-skill-info {
@@ -4367,7 +4368,6 @@ background:#0066CC;
 
 .job-details-form-area {
   background: #fff;
-  margin-top: 20px;
   padding: 20px 0px;
 }
 
@@ -4548,6 +4548,7 @@ background:#0066CC;
 .publish-job-payment-details {
   display: flex;
   margin-top: 30px;
+  position: relative;
 }
 
 .publish-job-date-heading h4 {
@@ -4613,7 +4614,7 @@ width:65%;
 }
 
 .job-payment-detail-box-info {
-  width: 35%;
+  width: 70%;
   background: #fff;
   padding: 20px 30px;
   margin-left: 30px;
@@ -6128,7 +6129,7 @@ width:100%;
   padding: 10px 20px;
   border-radius: 5px;
   background: #d3e6ff;
-      word-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .job-seeker-message-detail-text p {
@@ -6222,7 +6223,7 @@ width:100%;
 }
 
 .employer-info-main-area .job-seeker-message-detail-text {
-  background: #ebebeb;;
+  background: #ebebeb;
 }
 
 .search-box-user-list-area {
@@ -6996,10 +6997,10 @@ width:100%;
 }
 
 .messaging-system-tab-area .nav-tabs {
-    display: block;
-    border: none;
-    overflow: auto;
-    height: 475px;
+  display: block;
+  border: none;
+  overflow: auto;
+  height: 475px;
 }
 
 .messaging-system-tab-area {
@@ -7418,3 +7419,12 @@ width:100%;
   background: #ffffff;
   overflow: hidden;
 } */
+.publish-job-payment-details .tab-content {
+  width: 70%;
+}
+.publish-job-payment-details .job-payment-detail-box-info {
+  width: 30%;
+  position: sticky;
+  height: 450px;
+  top: 90px;
+}

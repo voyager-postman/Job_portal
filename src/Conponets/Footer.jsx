@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import React, { useEffect, useRef, useState } from "react";
-
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 function Footer() {
+   const { t, i18n } = useTranslation("global");
   const [homeData, setHomeData] = useState({});
   const [contactData, setContactData] = useState({});
   const getContactInfo = async () => {
@@ -78,7 +79,7 @@ function Footer() {
                   <div className="social-content">
                     <ul>
                       <li>
-                        <span>Follow Us:</span>
+                        <span>{t("header.followUs")}:</span>
                       </li>
 
                       <li>
@@ -117,13 +118,13 @@ function Footer() {
               {(isJobSeeker || isGuest) && (
                 <div className="col-lg-2 col-sm-6">
                   <div className="single-footer-widget quick-link">
-                    <h3>Job Seeker</h3>
+                    <h3>{t("header.jobSeeker")}</h3>
                     <ul>
                       <li>
-                        <Link to="/jobs">Browse Jobs </Link>
+                        <Link to="/jobs"> {t("header.browseJobs")} </Link>
                       </li>
                       <li>
-                        <Link to="/companies">Browse Companies </Link>
+                        <Link to="/companies">{t("header.browseCompanies")} </Link>
                       </li>
                       <li>
                         <Link
@@ -133,11 +134,11 @@ function Footer() {
                               : "/login"
                           }
                         >
-                          Upload Your Resume
+                         {t("header.uploadResume")}
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq/jobseeker">FAQ JobSeeker</Link>
+                        <Link to="/faq/jobseeker">{t("header.faqJobSeeker")}</Link>
                       </li>
                     </ul>
                   </div>
@@ -147,7 +148,7 @@ function Footer() {
               {(isEmployer || isGuest) && (
                 <div className="col-lg-2 col-sm-6">
                   <div className="single-footer-widget quick-link">
-                    <h3>Employer</h3>
+                    <h3>{t("header.employer")}</h3>
                     <ul>
                       <li>
                         <Link
@@ -157,7 +158,7 @@ function Footer() {
                               : "/employer-login"
                           }
                         >
-                          Job Posts
+                       {t("header.jobPosts")}
                         </Link>
                       </li>
                       <li>
@@ -168,7 +169,7 @@ function Footer() {
                               : "/employer-login"
                           }
                         >
-                          CV Database
+                          {t("header.cvDatabase")}
                         </Link>
                       </li>
                       <li>
@@ -179,11 +180,11 @@ function Footer() {
                               : "/employer-login"
                           }
                         >
-                          Candidate Listing
+                        {t("header.candidateListing")}
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq/recruiter">FAQ Employer</Link>
+                        <Link to="/faq/recruiter"> {t("header.faqEmployer")}</Link>
                       </li>
                     </ul>
                   </div>
@@ -191,7 +192,7 @@ function Footer() {
               )}
               <div className="col-lg-4 col-sm-6">
                 <div className="single-footer-widget info">
-                  <h3>Contact Info</h3>
+                  <h3>{t("header.contactInfo")}</h3>
                   <ul>
                     <li>
                       <i className="fa-solid fa-location-dot" />
@@ -200,7 +201,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-envelope" />
                       <h4>
-                        Email :{" "}
+                      {t("header.email")} :{" "}
                         {contactData.emails?.map((e, i) => (
                           <span key={i}>
                             <a href={`mailto:${e}`}>{e}</a>
@@ -212,7 +213,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-phone" />
                       <h4>
-                        Phone:{" "}
+                       {t("header.phone")}:{" "}
                         {contactData.phones?.map((p, i) => (
                           <span key={i}>
                             <a href={`tel:${p}`}>{p}</a>

@@ -22,9 +22,10 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { ToastContainer, toast } from "react-toastify";
-
+import { useTranslation } from "react-i18next";
 const JobList = () => {
   const location = useLocation();
+  const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
   const [searchParams] = useSearchParams();
 
@@ -273,12 +274,10 @@ const JobList = () => {
       setAlertCreated(true);
       // resetAlertForm();
 
-      toast.success("Job Alert created successfully!");
+      toast.success(t("header.alert_success"));
     } catch (error) {
       console.error("❌ Error creating job alert:", error.response || error);
-      toast.error(
-        error?.response?.data?.message || "Failed to create job alert.",
-      );
+      toast.error(error?.response?.data?.message || t("header.alert_failed"));
     } finally {
       setLoading(false);
     }
@@ -507,12 +506,6 @@ const JobList = () => {
       if (res.data.success) {
         const { message } = res.data;
 
-        // ✅ Toggle locally without refetch
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
         getAllJobList();
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
@@ -522,11 +515,11 @@ const JobList = () => {
           toast.success(message);
         }
       } else {
-        toast.error(res.data.message || "Something went wrong.");
+        toast.error(res.data.message || t("header.something_wrong"));
       }
     } catch (err) {
       console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || "Server error. Try again!");
+      toast.error(err.response?.data?.message || t("header.server_error"));
     }
   };
   const handleLinkClick = (e) => {
@@ -817,7 +810,7 @@ const JobList = () => {
 
       // ✅ FILE REQUIRED
       if (!file) {
-        toast.error("Please select a resume file.", {
+        toast.error(t("header.Please_select_resume_file"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -827,7 +820,7 @@ const JobList = () => {
 
       // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
       if (file.size > MAX_FILE_SIZE) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
+        toast.error(t("header.file_too_large"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -868,12 +861,12 @@ const JobList = () => {
         error?.response?.status === 413 ||
         error?.message?.includes("413")
       ) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
+        toast.error(t("header.file_too_large"), {
           autoClose: 2000,
           theme: "colored",
         });
       } else {
-        toast.error("Something went wrong!");
+        toast.error(t("header.something_wrong"));
       }
     } finally {
       setIsApplying(false); // 🔥 Stop loader
@@ -1219,7 +1212,7 @@ const JobList = () => {
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading jobs, please wait...</p>
+      <p>{t("header.loading_jobs")}</p>
     </div>
   );
   const hasAnyFilter =
@@ -1247,7 +1240,7 @@ const JobList = () => {
                           <input
                             className="form-control"
                             type="text"
-                            placeholder="Keywords / Job Title"
+                            placeholder={t("header.keywords")}
                             value={filters.keywords}
                             onChange={(e) =>
                               setFilters({
@@ -1264,7 +1257,7 @@ const JobList = () => {
                           <input
                             className="form-control"
                             type="text"
-                            placeholder="City Or Postcode"
+                            placeholder={t("header.location_city")}
                             value={filters.location}
                             onChange={(e) =>
                               setFilters({
@@ -1288,7 +1281,9 @@ const JobList = () => {
                               })
                             }
                           >
-                            <option value="">Choose A Category</option>
+                            <option value="">
+                              {t("header.choose_category")}
+                            </option>
                             {categories.map((cat) => (
                               <option key={cat._id} value={cat._id}>
                                 {cat.name}
@@ -1301,7 +1296,7 @@ const JobList = () => {
                       <div className="col-lg-2 col-sm-6">
                         <div className="search-btn">
                           <button type="submit" className="default-btn btn">
-                            Find Jobs
+                            {t("header.find_jobs")}
                           </button>
                         </div>
                       </div>
@@ -1318,14 +1313,16 @@ const JobList = () => {
                       <div className="job-filter-heading-area">
                         <h4>
                           <Link to="/jobs" className="active">
-                            <i className="fa-regular fa-file" /> Job offers
+                            <i className="fa-regular fa-file" />
+                            {t("header.job_offers")}
                           </Link>
                         </h4>
                       </div>
                       <div className="job-filter-heading-area">
                         <h4>
                           <Link to="/companies">
-                            <i className="fa-regular fa-building" /> Companies
+                            <i className="fa-regular fa-building" />{" "}
+                            {t("header.companies")}
                           </Link>
                         </h4>
                       </div>
@@ -1336,7 +1333,7 @@ const JobList = () => {
                           <div className="job-filter-heading">
                             <h4>
                               <i className="fa-solid fa-laptop-code" />
-                              Tech Stack
+                              {t("header.tech_Stack")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1344,7 +1341,7 @@ const JobList = () => {
                               style={{ cursor: "pointer" }}
                               onClick={handleClearTechStacks}
                             >
-                              Clear
+                              {t("header.Clear")}
                             </h4>
                           </div>
                         </div>
@@ -1416,14 +1413,14 @@ const JobList = () => {
                             aria-controls="techStackCollapse"
                           >
                             <span className="show-more">
-                              Show More{" "}
+                              {t("header.show_more")}{" "}
                               <i
                                 className="fa fa-angle-down"
                                 aria-hidden="true"
                               />
                             </span>
                             <span className="show-less">
-                              Show Less{" "}
+                              {t("header.show_less")}{" "}
                               <i
                                 className="fa fa-angle-up"
                                 aria-hidden="true"
@@ -1438,7 +1435,8 @@ const JobList = () => {
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
-                              <i className="fa-solid fa-briefcase" /> Job Type
+                              <i className="fa-solid fa-briefcase" />
+                              {t("header.job_type")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1446,7 +1444,7 @@ const JobList = () => {
                               style={{ cursor: "pointer" }}
                               onClick={handleClearFilters}
                             >
-                              Clear
+                              {t("header.Clear")}
                             </h4>
                           </div>
                         </div>
@@ -1499,14 +1497,14 @@ const JobList = () => {
                               aria-controls="jobTypesCollapse"
                             >
                               <span className="show-more">
-                                Show More{" "}
+                                {t("header.show_more")}{" "}
                                 <i
                                   className="fa fa-angle-down"
                                   aria-hidden="true"
                                 />
                               </span>
                               <span className="show-less">
-                                Show Less{" "}
+                                {t("header.show_less")}{" "}
                                 <i
                                   className="fa fa-angle-up"
                                   aria-hidden="true"
@@ -1522,7 +1520,7 @@ const JobList = () => {
                           <div className="job-filter-heading">
                             <h4>
                               <i className="fa-solid fa-location-dot" />{" "}
-                              Location
+                              {t("header.Location")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1530,7 +1528,7 @@ const JobList = () => {
                               style={{ cursor: "pointer" }}
                               onClick={handleClearLocations} // clear all selected locations
                             >
-                              Clear
+                              {t("header.Clear")}
                             </h4>
                           </div>
                         </div>
@@ -1547,7 +1545,10 @@ const JobList = () => {
 
                             {/* Suggestions dropdown */}
                             {isLocationLoading && (
-                              <div className="suggestion-box">Searching...</div>
+                              <div className="suggestion-box">
+                                {" "}
+                                {t("header.searching")}...
+                              </div>
                             )}
 
                             {!isLocationLoading &&
@@ -1584,7 +1585,8 @@ const JobList = () => {
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
-                              <i className="fas fa-signal" /> Seniority Level
+                              <i className="fas fa-signal" />{" "}
+                              {t("header.seniority_level")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1592,7 +1594,7 @@ const JobList = () => {
                               style={{ cursor: "pointer" }}
                               onClick={handleClearSeniority}
                             >
-                              Clear
+                              {t("header.Clear")}
                             </h4>
                           </div>
                         </div>
@@ -1653,14 +1655,14 @@ const JobList = () => {
                               aria-controls="seniorityCollapse"
                             >
                               <span className="show-more">
-                                Show More{" "}
+                                {t("header.show_more")}{" "}
                                 <i
                                   className="fa fa-angle-down"
                                   aria-hidden="true"
                                 />
                               </span>
                               <span className="show-less">
-                                Show Less{" "}
+                                {t("header.show_less")}{" "}
                                 <i
                                   className="fa fa-angle-up"
                                   aria-hidden="true"
@@ -1676,8 +1678,8 @@ const JobList = () => {
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
-                              <i className="fas fa-money-bill-alt" /> Salary
-                              Range
+                              <i className="fas fa-money-bill-alt" />{" "}
+                              {t("header.salary_range")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1685,7 +1687,7 @@ const JobList = () => {
                               style={{ cursor: "pointer" }}
                               onClick={handleClearSalaryFilters}
                             >
-                              Clear
+                              {t("header.Clear")}
                             </h4>
                           </div>
                         </div>
@@ -1737,14 +1739,14 @@ const JobList = () => {
                             aria-controls="salaryCollapse"
                           >
                             <span className="show-more">
-                              Show More{" "}
+                              {t("header.show_more")}{" "}
                               <i
                                 className="fa fa-angle-down"
                                 aria-hidden="true"
                               />
                             </span>
                             <span className="show-less">
-                              Show Less{" "}
+                              {t("header.show_less")}{" "}
                               <i
                                 className="fa fa-angle-up"
                                 aria-hidden="true"
@@ -1758,14 +1760,15 @@ const JobList = () => {
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
-                              <i className="fas fa-building" /> Industry Sector
+                              <i className="fas fa-building" />
+                              {t("header.industry_sector")}
                             </h4>
                           </div>
                           <div
                             className="job-filter-cancel-heading"
                             onClick={clearAll}
                           >
-                            <h4>Clear</h4>
+                            <h4>{t("header.Clear")}</h4>
                           </div>
                         </div>
 
@@ -1791,7 +1794,7 @@ const JobList = () => {
                               ))}
                               <input
                                 type="text"
-                                placeholder="Search industries..."
+                                placeholder={t("header.Search_industries")}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onFocus={() => setShowOptions(true)}
@@ -1821,7 +1824,7 @@ const JobList = () => {
                                   ))
                                 ) : (
                                   <li className="no-options">
-                                    No industries found
+                                    {t("header.no_industries")}
                                   </li>
                                 )}
                               </ul>
@@ -1837,14 +1840,15 @@ const JobList = () => {
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
-                              <i className="fas fa-building" /> Company
+                              <i className="fas fa-building" />
+                              {t("header.company")}
                             </h4>
                           </div>
                           <div
                             className="job-filter-cancel-heading"
                             onClick={handleClearCompanies}
                           >
-                            <h4>Clear</h4>
+                            <h4>{t("header.Clear")}</h4>
                           </div>
                         </div>
 
@@ -1867,7 +1871,7 @@ const JobList = () => {
 
                               <input
                                 type="text"
-                                placeholder="Search Company..."
+                                placeholder={t("header.Search_Company")}
                                 value={companySearchTerm}
                                 onChange={(e) =>
                                   setCompanySearchTerm(e.target.value)
@@ -1891,7 +1895,7 @@ const JobList = () => {
                                   ))
                                 ) : (
                                   <li className="no-options">
-                                    No companies found
+                                    {t("header.No_companies_found")}
                                   </li>
                                 )}
                               </ul>
@@ -1906,7 +1910,8 @@ const JobList = () => {
                       <div className="available-job-posts-heading">
                         <h4>
                           <i className="fa-regular fa-file" />
-                          {totalJobData?.total} available job posts
+                          {totalJobData?.total}{" "}
+                          {t("header.available_job_posts")}
                         </h4>
                         <div className="job-alert-tag-btn">
                           <div className="filter-tag-info-area">
@@ -2090,13 +2095,13 @@ const JobList = () => {
                                         }
                                       }}
                                     >
-                                      <i className="fa-solid fa-bell"></i> Set
-                                      Alert
+                                      <i className="fa-solid fa-bell"></i>
+                                      {t("header.set_alert")}
                                     </button>
                                   ) : (
                                     <button className="default-btn btn">
                                       <i className="fa-solid fa-circle-check"></i>{" "}
-                                      Notification created
+                                      {t("header.alert_created")}
                                     </button>
                                   )}
                                 </>
@@ -2129,7 +2134,7 @@ const JobList = () => {
                                           title="This is a featured job listing"
                                         >
                                           <i class="fa-solid fa-star"></i>{" "}
-                                          Featured
+                                          {t("header.Featured")}
                                         </span>
                                       )}
                                       <div className="available-job-company-name">
@@ -2178,7 +2183,7 @@ const JobList = () => {
                                                   "not_attempted") && (
                                                 <span className="test-required-tag-area">
                                                   <i className="fa-solid fa-clipboard-check"></i>
-                                                  Test Required
+                                                  {t("header.Test_Required")}
                                                 </span>
                                               )}
                                             </>
@@ -2352,7 +2357,7 @@ const JobList = () => {
                                           className="default-btn btn"
                                           onClick={(e) => e.stopPropagation()}
                                         >
-                                          View Details
+                                          {t("header.View_Details")}
                                         </Link>
                                       ) : (
                                         /* ✅ No Assessment → Direct Apply */
@@ -2397,7 +2402,7 @@ const JobList = () => {
                                             }
                                           }}
                                         >
-                                          Apply Now
+                                          {t("header.apply_now")}
                                         </a>
                                       )}
                                     </div>
@@ -2418,7 +2423,7 @@ const JobList = () => {
                                         className="modal-title fs-5"
                                         id="exampleModalLabel"
                                       >
-                                        Apply now
+                                        {t("header.apply_now")}
                                       </h1>
                                       <button
                                         type="button"
@@ -2555,7 +2560,7 @@ const JobList = () => {
                                                 : "none",
                                           }}
                                         >
-                                          <h4>or</h4>
+                                          <h4>{t("header.or")}</h4>
                                         </div>
 
                                         {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
@@ -2619,7 +2624,9 @@ const JobList = () => {
                                                   fileInputRef.current.click();
                                               }}
                                             >
-                                              Custom resume with cover letter
+                                              {t(
+                                                "header.Custom_resume_with_cover_letter",
+                                              )}
                                             </a>
 
                                             <input
@@ -2657,10 +2664,10 @@ const JobList = () => {
                                                   role="status"
                                                   aria-hidden="true"
                                                 ></span>
-                                                Applying...
+                                                {t("header.applying")}
                                               </>
                                             ) : (
-                                              "Apply Now"
+                                              t("header.apply_now")
                                             )}
                                           </button>
                                         </div>
@@ -2745,7 +2752,9 @@ const JobList = () => {
 
                                                 {/* ✅ Latest Jobs */}
                                                 <div className="job-card-companies-name">
-                                                  <h5>Latest Jobs</h5>
+                                                  <h5>
+                                                    {t("header.Latest_Jobs")}
+                                                  </h5>
 
                                                   <ul>
                                                     {topThreeJobs.length > 0 ? (
@@ -2770,7 +2779,12 @@ const JobList = () => {
                                                         ),
                                                       )
                                                     ) : (
-                                                      <li>No jobs available</li>
+                                                      <li>
+                                                        {" "}
+                                                        {t(
+                                                          "header.noJobsAvailable",
+                                                        )}
+                                                      </li>
                                                     )}
                                                   </ul>
                                                 </div>
@@ -2785,8 +2799,9 @@ const JobList = () => {
                                                       )
                                                     }
                                                   >
-                                                    View {item?.jobCount || 0}{" "}
-                                                    Jobs
+                                                    {t("header.view")}{" "}
+                                                    {item?.jobCount || 0}{" "}
+                                                    {t("header.Jobs")}
                                                   </button>
                                                 </div>
                                               </div>
@@ -2795,7 +2810,7 @@ const JobList = () => {
                                         })
                                       ) : (
                                         <p className="text-center mt-4">
-                                          No companies available.
+                                          {t("header.no_companies")}
                                         </p>
                                       )}
                                     </Swiper>
@@ -2806,7 +2821,10 @@ const JobList = () => {
                           ))}
                         </>
                       ) : (
-                        <p className="text-center mt-3">No jobs found</p>
+                        <p className="text-center mt-3">
+                          {" "}
+                          {t("header.No_jobs_found")}
+                        </p>
                       )}
                     </div>
                     <Stack
@@ -2835,10 +2853,10 @@ const JobList = () => {
                         }}
                         size="small"
                       >
-                        <MenuItem value={15}>15 / page</MenuItem>
-                        <MenuItem value={25}>25 / page</MenuItem>
-                        <MenuItem value={50}>50 / page</MenuItem>
-                        <MenuItem value={100}>100 / page</MenuItem>
+                        <MenuItem value={15}>15 /{t("header.page")}</MenuItem>
+                        <MenuItem value={25}>25 / {t("header.page")}</MenuItem>
+                        <MenuItem value={50}>50 / {t("header.page")}</MenuItem>
+                        <MenuItem value={100}>100 /{t("header.page")}</MenuItem>
                       </Select>
                     </Stack>
                   </div>
@@ -2859,7 +2877,7 @@ const JobList = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h1 className="modal-title fs-5" id="exampleModalLabel">
-                Notify me every
+                {t("header.Notify_me_every")}
               </h1>
               <button
                 type="button"
@@ -2899,7 +2917,7 @@ const JobList = () => {
                 onClick={handleCreateAlert}
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create Alert"}
+                {loading ? t("alert.header") : t("alert.header")}
               </button>
               <button
                 type="button"
@@ -2907,7 +2925,7 @@ const JobList = () => {
                 data-bs-dismiss="modal"
                 onClick={resetAlertForm}
               >
-                Cancel Alert
+                {t("header.cancel_alert")}
               </button>
             </div>
           </div>

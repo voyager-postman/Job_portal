@@ -186,6 +186,14 @@ function LayoutWrapper() {
           }
         />
         <Route
+          path="/job-details-form"
+          element={
+            <PrivateRoute>
+              <JobDetailsForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/profile-basic-info"
           element={
             <PrivateRoute>

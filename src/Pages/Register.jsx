@@ -61,36 +61,6 @@ function Register() {
     return true; // All validations passed
   };
 
-  // const handleRegister = async () => {
-  //   if (!validateForm()) return;
-
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.post(`${API_BASE_URL}user/register`, {
-  //       email,
-  //       password,
-  //     });
-
-  //     if (response.status === 200 && response.data.success) {
-  //       const { token, user } = response.data;
-
-  //       localStorage.setItem("token", token);
-
-  //       toast.success("Registration successful!");
-  //       login();
-  //       navigate("/profile-basic-info");
-  //     } else {
-  //       toast.error("Something went wrong, please try again.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Register error:", error);
-  //     toast.error(
-  //       error.response?.data?.message || "Registration failed. Try again."
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleRegister = async () => {
     if (!validateForm()) return;
 

@@ -8,24 +8,57 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
   const cityDropdownRef = useRef(null);
-  const [perPage, setPerPage] = useState(20);
+  const experienceRef = useRef(null);
+  const educationRef = useRef(null);
+  const availabilityRef = useRef(null);
+  const salaryRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const experienceLevels = [
+    { label: "- de 1 an", value: "0-1" },
+    { label: "1–2 ans", value: "1-2" },
+    { label: "3–4 ans", value: "3-4" },
+    { label: "5–10 ans", value: "5-10" },
+    { label: "11–15 ans", value: "11-15" },
+    { label: "+ de 15 ans", value: "15+" },
+  ];
+  const availabilityOptions = ["Immediate", "1 month", "1-3 months", "More"];
+  const [perPage, setPerPage] = useState(100000);
+  const [totalResults, setTotalResults] = useState(0);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [candidateDetails, setCandidateDetails] = useState(null);
+  const [showAllExperience, setShowAllExperience] = useState(false);
+
   const [hoveredCandidate, setHoveredCandidate] = useState(null);
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [sortBy, setSortBy] = useState("");
+  const [selectedCandidateId, setSelectedCandidateId] = useState(null);
+
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedExperience, setSelectedExperience] = useState([]);
+  const [showExperienceDropdown, setShowExperienceDropdown] = useState(false);
   const [totalCandidates, setTotalCandidates] = useState(0); // ✅ ADD THIS
   const token = localStorage.getItem("token");
   const [selectedJob, setSelectedJob] = useState("");
   const [search, setSearch] = useState("");
   const [folders, setFolders] = useState([]);
   const [applicants, setApplicants] = useState([]);
+  const [selectedSalary, setSelectedSalary] = useState([]);
+  const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
+  const [isFreelancer, setIsFreelancer] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [selectedAvailability, setSelectedAvailability] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [selectedEducation, setSelectedEducation] = useState([]);
+  const [showEducationDropdown, setShowEducationDropdown] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState([]);
+  const [showAvailabilityDropdown, setShowAvailabilityDropdown] =
+    useState(false);
+
   const [selectedCities, setSelectedCities] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedExperience, setSelectedExperience] = useState("");
   const [seniorityLevels, setSeniorityLevels] = useState([]);
-  const [selectedEducation, setSelectedEducation] = useState("");
   const [showProfile, setShowProfile] = useState(false);
   const [activeFolder, setActiveFolder] = useState("all");
   const [skillInput, setSkillInput] = useState("");
@@ -33,9 +66,8 @@ function EmployerShortListCandinate() {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [country, setCountry] = useState([]);
   const [cityList, setCityList] = useState([]);
-  // const [customFolders, setCustomFolders] = useState([
-  //   { id: "top-talents", name: "Top Talents", type: "custom" },
-  // ]);
+  const [minValue, setMinValue] = useState(0);
+  const [maxValue, setMaxValue] = useState(5000);
   const educationLevels = [
     "High School",
     "Secondary School",
@@ -49,38 +81,100 @@ function EmployerShortListCandinate() {
     "Post Doctorate",
     "Professional Degree",
   ];
-  const [candidates, setCandidates] = useState([
-    {
-      id: 1,
-      name: "VISHAL PATEL",
-      skill: "node js",
-      city: "Varanasi",
-      folder: "all",
-    },
-    {
-      id: 2,
-      name: "Neha Singh",
-      skill: "React Developer",
-      city: "Noida",
-      folder: "marketing",
-    },
-  ]);
 
+  const handleDownloadCV = () => {
+    const resumes = candidateDetails?.resumeUrls;
+
+    if (!resumes || resumes.length === 0) {
+      toast.info("No CV uploaded by candidate", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    const latestResume = resumes[resumes.length - 1];
+    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
+
+    window.open(fileUrl, "_blank");
+  };
+  const handleMinChange = (e) => {
+    const value = Math.min(Number(e.target.value), maxValue - 50);
+    setMinValue(value);
+  };
+
+  const handleMaxChange = (e) => {
+    const value = Math.max(Number(e.target.value), minValue + 50);
+    setMaxValue(value);
+  };
+  const minPercent = (minValue / 5000) * 100;
+  const maxPercent = (maxValue / 5000) * 100;
   console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
   const handleFolderClick = (folderId) => {
     setActiveFolder(folderId);
     setCurrentPage(1);
   };
+  const handleUnlockContact = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-  const handleCreateFolder = async () => {
-    const folderName = prompt("Enter folder name");
+      const response = await axios.post(
+        `${API_BASE_URL}viewCandidate/${candidateDetails.userId._id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-    // If user clicked Cancel → do nothing
-    if (folderName === null) {
-      return;
+      if (!response.data.success) {
+        toast.error(response.data.message);
+
+        // 🚀 Navigate only if credits exhausted
+        if (response.data.is_exhausted === 1) {
+          setTimeout(() => {
+            navigate("/add-plan");
+          }, 2000);
+        }
+
+        return;
+      }
+
+      // ✅ Unlock success
+      setCandidateDetails((prev) => ({
+        ...prev,
+        isUnlocked: true,
+      }));
+    } catch (error) {
+      const message = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+
+      toast.error(message || "Something went wrong");
+
+      // 🚀 Navigate only if exhausted
+      if (exhausted === 1) {
+        setTimeout(() => {
+          navigate("/add-plan");
+        }, 2000);
+      }
     }
+  };
+  useEffect(() => {
+    const fetchSalaryRanges = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}getActiveSalaryRangeList`);
+        const data = await res.json();
 
-    // If empty string after clicking OK → show validation
+        if (data?.success && Array.isArray(data.data)) {
+          setSalaryRanges(data.data);
+        }
+      } catch (err) {
+        console.log("Error fetching salary ranges:", err);
+      }
+    };
+
+    fetchSalaryRanges();
+  }, []);
+  const handleCreateFolder = async () => {
     if (folderName.trim() === "") {
       toast.error("Folder name is required");
       return;
@@ -102,66 +196,39 @@ function EmployerShortListCandinate() {
       if (res.data.success) {
         setFolders((prev) => [...prev, res.data.folder]);
         toast.success("Folder created successfully");
+        setShowModal(false);
+        setFolderName(""); // reset input
       }
     } catch (error) {
       console.error("Error creating folder:", error);
       toast.error("Failed to create folder");
     }
   };
+  useEffect(() => {
+    if (selectedCandidateId) {
+      fetchCandidateDetails(selectedCandidateId);
+    }
+  }, [selectedCandidateId]);
+  const fetchCandidateDetails = async (id) => {
+    try {
+      setDetailsLoading(true);
 
-  // const handleDeleteFolder = async (folderId) => {
-  //   const result = await Swal.fire({
-  //     title: "Delete Folder?",
-  //     text: "All bookmarked candidates inside this folder will be removed.",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#6c757d",
-  //     confirmButtonText: "Yes, delete",
-  //   });
+      const token = localStorage.getItem("token");
 
-  //   if (result.isConfirmed) {
-  //     try {
-  //       setLoading(true);
+      const res = await axios.post(
+        `${API_BASE_URL}getCandidateDetails/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
-  //       const res = await axios.delete(
-  //         `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
+      setCandidateDetails(res.data?.data);
+    } catch (err) {
+      console.error("Error fetching candidate details:", err);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
 
-  //       if (res.data.success) {
-  //         Swal.fire({
-  //           icon: "success",
-  //           title: "Deleted!",
-  //           text: "Folder deleted successfully.",
-  //           timer: 1500,
-  //           showConfirmButton: false,
-  //         });
-  //         fetchFolders();
-
-  //         // Refresh folders list
-
-  //         // If active folder was deleted → reset
-  //         if (activeFolder === folderId) {
-  //           setActiveFolder("all");
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Delete folder error:", error);
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Failed",
-  //         text: "Unable to delete folder.",
-  //       });
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
   const handleDeleteFolder = async (folderId) => {
     const result = await Swal.fire({
       title: "Delete Folder?",
@@ -218,6 +285,106 @@ function EmployerShortListCandinate() {
     } finally {
       setLoading(false);
     }
+  };
+  const toggleExperience = (exp) => {
+    if (selectedExperience.includes(exp)) {
+      setSelectedExperience(selectedExperience.filter((e) => e !== exp));
+    } else {
+      setSelectedExperience([...selectedExperience, exp]);
+    }
+  };
+  const toggleEducation = (edu) => {
+    if (selectedEducation.includes(edu)) {
+      setSelectedEducation(selectedEducation.filter((e) => e !== edu));
+    } else {
+      setSelectedEducation([...selectedEducation, edu]);
+    }
+  };
+  const toggleAvailability = (value) => {
+    if (selectedAvailability.includes(value)) {
+      setSelectedAvailability(
+        selectedAvailability.filter((item) => item !== value),
+      );
+    } else {
+      setSelectedAvailability([...selectedAvailability, value]);
+    }
+  };
+  const toggleSalary = (value) => {
+    if (selectedSalary.includes(value)) {
+      setSelectedSalary(selectedSalary.filter((item) => item !== value));
+    } else {
+      setSelectedSalary([...selectedSalary, value]);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        experienceRef.current &&
+        !experienceRef.current.contains(event.target)
+      ) {
+        setShowExperienceDropdown(false);
+      }
+
+      if (
+        educationRef.current &&
+        !educationRef.current.contains(event.target)
+      ) {
+        setShowEducationDropdown(false);
+      }
+
+      if (
+        availabilityRef.current &&
+        !availabilityRef.current.contains(event.target)
+      ) {
+        setShowAvailabilityDropdown(false);
+      }
+
+      if (salaryRef.current && !salaryRef.current.contains(event.target)) {
+        setShowSalaryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  const clearEducation = () => {
+    setSelectedEducation([]);
+  };
+  const clearAvailability = () => {
+    setSelectedAvailability([]);
+  };
+  const clearSalary = () => {
+    setSelectedSalary([]);
+  };
+  const handleResetFilters = () => {
+    setSelectedSkills([]);
+    setSelectedExperience([]);
+    setSelectedEducation([]);
+    setSelectedSalary([]);
+    setSelectedAvailability([]);
+    setSelectedCountry("");
+    setSelectedCity("");
+    setSelectedJob("");
+
+    setMinValue(0);
+    setMaxValue(5000);
+    setIsFreelancer(false);
+
+    setShowExperienceDropdown(false);
+    setShowSalaryDropdown(false);
+    setShowEducationDropdown(false);
+    setShowAvailabilityDropdown(false);
+
+    setSearch("");
+    setCurrentPage(1);
+
+    setTimeout(() => {
+      fetchApplicants(1);
+    }, 0);
   };
   const fetchCountry = async () => {
     try {
@@ -276,6 +443,9 @@ function EmployerShortListCandinate() {
 
     fetchSeniorityLevels();
   }, []);
+  const clearExperience = () => {
+    setSelectedExperience([]);
+  };
   const filters = {
     selectedJob,
     selectedSkills,
@@ -294,6 +464,15 @@ function EmployerShortListCandinate() {
     try {
       setLoading(true);
 
+      let sortField = "";
+      let sortOrder = "";
+
+      if (sortBy) {
+        const [field, order] = sortBy.split("|");
+        sortField = field;
+        sortOrder = order;
+      }
+
       const res = await axios.get(`${API_BASE_URL}getFolderCandidates`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -303,19 +482,52 @@ function EmployerShortListCandinate() {
             customFilters.selectedSkills?.length > 0
               ? customFilters.selectedSkills.join(",")
               : undefined,
-          experience: customFilters.selectedExperience || undefined,
-          education: customFilters.selectedEducation || undefined,
-          availability: customFilters.selectedAvailability || undefined,
+          experience:
+            customFilters.selectedExperience?.length > 0
+              ? customFilters.selectedExperience.join(",")
+              : undefined,
+          education:
+            customFilters.selectedEducation?.length > 0
+              ? customFilters.selectedEducation.join(",")
+              : undefined,
+          availability:
+            customFilters.selectedAvailability?.length > 0
+              ? customFilters.selectedAvailability.join(",")
+              : undefined,
+          salary:
+            selectedSalary?.length > 0
+              ? selectedSalary
+                  .map(
+                    (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
+                  )
+                  .join(",")
+              : undefined,
+
           country: customFilters.selectedCountry || undefined,
           city: customFilters.selectedCity || undefined,
+          tjm: isFreelancer ? `${minValue}-${maxValue}` : undefined,
+          freelance: isFreelancer,
+          sortByExp: sortBy || undefined, // ✅ FIXED
+          order: sortOrder || undefined,
           page: page,
           limit: perPage,
         },
       });
 
       if (res.data.success) {
-        setApplicants(res.data.data);
-        setTotalCandidates(res.data.total || 0); // ✅ ADD THIS
+        const list = res.data.data || [];
+
+        setApplicants(list);
+        setTotalCandidates(res.data.total || 0);
+
+        if (list.length > 0) {
+          setSelectedCandidateId(list[0]?.userId?._id);
+        } else {
+          setSelectedCandidateId(null);
+
+          // ✅ ADD THIS (VERY IMPORTANT)
+          setCandidateDetails(null);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -335,10 +547,15 @@ function EmployerShortListCandinate() {
     search,
     selectedSkills,
     selectedExperience,
+    selectedSalary, // ✅ ADD THIS
     selectedEducation,
     selectedAvailability,
     selectedCountry,
     selectedCity,
+    sortBy,
+    minValue,
+    maxValue,
+    isFreelancer,
   ]);
   const handleRemoveBookmark = async (bookmarkId) => {
     const result = await Swal.fire({
@@ -392,54 +609,7 @@ function EmployerShortListCandinate() {
       setLoading(false);
     }
   };
-  // const handleRemoveBookmark = async (bookmarkId) => {
-  //   const result = await Swal.fire({
-  //     title: "Remove from Bookmark?",
-  //     text: "This candidate will be removed from your bookmarks.",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#6c757d",
-  //     confirmButtonText: "Yes, remove",
-  //   });
 
-  //   if (result.isConfirmed) {
-  //     try {
-  //       setLoading(true);
-
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}removeBookmark/${bookmarkId}`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
-
-  //       if (res.data.success) {
-  //         Swal.fire({
-  //           icon: "success",
-  //           title: "Removed!",
-  //           text: "Candidate removed from bookmark.",
-  //           timer: 1500,
-  //           showConfirmButton: false,
-  //         });
-  //         fetchApplicants(currentPage);
-  //         // OR instant remove without API refetch (faster UI)
-  //         // setApplicants(prev => prev.filter(item => item._id !== bookmarkId));
-  //       }
-  //     } catch (error) {
-  //       console.error("Remove bookmark error:", error);
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Error",
-  //         text: "Something went wrong.",
-  //       });
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
   const fetchFolders = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -457,6 +627,11 @@ function EmployerShortListCandinate() {
       console.error("Error fetching folders:", error);
     }
   };
+  useEffect(() => {
+    if (applicants.length > 0) {
+      setSelectedCandidateId(applicants[0]?.userId?._id);
+    }
+  }, [applicants]);
   useEffect(() => {
     fetchFolders();
   }, []);
@@ -504,909 +679,1952 @@ function EmployerShortListCandinate() {
               </li>
             </ol>
           </div>
+          <div className="employer-dashboard-common-heading  pb-3">
+            <h2>Candidates Bookmark</h2>
+          </div>
           {/* End Breadcrumb Area */}
           {/*Start Bookmark Jobs Area*/}
-          <div className="bookmark-container">
-            <aside className="folder-sidebar">
-              <div className="folder-sidebar-header">
-                <h3>Bookmarks</h3>
+          <div className="bg-white p-4 rounded shadow-sm border mt-3 mb-4 ">
+            <div className="row g-3 mb-4">
+              <div className="col-12 mb-3">
+                <h5 className="mb-0 fw-bold">
+                  All Candidates{" "}
+                  <span className="text-muted fs-6 fw-normal">
+                    ({totalCandidates || 0} Candidates)
+                  </span>
+                </h5>
               </div>
-
-              <div className="folder-list-container">
-                {/* ALL CANDIDATES */}
-                <div className="folder-section">
-                  <div
-                    className={`folder-item ${activeFolder === "all" ? "active" : ""}`}
-                    onClick={() => handleFolderClick("all")}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      viewBox="0 0 512 512"
-                      className="folder-icon"
-                      height="1em"
-                      width="1em"
-                    >
-                      <path d="M400 480a16 16 0 0 1-10.63-4L256 357.41 122.63 476A16 16 0 0 1 96 464V96a64.07 64.07 0 0 1 64-64h192a64.07 64.07 0 0 1 64 64v368a16 16 0 0 1-16 16z" />
-                    </svg>
-
-                    <span className="folder-name">All Candidates</span>
-                    <span className="folder-count">{totalCandidates}</span>
-                  </div>
-                </div>
-
-                {/* JOB OFFERS */}
-                {/* JOB OFFERS */}
-                <div className="folder-section">
-                  <div className="folder-section-label">Job Offers</div>
-
-                  {autoJobFolders.map((folder) => (
-                    <div
-                      key={folder._id}
-                      className={`folder-item ${
-                        activeFolder === folder._id ? "active" : ""
-                      }`}
-                      onClick={() => handleFolderClick(folder._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 512 512"
-                        className="folder-icon"
-                        height="1em"
-                        width="1em"
-                      >
-                        <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zM464 128h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48z" />
-                      </svg>
-
-                      <span className="folder-name">{folder.name}</span>
-
-                      <span className="folder-badge auto">Auto</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CUSTOM FOLDERS */}
-                {/* CUSTOM FOLDERS */}
-                <div className="folder-section">
-                  <div className="folder-section-label">Custom Folders</div>
-
-                  {customFolders.map((folder) => (
-                    <div
-                      key={folder._id}
-                      className={`folder-item ${
-                        activeFolder === folder._id ? "active" : ""
-                      }`}
-                      onClick={() => handleFolderClick(folder._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 512 512"
-                        className="folder-icon"
-                        height="1em"
-                        width="1em"
-                      >
-                        <path d="M464 128H272l-64-64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V176c0-26.51-21.49-48-48-48z" />
-                      </svg>
-
-                      <span className="folder-name">{folder.name}</span>
-
-                      <div
-                        className="folder-actions"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          className="btn btn-sm text-danger"
-                          onClick={() => handleDeleteFolder(folder._id)}
-                        >
-                          <div className="folder-actions ms-auto d-flex gap-2">
-                            <svg
-                              stroke="currentColor"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              viewBox="0 0 448 512"
-                              className="text-danger"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
-                              style={{ "font-size": "12px" }}
-                            >
-                              <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                            </svg>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button
-                    className="create-folder-btn w-100 mt-2"
-                    onClick={handleCreateFolder}
-                  >
-                    + Create Folder
-                  </button>
-                </div>
-              </div>
-            </aside>
-
-            <main className="bookmark-main-content">
-              <header className="bookmark-content-header">
-                <div className="header-left">
-                  <h1>
-                    {activeFolder === "all"
-                      ? "All Candidates"
-                      : folders.find((f) => f._id === activeFolder)?.name ||
-                        "Folder"}
-                  </h1>
-                  <p className="text-muted mb-0">
-                    {totalCandidates} candidate
-                    {totalCandidates !== 1 && "s"} in this folder
-                  </p>
-                </div>
-                <div className="header-right header-controls">
-                  <select
-                    className="per-page-select"
-                    value={perPage}
-                    onChange={(e) => {
-                      setPerPage(Number(e.target.value));
-                      setCurrentPage(1); // reset to first page
-                    }}
-                  >
-                    <option value={20}>Show: 20</option>
-                    <option value={30}>Show: 30</option>
-                    <option value={50}>Show: 50</option>
-                  </select>
-                  <div className="search-input-group">
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      strokeWidth={0}
-                      viewBox="0 0 512 512"
-                      color="#999"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{ color: "rgb(153, 153, 153)" }}
-                    >
-                      <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                    </svg>
+              <div className="col-12">
+                <div className="d-flex gap-2">
+                  <div className="flex-grow-1 position-relative">
+                    <i
+                      className="fa-solid fa-magnifying-glass position-absolute"
+                      style={{
+                        left: "15px",
+                        top: "50%",
+                        "-webkit-transform": "translateY(-50%)",
+                        "-ms-transform": "translateY(-50%)",
+                        transform: "translateY(-50%)",
+                        color: "rgb(102, 102, 102)",
+                      }}
+                    />
                     <input
-                      placeholder="Search candidates..."
+                      className="form-control ps-5 py-2"
                       type="text"
+                      placeholder="Search candidates by name..."
                       value={search}
                       onChange={(e) => {
                         setSearch(e.target.value);
                         setCurrentPage(1);
                       }}
+                      style={{
+                        height: "45px",
+                        "border-radius": "8px",
+                        "background-color": "rgb(240, 245, 247)",
+                      }}
                     />
                   </div>
-                </div>
-              </header>
-              <div className="bookmark-filters-row px-4 pt-3 pb-2 bg-white border-bottom">
-                <div className="row g-2 align-items-end">
-                  <div className="col-md">
-                    <label className="filter-label-inline">SKILLS</label>
-
-                    <input
-                      type="text"
-                      className="form-control form-control-sm w-100"
-                      placeholder="Type skill & press Enter"
-                      value={skillInput}
-                      style={{ height: "38px", fontSize: "12px" }}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && skillInput.trim()) {
-                          e.preventDefault();
-                          if (!selectedSkills.includes(skillInput.trim())) {
-                            setSelectedSkills((prev) => [
-                              ...prev,
-                              skillInput.trim(),
-                            ]);
-                          }
-                          setSkillInput("");
-                        }
-                      }}
-                    />
-
-                    {selectedSkills.length > 0 && (
-                      <div className="d-flex flex-wrap gap-1 mt-2">
-                        {selectedSkills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="badge bg-primary d-flex align-items-center gap-1"
-                            style={{ fontSize: "10px" }}
-                          >
-                            {skill}
-                            <span
-                              style={{ cursor: "pointer", marginLeft: "6px" }}
-                              onClick={() =>
-                                setSelectedSkills((prev) =>
-                                  prev.filter((s) => s !== skill),
-                                )
-                              }
-                            >
-                              ✕
-                            </span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="col">
-                    <label className="filter-label-inline">Country</label>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{
-                        fontSize: "12px",
-                        height: "38px",
-                        cursor: "pointer",
-                      }}
-                      value={selectedCountry || ""}
-                      // onChange={(e) => {
-                      //   const selectedOption =
-                      //     e.target.options[e.target.selectedIndex];
-
-                      //   const countryId =
-                      //     selectedOption.getAttribute("data-id"); // numeric id
-
-                      //   const countryObjectId = e.target.value; // name (as before)
-
-                      //   // setSelectedCountry(countryObjectId);
-                      //   // setSelectedCities([]); // Reset cities when country changes
-                      //   setSelectedCountry(countryObjectId);
-                      //   setSelectedCities([]);
-                      //   setSelectedCity(""); // ⭐ THIS WAS MISSING
-                      //   setCityList([]); // optional but cleaner
-                      //   if (countryId) {
-                      //     fetchCitiesByCountry(countryId);
-                      //   } else {
-                      //     setCityList([]);
-                      //   }
-
-                      //   setCurrentPage(1);
-                      // }}
-                      onChange={(e) => {
-                        const selectedOption =
-                          e.target.options[e.target.selectedIndex];
-
-                        const countryId =
-                          selectedOption.getAttribute("data-id");
-
-                        const countryObjectId = e.target.value;
-
-                        setSelectedCountry(countryObjectId);
-                        setSelectedCity(""); // reset city
-                        setSelectedCities([]); // reset multi-city
-                        setCityList([]); // clear dropdown list
-
-                        if (countryId) {
-                          fetchCitiesByCountry(countryId);
-                        }
-
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <option value="">All Country</option>
-
-                      {country.map((count) => (
-                        <option
-                          key={count._id}
-                          value={count.name}
-                          data-id={count.id}
-                        >
-                          {count.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">City</label>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{
-                        fontSize: "12px",
-                        height: "38px",
-                        cursor: "pointer",
-                      }}
-                      value={selectedCity || ""}
-                      onChange={(e) => {
-                        setSelectedCity(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      disabled={!selectedCountry} // disable if no country selected
-                    >
-                      <option value="">All Cities</option>
-
-                      {cityList.map((city) => (
-                        <option key={city._id} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Exp.</label>
-
-                    <select
-                      value={selectedExperience}
-                      onChange={(e) => setSelectedExperience(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ "font-size": "13px", padding: "8px" }}
-                    >
-                      <option value="">All Levels</option>
-                      {seniorityLevels.map((level) => (
-                        <option key={level._id} value={level.name}>
-                          {level.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Edu.</label>
-
-                    <select
-                      value={selectedEducation}
-                      onChange={(e) => setSelectedEducation(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ "font-size": "13px", padding: "8px" }}
-                    >
-                      <option value="">Any</option>
-                      {educationLevels.map((edu) => (
-                        <option key={edu} value={edu}>
-                          {edu}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Availability</label>
-
-                    <select
-                      value={selectedAvailability}
-                      onChange={(e) => setSelectedAvailability(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ fontSize: "13px", padding: "8px" }}
-                    >
-                      <option value="">Any Status</option>
-                      <option value="Immediate">Immediate</option>
-                      <option value="15 Days">15 Days</option>
-                      <option value="30 Days">30 Days</option>
-                      <option value="45 Days">45 Days</option>
-                      <option value="60 Days">60 Days</option>
-                      <option value="90 Days">90 Days</option>
-                      <option value="Negotiable">Negotiable</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="d-flex justify-content-end gap-2 mt-3">
                   <button
-                    className="btn btn-sm btn-outline-secondary px-3"
-                    onClick={() => {
-                      setSelectedSkills([]);
-                      setSelectedExperience("");
-                      setSelectedEducation("");
-                      setSelectedAvailability("");
-                      setSelectedCountry("");
-                      setSelectedCity("");
-                      setSearch("");
-                      setCurrentPage(1);
+                    className="btn btn-outline-secondary px-3 d-flex align-items-center gap-2"
+                    style={{
+                      height: "45px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      border: "1px solid rgb(221, 221, 221)",
                     }}
+                    onClick={() => setShowFilter(!showFilter)}
                   >
-                    Reset
+                    <i
+                      className={`fa-solid ${
+                        showFilter ? "fa-chevron-up" : "fa-filter"
+                      }`}
+                    />
+                    {showFilter ? "Hide Filters" : "Show Filters"}
                   </button>
                   <button
-                    className="btn btn-sm btn-primary px-4"
+                    className="btn btn-primary px-4 fw-bold"
                     onClick={() => {
                       setCurrentPage(1);
-                      fetchApplicants(1);
+                      fetchApplicants(1); // ✅ CALL API
+                    }}
+                    style={{
+                      height: "45px",
+                      "border-radius": "8px",
+                      background: "rgb(243, 122, 71)",
+                      border: "none",
                     }}
                   >
-                    Apply Filters
+                    Find Candidate
                   </button>
                 </div>
               </div>
-              <div
-                className="bookmark-list-area p-4"
-                style={{ overflow: "visible" }}
-              >
-                {" "}
-                <div className="bookmark-user-list-cell">
-                  {applicants.length === 0 ? (
-                    <div className="p-5 text-center text-muted">
+            </div>
+
+            {showFilter && (
+              <>
+                <div className="advanced-filters-section mt-4 p-4 border rounded-4 bg-white shadow-sm">
+                  <div className="d-flex align-items-center gap-2 mb-4">
+                    <div
+                      style={{
+                        width: "4px",
+                        height: "20px",
+                        "background-color": "rgb(243, 122, 71)",
+                        "border-radius": "4px",
+                      }}
+                    />
+                    <h2
+                      className="m-0 fw-bold"
+                      style={{ "font-size": "16px", color: "rgb(26, 26, 26)" }}
+                    >
+                      Filtres Avancés
+                    </h2>
+                  </div>
+                  <div className="row g-3 mb-4">
+                    <div className="col-12 col-md-3">
                       <div
-                        className="d-flex flex-column align-items-center justify-content-center text-center"
-                        style={{ height: "60vh" }}
+                        ref={experienceRef}
+                        className="multi-select-container position-relative w-100"
                       >
-                        <div style={{ fontSize: "50px" }}>🔍</div>
-
-                        <h5 className="mt-3 fw-bold">No Candidates Found</h5>
-
-                        <p
-                          className="text-muted mb-3"
-                          style={{ maxWidth: "400px" }}
-                        >
-                          No applicants match your current filters. Try
-                          adjusting your filter criteria or reset filters to see
-                          more candidates.
-                        </p>
-
-                        <button
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => {
-                            setSelectedSkills([]);
-                            setSelectedExperience("");
-                            setSelectedEducation("");
-                            setSelectedAvailability("");
-                            setSelectedCountry("");
-                            setSelectedCity("");
-                            setSearch("");
-                            setCurrentPage(1);
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
                           }}
                         >
-                          Reset Filters
-                        </button>
+                          Experience
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowExperienceDropdown(!showExperienceDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedExperience.length === 0
+                              ? "All Levels"
+                              : `${selectedExperience.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showExperienceDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showExperienceDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedExperience.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearExperience}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {experienceLevels.map((level) => (
+                              <div
+                                key={level.value}
+                                onClick={() => toggleExperience(level.value)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedExperience.includes(
+                                    level.value,
+                                  )}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {level.label}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    applicants.map((candidate) => {
-                      const user = candidate.userId;
-                      const role = candidate.aboutRole;
-
-                      return (
-                        <div
-                          key={candidate._id}
-                          className="candidate-row"
-                          onClick={() => {
-                            setSelectedCandidate(candidate);
-                            setShowProfile(true);
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={educationRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
                           }}
-                          onMouseEnter={() => setHoveredCandidate(candidate)}
-                          onMouseLeave={() => setHoveredCandidate(null)}
                         >
-                          <img
-                            crossOrigin="anonymous"
-                            className="candidate-avatar"
-                            alt={candidate.fullName}
-                            src={
-                              cleanImageUrl(user.profileImage) ||
-                              "assets/images/userIcon.png"
-                            }
+                          Education
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowEducationDropdown(!showEducationDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedEducation.length === 0
+                              ? "Any"
+                              : `${selectedEducation.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showEducationDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showEducationDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedEducation.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearEducation}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {educationLevels.map((edu, index) => (
+                              <div
+                                key={index}
+                                onClick={() => toggleEducation(edu)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedEducation.includes(edu)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {edu}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={availabilityRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Availability
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowAvailabilityDropdown(
+                              !showAvailabilityDropdown,
+                            )
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedAvailability.length === 0
+                              ? "Any Status"
+                              : `${selectedAvailability.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showAvailabilityDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showAvailabilityDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedAvailability.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearAvailability}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {availabilityOptions.map((item, index) => (
+                              <div
+                                key={index}
+                                onClick={() => toggleAvailability(item)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedAvailability.includes(item)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {item}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-3">
+                      <div
+                        ref={salaryRef}
+                        className="multi-select-container position-relative w-100"
+                      >
+                        <h3
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Salary
+                        </h3>
+
+                        {/* SELECT BOX */}
+                        <div
+                          onClick={() =>
+                            setShowSalaryDropdown(!showSalaryDropdown)
+                          }
+                          className="d-flex align-items-center justify-content-between p-2 border-primary"
+                          style={{
+                            fontSize: "13px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            minHeight: "38px",
+                            backgroundColor: "rgb(240, 245, 247)",
+                          }}
+                        >
+                          <span
+                            className="text-truncate"
+                            style={{ maxWidth: "90%" }}
+                          >
+                            {selectedSalary.length === 0
+                              ? "Any"
+                              : `${selectedSalary.length} Selected`}
+                          </span>
+
+                          <i
+                            className={`fa-solid ${
+                              showSalaryDropdown
+                                ? "fa-chevron-up"
+                                : "fa-chevron-down"
+                            }`}
+                          />
+                        </div>
+
+                        {/* DROPDOWN */}
+                        {showSalaryDropdown && (
+                          <div
+                            className="position-absolute w-100 bg-white shadow-lg rounded mt-1 border"
+                            style={{
+                              zIndex: "1000",
+                              maxHeight: "250px",
+                              overflowY: "auto",
+                              padding: "8px 0px",
+                            }}
+                          >
+                            {/* HEADER */}
+                            <div className="px-3 pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                {selectedSalary.length} selected
+                              </span>
+
+                              <button
+                                onClick={clearSalary}
+                                className="btn btn-link btn-sm p-0 text-decoration-none"
+                                style={{
+                                  fontSize: "11px",
+                                  color: "rgb(243, 122, 71)",
+                                }}
+                              >
+                                Clear All
+                              </button>
+                            </div>
+
+                            {/* OPTIONS */}
+                            {salaryRanges.map((item) => (
+                              <div
+                                key={item._id}
+                                onClick={() => toggleSalary(item.range)}
+                                className="px-3 py-2 d-flex align-items-center gap-2 hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <input
+                                  className="form-check-input mt-0"
+                                  type="checkbox"
+                                  checked={selectedSalary.includes(item.range)}
+                                  readOnly
+                                />
+
+                                <span
+                                  className="small text-dark"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {item.range}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row g-4 align-items-start border-top pt-4">
+                    <div className="col-12 col-md-5">
+                      <div className="single-sidebar-widget">
+                        <label
+                          className="fw-bold mb-2 d-block"
+                          style={{
+                            fontSize: "13px",
+                            color: "rgb(75, 85, 99)",
+                          }}
+                        >
+                          Compétences
+                        </label>
+
+                        {/* INPUT */}
+                        <div className="position-relative">
+                          <input
+                            className="form-control"
+                            placeholder="Ex: React, Node, SQL..."
+                            type="text"
+                            value={skillInput}
+                            onChange={(e) => setSkillInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && skillInput.trim()) {
+                                e.preventDefault();
+
+                                if (
+                                  !selectedSkills.includes(skillInput.trim())
+                                ) {
+                                  setSelectedSkills((prev) => [
+                                    ...prev,
+                                    skillInput.trim(),
+                                  ]);
+                                }
+
+                                setSkillInput("");
+                              }
+                            }}
+                            style={{
+                              fontSize: "14px",
+                              padding: "10px 15px",
+                              borderRadius: "8px",
+                              backgroundColor: "rgb(240, 245, 247)",
+                              height: "45px",
+                              border: "1px solid rgb(226, 232, 240)",
+                            }}
                           />
 
-                          <div className="candidate-info">
-                            <h4 className="candidate-name">
-                              {candidate.fullName}
-                            </h4>
+                          <i
+                            className="fa-solid fa-tags position-absolute"
+                            style={{
+                              right: "15px",
+                              top: "15px",
+                              color: "rgb(148, 163, 184)",
+                            }}
+                          />
+                        </div>
 
-                            <div className="candidate-meta">
-                              <span className="me-3">
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 512 512"
-                                  className="me-1"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z" />
-                                </svg>
-                                {role?.jobTitle || "N/A"}
+                        {/* SKILL TAGS */}
+                        {selectedSkills.length > 0 && (
+                          <div className="d-flex flex-wrap gap-2 mt-2">
+                            {selectedSkills.map((skill) => (
+                              <span
+                                key={skill}
+                                className="badge bg-white text-dark border d-flex align-items-center gap-2 py-2 px-3 shadow-sm rounded-pill"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {skill}
+
+                                <i
+                                  className="fa-solid fa-xmark text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                  }}
+                                  onClick={() =>
+                                    setSelectedSkills((prev) =>
+                                      prev.filter((s) => s !== skill),
+                                    )
+                                  }
+                                />
                               </span>
-                              <span>
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 512 512"
-                                  className="me-1"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                                </svg>
-                                {user?.city && user?.Nationality
-                                  ? `${user.city}, ${user.Nationality}`
-                                  : user?.city || user?.Nationality || "N/A"}
-                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12 col-md-7">
+                      <div className="d-flex flex-column h-100">
+                        <label
+                          className="fw-bold mb-2 d-block"
+                          style={{
+                            "font-size": "13px",
+                            color: "rgb(75, 85, 99)",
+                          }}
+                        >
+                          Localisation
+                        </label>
+                        <div className="row g-2 mb-3">
+                          <div className="col-6">
+                            <input
+                              className="form-control"
+                              placeholder="Pays..."
+                              type="text"
+                              value={selectedCountry || ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+
+                                setSelectedCountry(value);
+                                setSelectedCities([]);
+                                setSelectedCity("");
+                                setCityList([]);
+
+                                // find country id from country list
+                                const selectedCountryObj = country.find(
+                                  (c) =>
+                                    c.name.toLowerCase() ===
+                                    value.toLowerCase(),
+                                );
+
+                                if (selectedCountryObj?.id) {
+                                  fetchCitiesByCountry(selectedCountryObj.id);
+                                }
+
+                                setCurrentPage(1);
+                              }}
+                              style={{
+                                fontSize: "14px",
+                                borderRadius: "8px",
+                                height: "45px",
+                                backgroundColor: "rgb(240, 245, 247)",
+                                border: "1px solid rgb(226, 232, 240)",
+                              }}
+                            />
+                          </div>
+                          <div className="col-6">
+                            <div className="position-relative">
+                              <input
+                                className="form-control"
+                                placeholder="Ville..."
+                                type="text"
+                                value={selectedCity || ""}
+                                onChange={(e) => {
+                                  setSelectedCity(e.target.value);
+                                  setCurrentPage(1);
+                                }}
+                                // disabled={!selectedCountry}
+                                style={{
+                                  fontSize: "14px",
+                                  borderRadius: "8px",
+                                  height: "45px",
+                                  backgroundColor: "rgb(240, 245, 247)",
+                                  border: "1px solid rgb(226, 232, 240)",
+                                  paddingLeft: "35px",
+                                }}
+                              />
+                              <i
+                                className="fa-solid fa-location-dot position-absolute"
+                                style={{
+                                  left: "12px",
+                                  top: "15px",
+                                  color: "rgb(148, 163, 184)",
+                                }}
+                              />
                             </div>
                           </div>
-
-                          <div className="candidate-actions">
-                            <Link
-                              className="btn btn-sm btn-light"
-                              to={`/candidates-details`}
-                              state={{
-                                userId: candidate?.userId?._id,
-                                from: "/bookmark-candidate",
+                        </div>
+                        <div
+                          className="d-flex align-items-center gap-4 py-2 px-3 border rounded-3"
+                          style={{ backgroundColor: "rgb(248, 250, 251)" }}
+                        >
+                          {/* SWITCH */}
+                          <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                            <input
+                              className="form-check-input"
+                              id="freelancerSwitchApplicants"
+                              type="checkbox"
+                              checked={isFreelancer}
+                              onChange={(e) =>
+                                setIsFreelancer(e.target.checked)
+                              }
+                              style={{
+                                cursor: "pointer",
+                                width: "35px",
+                                height: "18px",
+                              }}
+                            />
+                            <label
+                              className="form-check-label fw-bold"
+                              htmlFor="freelancerSwitchApplicants"
+                              style={{
+                                fontSize: "13px",
+                                cursor: "pointer",
+                                color: "rgb(51, 65, 85)",
                               }}
                             >
-                              View Profile
-                            </Link>
-
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveBookmark(candidate.bookmarkId);
-                              }}
-                            >
-                              <div className="folder-actions ms-auto d-flex gap-2">
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 448 512"
-                                  className="text-danger"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  style={{ "font-size": "12px" }}
-                                >
-                                  <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                                </svg>
-                              </div>
-                            </button>
+                              Recherche Freelance
+                            </label>
                           </div>
-                          {hoveredCandidate?._id === candidate._id && (
-                            <div className="hover-profile-card">
-                              <div className="user-hover-short-details card">
-                                {/* HEADER */}
-                                <div className="header">
-                                  <img
-                                    crossOrigin="anonymous"
-                                    className="profile-pic"
-                                    alt={candidate.fullName}
-                                    src={
-                                      cleanImageUrl(user?.profileImage) ||
-                                      "assets/images/userIcon.png"
-                                    }
+
+                          {/* SHOW ONLY WHEN TRUE */}
+                          {isFreelancer && (
+                            <div className="flex-grow-1 d-flex align-items-center gap-3 ms-2 border-start ps-4">
+                              <span
+                                className="fw-bold text-muted text-nowrap"
+                                style={{
+                                  fontSize: "11px",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.5px",
+                                }}
+                              >
+                                Budget TJM (MAD)
+                              </span>
+
+                              <div
+                                className="flex-grow-1 position-relative"
+                                style={{ height: "30px", minWidth: "150px" }}
+                              >
+                                <div
+                                  className="range-slider-container w-100 m-0"
+                                  style={{
+                                    height: "4px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                  }}
+                                >
+                                  <div
+                                    className="range-slider-track"
+                                    style={{ height: "4px" }}
+                                  />
+                                  <div
+                                    className="range-slider-progress"
+                                    style={{
+                                      height: "4px",
+                                      left: "0%",
+                                      right: "0%",
+                                    }}
                                   />
 
-                                  <div className="header-info">
-                                    <h1>{candidate.fullName}</h1>
-                                    <p>
-                                      {candidate.aboutRole?.jobTitle || "N/A"}
-                                    </p>
-                                    <svg
-                                      stroke="currentColor"
-                                      fill="currentColor"
-                                      strokeWidth={0}
-                                      viewBox="0 0 512 512"
-                                      className="me-1"
-                                      height="1em"
-                                      width="1em"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                                    </svg>
-                                    {candidate.userId?.city &&
-                                    candidate.userId?.Nationality
-                                      ? `${candidate.userId.city}, ${candidate.userId.Nationality}`
-                                      : candidate.userId?.city ||
-                                        candidate.userId?.Nationality ||
-                                        "N/A"}
+                                  <div
+                                    className="range-slider-container w-100 m-0 position-relative"
+                                    style={{
+                                      height: "4px",
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                    }}
+                                  >
+                                    <div
+                                      className="range-slider-track"
+                                      style={{ height: "4px" }}
+                                    />
+
+                                    <div
+                                      className="range-slider-progress"
+                                      style={{
+                                        height: "4px",
+                                        left: `${minPercent}%`,
+                                        right: `${100 - maxPercent}%`,
+                                      }}
+                                    />
+
+                                    {/* MIN */}
+                                    <input
+                                      className="range-slider-input"
+                                      min={0}
+                                      max={5000}
+                                      step={50}
+                                      type="range"
+                                      value={minValue}
+                                      onChange={handleMinChange}
+                                    />
+
+                                    {/* MAX */}
+                                    <input
+                                      className="range-slider-input"
+                                      min={0}
+                                      max={5000}
+                                      step={50}
+                                      type="range"
+                                      value={maxValue}
+                                      onChange={handleMaxChange}
+                                    />
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* DETAILS GRID */}
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <p>Experience</p>
-                                    <span>
-                                      {candidate.aboutRole?.yearOfExperience
-                                        ? `${candidate.aboutRole.yearOfExperience} Years`
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Availability</p>
-                                    <span className="na">
-                                      {candidate.career_goals
-                                        ?.availabilityToJoin || "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Education</p>
-                                    <span>
-                                      {candidate.education?.length > 0
-                                        ? `${candidate.education[0].degree}`
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Languages</p>
-                                    <span>
-                                      {candidate.languages?.length > 0
-                                        ? candidate.languages
-                                            .map(
-                                              (lang) =>
-                                                `${lang.language} (${lang.proficiency})`,
-                                            )
-                                            .join(", ")
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* PROFESSIONAL SUMMARY */}
-                                {candidate.professionalSummary && (
-                                  <div className="skills-section">
-                                    <h2>PROFESSIONAL SUMMARY</h2>
-                                    <p>{candidate.professionalSummary}</p>
-                                  </div>
-                                )}
-
-                                {/* SKILLS */}
-                                {candidate.skills?.length > 0 && (
-                                  <div className="skills-section">
-                                    <h2>Skills</h2>
-                                    <div className="skills-list">
-                                      {candidate.skills
-                                        .slice(0, 6)
-                                        .map((skill, index) => (
-                                          <span
-                                            key={index}
-                                            className="skill-tag"
-                                          >
-                                            {skill}
-                                          </span>
-                                        ))}
-                                    </div>
-                                  </div>
-                                )}
+                              <div
+                                className="badge bg-white text-primary border shadow-sm px-2 py-1"
+                                style={{
+                                  fontSize: "12px",
+                                  minWidth: "110px",
+                                }}
+                              >
+                                {minValue} - {maxValue} DH
                               </div>
                             </div>
                           )}
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            </main>
-          </div>
-
-          <div
-            className={`side-panel-overlay ${showProfile ? "open" : ""}`}
-            onClick={() => setShowProfile(false)}
-          >
-            <div
-              className="side-panel-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="side-panel-header">
-                <h2>Candidate Profile</h2>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowProfile(false)}
-                >
-                  <svg
-                    stroke="currentColor"
-                    fill="currentColor"
-                    strokeWidth={0}
-                    viewBox="0 0 1024 1024"
-                    fillRule="evenodd"
-                    height="1em"
-                    width="1em"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="side-panel-body">
-                <div className="profile-top text-center mb-4">
-                  {selectedCandidate && (
-                    <>
-                      <img
-                        crossOrigin="anonymous"
-                        className="profile-img-large mb-3"
-                        src={
-                          cleanImageUrl(
-                            selectedCandidate.userId?.profileImage,
-                          ) || "assets/images/userIcon.png"
-                        }
-                        alt={selectedCandidate.fullName}
-                      />
-
-                      <h3>{selectedCandidate.fullName}</h3>
-
-                      <p className="text-muted">
-                        {selectedCandidate.aboutRole?.jobTitle}
-                      </p>
-                    </>
-                  )}
-                </div>
-                <div className="profile-info-section">
-                  <h4>Contact Information</h4>
-                  <ul className="info-list">
-                    <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 512 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z" />
-                      </svg>{" "}
-                      <li>{selectedCandidate?.userId?.email}</li>
-                    </li>
-                    <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 512 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M493.4 24.6l-104-24c-11.3-2.6-22.9 3.3-27.5 13.9l-48 112c-4.2 9.8-1.4 21.3 6.9 28l60.6 49.6c-36 76.7-98.9 140.5-177.2 177.2l-49.6-60.6c-6.8-8.3-18.2-11.1-28-6.9l-112 48C3.9 366.5-2 378.1.6 389.4l24 104C27.1 504.2 36.7 512 48 512c256.1 0 464-207.5 464-464 0-11.2-7.7-20.9-18.6-23.4z" />
-                      </svg>{" "}
-                      {selectedCandidate?.userId?.phone}
-                    </li>
-                    <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 384 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z" />
-                      </svg>{" "}
-                      {selectedCandidate?.userId?.city}
-                    </li>
-                  </ul>
-                </div>
-                <div className="profile-info-section work-section">
-                  <h6 className="section-title1">WORK EXPERIENCE</h6>
-
-                  <div className="divider" />
-
-                  {/* Total Experience */}
-                  <div className="total-exp">
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      strokeWidth={0}
-                      viewBox="0 0 512 512"
-                      height="16"
-                      width="16"
-                      className="me-2"
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button
+                      className="btn btn-link text-decoration-none text-muted d-flex align-items-center gap-2 px-3 fw-bold"
+                      style={{
+                        "font-size": "13px",
+                        "-webkit-transition": "0.2s",
+                        transition: "0.2s",
+                      }}
+                      onClick={handleResetFilters}
                     >
-                      <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z" />
-                    </svg>
-                    {selectedCandidate?.workHistory?.reduce(
-                      (total, job) =>
-                        total + parseFloat(job.yearOfExperience || 0),
-                      0,
-                    )}{" "}
-                    Years Experience
+                      <i className="fa-solid fa-rotate-left" />
+                      Réinitialiser tous les filtres
+                    </button>
                   </div>
-
-                  {/* Experience List */}
-                  {selectedCandidate?.workHistory
-                    ?.sort(
-                      (a, b) => new Date(b.startDate) - new Date(a.startDate),
-                    )
-                    .map((job) => (
-                      <div key={job._id} className="experience-block">
-                        <div className="job-title">{job.jobTitle}</div>
-
-                        <div className="company-name">
-                          at{" "}
-                          {job.keep_employer_anonymous
-                            ? "Confidential"
-                            : job.companyName}
-                        </div>
-
-                        <div className="job-duration">
-                          {new Date(job.startDate).getFullYear()} -{" "}
-                          {job.currentlyWorkingHere
-                            ? "Present"
-                            : job.endDate
-                              ? new Date(job.endDate).getFullYear()
-                              : ""}
-                        </div>
-                      </div>
-                    ))}
                 </div>
+              </>
+            )}
 
-                <div className="profile-info-section education-section">
-                  <h6 className="section-title1">EDUCATION</h6>
+            <div className="row g-3 align-items-end mt-2">
+              <div className="col-12 col-md-5">
+                <label className="filter-label-inline text-primary">
+                  Job Offers
+                </label>
+                <select
+                  className="form-select form-select-sm fw-bold border-primary shadow-sm"
+                  value={activeFolder}
+                  onChange={(e) => handleFolderClick(e.target.value)}
+                >
+                  <option value="all">All Job Offers / None Selected</option>
 
-                  <div className="divider" />
+                  {autoJobFolders.map((folder) => (
+                    <option key={folder._id} value={folder._id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-12 col-md-5">
+                <label className="filter-label-inline text-success">
+                  Custom Folders
+                </label>
 
-                  {selectedCandidate?.education
-                    ?.sort(
-                      (a, b) => new Date(b.startDate) - new Date(a.startDate),
-                    )
-                    .map((edu) => (
-                      <div key={edu._id} className="education-block">
-                        <div className="education-row">
-                          <svg
-                            stroke="currentColor"
-                            fill="currentColor"
-                            stroke-width="0"
-                            viewBox="0 0 640 512"
-                            height="1em"
-                            width="1em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"></path>
-                          </svg>
+                <div className="d-flex gap-2">
+                  {/* DROPDOWN */}
+                  <select
+                    className="form-select form-select-sm fw-bold border-success shadow-sm"
+                    value={activeFolder}
+                    onChange={(e) => handleFolderClick(e.target.value)}
+                  >
+                    <option value="all">
+                      All Custom Folders / None Selected
+                    </option>
 
-                          <div>
-                            <div className="degree-line">
-                              {edu.degree} - {edu.University}
-                            </div>
-
-                            <div className="education-year">
-                              ({new Date(edu.startDate).getFullYear()} -{" "}
-                              {edu.currentlyStudyingHere
-                                ? "Present"
-                                : new Date(edu.endDate).getFullYear()}
-                              )
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    {customFolders.map((folder) => (
+                      <option key={folder._id} value={folder._id}>
+                        {folder.name}
+                      </option>
                     ))}
-                </div>
+                  </select>
 
-                <div className="profile-info-section">
-                  <h4>Skills</h4>
-                  <div className="skills-tags">
-                    {selectedCandidate?.skills?.map((skill, index) => (
-                      <span key={index} className="skill-tag">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+                  {/* CREATE BUTTON */}
+                  {/* <button
+                    className="btn btn-sm btn-outline-success text-nowrap shadow-sm d-flex align-items-center gap-1"
+                    onClick={handleCreateFolder}
+                  >
+                    + Create
+                  </button> */}
+                  <button
+                    className="btn btn-sm btn-outline-success text-nowrap shadow-sm d-flex align-items-center gap-1"
+                    onClick={() => setShowModal(true)}
+                  >
+                    + Create
+                  </button>
+
+                  {/* DELETE BUTTON (CONDITIONAL) */}
+                  {activeFolder !== "all" && (
+                    <button
+                      title="Delete Folder"
+                      onClick={() => handleDeleteFolder(activeFolder)}
+                      class="btn btn-sm btn-outline-danger shadow-sm d-flex align-items-center"
+                    >
+                      <svg
+                        stroke="currentColor"
+                        fill="currentColor"
+                        stroke-width="0"
+                        viewBox="0 0 448 512"
+                        height="1em"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="side-panel-footer">
-                <Link
-                  className="default-btn btn-primary w-100 mb-2"
-                  to={`/candidates-details`}
-                  state={{
-                    userId: selectedCandidate?.userId?._id,
-                    from: "/bookmark-candidate",
-                  }}
-                >
-                  {" "}
-                  View Full Profile
-                </Link>
+              <div className="col-12 col-md-2 d-flex justify-content-end gap-2">
                 <button
-                  className="btn btn-outline-danger w-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowProfile(false);
-                    handleRemoveBookmark(selectedCandidate.bookmarkId);
+                  onClick={handleResetFilters}
+                  className="btn btn-sm btn-outline-secondary px-4 fw-bold shadow-sm"
+                  style={{
+                    "font-size": "14px",
+                    height: "38px",
+                    "border-radius": "8px",
                   }}
                 >
-                  Remove from Folder
+                  Reset Filters
                 </button>
               </div>
             </div>
           </div>
+
+          <section className="employer-candidate-info-area">
+            <div className="row">
+              <div
+                className="col-lg-4 d-none d-lg-block"
+                style={{
+                  "-webkit-flex": "0 0 30%",
+                  "-ms-flex": "0 0 30%",
+                  flex: "0 0 30%",
+                  "max-width": "30%",
+                }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-3 bg-white p-2 rounded border-0 shadow-sm px-3">
+                  <div
+                    className="text-muted fw-bold"
+                    style={{ "font-size": "13px" }}
+                  >
+                    Total:{" "}
+                    <span className="text-primary">
+                      ({totalCandidates || 0})
+                    </span>
+                  </div>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="form-select form-select-sm border-0 bg-light fw-bold"
+                    style={{
+                      width: "auto",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <option value="">Sort By Experience</option>
+
+                    {/* ✅ FIXED */}
+                    <option value="asc">Least Experienced</option>
+                    <option value="desc">Most Experienced</option>
+                  </select>
+                </div>
+                <div
+                  className="candidate-list-scroll"
+                  style={{ maxHeight: "800px", overflowY: "auto" }}
+                >
+                  {applicants.length > 0 ? (
+                    applicants.map((candidate, index) => {
+                      const user = candidate?.userId || {};
+                      const role = candidate?.aboutRole || {};
+
+                      return (
+                        <div
+                          onClick={() => {
+                            setSelectedCandidateId(user._id);
+                          }}
+                          key={candidate._id || index}
+                          className={`card mb-3 border-0 shadow-sm candidate-list-card-candidate ${
+                            String(selectedCandidateId) === String(user._id)
+                              ? "active"
+                              : ""
+                          }`}
+                        >
+                          <div className="card-body p-3">
+                            <div className="d-flex align-items-start">
+                              {/* Profile Image */}
+                              <img
+                                alt="user"
+                                className="rounded-circle me-3"
+                                src={
+                                  cleanImageUrl(user?.profileImage) ||
+                                  "assets/images/userIcon.png"
+                                }
+                                crossOrigin="anonymous"
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  objectFit: "cover",
+                                }}
+                              />
+
+                              <div className="flex-grow-1">
+                                {/* Name + Bookmark */}
+                                <div className="d-flex justify-content-between">
+                                  <h6 className="mb-1 fw-bold">
+                                    {`${user.first_name || ""} ${user.last_name || ""}`}
+                                  </h6>
+
+                                  <div className="dropdown">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveBookmark(
+                                          candidate.bookmarkId,
+                                        );
+                                      }}
+                                      className="btn btn-link text-danger p-0"
+                                      title="Remove Bookmark"
+                                    >
+                                      <i className="fa-solid fa-trash-can fs-6" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Job Title */}
+
+                                {/* Experience + Location */}
+                                <div
+                                  className="d-flex align-items-center gap-2 mb-1"
+                                  style={{ fontSize: "12px" }}
+                                >
+                                  <span className="text-primary fw-bold">
+                                    <i class="fa-solid fa-briefcase"></i>{" "}
+                                    {role.yearOfExperience
+                                      ? `${role.yearOfExperience} Years`
+                                      : "N/A"}
+                                  </span>
+
+                                  <span className="text-muted">•</span>
+
+                                  <span className="text-muted">
+                                    <span className="text-muted">
+                                      <i class="fa-solid fa-location-dot text-danger"></i>
+                                      &nbsp;
+                                      {user?.city
+                                        ? `${user.city}`
+                                        : user?.city ||
+                                          "Location not available"}
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center p-5 bg-white rounded border shadow-sm">
+                      <p className="text-muted mb-0">
+                        No candidates found in this folder/filter.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div
+                className="col-lg-8"
+                style={{
+                  "-webkit-flex": "0 0 70%",
+                  "-ms-flex": "0 0 70%",
+                  flex: "0 0 70%",
+                  "max-width": "70%",
+                }}
+              >
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-4">
+                    {detailsLoading ? (
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "500px" }}
+                      >
+                        <div
+                          className="spinner-border text-primary"
+                          role="status"
+                        />
+                      </div>
+                    ) : candidateDetails ? (
+                      <>
+                        <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4 align-items-center align-items-md-start">
+                          <div class="position-relative">
+                            <img
+                              crossOrigin="anonymous"
+                              alt="profile"
+                              className="rounded shadow-sm"
+                              style={{
+                                width: "120px",
+                                height: "120px",
+                                "object-fit": "cover",
+                                border: "3px solid rgb(255, 255, 255)",
+                              }}
+                              src={
+                                cleanImageUrl(
+                                  candidateDetails.userId?.profileImage,
+                                ) || "assets/images/userIcon.png"
+                              }
+                            />
+                            <span
+                              className="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
+                              title="Profile Visible"
+                              style={{ width: "15px", height: "15px" }}
+                            />
+                          </div>
+                          <div className="flex-grow-1">
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <h4 className="fw-bold mb-1">
+                                  {candidateDetails?.userId?.first_name}{" "}
+                                  {candidateDetails?.userId?.last_name}
+                                </h4>
+                                <p
+                                  className="text-primary fw-medium mb-2"
+                                  style={{ "font-size": "16px" }}
+                                >
+                                  {" "}
+                                  {candidateDetails?.aboutRole?.jobTitle
+                                    ?.toLowerCase()
+                                    .replace(/^\w/, (c) => c.toUpperCase()) ||
+                                    "Not Provided"}{" "}
+                                </p>
+                              </div>
+                              <div className="d-flex gap-2">
+                                {candidateDetails?.isUnlocked && (
+                                  <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={handleDownloadCV}
+                                  >
+                                    <i className="fa-solid fa-download me-1" />{" "}
+                                    Download CV
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <div
+                              className="d-flex flex-wrap justify-content-center justify-content-md-start gap-3 text-muted mb-2"
+                              style={{ "font-size": "13px" }}
+                            >
+                              <span className="d-flex align-items-center gap-1">
+                                <i className="fa-solid fa-location-dot text-danger" />
+                                {candidateDetails?.userId?.city &&
+                                candidateDetails?.userId?.Nationality
+                                  ? `${candidateDetails.userId.city
+                                      .toLowerCase()
+                                      .replace(/^\w/, (c) =>
+                                        c.toUpperCase(),
+                                      )}, ${candidateDetails.userId.Nationality}`
+                                  : candidateDetails?.userId?.city
+                                    ? candidateDetails.userId.city
+                                        .toLowerCase()
+                                        .replace(/^\w/, (c) => c.toUpperCase())
+                                    : candidateDetails?.userId?.Nationality ||
+                                      "Not Provided"}
+                              </span>
+                              <span className="d-flex align-items-center gap-1">
+                                <i className="fa-solid fa-briefcase text-info" />
+                                {candidateDetails?.aboutRole?.yearOfExperience
+                                  ? `${candidateDetails.aboutRole.yearOfExperience}+ Years Exp.`
+                                  : "N/A"}
+                              </span>
+                            </div>
+
+                            <div class="mt-3">
+                              {candidateDetails?.isUnlocked ? (
+                                // ✅ If already unlocked → show contact directly
+                                <div className="animate__animated animate__fadeInUp mt-">
+                                  <div
+                                    className="p-3 bg-light rounded border d-flex align-items-center gap-4"
+                                    style={{
+                                      borderLeft: "4px solid rgb(243, 122, 71)",
+                                      flexWrap: "nowrap",
+                                      overflowX: "auto", // optional if screen is small
+                                    }}
+                                  >
+                                    <div className="d-flex align-items-center gap-2">
+                                      <div
+                                        className="bg-white rounded-circle p-2 shadow-sm border"
+                                        style={{
+                                          width: "32px",
+                                          height: "32px",
+                                          display: "flex",
+                                          "-webkit-align-items": "center",
+                                          "-webkit-box-align": "center",
+                                          "-ms-flex-align": "center",
+                                          "align-items": "center",
+                                          "-webkit-box-pack": "center",
+                                          "-webkit-justify-content": "center",
+                                          "-ms-flex-pack": "center",
+                                          "justify-content": "center",
+                                        }}
+                                      >
+                                        <i
+                                          className="fa-regular fa-envelope text-primary"
+                                          style={{ "font-size": "14px" }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <div
+                                          className="text-muted small"
+                                          style={{ "font-size": "10px" }}
+                                        >
+                                          Email
+                                        </div>
+                                        <div
+                                          className="fw-bold small"
+                                          style={{ "font-size": "12px" }}
+                                        >
+                                          {candidateDetails?.userId?.email ||
+                                            "Not Provided"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2 border-start ps-4">
+                                      <div
+                                        className="bg-white rounded-circle p-2 shadow-sm border"
+                                        style={{
+                                          width: "32px",
+                                          height: "32px",
+                                          display: "flex",
+                                          "-webkit-align-items": "center",
+                                          "-webkit-box-align": "center",
+                                          "-ms-flex-align": "center",
+                                          "align-items": "center",
+                                          "-webkit-box-pack": "center",
+                                          "-webkit-justify-content": "center",
+                                          "-ms-flex-pack": "center",
+                                          "justify-content": "center",
+                                        }}
+                                      >
+                                        <i
+                                          className="fa-solid fa-phone text-success"
+                                          style={{ "font-size": "14px" }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <div
+                                          className="text-muted small"
+                                          style={{ "font-size": "10px" }}
+                                        >
+                                          Phone
+                                        </div>
+                                        <div
+                                          className="fw-bold small"
+                                          style={{ "font-size": "12px" }}
+                                        >
+                                          {candidateDetails?.userId?.countryCode
+                                            ? `+${candidateDetails.userId.countryCode} ${
+                                                candidateDetails?.userId
+                                                  ?.phone || ""
+                                              }`
+                                            : candidateDetails?.userId?.phone ||
+                                              "Not Provided"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="border-start ps-4">
+                                      <a
+                                        href={
+                                          candidateDetails?.links?.linkedin ||
+                                          "#"
+                                        }
+                                        target={
+                                          candidateDetails?.links?.linkedin
+                                            ? "_blank"
+                                            : "_self"
+                                        }
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => {
+                                          if (
+                                            !candidateDetails?.links?.linkedin
+                                          ) {
+                                            e.preventDefault(); // stop navigation
+                                            toast.info(
+                                              "LinkedIn profile not provided",
+                                            );
+                                          }
+                                        }}
+                                        className="bg-white rounded-circle shadow-sm border text-info d-flex align-items-center justify-content-center hover-scale transition-all"
+                                        style={{
+                                          width: "38px",
+                                          height: "38px",
+                                          color: "rgb(0, 119, 181)",
+                                        }}
+                                      >
+                                        <i
+                                          className="fa-brands fa-linkedin"
+                                          style={{ fontSize: "22px" }}
+                                        />
+                                      </a>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3">
+                                    <Link
+                                      to="/messaging-system"
+                                      state={{
+                                        candidateId:
+                                          candidateDetails?.userId?._id,
+                                        candidate: candidateDetails,
+                                      }}
+                                      className="btn btn-warning text-white btn-sm shadow-sm gap-2 fw-bold "
+                                    >
+                                      <i
+                                        className="fa-solid fa-envelope"
+                                        style={{ marginRight: "5px" }}
+                                      />
+                                      Envoyer un message
+                                    </Link>
+                                  </div>
+                                </div>
+                              ) : (
+                                // 🔒 If locked → show button
+                                <div className="w-100">
+                                  <button
+                                    onClick={handleUnlockContact}
+                                    className="btn btn-light btn-sm border text-primary fw-bold"
+                                    style={{
+                                      "font-size": "12px",
+                                      padding: "6px 15px",
+                                      "border-radius": "20px",
+                                    }}
+                                  >
+                                    <i className="fa-regular fa-eye me-2" />
+                                    Afficher les coordonnées
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="row g-4 mt-2">
+                          <div className="col-12 col-xl-8">
+                            <div className="mb-5">
+                              <h5 className="fw-bold d-flex align-items-center gap-2 mb-3">
+                                <span
+                                  style={{
+                                    width: "4px",
+                                    height: "18px",
+                                    background: "rgb(243, 122, 71)",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                                Professional Summary
+                              </h5>
+
+                              <p
+                                className="text-muted"
+                                style={{
+                                  lineHeight: "1.7",
+                                  whiteSpace: "pre-line",
+                                }}
+                              >
+                                {candidateDetails?.professionalSummary
+                                  ? candidateDetails?.professionalSummary
+                                  : "No professional summary added."}
+                              </p>
+                            </div>
+                            <div className="mb-5">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="fw-bold d-flex align-items-center gap-2">
+                                  <span
+                                    style={{
+                                      width: "4px",
+                                      height: "18px",
+                                      background: "rgb(243, 122, 71)",
+                                      borderRadius: "4px",
+                                    }}
+                                  />
+                                  Work Experience
+                                </h5>
+
+                                {candidateDetails?.workHistory?.length > 2 && (
+                                  <button
+                                    className="btn btn-link btn-sm text-decoration-none fw-bold"
+                                    onClick={() =>
+                                      setShowAllExperience(!showAllExperience)
+                                    }
+                                  >
+                                    {showAllExperience
+                                      ? "Voir moins"
+                                      : "Voir plus"}{" "}
+                                    ({candidateDetails?.workHistory?.length})
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="experience-timeline position-relative ps-4">
+                                <div
+                                  className="position-absolute start-0 h-100 border-start border-2 border-light-subtle"
+                                  style={{ left: "16px" }}
+                                />
+
+                                {candidateDetails?.workHistory?.length > 0 ? (
+                                  (showAllExperience
+                                    ? candidateDetails.workHistory
+                                    : candidateDetails.workHistory.slice(0, 2)
+                                  ).map((work, index) => (
+                                    <div
+                                      key={index}
+                                      className="experience-item position-relative mb-4"
+                                    >
+                                      {/* Timeline dot */}
+                                      <div
+                                        className="position-absolute bg-white border border-primary rounded-circle"
+                                        style={{
+                                          left: "-27px",
+                                          top: "0px",
+                                          width: "12px",
+                                          height: "12px",
+                                          zIndex: "1",
+                                        }}
+                                      />
+
+                                      {/* Job Title + Years */}
+                                      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+                                        <h6 className="fw-bold mb-0">
+                                          {work.jobTitle || "NA"}
+                                        </h6>
+
+                                        <span className="badge bg-light text-muted border px-2 py-1">
+                                          {work.startDate
+                                            ? new Date(
+                                                work.startDate,
+                                              ).getFullYear()
+                                            : "NA"}{" "}
+                                          -{" "}
+                                          {work.currentlyWorkingHere
+                                            ? "Present"
+                                            : work.endDate
+                                              ? new Date(
+                                                  work.endDate,
+                                                ).getFullYear()
+                                              : "NA"}
+                                        </span>
+                                      </div>
+
+                                      {/* Company + Location */}
+                                      <div className="text-primary fw-medium small mb-2">
+                                        {work.keep_employer_anonymous
+                                          ? "Confidential"
+                                          : work.companyName || "NA"}{" "}
+                                        •{" "}
+                                        {work.workLocation ||
+                                          "Location not provided"}
+                                      </div>
+
+                                      {/* Description */}
+                                      {work.Description && (
+                                        <p className="text-muted small mb-0">
+                                          {work.Description || "N/A"}
+                                        </p>
+                                      )}
+
+                                      {/* Salary */}
+                                      {/* {work.currentSalary && (
+                                        <p className="text-muted small mt-1">
+                                          Salary: {work.currentSalary.amount}{" "}
+                                          {work.currentSalary.currency} (
+                                          {work.currentSalary.payrollFrequency})
+                                        </p>
+                                      )} */}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-muted small">
+                                    No experience added
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="mb-5">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h5 className="fw-bold d-flex align-items-center gap-2">
+                                  <span
+                                    style={{
+                                      width: "4px",
+                                      height: "18px",
+                                      background: "rgb(243, 122, 71)",
+                                      borderRadius: "4px",
+                                    }}
+                                  />
+                                  Education
+                                </h5>
+                              </div>
+
+                              <div className="education-list d-flex flex-column gap-3">
+                                {candidateDetails?.education?.length > 0 ? (
+                                  candidateDetails.education.map(
+                                    (edu, index) => (
+                                      <div
+                                        key={index}
+                                        className="edu-card p-3 bg-light rounded-3 border-0 transition-hover"
+                                      >
+                                        <div className="d-flex gap-3">
+                                          {/* ICON */}
+                                          <div className="bg-white rounded p-2 border shadow-sm h-100">
+                                            <i className="fa-solid fa-graduation-cap text-primary fs-4" />
+                                          </div>
+
+                                          {/* CONTENT */}
+                                          <div>
+                                            <h6 className="fw-bold mb-1">
+                                              {edu.diplomaTitle || "NA"}
+                                            </h6>
+
+                                            <div className="text-muted small mb-1">
+                                              {edu.University || "NA"}
+                                            </div>
+
+                                            <span
+                                              className="text-primary fw-medium"
+                                              style={{ fontSize: "11px" }}
+                                            >
+                                              {edu.level || "Level"} :{" "}
+                                              {edu.degree || "NA"} •{" "}
+                                              {edu.startDate
+                                                ? new Date(
+                                                    edu.startDate,
+                                                  ).getFullYear()
+                                                : "NA"}{" "}
+                                              -{" "}
+                                              {edu.currentlyStudyingHere
+                                                ? "Present"
+                                                : edu.endDate
+                                                  ? new Date(
+                                                      edu.endDate,
+                                                    ).getFullYear()
+                                                  : "NA"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ),
+                                  )
+                                ) : (
+                                  <p className="text-muted small">
+                                    No education added
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="mb-4">
+                              <h5 className="fw-bold d-flex align-items-center gap-2 mb-3">
+                                <span
+                                  style={{
+                                    width: "4px",
+                                    height: "18px",
+                                    background: "rgb(243, 122, 71)",
+                                    borderRadius: "4px",
+                                  }}
+                                />
+                                Technical Skills
+                              </h5>
+
+                              <div className="d-flex flex-wrap gap-2 mt-3">
+                                {candidateDetails?.skills?.length > 0 ? (
+                                  candidateDetails.skills.map(
+                                    (skill, index) => (
+                                      <span
+                                        key={index}
+                                        className="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3 py-2"
+                                        style={{
+                                          borderRadius: "6px",
+                                          fontSize: "13px",
+                                        }}
+                                      >
+                                        {skill}
+                                      </span>
+                                    ),
+                                  )
+                                ) : (
+                                  <span className="text-muted small">
+                                    No skills added
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-12 col-xl-4">
+                            <div
+                              className="sticky-md-top Career-Preference-details"
+                              style={{ top: "20px" }}
+                            >
+                              <div
+                                className="card border-0 shadow-sm mb-4"
+                                style={{
+                                  backgroundColor: "rgb(252, 252, 253)",
+                                }}
+                              >
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-bullseye text-primary" />
+                                    Career Preferences
+                                  </h6>
+
+                                  {candidateDetails?.career_goals ? (
+                                    <div className="d-flex flex-column gap-3 mt-3">
+                                      {/* Desired Roles */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Desired Roles
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredJobTitle,
+                                          )
+                                            ? candidateDetails.career_goals.DesiredJobTitle.join(
+                                                ", ",
+                                              )
+                                            : candidateDetails.career_goals
+                                                ?.DesiredJobTitle || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Contract Types */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Contract Types
+                                        </div>
+
+                                        <div className="d-flex flex-wrap gap-1">
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredEmploymentType,
+                                          ) ? (
+                                            candidateDetails.career_goals.DesiredEmploymentType.map(
+                                              (type, index) => (
+                                                <span
+                                                  key={index}
+                                                  className="badge bg-white text-dark border px-2 py-1"
+                                                  style={{ fontSize: "10px" }}
+                                                >
+                                                  {type}
+                                                </span>
+                                              ),
+                                            )
+                                          ) : candidateDetails.career_goals
+                                              ?.DesiredEmploymentType ? (
+                                            <span className="badge bg-white text-dark border px-2 py-1">
+                                              {
+                                                candidateDetails.career_goals
+                                                  .DesiredEmploymentType
+                                              }
+                                            </span>
+                                          ) : (
+                                            <span className="text-muted small">
+                                              NA
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Occupation Type */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Occupation Type
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                      
+                                          {Array.isArray(
+                                            candidateDetails.career_goals
+                                              ?.DesiredJobCategory,
+                                          )
+                                            ? candidateDetails.career_goals.DesiredJobCategory.join(
+                                                ", ",
+                                              )
+                                            : candidateDetails.career_goals
+                                                ?.DesiredJobCategory || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Job Search Status */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Job Search Status
+                                        </div>
+
+                                        <div className="fw-bold small">
+                                          {candidateDetails.career_goals
+                                            ?.jobSearchStatus || "NA"}
+                                        </div>
+                                      </div>
+
+                                      {/* Work Eligibility */}
+                                      <div className="job-pref-item">
+                                        <div
+                                          className="text-muted text-uppercase mb-1"
+                                          style={{
+                                            fontSize: "10px",
+                                            letterSpacing: "1px",
+                                          }}
+                                        >
+                                          Work Eligibility (France)
+                                        </div>
+
+                                        <div className="fw-bold small d-flex align-items-center gap-2">
+                                          {candidateDetails?.eligibleToWorkInFrance ? (
+                                            <span className="text-success d-flex align-items-center gap-1">
+                                              <i className="fa-solid fa-circle-check" />{" "}
+                                              Eligible
+                                            </span>
+                                          ) : (
+                                            <span className="text-danger d-flex align-items-center gap-1">
+                                              <i className="fa-solid fa-circle-xmark" />{" "}
+                                              Not Eligible
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Availability + Salary */}
+                                      <div className="row g-2">
+                                        <div className="col-6">
+                                          <div
+                                            className="text-muted text-uppercase mb-1"
+                                            style={{ fontSize: "10px" }}
+                                          >
+                                            Availability
+                                          </div>
+
+                                          <div className="fw-bold small text-success">
+                                            {candidateDetails.career_goals
+                                              ?.availabilityToJoin || "NA"}
+                                          </div>
+                                        </div>
+
+                                        <div className="col-6 text-end">
+                                          <div
+                                            className="text-muted text-uppercase mb-1"
+                                            style={{ fontSize: "10px" }}
+                                          >
+                                            Min Salary
+                                          </div>
+
+                                          <div className="fw-bold small">
+                                            {candidateDetails.career_goals
+                                              ?.MinimumDesiredSalary?.amount ||
+                                              "NA"}{" "}
+                                            {
+                                              candidateDetails.career_goals
+                                                ?.MinimumDesiredSalary?.currency
+                                            }{" "}
+                                            {candidateDetails.career_goals
+                                              ?.MinimumDesiredSalary?.type
+                                              ? `/ ${candidateDetails.career_goals.MinimumDesiredSalary.type}`
+                                              : ""}
+                                          </div>
+                                        </div>
+
+                                        {/* TJM */}
+                                        <div className="mt-2 pt-2 border-top border-light-subtle d-flex justify-content-between">
+                                          <div className="text-muted small fw-bold">
+                                            TJM
+                                          </div>
+
+                                          <div
+                                            className="fw-bold text-info"
+                                            style={{ fontSize: "13px" }}
+                                          >
+                                            {candidateDetails.career_goals?.TJM
+                                              ?.amount
+                                              ? `${candidateDetails.career_goals.TJM.amount} ${candidateDetails.career_goals.TJM.currency}/j`
+                                              : "NA"}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-muted small">
+                                      No career goals specified
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="card border-0 shadow-sm mb-4">
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-language text-primary" />
+                                    Languages
+                                  </h6>
+
+                                  <div className="d-flex flex-column gap-3 mt-3">
+                                    {candidateDetails?.languages?.length > 0 ? (
+                                      candidateDetails.languages.map(
+                                        (lang, index) => (
+                                          <div
+                                            key={index}
+                                            className="d-flex justify-content-between align-items-center pb-2 border-bottom border-light"
+                                          >
+                                            <div>
+                                              <div className="fw-bold small">
+                                                {lang.language || "NA"}
+                                              </div>
+
+                                              <div
+                                                className="text-muted"
+                                                style={{ fontSize: "11px" }}
+                                              >
+                                                {lang.proficiency || "NA"}
+                                              </div>
+                                            </div>
+
+                                            <span
+                                              className="badge bg-light text-dark border px-2 py-1"
+                                              style={{ fontSize: "10px" }}
+                                            >
+                                              {lang.level || "NA"}
+                                            </span>
+                                          </div>
+                                        ),
+                                      )
+                                    ) : (
+                                      <span className="text-muted small">
+                                        No languages added
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="card border-0 shadow-sm">
+                                <div className="card-body p-4">
+                                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i className="fa-solid fa-medal text-warning" />
+                                    Certifications
+                                  </h6>
+
+                                  <div className="d-flex flex-column gap-3 mt-3">
+                                    {candidateDetails?.certificates?.length >
+                                    0 ? (
+                                      candidateDetails?.certificates.map(
+                                        (cer) => (
+                                          <div
+                                            key={cer._id}
+                                            className="d-flex align-items-start gap-2"
+                                          >
+                                            <i
+                                              className="fa-solid fa-circle-check text-success mt-1"
+                                              style={{ fontSize: "12px" }}
+                                            />
+
+                                            <div>
+                                              <div
+                                                className="fw-bold small"
+                                                style={{ lineHeight: "1.2" }}
+                                              >
+                                                {cer.title || "NA"}
+                                              </div>
+
+                                              <div
+                                                className="text-muted"
+                                                style={{ fontSize: "11px" }}
+                                              >
+                                                Issued:{" "}
+                                                {cer.issueDate
+                                                  ? new Date(
+                                                      cer.issueDate,
+                                                    ).toLocaleDateString()
+                                                  : "NA"}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ),
+                                      )
+                                    ) : (
+                                      <p className="text-muted small">
+                                        No certificates added
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "500px" }}
+                      >
+                        <p className="text-muted">
+                          Sélectionnez un candidat pour voir les détails
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/*End Bookmark Jobs Area*/}
           <div className="copy-right-area bg-f0f4fc">
@@ -1436,6 +2654,53 @@ function EmployerShortListCandinate() {
           </div>
         </div>
       </div>
+      {showModal && (
+        <div
+          className="modal fade show d-block"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+        >
+          <div className="modal fade show d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content ">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Folder</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowModal(false)}
+                  ></button>
+                </div>
+
+                <div className="modal-body">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter folder name"
+                    value={folderName}
+                    onChange={(e) => setFolderName(e.target.value)}
+                  />
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleCreateFolder}
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

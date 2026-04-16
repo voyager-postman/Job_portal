@@ -3,19 +3,6 @@
   padding-bottom: 60px;
 }
 
-.single-category-card {
-  background-color: #f2f6f9;
-  border-radius: 12px;
-  padding: 25px 10px;
-  margin: 10px;
-  text-align: center;
-  transition: all 0.3s ease;
-  height: 180px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 .single-category-card .icon {
   margin-bottom: 15px;
   font-size: 36px;
@@ -75,17 +62,7 @@
 }
 
 /* Optional: Make card fill available space */
-.single-category-card {
-  height: 180px;
-  background-color: #f2f6f9;
-  border-radius: 12px;
-  padding: 25px 10px;
-  text-align: center;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+
 .custom-arrow {
   position: absolute;
   bottom: -20px; /* ⬅️ moves it further down from the cards */
@@ -1241,17 +1218,6 @@ margin: 80px 0px 80px 0px;
 }
 
 /* Optional: Make card fill available space */
-.single-category-card {
-  height: 180px;
-  background-color: #f2f6f9;
-  border-radius: 12px;
-  padding: 25px 10px;
-  text-align: center;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
 
 .custom-arrow {
   position: absolute;
@@ -3506,18 +3472,17 @@ margin: 80px 0px 80px 0px;
 }
 
 .highlight-badge {
-    background: #fb761a;
-    border-radius: 20px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 1px 5px;
-    position: absolute;
-    z-index: 5;
-    /* letter-spacing: 0.5px; */
-    width: 25px;
-    height: 25px;
-
+  background: #fb761a;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 1px 5px;
+  position: absolute;
+  z-index: 5;
+  /* letter-spacing: 0.5px; */
+  width: 25px;
+  height: 25px;
 }
 .notification-item {
   cursor: pointer;
@@ -3533,4 +3498,92 @@ margin: 80px 0px 80px 0px;
 .notification-item:focus {
   background-color: #f5f7fb !important;
   color: inherit !important;
+}
+.candidate-list-card {
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+
+.candidate-list-card.active {
+  border-left: 4px solid #f36c3d;
+  background-color: #f8f3f0;
+}
+.candidate-list-card {
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.candidate-list-card:hover {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08) !important;
+}
+
+.candidate-list-card.active {
+  border-left: 4px solid #f37a47 !important;
+  background: #fff9f6 !important;
+}
+.candidate-list-card {
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.candidate-list-card.active {
+  border-left: 3px solid orange;
+  background: #fff7ed;
+}
+.range-slider-container {
+  position: relative;
+}
+.range-slider-track {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+.range-slider-progress {
+  position: absolute;
+  height: 4px;
+  background: #f97316;
+  border-radius: 999px;
+}
+.range-slider-input {
+  position: absolute;
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+  appearance: none;
+  background: none;
+}
+.range-slider-input::-webkit-slider-thumb {
+  pointer-events: auto;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #f97316;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.range-slider-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  background: #f97316;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.candidate-list-card-candidate.active {
+  border-left: 3px solid orange !important;
+  background-color: #f8f3f0;
+}
+/* .candidate-list-card-candidate:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+} */
+.sticky-md-top.Career-Preference-details {
+z-index:0 !important;
 }

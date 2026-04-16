@@ -6,9 +6,11 @@ import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
+import { useTranslation } from "react-i18next";
 const Employers = () => {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
+  const { t, i18n } = useTranslation("global");
   const [companies, setCompanies] = useState([]);
   const [showOptions, setShowOptions] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -128,12 +130,12 @@ const Employers = () => {
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <div className="inner-page-banner-title">
-                  <h2>Companies</h2>
+                  <h2>{t("header.companies")}</h2>
                   <ul>
                     <li className="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>Companies</li>
+                    <li>{t("header.companies")}</li>
                   </ul>
                 </div>
               </div>
@@ -151,7 +153,7 @@ const Employers = () => {
                 <div className="job-filter-heading-area">
                   <h4>
                     <Link to="/jobs">
-                      <i className="fa-regular fa-file"></i> Job offers
+                      <i className="fa-regular fa-file"></i>{t("header.job_offers")}
                     </Link>
                   </h4>
                 </div>
@@ -159,7 +161,7 @@ const Employers = () => {
                 <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
                     <Link to="/companies">
-                      <i className="fa-regular fa-building"></i> Companies
+                      <i className="fa-regular fa-building"></i>{t("header.companies")}
                     </Link>
                   </h4>
                 </div>
@@ -169,14 +171,14 @@ const Employers = () => {
                   <div className="job-filter-heading-cancel">
                     <div className="job-filter-heading">
                       <h4>
-                        <i className="fas fa-building" /> Industry Sector
+                        <i className="fas fa-building" />{t("header.industry_sector")}
                       </h4>
                     </div>
                     <div
                       className="job-filter-cancel-heading"
                       onClick={clearAll}
                     >
-                      <h4>Clear</h4>
+                      <h4>{t("header.Clear")} </h4>
                     </div>
                   </div>
 
@@ -202,7 +204,7 @@ const Employers = () => {
                         ))}
                         <input
                           type="text"
-                          placeholder="Search industries..."
+                          placeholder={t("header.Search_industries")}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           onFocus={() => setShowOptions(true)}
@@ -229,7 +231,7 @@ const Employers = () => {
                               </li>
                             ))
                           ) : (
-                            <li className="no-options">No industries found</li>
+                            <li className="no-options"> {t("header.no_industries")}</li>
                           )}
                         </ul>
                       )}
@@ -245,7 +247,7 @@ const Employers = () => {
                 <div className="available-company-heading">
                   <h4>
                     <i className="fa-solid fa-building" />
-                    {companies?.totalCompanies} companies available
+                    {companies?.totalCompanies} {t("header.available_companies")}
                   </h4>
                   <div className="job-alert-tag-btn">
                     <div className="filter-tag-info-area">
@@ -331,8 +333,8 @@ const Employers = () => {
                                     handleViewCompany(company?._id, "/companies")
                                   }
                                 >
-                                  View Company
-                                </button>
+                                 {t("header.viewCompany")}
+                                </button> 
                               </div>
                             </div>
                           </div>
@@ -340,8 +342,8 @@ const Employers = () => {
                       })
                     ) : (
                       <p className="text-center mt-4">
-                        No companies available.
-                      </p>
+                       {t("header.no_companies")}
+                      </p> 
                     )}
                   </div>
                 </div>
@@ -372,10 +374,10 @@ const Employers = () => {
                     }}
                     size="small"
                   >
-                    <MenuItem value={15}>15 / page</MenuItem>
-                    <MenuItem value={25}>25 / page</MenuItem>
-                    <MenuItem value={50}>50 / page</MenuItem>
-                    <MenuItem value={100}>100 / page</MenuItem>
+                    <MenuItem value={15}>15 / {t("header.page")}</MenuItem>
+                    <MenuItem value={25}>25 / {t("header.page")}</MenuItem>
+                    <MenuItem value={50}>50 /{t("header.page")}</MenuItem>
+                    <MenuItem value={100}>100 /{t("header.page")}</MenuItem>
                   </Select>
                 </Stack>
               </div>

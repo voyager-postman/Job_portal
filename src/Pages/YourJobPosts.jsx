@@ -587,8 +587,9 @@ function YourJobPosts() {
                     <ul className="nav nav-tabs" role="tablist">
                       <li
                         className="nav-item"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal"
+                        // data-bs-toggle="modal"
+                        // data-bs-target="#exampleModal"
+                         onClick={() => navigate("/job-details-form")}
                         style={{
                           cursor: "pointer",
                         }}
@@ -600,7 +601,7 @@ function YourJobPosts() {
                     </ul>
                   </div>
                   {/* Create Job Modal  */}
-                  <div
+                  {/* <div
                     className="modal fade"
                     id="exampleModal"
                     tabIndex={-1}
@@ -672,7 +673,7 @@ function YourJobPosts() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
 
                   <ul className="nav nav-tabs" role="tablist">
                     <li className="nav-item">

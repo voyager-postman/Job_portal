@@ -4,7 +4,10 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useTranslation } from "react-i18next";
+
 function ContactUs() {
+    const { t, i18n } = useTranslation("global");
   const [contactData, setContactData] = useState({});
   const [formData, setFormData] = useState({
     name: "",
@@ -52,12 +55,12 @@ function ContactUs() {
       !formData.phone ||
       !formData.message
     ) {
-      toast.error("Please fill all fields");
+      toast.error(t("header.fill_all_fields"));
       return;
     }
 
     if (!formData.agree) {
-      toast.warning("Please agree to terms and privacy policy");
+      toast.warning(t("header.agree_terms"));
       return;
     }
 
@@ -68,7 +71,7 @@ function ContactUs() {
       );
 
       if (res.data.success) {
-        toast.success("Message sent successfully ");
+        toast.success(t("header.message_sent"));
 
         setFormData({
           name: "",
@@ -81,7 +84,7 @@ function ContactUs() {
       }
     } catch (error) {
       console.error("Send message error:", error);
-      toast.error("Something went wrong");
+      toast.error(t("header.something_wrong"));
     }
   };
   return (
@@ -99,12 +102,12 @@ function ContactUs() {
             <div class="row">
               <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="inner-page-banner-title">
-                  <h2>Contact Us</h2>
+                 <h2>{t("header.contactUs")}</h2> 
                   <ul>
                     <li class="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>Contact Us</li>
+                    <li>{t("header.contactUs")}</li>
                   </ul>
                 </div>
               </div>
@@ -121,7 +124,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-location-dot" />
                   </div>
-                  <h3>Our location</h3>
+                  <h3>{t("header.our_location")}</h3>
                   <span>{contactData.location?.address}</span>{" "}
                 </div>
               </div>
@@ -130,7 +133,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-envelope" />
                   </div>
-                  <h3>Email Us</h3>
+                  <h3>{t("header.email_us")}</h3>
                   {contactData.emails?.map((e, i) => (
                     <a key={i} href={`mailto:${e}`}>
                       {e}
@@ -143,7 +146,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-envelope" />
                   </div>
-                  <h3>Phone</h3>
+                  <h3>{t("header.phone")}</h3>
                   {contactData.phones?.map((p, i) => (
                     <a key={i} href={`tel:${p}`}>
                       {p}
@@ -167,7 +170,7 @@ function ContactUs() {
       <div className="contact-form-area pb-100">
         <div className="container">
           <div className="section-title">
-            <span>SEND MESSAGE</span>
+            <span>{t("header.send_message")} </span>
             <h2>{contactData.sendMessageSection?.heading}</h2>
           </div>
           <div className="contact-form">
@@ -178,7 +181,7 @@ function ContactUs() {
                     <input
                       type="text"
                       name="name"
-                      placeholder="Name"
+                      placeholder={t("header.name")}
                       className="form-control"
                       value={formData.name}
                       onChange={handleChange}
@@ -191,7 +194,7 @@ function ContactUs() {
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email"
+                      placeholder={t("header.email")}
                       className="form-control"
                       value={formData.email}
                       onChange={handleChange}
@@ -204,7 +207,7 @@ function ContactUs() {
                     <input
                       type="text"
                       name="phone"
-                      placeholder="Phone"
+                      placeholder={t("header.phone")}
                       className="form-control"
                       value={formData.phone}
                       onChange={handleChange}
@@ -217,7 +220,7 @@ function ContactUs() {
                     <input
                       type="text"
                       name="subject"
-                      placeholder="Subject"
+                      placeholder={t("header.subject")}
                       className="form-control"
                       value={formData.subject}
                       onChange={handleChange}
@@ -229,7 +232,7 @@ function ContactUs() {
                   <div className="form-group">
                     <textarea
                       name="message"
-                      placeholder="Message"
+                      placeholder={t("header.message")}
                       className="form-control"
                       rows="6"
                       value={formData.message}
@@ -249,15 +252,15 @@ function ContactUs() {
                     />
 
                     <label className="form-check-label" htmlFor="gridCheck">
-                      I agree to the <a href="terms-conditions.html">terms</a>{" "}
-                      and <a href="privacy-policy.html">privacy policy</a>
+                    {t("header.I_agree_to_the")} <a href="terms-conditions.html"> {t("header.terms")}</a>{" "}
+                      {t("header.and")}<a href="privacy-policy.html"> {t("header.privacy_policy")}</a>
                     </label>
                     <div className="help-block with-errors gridCheck-error" />
                   </div>
                 </div>
                 <div className="col-lg-12 col-md-12">
                   <button type="submit" className="default-btn">
-                    <span>Send Message</span>
+                    <span> {t("header.send_message")}</span>
                   </button>
                   <div id="msgSubmit" className="h3 text-center hidden" />
                   <div className="clearfix" />

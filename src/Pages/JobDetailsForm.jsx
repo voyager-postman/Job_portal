@@ -21,7 +21,13 @@ function JobDetailsForm() {
   const [scheduleDate, setScheduleDate] = useState("");
   const [showScheduleDate, setShowScheduleDate] = useState(false);
   const [showExpireDate, setShowExpireDate] = useState(false);
-  const [expiresAt, setExpiresAt] = useState("");
+  const getDefaultExpiryDate = () => {
+    const defaultExpiry = new Date();
+    defaultExpiry.setDate(defaultExpiry.getDate() + 30);
+
+    return defaultExpiry.toISOString().split("T")[0];
+  };
+  const [expiresAt, setExpiresAt] = useState(getDefaultExpiryDate());
   const Title = job?.jobTitle;
   const Category = job?.jobCategory;
   console.log("Job Title:-", Title);
@@ -209,106 +215,111 @@ function JobDetailsForm() {
     fetchAssessmentLevels();
   }, []);
 
-  const handleAssessment = async (e) => {
+  // const handleAssessment = async (e) => {
+  //   const assessmentId = e.target.value;
+  //   const jobId = id || jobFromState._id;
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     assessment: assessmentId,
+  //   }));
+
+  //   if (!assessmentId) return;
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}assignAssessmentToJob`,
+  //       { assessmentId, jobId },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+
+  //     console.log(response.data);
+  //   } catch (error) {
+  //     console.error("Error while assign job assessment", error);
+  //     toast.error("Failed to assign assessment");
+  //   }
+  // };
+  const handleAssessment = (e) => {
     const assessmentId = e.target.value;
-    const jobId = id || jobFromState._id;
 
     setFormData((prev) => ({
       ...prev,
       assessment: assessmentId,
     }));
 
-    if (!assessmentId) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${API_BASE_URL}assignAssessmentToJob`,
-        { assessmentId, jobId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      // if (response.data.success) {
-      //   toast.success("Assessment assigned successfully");
-      // }
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error while assign job assessment", error);
-      toast.error("Failed to assign assessment");
-    }
+    setErrors((prev) => ({
+      ...prev,
+      assessment: "",
+    }));
   };
 
-  const handleAssessmentToggle = async (e) => {
+  const handleAssessmentToggle = (e) => {
     const { checked } = e.target;
-    const jobId = id || jobFromState._id;
 
     setFormData((prev) => ({
       ...prev,
       isAssessmentRequired: checked,
       assessment: checked ? prev.assessment : "",
     }));
-
-    // If disabling, call API with empty assessmentId to unassign
-    if (!checked) {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.post(
-          `${API_BASE_URL}assignAssessmentToJob`,
-          { assessmentId: "", jobId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error while disabling job assessment", error);
-        toast.error("Failed to disable assessment");
-      }
-    }
   };
 
+  // const handleAssessmentToggle = async (e) => {
+  //   const { checked } = e.target;
+  //   const jobId = id || jobFromState._id;
+
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     isAssessmentRequired: checked,
+  //     assessment: checked ? prev.assessment : "",
+  //   }));
+
+  //   // If disabling, call API with empty assessmentId to unassign
+  //   if (!checked) {
+  //     try {
+  //       const token = localStorage.getItem("token");
+  //       const response = await axios.post(
+  //         `${API_BASE_URL}assignAssessmentToJob`,
+  //         { assessmentId: "", jobId },
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         },
+  //       );
+  //       console.log(response.data);
+  //     } catch (error) {
+  //       console.error("Error while disabling job assessment", error);
+  //       toast.error("Failed to disable assessment");
+  //     }
+  //   }
+  // };
   const handleCountryChange = async (e) => {
     const selectedOption = e.target.options[e.target.selectedIndex];
-    const countryId = selectedOption.getAttribute("data-id"); // ✅ numeric id
-    const countryObjectId = e.target.value; // ✅ _id (mongo id)
 
-    // Update form data
-    setFormData((prev) => {
-      const updated = { ...prev, Country: countryObjectId };
+    const countryId = selectedOption.getAttribute("data-id");
+    const countryObjectId = e.target.value;
 
-      // ✅ Auto-save with _id
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updated, false); // sends _id
-      }, 500);
+    setFormData((prev) => ({
+      ...prev,
+      Country: countryObjectId,
+    }));
 
-      return updated;
-    });
-
-    // ✅ Fetch cities using `country.id`
     if (countryId) {
       fetchCitiesByCountry(countryId);
     }
   };
-
   const handleSeniorityChange = (e) => {
-    const id = e.target.value;
+    const value = e.target.value;
 
-    setFormData((prev) => {
-      const updated = { ...prev, minimumLevel: id };
-
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updated, false);
-      }, 500);
-
-      return updated;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      minimumLevel: value,
+    }));
   };
 
   const [showCityOptions, setShowCityOptions] = useState(false);
@@ -317,18 +328,13 @@ function JobDetailsForm() {
   const filteredCities = cityList.filter((city) =>
     city.name.toLowerCase().includes(citySearchTerm.toLowerCase()),
   );
-
   const updateCities = (updatedCities) => {
     setSelectedCities(updatedCities);
 
-    setFormData((prev) => {
-      const updatedForm = { ...prev, city: updatedCities };
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updatedForm, false);
-      }, 800);
-      return updatedForm;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      city: updatedCities,
+    }));
   };
 
   const toggleCity = (cityName) => {
@@ -343,23 +349,6 @@ function JobDetailsForm() {
     updateCities(selectedCities.filter((c) => c !== cityName));
   };
 
-  // Toggle select/unselect
-  // const toggleCity = (cityName) => {
-  //   setSelectedCities((prev) => {
-  //     const updated = prev.includes(cityName)
-  //       ? prev.filter((c) => c !== cityName)
-  //       : [...prev, cityName];
-
-  //     setFormData((prevForm) => ({
-  //       ...prevForm,
-  //       cities: updated, // unified key
-  //     }));
-  //     handlePublishJob(updated, false);
-  //     return updated;
-  //   });
-  // };
-
-  // Close dropdown when clicked outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".multi-select-container")) {
@@ -453,69 +442,113 @@ function JobDetailsForm() {
   }, [formData.city]);
 
   const [tagInput, setTagInput] = useState("");
+
   const handleAddTag = (e) => {
     e.preventDefault();
-    if (tagInput.trim() !== "") {
-      const updatedFormData = {
-        ...formData,
-        tags: [...formData.tags, tagInput.trim()],
-      };
-      setFormData(updatedFormData);
-      setTagInput("");
-      handlePublishJob(updatedFormData, false);
+
+    const skill = tagInput.trim();
+
+    if (skill === "") return;
+
+    // prevent duplicate skill
+    if (formData.tags.includes(skill)) {
+      toast.error("Skill already added");
+      return;
     }
-  };
 
+    setFormData((prev) => ({
+      ...prev,
+      tags: [...prev.tags, skill],
+    }));
+
+    setTagInput("");
+  };
   const handleRemoveTag = (tag) => {
-    const updatedFormData = {
-      ...formData,
-      tags: formData.tags.filter((t) => t !== tag),
-    };
-    setFormData(updatedFormData);
-    handlePublishJob(updatedFormData, false);
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((item) => item !== tag),
+    }));
   };
 
-  const handleChange = async (e) => {
+  //   const updatedFormData = {
+  //     ...formData,
+  //     tags: formData.tags.filter((t) => t !== tag),
+  //   };
+  //   setFormData(updatedFormData);
+  //   handlePublishJob(updatedFormData, false);
+  // };
+
+  // const handleChange = async (e) => {
+  //   const { name, value, type, checked, files } = e.target;
+  //   setFormData((prev) => {
+  //     let updated = { ...prev };
+
+  //     if (type === "checkbox") {
+  //       updated[name] = checked;
+  //       // If validation_required is unchecked, set retry_period_days to "0"
+  //       if (name === "validation_required" && !checked) {
+  //         updated.retry_period_days = "0";
+  //       }
+  //     } else if (type === "file") {
+  //       const file = files[0];
+  //       if (file && file.size > 2 * 1024 * 1024) {
+  //         alert("File size exceeds 2 MB limit");
+  //         return prev;
+  //       }
+  //       updated[name] = file;
+  //       updated.coverPhotoPreview = file ? URL.createObjectURL(file) : null;
+  //     } else {
+  //       updated[name] = value;
+  //     }
+
+  //     // ✅ Clear error on change
+  //     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+
+  //     // ✅ If Country changes → Fetch cities
+  //     if (name === "Country" && value) {
+  //       fetchCitiesByCountry(value);
+  //     }
+
+  //     // ✅ Debounce auto-save (updateJob)
+  //     if (debounceTimer.current) clearTimeout(debounceTimer.current);
+  //     debounceTimer.current = setTimeout(() => {
+  //       handlePublishJob(updated);
+  //     }, 1000);
+
+  //     return updated;
+  //   });
+  // };
+  const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+
     setFormData((prev) => {
       let updated = { ...prev };
 
       if (type === "checkbox") {
         updated[name] = checked;
-        // If validation_required is unchecked, set retry_period_days to "0"
+
         if (name === "validation_required" && !checked) {
           updated.retry_period_days = "0";
         }
       } else if (type === "file") {
         const file = files[0];
+
         if (file && file.size > 2 * 1024 * 1024) {
-          alert("File size exceeds 2 MB limit");
+          toast.error("File size exceeds 2MB");
           return prev;
         }
+
         updated[name] = file;
         updated.coverPhotoPreview = file ? URL.createObjectURL(file) : null;
       } else {
         updated[name] = value;
       }
 
-      // ✅ Clear error on change
-      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-
-      // ✅ If Country changes → Fetch cities
-      if (name === "Country" && value) {
-        fetchCitiesByCountry(value);
-      }
-
-      // ✅ Debounce auto-save (updateJob)
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(() => {
-        handlePublishJob(updated);
-      }, 1000);
-
       return updated;
     });
-  };
 
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
   const fetchCitiesByCountry = async (countryId) => {
     try {
       const response = await axios.get(
@@ -586,10 +619,6 @@ function JobDetailsForm() {
     });
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-  };
-
   const handlePublishJob = async (
     data = formData,
     // isPublish = false,
@@ -613,6 +642,7 @@ function JobDetailsForm() {
       formDataToSend.append("jobTitle", data.jobTitle || "");
       formDataToSend.append("jobCategory", data.jobCategory || "");
       formDataToSend.append("minimumLevel", data.minimumLevel || "");
+
       formDataToSend.append("employmentType", data.employmentType || "");
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
@@ -629,11 +659,7 @@ function JobDetailsForm() {
         "enableRemovalRelevantJobs",
         data.enableRemovalRelevantJobs,
       );
-      // formDataToSend.append("enableHighlightedJob", data.enableHighlightedJob);
-      // formDataToSend.append(
-      //   "enableHomePageVisibility",
-      //   data.enableHomePageVisibility,
-      // );
+
       formDataToSend.append("enableFeaturedJob", data.enableFeaturedJob);
       formDataToSend.append("referenceId", data.referenceId || "");
       formDataToSend.append(
@@ -707,6 +733,10 @@ function JobDetailsForm() {
     }
   };
 
+  const simpleJobCredit = 1;
+  const featuredJobCredit = formData.enableFeaturedJob ? 1 : 0;
+
+  const totalCredits = simpleJobCredit + featuredJobCredit;
   return (
     <>
       <ToastContainer />
@@ -737,74 +767,8 @@ function JobDetailsForm() {
               </li>
             </ol>
           </div>
-          {/* End Breadcrumb Area */}
 
-          {/* Your Job Posts Info*/}
-          <div className="job-details-form-info">
-            <div className="job-details-form-tabs">
-              <ul className="nav nav-tabs" role="tablist">
-                <li className="nav-item">
-                  <a
-                    className="nav-link active"
-                    data-bs-toggle="tab"
-                    href="#menu1"
-                  >
-                    Details
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" data-bs-toggle="tab" href="#menu2">
-                    Options
-                  </a>
-                </li>
-                {/* <li className="nav-item">
-                  <a className="nav-link" data-bs-toggle="tab" href="#menu3">
-                    Job Promotion
-                  </a>
-                </li> */}
-                <li className="nav-item">
-                  <a className="nav-link" data-bs-toggle="tab" href="#menu4">
-                    Publish
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div className="input-info-edit-area job-details-seprate-heading">
-              {!isEditing ? (
-                <>
-                  <h3>{formData.jobTitle}</h3>
-                  <i
-                    className="fas fa-pencil-alt"
-                    onClick={() => setIsEditing(true)}
-                  />
-                </>
-              ) : (
-                <>
-                  <div className="col-lg-10 col-md-10 mt-2">
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        name="jobTitle"
-                        value={formData.jobTitle}
-                        onChange={handleChange}
-                        placeholder="Enter Job Title"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <button
-                      className="default-btn btn mx-4"
-                      onClick={handleSave}
-                    >
-                      Save
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
+          <div className="publish-job-payment-details">
             <div className="tab-content">
               <div id="menu1" className="tab-pane fade show active">
                 <div className="job-details-form-area">
@@ -815,6 +779,19 @@ function JobDetailsForm() {
                   <form>
                     <div className="job-details-input-form-info">
                       <div className="row">
+                        <div className="col-lg-12 col-md-12">
+                          <div className="form-group">
+                            <label>Job Title*</label>
+                            <input
+                              className="form-control"
+                              type="text"
+                              name="jobTitle"
+                              value={formData.jobTitle}
+                              onChange={handleChange}
+                              placeholder="Enter Job Title"
+                            />
+                          </div>
+                        </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>Minimum level </label>
@@ -1115,7 +1092,10 @@ function JobDetailsForm() {
                               onChange={(e) => setTagInput(e.target.value)}
                             />
                           </div>
-                          <div className="skill-btn-info">
+                          <div
+                            className="skill-btn-info"
+                            style={{ width: "22%" }}
+                          >
                             <button
                               className="default-btn btn"
                               onClick={handleAddTag}
@@ -1147,9 +1127,40 @@ function JobDetailsForm() {
                 </div>
 
                 <div className="job-description-box-info">
-                  <h3>Job Description</h3>
+                  <div
+                    style={{
+                      display: "flex",
+                      "-webkit-box-pack": "space-between",
+                      "-webkit-justify-content": "space-between",
+                      "-ms-flex-pack": "space-between",
+                      "justify-content": "space-between",
+                      "-webkit-align-items": "center",
+                      "-webkit-box-align": "center",
+                      "-ms-flex-align": "center",
+                      "align-items": "center",
+                      "margin-bottom": "15px",
+                    }}
+                  >
+                    <h3 style={{ margin: "0px" }}>Job Description</h3>
+                    <button
+                      type="button"
+                      className="btn default-btn"
+                      style={{
+                        padding: "8px 15px",
+                        "font-size": "14px",
+                        display: "flex",
+                        "-webkit-align-items": "center",
+                        "-webkit-box-align": "center",
+                        "-ms-flex-align": "center",
+                        "align-items": "center",
+                        gap: "8px",
+                      }}
+                    >
+                      ✨ Generate with AI
+                    </button>
+                  </div>
                   <div className="form-group">
-                    <CKEditor
+                    {/* <CKEditor
                       editor={ClassicEditor}
                       data={formData.jobDescription}
                       onChange={(event, editor) => {
@@ -1175,493 +1186,417 @@ function JobDetailsForm() {
                           return updated;
                         });
                       }}
+                    /> */}
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobDescription}
+                      onChange={(event, editor) => {
+                        const data = editor.getData();
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          jobDescription: data,
+                        }));
+
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          jobDescription: "",
+                        }));
+                      }}
                     />
                   </div>
                 </div>
-
-                <div className="post-job-next-btn-info">
-                  <a href="#" className="btn default-btn next-tab-btn">
-                    Next
-                  </a>
-                </div>
-              </div>
-
-              <div id="menu2" className="tab-pane fade">
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>External Apply</h3>
-                    <span className="heading-small-description">
-                      Add tags to your job post. This will help it appear in as
-                      many relevant job posts as possible.
-                    </span>
-                  </div>
-
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable external apply</p>
+                <div className="job-description-box-info">
+                  <div id="menu2" class="job-details-form-area mb-1">
+                    <div className="input-info-edit-area form-heading-info">
+                      <h3>Options</h3>
+                      <hr></hr>
                     </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="enableExternalApply"
-                          checked={formData.enableExternalApply}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                  {formData.enableExternalApply && (
-                    <div className="col-lg-12 col-md-12 mt-2">
-                      <div className="form-group">
-                        <label>External Url</label>
-                        <span className="text-danger">*</span>
-                        <input
-                          className="form-control mt-2"
-                          type="text"
-                          name="ExternalApplyLink"
-                          value={formData.ExternalApplyLink}
-                          onChange={handleChange}
-                          placeholder="Enter the link"
-                        />
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>External Apply</h3>
+                        <span className="heading-small-description">
+                          Add tags to your job post. This will help it appear in
+                          as many relevant job posts as possible.
+                        </span>
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Job Assessment</h3>
-                    <span className="heading-small-description">
-                      Select job assessments for your job post. This helps your
-                      job appear in relevant searches and reach the right
-                      candidates.
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable Job Assessment</p>
+                      <div className="job-option-branding-content-switch">
+                        <div className="job-option-branding-content">
+                          <p>Enable external apply</p>
+                        </div>
+                        <div className="job-option-branding-switch">
+                          <label className="switch">
+                            <input
+                              type="checkbox"
+                              name="enableExternalApply"
+                              checked={formData.enableExternalApply}
+                              onChange={handleChange}
+                            />
+                            <span className="slider round" />
+                          </label>
+                        </div>
+                      </div>
+                      {formData.enableExternalApply && (
+                        <div className="col-lg-12 col-md-12 mt-2">
+                          <div className="form-group">
+                            <label>External Url</label>
+                            <span className="text-danger">*</span>
+                            <input
+                              className="form-control mt-2"
+                              type="text"
+                              name="ExternalApplyLink"
+                              value={formData.ExternalApplyLink}
+                              onChange={handleChange}
+                              placeholder="Enter the link"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="isAssessmentRequired"
-                          checked={formData.isAssessmentRequired}
-                          onChange={handleAssessmentToggle}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
 
-                  {formData.isAssessmentRequired && (
-                    <>
-                      <div className="col-lg-12 col-md-12 mt-2">
-                        <div className="form-group">
-                          <label>Select Job Assessment</label>
-                          <span className="text-danger">*</span>
-                          <select
-                            className="form-select form-control mt-2"
-                            name="assessment"
-                            value={formData.assessment}
-                            onChange={handleAssessment}
-                            required
-                          >
-                            <option value="" disabled>
-                              Select job assessment
-                            </option>
-                            {Object.keys(groupedAssessments).map((source) => (
-                              <optgroup
-                                key={source}
-                                label={`${source} Assessments`}
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Job Assessment</h3>
+                        <span className="heading-small-description">
+                          Select job assessments for your job post. This helps
+                          your job appear in relevant searches and reach the
+                          right candidates.
+                        </span>
+                      </div>
+                      <div className="job-option-branding-content-switch">
+                        <div className="job-option-branding-content">
+                          <p>Enable Job Assessment</p>
+                        </div>
+                        <div className="job-option-branding-switch">
+                          <label className="switch">
+                            <input
+                              type="checkbox"
+                              name="isAssessmentRequired"
+                              checked={formData.isAssessmentRequired}
+                              onChange={handleAssessmentToggle}
+                            />
+                            <span className="slider round" />
+                          </label>
+                        </div>
+                      </div>
+
+                      {formData.isAssessmentRequired && (
+                        <>
+                          <div className="col-lg-12 col-md-12 mt-2">
+                            <div className="form-group">
+                              <label>Select Job Assessment</label>
+                              <span className="text-danger">*</span>
+                              <select
+                                className="form-select form-control mt-2"
+                                name="assessment"
+                                value={formData.assessment}
+                                onChange={handleAssessment}
+                                required
                               >
-                                {groupedAssessments[source].map(
-                                  (assessment) => (
-                                    <option
-                                      key={assessment._id}
-                                      value={assessment._id}
+                                <option value="" disabled>
+                                  Select job assessment
+                                </option>
+                                {Object.keys(groupedAssessments).map(
+                                  (source) => (
+                                    <optgroup
+                                      key={source}
+                                      label={`${source} Assessments`}
                                     >
-                                      {assessment.assessmentName}
-                                    </option>
+                                      {groupedAssessments[source].map(
+                                        (assessment) => (
+                                          <option
+                                            key={assessment._id}
+                                            value={assessment._id}
+                                          >
+                                            {assessment.assessmentName}
+                                          </option>
+                                        ),
+                                      )}
+                                    </optgroup>
                                   ),
                                 )}
-                              </optgroup>
-                            ))}
-                          </select>
+                              </select>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Allow Retry After Failure</h3>
+                        <span className="heading-small-description">
+                          Enable this to allow candidates to retry the
+                          assessment if it fails.
+                        </span>
+                      </div>
+
+                      <div className="job-option-branding-content-switch">
+                        <div className="job-option-branding-content">
+                          <p>Enable Retry</p>
+                        </div>
+                        <div className="job-option-branding-switch">
+                          <label className="switch">
+                            <input
+                              type="checkbox"
+                              name="validation_required"
+                              checked={formData.validation_required}
+                              onChange={handleChange}
+                            />
+                            <span className="slider round" />
+                          </label>
                         </div>
                       </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Allow Retry After Failure</h3>
-                    <span className="heading-small-description">
-                      Enable this to allow candidates to retry the assessment if
-                      it fails.
-                    </span>
-                  </div>
-
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable Retry</p>
+                      {formData.validation_required && (
+                        <div className="col-lg-12 col-md-12 mt-2">
+                          <div className="form-group">
+                            <label>Retry Cooldown (days)</label>
+                            <span className="text-danger">*</span>
+                            <input
+                              className="form-control mt-2"
+                              type="number"
+                              name="retry_period_days"
+                              value={formData.retry_period_days}
+                              onChange={handleChange}
+                              placeholder="Enter retry cooldown days"
+                              min="1"
+                              disabled={!formData.validation_required}
+                            />
+                            <small className="text-muted">
+                              (0 = immediate retry)
+                            </small>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="validation_required"
-                          checked={formData.validation_required}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                  {formData.validation_required && (
-                    <div className="col-lg-12 col-md-12 mt-2">
-                      <div className="form-group">
-                        <label>Retry Cooldown (days)</label>
-                        <span className="text-danger">*</span>
-                        <input
-                          className="form-control mt-2"
-                          type="number"
-                          name="retry_period_days"
-                          value={formData.retry_period_days}
-                          onChange={handleChange}
-                          placeholder="Enter retry cooldown days"
-                          min="1"
-                          disabled={!formData.validation_required}
-                        />
-                        <small className="text-muted">
-                          (0 = immediate retry)
-                        </small>
+
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Confidential job post</h3>
+                        <span className="heading-small-description">
+                          Enable this option to hide your company details from
+                          the job post. (Anonymous Company)
+                        </span>
+                      </div>
+                      <div className="job-option-branding-content-switch">
+                        <div className="job-option-branding-content">
+                          <p>Enable confidential post</p>
+                        </div>
+                        <div className="job-option-branding-switch">
+                          <label className="switch">
+                            <input
+                              type="checkbox"
+                              name="confidentialJobPost"
+                              checked={formData.confidentialJobPost}
+                              onChange={handleChange}
+                            />
+                            <span className="slider round" />
+                          </label>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Confidential job post</h3>
-                    <span className="heading-small-description">
-                      Enable this option to hide your company details from the
-                      job post. (Anonymous Company)
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable confidential post</p>
-                    </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="confidentialJobPost"
-                          checked={formData.confidentialJobPost}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Reference ID</h3>
-                    <span className="heading-small-description">
-                      You can give your job post a unique Reference ID. This can
-                      help you distinguish it and find it easier.
-                    </span>
-                  </div>
-                  <div className="job-option-branding-input-box">
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        name="referenceId"
-                        placeholder="e.g. PROD3913"
-                        value={formData.referenceId}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Number of Available Jobs </h3>
-                    <span className="heading-small-description">
-                      Specify how many positions are available for this job
-                      role.
-                    </span>
-                  </div>
-                  <div className="job-option-branding-input-box">
-                    <div className="form-group">
-                      <input
-                        type="number"
-                        className="form-control"
-                        name="availablePosts"
-                        placeholder="Enter number of openings"
-                        min="1"
-                        value={formData.availablePosts}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Email notification</h3>
-                    <span className="heading-small-description">
-                      We can notify you via email when you receive a new
-                      application for this job post.
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable / Disable</p>
-                    </div>
-
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="enableEmailNotification"
-                          checked={formData.enableEmailNotification}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Private job details</h3>
-                    <span className="heading-small-description">
-                      Private job details are non-visible to job seekers that
-                      see your job post.
-                    </span>
-                  </div>
-                  <div className="job-option-branding-input-box">
-                    <div className="row">
-                      <div className="col-lg-6 col-md-6">
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Reference ID</h3>
+                        <span className="heading-small-description">
+                          You can give your job post a unique Reference ID. This
+                          can help you distinguish it and find it easier.
+                        </span>
+                      </div>
+                      <div className="job-option-branding-input-box">
                         <div className="form-group">
-                          <label>Min salary (Gross $)</label>
-
-                          {/* <span className="text-danger">*</span> */}
                           <input
                             className="form-control"
                             type="text"
-                            name="minSalary"
-                            placeholder="Enter the minimum salary (€)"
-                            value={formData.minSalary}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6">
-                        <div className="form-group">
-                          <label>Max salary (Gross $)</label>
-                          {/* <span className="text-danger">*</span> */}
-                          <input
-                            className="form-control"
-                            type="text"
-                            name="maxSalary"
-                            placeholder="Enter the maximum salary (€)"
-                            value={formData.maxSalary}
+                            name="referenceId"
+                            placeholder="e.g. PROD3913"
+                            value={formData.referenceId}
                             onChange={handleChange}
                           />
                         </div>
                       </div>
                     </div>
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Number of Available Jobs </h3>
+                        <span className="heading-small-description">
+                          Specify how many positions are available for this job
+                          role.
+                        </span>
+                      </div>
+                      <div className="job-option-branding-input-box">
+                        <div className="form-group">
+                          <input
+                            type="number"
+                            className="form-control"
+                            name="availablePosts"
+                            placeholder="Enter number of openings"
+                            min="1"
+                            value={formData.availablePosts}
+                            onChange={handleChange}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Email notification</h3>
+                        <span className="heading-small-description">
+                          We can notify you via email when you receive a new
+                          application for this job post.
+                        </span>
+                      </div>
+                      <div className="job-option-branding-content-switch">
+                        <div className="job-option-branding-content">
+                          <p>Enable / Disable</p>
+                        </div>
+
+                        <div className="job-option-branding-switch">
+                          <label className="switch">
+                            <input
+                              type="checkbox"
+                              name="enableEmailNotification"
+                              checked={formData.enableEmailNotification}
+                              onChange={handleChange}
+                            />
+                            <span className="slider round" />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="job-option-branding-input-area">
+                      <div className="job-option-branding-heading">
+                        <h3>Private job details</h3>
+                        <span className="heading-small-description">
+                          Private job details are non-visible to job seekers
+                          that see your job post.
+                        </span>
+                      </div>
+                      <div className="job-option-branding-input-box">
+                        <div className="row">
+                          <div className="col-lg-6 col-md-6">
+                            <div className="form-group">
+                              <label>Min salary (Gross $)</label>
+
+                              {/* <span className="text-danger">*</span> */}
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="minSalary"
+                                placeholder="Enter the minimum salary (€)"
+                                value={formData.minSalary}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-lg-6 col-md-6">
+                            <div className="form-group">
+                              <label>Max salary (Gross $)</label>
+                              {/* <span className="text-danger">*</span> */}
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="maxSalary"
+                                placeholder="Enter the maximum salary (€)"
+                                value={formData.maxSalary}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="job-create-form-back-next-info">
-                  <div className="job-create-form-back-next-btn">
-                    <a href="#" className="default-btn btn back-tab-btn">
-                      Back
-                    </a>
-                  </div>
-
-                  <div className="job-create-form-back-next-btn">
-                    <a href="#" className="btn default-btn next-tab-btn">
-                      Next
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* <div id="menu3" className="tab-pane fade">
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Featured Job</h3>
-                    <span className="heading-small-description">
-                      Priority placement — this job will appear at the top of
-                      the job list. +€ 220
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable Featured Job</p>
+                <div className="job-description-box-info">
+                  <div id="menu2" class="job-details-form-area mb-1">
+                    <div className="input-info-edit-area form-heading-info">
+                      <h3>Job Promotion</h3>
+                      <hr></hr>
                     </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="enableFeaturedJob"
-                          checked={formData.enableFeaturedJob}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                    <h3>Featured Your Job</h3>
+                    <p className="text-muted small">
+                      Increase visibility of your job post with these promotion
+                      options.
+                    </p>
 
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Highlighted Job</h3>
-                    <span className="heading-small-description">
-                      Visual emphasis with a colored background or badge to
-                      attract more attention. +€ 150
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable Highlighted Job</p>
-                    </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="enableHighlightedJob"
-                          checked={formData.enableHighlightedJob}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                    {/* FEATURED JOB */}
+                    <div className="job-option-branding-content-switch">
+                      <div className="job-option-branding-content">
+                        <p>Featured Job</p>
+                        <span className="feature-desc">
+                          Priority placement — job appears at top of list
+                        </span>
+                      </div>
 
-                <div className="job-option-branding-input-area">
-                  <div className="job-option-branding-heading">
-                    <h3>Home Page visibility</h3>
-                    <span className="heading-small-description">
-                      Job posts from other companies so that we only present job
-                      posts from your company with +€ 360
-                    </span>
-                  </div>
-                  <div className="job-option-branding-content-switch">
-                    <div className="job-option-branding-content">
-                      <p>Enable Home Page Visibility jobs</p>
+                      <div className="job-option-branding-switch">
+                        <label className="switch">
+                          <input
+                            type="checkbox"
+                            name="enableFeaturedJob"
+                            checked={formData.enableFeaturedJob}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                enableFeaturedJob: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="job-option-branding-switch">
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          name="enableHomePageVisibility"
-                          checked={formData.enableHomePageVisibility}
-                          onChange={handleChange}
-                        />
-                        <span className="slider round" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                    {/* {formData.isFeatured && ( */}
+                    {formData.enableFeaturedJob && (
+                      <>
+                        <div className="col-lg-12 mt-3">
+                          <div className="card border-warning shadow-sm">
+                            <div className="card-body">
+                              <h6 className="text-warning mb-3">
+                                ⭐ Featured Job Benefits
+                              </h6>
 
-                <div className="job-create-form-back-next-info">
-                  <div className="job-create-form-back-next-btn">
-                    <a href="#" className="default-btn btn back-tab-btn">
-                      Back
-                    </a>
-                  </div>
+                              <ul className="mb-0">
+                                <li>
+                                  Job will appear on the{" "}
+                                  <strong>Homepage</strong>
+                                </li>
+                                <li>
+                                  Job will be highlighted in{" "}
+                                  <strong>Search Results</strong>
+                                </li>
+                                <li>
+                                  Job will appear in{" "}
+                                  <strong>Highlighted Listings</strong>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        <hr />
+                      </>
+                    )}
 
-                  <div className="job-create-form-back-next-btn">
-                    <a href="#" className="btn default-btn next-tab-btn">
-                      Next
-                    </a>
-                  </div>
-                </div>
-              </div> */}
+                    <h5 className="mt-3">Set Job Expiry Date</h5>
 
-              <div id="menu4" className="tab-pane fade">
-                <div className="publish-job-payment-details">
-                  <div className="job-detail-cart-info">
-                    <div className="publish-job-date-heading">
-                      <h4>
-                        Your job post will be active for 30 days once you
-                        publish it.
-                      </h4>
-                    </div>
+                    <p className="text-muted small">
+                      Default expiry is set to 30 days. You can change it if
+                      required.
+                    </p>
+
+                    <input
+                      type="date"
+                      className="form-control mt-2"
+                      value={expiresAt}
+                      min={new Date().toISOString().split("T")[0]}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                    />
+
                     <div className="job-detail-in-cart-info">
-                      <div className="input-info-edit-area cart-job-detail-edit">
-                        <h3>Job post review</h3>
-                      </div>
-                      <div className="job-post-address-info">
-                        <h4>Job post address</h4>
-                        <p>
-                          {selectedCities.length > 0
-                            ? selectedCities.join(", ")
-                            : "Not provided"}
-                          <br />
-                          {/* {formData.region || "Not provided"},{" "} */}
-                          {countryList.find(
-                            (country) => country._id === formData.Country,
-                          )?.name || "Not provided"}
-                        </p>
-                      </div>
-                      <div className="job-post-other-info">
-                        <div className="minimum-level-remote">
-                          <h4>Minimum level</h4>
-                          <p>
-                            {seniorityLevels.find(
-                              (level) => level._id === formData.minimumLevel,
-                            )?.name || "Not provided"}
-                          </p>
-                          <div className="divder-space-line" />
-                          <h4>Location</h4>
-                          <p>
-                            {countryList.find(
-                              (country) => country._id === formData.Country,
-                            )?.name || "Not provided"}
-                          </p>
-                        </div>
-                        <div className="employment-type-job-category">
-                          <h4>Employment type</h4>
-                          <p>
-                            {jobTypes.find(
-                              (type) => type._id === formData.employmentType,
-                            )?.name || "Not provided"}
-                          </p>
-                          <div className="divder-space-line" />
-                          <h4>Job category</h4>
-                          <p>
-                            {categoryList.find(
-                              (cat) => cat._id === formData.jobCategory,
-                            )?.name || "Not provided"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="job-cart-short-description-info">
-                        <h4>Job Short Description</h4>
-                        <p>{formData.shortDescription || "Not provided"}</p>
-                      </div>
-                      <div className="job-cart-long-description-info">
-                        <h4>Job Description</h4>
-                        <p
-                          dangerouslySetInnerHTML={{
-                            __html: formData.jobDescription,
-                          }}
-                        ></p>
-                      </div>
                       <div className="job-create-form-back-next-info">
                         <div className="job-create-form-back-next-btn">
                           <button
@@ -1674,15 +1609,17 @@ function JobDetailsForm() {
                         <div className="job-create-form-back-next-btn">
                           <button
                             onClick={() => {
-                              // Set default expiry to 30 days from today
-                              const defaultExpiry = new Date();
-                              defaultExpiry.setDate(
-                                defaultExpiry.getDate() + 30,
+                              if (!expiresAt) {
+                                toast.error("Please select an expiry date");
+                                return;
+                              }
+
+                              handlePublishJob(
+                                formData,
+                                "published",
+                                null,
+                                expiresAt,
                               );
-                              setExpiresAt(
-                                defaultExpiry.toISOString().split("T")[0],
-                              );
-                              setShowExpireDate(true);
                             }}
                             className="default-btn btn"
                           >
@@ -1700,7 +1637,6 @@ function JobDetailsForm() {
                         </div>
                       </div>
                     </div>
-
                     {showScheduleDate && (
                       <div className="schedule-modal-overlay">
                         <div className="schedule-modal">
@@ -1735,184 +1671,71 @@ function JobDetailsForm() {
                         </div>
                       </div>
                     )}
-
-                    {showExpireDate && (
-                      <div className="schedule-modal-overlay">
-                        <div className="schedule-modal feature-modal">
-                          <h3>Featured Your Job</h3>
-                          <p className="text-muted small">
-                            Increase visibility of your job post with these
-                            promotion options.
-                          </p>
-
-                          {/* FEATURED JOB */}
-                          <div className="job-option-branding-content-switch">
-                            <div className="job-option-branding-content">
-                              <p>Featured Job</p>
-                              <span className="feature-desc">
-                                Priority placement — job appears at top of list
-                              </span>
-                            </div>
-
-                            <div className="job-option-branding-switch">
-                              <label className="switch">
-                                {/* <input
-                                  type="checkbox"
-                                  name="enableFeaturedJob"
-                                  checked={formData.enableFeaturedJob}
-                                  onChange={handleChange}
-                                /> */}
-                                <input
-                                  type="checkbox"
-                                  name="enableFeaturedJob"
-                                  checked={formData.enableFeaturedJob}
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      enableFeaturedJob: e.target.checked,
-                                    }))
-                                  }
-                                />
-                                <span className="slider round"></span>
-                              </label>
-                            </div>
-                          </div>
-                          {/* {formData.isFeatured && ( */}
-                          <div className="col-lg-12 mt-3">
-                            <div className="card border-warning shadow-sm">
-                              <div className="card-body">
-                                <h6 className="text-warning mb-3">
-                                  ⭐ Featured Job Benefits
-                                </h6>
-
-                                <ul className="mb-0">
-                                  <li>
-                                    Job will appear on the{" "}
-                                    <strong>Homepage</strong>
-                                  </li>
-                                  <li>
-                                    Job will be highlighted in{" "}
-                                    <strong>Search Results</strong>
-                                  </li>
-                                  <li>
-                                    Job will appear in{" "}
-                                    <strong>Highlighted Listings</strong>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                          {/* )} */}
-
-                          <hr />
-
-                          {/* EXPIRY DATE */}
-                          <h5 className="mt-3">Set Job Expiry Date</h5>
-
-                          <p className="text-muted small">
-                            Default expiry is set to 30 days. You can change it
-                            if required.
-                          </p>
-
-                          <input
-                            type="date"
-                            className="form-control mt-2"
-                            value={expiresAt}
-                            min={
-                              new Date(Date.now() + 86400000)
-                                .toISOString()
-                                .split("T")[0]
-                            }
-                            onChange={(e) => setExpiresAt(e.target.value)}
-                          />
-
-                          <div className="modal-button-group mt-4">
-                            <button
-                              className="default-btn btn"
-                              onClick={() => {
-                                if (!expiresAt) {
-                                  toast.error("Please select an expiry date");
-                                  return;
-                                }
-
-                                handlePublishJob(
-                                  formData,
-                                  "published",
-                                  null,
-                                  expiresAt,
-                                );
-                              }}
-                            >
-                              Publish Job
-                            </button>
-
-                            <button
-                              className="default-btn btn btn-light"
-                              onClick={() => setShowExpireDate(false)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
-
-                  {/* <div className="job-payment-detail-box-info">
-                    <div className="job-payment-detail-info">
-                      <h4>Payment details</h4>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Standard post</h5>
-                      </div>
-                      <div className="job-payment-price">
-                        <h5>5 Credits</h5>
-                      </div>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Featured Jobs</h5>
-                      </div>
-                      <div className="job-payment-price">
-                        <h5>3 Credits</h5>
-                      </div>
-                    </div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h5>Simple Job Post</h5>
-                      </div>
-                      <div className="job-payment-price">
-                        <h5>2 Credits</h5>
-                      </div>
-                    </div>
-
-                    <div className="job-payment-divider"></div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h2>Total </h2>
-                      </div>
-                      <div className="job-payment-price">
-                        <h2>10 Credits</h2>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider"></div>
-                    <div className="job-payment-text-price">
-                      <div className="job-payment-text">
-                        <h2>Grand Total</h2>
-                      </div>
-                      <div className="job-payment-price">
-                        <h2>10 Credits</h2>
-                      </div>
-                    </div>
-                    <div className="job-payment-divider"></div>
-                  </div> */}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Your Job Posts Info */}
+            <div className="job-payment-detail-box-info">
+              <div className="job-payment-detail-info">
+                <h4>Payment details</h4>
+              </div>
+              <div
+                className="alert alert-info"
+                role="alert"
+                style={{ "font-size": "14px", "margin-bottom": "20px" }}
+              >
+                <i className="fa-solid fa-circle-info me-2" />
+                Your job post will be active for{" "}
+                <strong style={{ "font-size": "15px" }}>30</strong> days once
+                you publish it.
+              </div>
+              <div className="job-payment-text-price">
+                <div className="job-payment-text">
+                  <h5>Simple Job Post</h5>
+                </div>
+                <div className="job-payment-price">
+                  <h5>{simpleJobCredit} Credits</h5>
+                </div>
+              </div>
+
+              {formData.enableFeaturedJob && (
+                <div className="job-payment-text-price">
+                  <div className="job-payment-text">
+                    <h5>Featured Jobs</h5>
+                  </div>
+                  <div className="job-payment-price">
+                    <h5>{featuredJobCredit} Credits</h5>
+                  </div>
+                </div>
+              )}
+
+              <div className="job-payment-divider"></div>
+
+              <div className="job-payment-text-price">
+                <div className="job-payment-text">
+                  <h2>Total</h2>
+                </div>
+                <div className="job-payment-price">
+                  <h2>{totalCredits} Credits</h2>
+                </div>
+              </div>
+
+              <div className="job-payment-divider"></div>
+
+              <div className="job-payment-text-price">
+                <div className="job-payment-text">
+                  <h2>Grand Total</h2>
+                </div>
+                <div className="job-payment-price">
+                  <h2>{totalCredits} Credits</h2>
+                </div>
+              </div>
+
+              <div className="job-payment-divider"></div>
+              <div className="job-payment-divider"></div>
+            </div>
+          </div>
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
@@ -1946,3 +1769,5 @@ function JobDetailsForm() {
 }
 
 export default JobDetailsForm;
+
+

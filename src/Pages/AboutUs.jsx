@@ -44,11 +44,26 @@ const steps = [
 
 function AboutUs() {
   const [homeData, setHomeData] = useState({});
+  const [secondSection, setSecondSection] = useState(null);
+  const [teamSection, setTeamSection] = useState(null);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("global");
   const containerRef = useRef(null);
   const [stats, setStats] = useState([]);
+  const [aboutData, setAboutData] = useState(null);
 
+  const fetchAboutUs = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getAboutUs`);
+      console.log(res);
+      setAboutData(res.data.data.firstSection);
+      setSecondSection(res.data.data.secondSection);
+      setTeamSection(res.data.data.teamSection);
+    } catch (error) {
+      console.error(error);
+      toast.error(t("header.Failed_to_fetch_About_Us_data"));
+    }
+  };
   const getStats = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getHomePageStats`);
@@ -86,6 +101,7 @@ function AboutUs() {
   };
   useEffect(() => {
     getStats();
+    fetchAboutUs();
   }, []);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
@@ -131,22 +147,6 @@ function AboutUs() {
 
   return (
     <>
-      {/* <div className="page-banner-area bg-f0f4fc">
-        <div className="container">
-          <div className="page-banner-content">
-            <h1>About Us</h1>
-            <ul>
-              <li>
-                <Link to="/" className="nav-link">
-                  {" "}
-                  Home
-                </Link>
-              </li>
-              <li>About Us</li>
-            </ul>
-          </div>
-        </div>
-      </div> */}
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
           <img
@@ -159,12 +159,12 @@ function AboutUs() {
             <div class="row">
               <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="inner-page-banner-title">
-                  <h2>About Us</h2>
+                  <h2>{t("header.aboutUs")}</h2>
                   <ul>
                     <li class="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>About Us</li>
+                    <li> {t("header.aboutUs")}</li>
                   </ul>
                 </div>
               </div>
@@ -178,33 +178,39 @@ function AboutUs() {
             <div className="col-lg-6">
               <div className="cv-img-area-style2">
                 <img
-                  src="/jobPortal/assets/images/cv/candidate-with-cv.png"
-                  alt="Image"
+                  src={
+                    aboutData?.image
+                      ? `${API_IMAGE_URL}${aboutData.image}`
+                      : "/jobPortal/assets/images/cv/candidate-with-cv.png"
+                  }
+                  alt="About"
+                  onError={(e) => {
+                    e.target.src =
+                      "/jobPortal/assets/images/cv/candidate-with-cv.png";
+                  }}
                 />
               </div>
             </div>
+
             <div className="col-lg-6">
               <div className="cv-content style2 pl-15">
                 <h2>
-                  Put Your CV In Front Of The Great For{" "}
-                  <label className="oragneColor">Employers To See</label>
+                  {aboutData?.mainTitle ? (
+                    <>
+                      {aboutData.mainTitle.split("For")[0] + "For "}
+                      <label className="oragneColor">
+                        {aboutData.mainTitle.split("For")[1]}
+                      </label>
+                    </>
+                  ) : (
+                    "Loading..."
+                  )}
                 </h2>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Feugiat enim a erat sit vulputate elementum orci. Risus nec
-                  viverra ornare venenatis proin ac varius tristique ut. Vitae
-                  egestas tellus amet nulla cursus.ands Pellentesque placerat
-                  maecenas egestas ullamcorper sed nunc. Vitae egestas tellus
-                  amet nulla something loss Pellentesque placerat maecenas
-                  egestas.
-                </p>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Feugiat enim a erat sit vulputate elementum orci. Risus nec
-                  viverra ornare venenatis proin ac varius tristique ut. Vitae
-                  egestas tellus amet nulla cursus in that. Pellentesque
-                  placerat maecenas egestas ullamcorper sed sarinto.
-                </p>
+
+                {aboutData?.mainTitleDescription &&
+                  aboutData.mainTitleDescription
+                    .split("\r\n\r\n")
+                    .map((para, index) => <p key={index}>{para}</p>)}
               </div>
             </div>
           </div>
@@ -213,28 +219,38 @@ function AboutUs() {
       <div className="works-area pt-100 pb-70 bg-f0f5f7">
         <div className="container">
           <div className="section-title">
-            <h2>How Connect Work Works For You</h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor
-            </p>
+            <h2>{secondSection?.mainTitle || "Loading..."}</h2>
+            <p>{secondSection?.description}</p>
           </div>
+
           <div className="row">
-            {steps.map((step, index) => (
+            {secondSection?.steps?.map((step, index) => (
               <div
-                key={index}
+                key={step._id || index}
                 className="col-lg-3 col-sm-6"
                 data-aos="fade-up"
                 data-aos-duration="1200"
-                data-aos-delay={step.delay}
+                data-aos-delay={(index + 1) * 200}
               >
                 <div className="single-works-card style-2">
                   <div className="icon">
-                    <i className={step.icon} />
+                    {/* Static icons (since API doesn't provide icons) */}
+                    <i
+                      className={
+                        [
+                          "flaticon-bag",
+                          "flaticon-company",
+                          "flaticon-business",
+                          "flaticon-recruitment",
+                        ][index % 4]
+                      }
+                    />
+
                     <div className="number">
-                      <span>{step.number}</span>
+                      <span>{index + 1}</span>
                     </div>
                   </div>
+
                   <h3>{step.title}</h3>
                   <p>{step.description}</p>
                 </div>
@@ -328,81 +344,95 @@ function AboutUs() {
           </div>
         </div>
       </div>
-     
-     <div className="reviews-area bg-f0f5f7 pt-100 pb-70">
+
+      <div className="reviews-area bg-f0f5f7 pt-50 pb-70">
         <div className="container">
           <div className="title">
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
-                  <h2>Meet Our Company Members</h2>
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                    do eiusmod
-                  </p>
+                  <h2>{teamSection?.title || "Loading..."}</h2>
+                  <p>{teamSection?.description}</p>
                 </div>
               </div>
-              
             </div>
           </div>
+
           <div className="row">
-            <div className="col-lg-3 col-sm-6">
-              <div className="single-team-card">
-                <div className="team-img">
-                  <img
-                    src="/jobPortal/assets/images/team/team-1.jpg"
-                    alt="Image"
-                  />
-                </div>
-                <div className="team-content">
-                  <div className="row align-items-center">
-                    <div className="col-10">
-                      <div className="team-left-content">
-                        <h3>Jequline Fenda</h3>
-                        <span>IT Developer</span>
+            {teamSection?.members?.map((member, index) => (
+              <div key={member._id || index} className="col-lg-3 col-sm-6">
+                <div className="single-team-card">
+                  {/* ✅ Image with fallback */}
+                  <div className="team-img">
+                    <img
+                      crossorigin="anonymous"
+                      src={`${API_IMAGE_URL}${member.image}`}
+                      alt={member.name}
+                      onError={(e) => {
+                        console.log("Image failed:", e.target.src);
+                        e.target.src =
+                          "/jobPortal/assets/images/team/team-1.jpg";
+                      }}
+                    />
+                  </div>
+
+                  <div className="team-content">
+                    <div className="row align-items-center">
+                      <div className="col-10">
+                        <div className="team-left-content">
+                          <h3>{member.name}</h3>
+                          <span>{member.designation}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-2">
-                      <div className="social-content">
-                        <div className="social-control">
-                          <div className="icon">
-                            <i className="fa-solid fa-plus" />
-                          </div>
-                          <div className="social-icon">
-                            <ul>
-                              <li>
-                                <a
-                                  href="https://www.facebook.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-facebook-app-symbol" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.twitter.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-twitter" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://instagram.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-instagram" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://linkedin.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-linkedin" />
-                                </a>
-                              </li>
-                            </ul>
+
+                      <div className="col-2">
+                        <div className="social-content">
+                          <div className="social-control">
+                            <div className="icon">
+                              <i className="fa-solid fa-plus" />
+                            </div>
+
+                            {/* ✅ Dynamic Social Links */}
+                            <div className="social-icon">
+                              <ul>
+                                <li>
+                                  <a
+                                    href={member.socialLinks?.facebook}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <i className="flaticon-facebook-app-symbol" />
+                                  </a>
+                                </li>
+                                <li>
+                                  <a
+                                    href={member.socialLinks?.twitter}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <i className="flaticon-twitter" />
+                                  </a>
+                                </li>
+                                <li>
+                                  <a
+                                    href={member.socialLinks?.instagram}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <i className="flaticon-instagram" />
+                                  </a>
+                                </li>
+                                <li>
+                                  <a
+                                    href={member.socialLinks?.linkedin}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <i className="flaticon-linkedin" />
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -410,202 +440,7 @@ function AboutUs() {
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="col-lg-3 col-sm-6">
-              <div className="single-team-card">
-                <div className="team-img">
-                  <img
-                    src="/jobPortal/assets/images/team/team-2.jpg"
-                    alt="Image"
-                  />
-                </div>
-                <div className="team-content">
-                  <div className="row align-items-center">
-                    <div className="col-10">
-                      <div className="team-left-content">
-                        <h3>Floyd Mileserton</h3>
-                        <span>Web Designer</span>
-                      </div>
-                    </div>
-                    <div className="col-2">
-                      <div className="social-content">
-                        <div className="social-control">
-                          <div className="icon">
-                            <i className="fa-solid fa-plus" />
-                          </div>
-                          <div className="social-icon">
-                            <ul>
-                              <li>
-                                <a
-                                  href="https://www.facebook.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-facebook-app-symbol" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.twitter.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-twitter" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://instagram.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-instagram" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://linkedin.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-linkedin" />
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-3 col-sm-6">
-              <div className="single-team-card">
-                <div className="team-img">
-                  <img
-                    src="/jobPortal/assets/images/team/team-3.jpg"
-                    alt="Image"
-                  />
-                </div>
-                <div className="team-content">
-                  <div className="row align-items-center">
-                    <div className="col-10">
-                      <div className="team-left-content">
-                        <h3>Brooklyn Simmons</h3>
-                        <span>Dog Trainer</span>
-                      </div>
-                    </div>
-                    <div className="col-2">
-                      <div className="social-content">
-                        <div className="social-control">
-                          <div className="icon">
-                            <i className="fa-solid fa-plus" />
-                          </div>
-                          <div className="social-icon">
-                            <ul>
-                              <li>
-                                <a
-                                  href="https://www.facebook.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-facebook-app-symbol" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.twitter.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-twitter" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://instagram.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-instagram" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://linkedin.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-linkedin" />
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-3 col-sm-6">
-              <div className="single-team-card">
-                <div className="team-img">
-                  <img
-                    src="/jobPortal/assets/images/team/team-4.jpg"
-                    alt="Image"
-                  />
-                </div>
-                <div className="team-content">
-                  <div className="row align-items-center">
-                    <div className="col-10">
-                      <div className="team-left-content">
-                        <h3>Michel Dunald Philips</h3>
-                        <span>CEO Founder</span>
-                      </div>
-                    </div>
-                    <div className="col-2">
-                      <div className="social-content">
-                        <div className="social-control">
-                          <div className="icon">
-                            <i className="fa-solid fa-plus" />
-                          </div>
-                          <div className="social-icon">
-                            <ul>
-                              <li>
-                                <a
-                                  href="https://www.facebook.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-facebook-app-symbol" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.twitter.com/"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-twitter" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://instagram.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-instagram" />
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://linkedin.com/?lang=en"
-                                  target="_blank"
-                                >
-                                  <i className="flaticon-linkedin" />
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

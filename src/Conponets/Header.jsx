@@ -148,12 +148,6 @@ function Header({ bgColor }) {
   // Fetch notifications on initial load
   useEffect(() => {
     fetchNotifications(); // first call
-
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 5000); // every 5 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   const isEmployerPage =
@@ -261,10 +255,10 @@ function Header({ bgColor }) {
           "our account is not verified by the admin. Please contact support",
         );
         await Swal.fire({
-          title: "Account Not Verified",
-          text: "Your account is not verified by the admin. Please contact support.",
+          title: t("header.Account_Not_Verified"),
+          text: t("header.Your_account_is_not_verified_by_the_admin"),
           icon: "error",
-          confirmButtonText: "OK",
+          confirmButtonText: t("header.ok"),
         });
 
         navigate("/");
@@ -443,7 +437,7 @@ function Header({ bgColor }) {
 
         // 🔥 Correct backend error message handling
         const errMsg =
-          error.response?.data?.message || "Google login failed! Try again.";
+          error.response?.data?.message || t("header.Google_login_failed");
 
         toast.error(errMsg);
       }
@@ -451,7 +445,7 @@ function Header({ bgColor }) {
 
     onError: () => {
       console.log("Google Login Failed");
-      toast.error("Google login failed. Try again.");
+      toast.error(t("header.Google_login_failed"));
     },
 
     flow: "implicit",
@@ -642,7 +636,7 @@ function Header({ bgColor }) {
                             }}
                           >
                             <li className="dropdown-header fw-bold">
-                              Notifications
+                              {t("header.Notifications")}
                             </li>
 
                             {notifications.length > 0 ? (
@@ -686,7 +680,7 @@ function Header({ bgColor }) {
                               ))
                             ) : (
                               <li className="dropdown-item text-center">
-                                No notifications
+                                {t("header.No_notifications")}
                               </li>
                             )}
 
@@ -696,7 +690,7 @@ function Header({ bgColor }) {
 
                             <li>
                               <a className="dropdown-item text-center">
-                                View All Notifications
+                                {t("header.View_All_Notifications")}
                               </a>
                             </li>
                           </ul>
@@ -715,12 +709,10 @@ function Header({ bgColor }) {
                               className="default-btn btn"
                               type="button"
                             >
-                              Post New Job
+                              {t("header.Post_New_Job")}
                             </button>
                           </div>
                         )}
-
-                  
 
                       <div className="option-item">
                         <div className="dropdown profile-nav-item">
@@ -818,11 +810,15 @@ function Header({ bgColor }) {
                                             role === "Company") &&
                                           !verified
                                         ) {
-                                          Swal.fire({
-                                            title: "Company Not Verified",
-                                            text: "Your account is not verified by the admin. Please contact support..",
-                                            icon: "warning",
-                                            confirmButtonText: "OK",
+                                          await Swal.fire({
+                                            title: t(
+                                              "header.Account_Not_Verified",
+                                            ),
+                                            text: t(
+                                              "header.Your_account_is_not_verified_by_the_admin",
+                                            ),
+                                            icon: "error",
+                                            confirmButtonText: t("header.ok"),
                                           });
                                           return;
                                         }
@@ -870,7 +866,9 @@ function Header({ bgColor }) {
                                             alt="Image"
                                           />
                                         </span>
-                                        <span>Change Password</span>
+                                        <span>
+                                          {t("header.Change_Password")}
+                                        </span>
                                       </Link>
                                     </li>
                                   </ul>
@@ -907,11 +905,12 @@ function Header({ bgColor }) {
                         <div className="default-btn btn style-2  employer-login-register-button">
                           <Link to="/employer-login">
                             <span>
-                              <i className="fa-regular fa-user" /> Login /
+                              <i className="fa-regular fa-user" />{" "}
+                              {t("header.login")} /
                             </span>
                           </Link>
                           <Link to="/employer-register">
-                            <span> Register </span>
+                            <span> {t("header.register")} </span>
                           </Link>
                         </div>
                       </div>
@@ -920,7 +919,7 @@ function Header({ bgColor }) {
                           Post New Job
                         </Link> */}
                         <Link to="/" className="default-btn btn">
-                          For Jobseeker
+                          {t("header.For_Jobseeker")}
                         </Link>
                       </div>
                     </>
@@ -933,14 +932,15 @@ function Header({ bgColor }) {
                               data-bs-toggle="modal"
                               data-bs-target="#exampleModalLogin"
                             >
-                              <i className="fa-regular fa-user" /> Login /
+                              <i className="fa-regular fa-user" />
+                              {t("header.login")} /
                             </span>
                             <span
                               data-bs-toggle="modal"
                               data-bs-target="#exampleModalRegister"
                             >
                               {" "}
-                              Register{" "}
+                              {t("header.register")}{" "}
                             </span>
                           </div>
                         </div>
@@ -950,14 +950,14 @@ function Header({ bgColor }) {
                             Post New Job
                           </Link> */}
                           <Link to="/employer-home" className="default-btn btn">
-                            For Employers
+                            {t("header.For_Employers")}
                           </Link>
                         </div>
                       </>
                     </>
                   )}
                 </div>
-                {/* <div className="header-language-toggle">
+                <div className="header-language-toggle">
                   <select
                     className="form-select"
                     value={i18n.language}
@@ -966,7 +966,7 @@ function Header({ bgColor }) {
                     <option value="en">Eng</option>
                     <option value="fr">Fr</option>
                   </select>
-                </div> */}
+                </div>
               </div>
             </nav>
           </div>
@@ -986,12 +986,13 @@ function Header({ bgColor }) {
                   <div className="others-options">
                     <div className="option-item">
                       <a href="login.html" className="default-btn btn style-2">
-                        <i className="fa-regular fa-user" /> Login / Register
+                        <i className="fa-regular fa-user" /> {t("header.login")}
+                        /{t("header.register")}
                       </a>
                     </div>
                     <div className="option-item">
                       <a href="/" className="default-btn btn">
-                        Post New Job
+                        {t("header.Post_New_Job")}
                       </a>
                     </div>
                   </div>
@@ -1016,7 +1017,7 @@ function Header({ bgColor }) {
               <div className="modal-content">
                 <div className="modal-header">
                   <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Sign in as jobseeker
+                    {t("header.Sign_in_as_jobseeker")}
                   </h1>
                   <button
                     type="button"
@@ -1033,7 +1034,7 @@ function Header({ bgColor }) {
                       aria-label="Close"
                       className="default-btn btn"
                     >
-                      Sign in with email
+                      {t("header.Sign_in_with_email")}
                     </button>
                   </div>
                   <div className="option-or-content">
@@ -1074,14 +1075,14 @@ function Header({ bgColor }) {
                     </button>
                   </div>
                   <div className="already-have-account-content">
-                    <p>Don't have an account yet?</p>
+                    <p>{t("header.Do_not_have_an_account_yet")}</p>
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalRegister"
                       style={{ cursor: "pointer", color: "#007bff" }}
                     >
                       {" "}
-                      Register{" "}
+                      {t("header.Register")}{" "}
                     </span>
                   </div>
                 </div>
@@ -1103,7 +1104,7 @@ function Header({ bgColor }) {
               <div className="modal-content">
                 <div className="modal-header">
                   <h1 className="modal-title fs-5" id="exampleModalLabel">
-                    Create Your Account
+                    {t("header.Create_Your_Account")}
                   </h1>
                   <button
                     type="button"
@@ -1121,7 +1122,7 @@ function Header({ bgColor }) {
                       data-bs-dismiss="modal"
                       aria-label="Close"
                     >
-                      Sign up with email
+                      {t("header.Sign_up_with_email")}
                     </button>
                   </div>
                   <div className="option-or-content">
@@ -1151,14 +1152,14 @@ function Header({ bgColor }) {
                     </button>
                   </div>
                   <div className="already-have-account-content">
-                    <p>Already have an account?</p>
+                    <p>{t("header.already_account")}</p>
 
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalLogin"
                       style={{ cursor: "pointer", color: "#007bff" }}
                     >
-                      <i className="fa-regular fa-user" /> Sign in
+                      <i className="fa-regular fa-user" /> {t("header.sign_in")}
                     </span>
                   </div>
                 </div>
