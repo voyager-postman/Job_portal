@@ -7,8 +7,9 @@ import { Modal, Typography, Card, Divider, Box } from "@mui/material";
 import { API_IMAGE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
 import { green } from "@mui/material/colors";
-
+import { useTranslation } from "react-i18next";
 function YourJobPosts() {
+  const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   // const [isPost, setIsPost] = useState("");
@@ -96,7 +97,7 @@ function YourJobPosts() {
   // };
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
-      toast.error("Please fill all required fields");
+      toast.error(t("header.Please_fill_all_required_fields"));
       return;
     }
 
@@ -114,7 +115,7 @@ function YourJobPosts() {
       console.log("Job Created:", response.data);
       const createdJob = response.data.job;
 
-      toast.success("Job created successfully!");
+      toast.success(t("header.Job_created_successfully"));
 
       setJobTitle("");
       setJobCategory("");
@@ -153,7 +154,7 @@ function YourJobPosts() {
         return;
       }
 
-      toast.error(errorMessage || "Something went wrong");
+      toast.error(errorMessage || t("something_wrong"));
     }
   };
   useEffect(() => {
@@ -277,7 +278,7 @@ function YourJobPosts() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("You need to log in first.");
+        toast.error(t("You_need_to_log_in_first"));
         return;
       }
 
@@ -295,13 +296,15 @@ function YourJobPosts() {
         },
       );
       // ✅ Show success message
-      toast.success(response.data?.message || "Draft copied successfully!");
+      toast.success(
+        response.data?.message || t("header.Draft_copied_successfully"),
+      );
       setMenuOpen(false);
       fetchJobs(activeStatus);
     } catch (error) {
       console.error("Copy Draft Error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to copy draft. Try again.",
+        error.response?.data?.message || t("header.Draft_copied_successfully"),
       );
     }
   };
@@ -321,32 +324,35 @@ function YourJobPosts() {
         },
       );
       // ✅ Show success message
-      toast.success(response.data?.message || "Archived Job successfully!");
+      toast.success(
+        response.data?.message || t("header.Archived_Job_successfully"),
+      );
       setMenuOpen(false);
       fetchJobs(activeStatus);
     } catch (error) {
       console.error("Archived Job Error:", error);
       toast.error(
-        error.response?.data?.message || "Failed to Archived Job. Try again.",
+        error.response?.data?.message ||
+          t("header.Failed_to_Archived_Job_Try_again"),
       );
     }
   };
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: t("header.Are_you_sure"),
+      text: t("header.Are_you_sure"),
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: t("header.Yes_delete_it"),
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
           if (!token) {
-            toast.error("You need to log in first.");
+            toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
           const response = await axios.post(
@@ -417,7 +423,7 @@ function YourJobPosts() {
       <i
         className={`fa-solid ${value >= 0 ? "fa-arrow-up" : "fa-arrow-down"}`}
       />{" "}
-      {Math.abs(value)}% this week
+      {Math.abs(value)}% {t("header.this_week")}
     </p>
   );
 
@@ -428,20 +434,22 @@ function YourJobPosts() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Manage Job Posts</h1>
+            <h1> {t("header.Manage_Job_Posts")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
                   {" "}
-                  <i className="fa-solid fa-angle-right" /> Dashboard{" "}
+                  <i className="fa-solid fa-angle-right" />
+                  {t("header.dashboard")}{" "}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/your-job-posts">
-                  <i className="fa-solid fa-angle-right" /> Job Posts
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.Job_Posts")}
                 </Link>
               </li>
             </ol>
@@ -451,7 +459,7 @@ function YourJobPosts() {
           {/* employer dashboard  start here */}
           <section className="employer-dashboard-info-area">
             <div className="employer-dashboard-common-heading">
-              <h2>Job Post Dashboard</h2>
+              <h2>{t("header.Job_Post_Dashboard")}</h2>
             </div>
             <div className="employer-dashboard-box">
               <div className="row">
@@ -465,7 +473,7 @@ function YourJobPosts() {
                         <i className="fas fa-tasks"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>All Jobs</h4>
+                        <h4>{t("header.All_Jobs")}</h4>
                         <h5>{dashboardStats?.allJobs?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.allJobs?.weeklyChange ?? 0,
@@ -486,7 +494,7 @@ function YourJobPosts() {
                         <i className="fa-solid fa-upload"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>Published Jobs</h4>
+                        <h4>{t("header.Published_Jobs")}</h4>
                         <h5>{dashboardStats?.published?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.published?.weeklyChange ?? 0,
@@ -505,7 +513,7 @@ function YourJobPosts() {
                         <i className="fa-solid fa-pencil"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>Draft Job </h4>
+                        <h4>{t("header.Draft_Job")} </h4>
                         <h5>{dashboardStats?.draft?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.draft?.weeklyChange ?? 0,
@@ -524,7 +532,7 @@ function YourJobPosts() {
                         <i className="fas fa-archive"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>Archived Job</h4>
+                        <h4>{t("header.Archived_Job")}</h4>
                         <h5>{dashboardStats?.archived?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.archived?.weeklyChange ?? 0,
@@ -545,7 +553,7 @@ function YourJobPosts() {
                         <i className="fas fa-file-word"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>Unpublished Job</h4>
+                        <h4>{t("header.Unpublished_Job")}</h4>
                         <h5>{dashboardStats?.unpublished?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.unpublished?.weeklyChange ?? 0,
@@ -564,7 +572,7 @@ function YourJobPosts() {
                         <i className="fas fa-calendar-alt"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>Expired Job</h4>
+                        <h4>{t("header.Expired_Job")}</h4>
                         <h5>{dashboardStats?.expired?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.expired?.weeklyChange ?? 0,
@@ -589,13 +597,14 @@ function YourJobPosts() {
                         className="nav-item"
                         // data-bs-toggle="modal"
                         // data-bs-target="#exampleModal"
-                         onClick={() => navigate("/job-details-form")}
+                        onClick={() => navigate("/job-details-form")}
                         style={{
                           cursor: "pointer",
                         }}
                       >
                         <a className="nav-link">
-                          <i className="fa-solid fa-plus"></i> Create job
+                          <i className="fa-solid fa-plus"></i>
+                          {t("header.Create_job")}
                         </a>
                       </li>
                     </ul>
@@ -683,7 +692,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("all")}
                       >
-                        <i className="fas fa-tasks"></i> All
+                        <i className="fas fa-tasks"></i>
+                        {t("header.All")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -693,7 +703,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("published")}
                       >
-                        <i className="fa-solid fa-upload"></i> Published
+                        <i className="fa-solid fa-upload"></i>{" "}
+                        {t("header.Published")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -703,7 +714,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("draft")}
                       >
-                        <i className="fa-solid fa-pencil"></i> Draft
+                        <i className="fa-solid fa-pencil"></i>{" "}
+                        {t("header.Draft")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -713,7 +725,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("archived")}
                       >
-                        <i className="fas fa-archive"></i> Archived
+                        <i className="fas fa-archive"></i>{" "}
+                        {t("header.Archived")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -723,7 +736,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("unpublished")}
                       >
-                        <i className="fas fa-file-word"></i> Unpublished
+                        <i className="fas fa-file-word"></i>
+                        {t("header.Unpublished")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -733,7 +747,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("expired")}
                       >
-                        <i className="fas fa-calendar-alt"></i> Expired
+                        <i className="fas fa-calendar-alt"></i>
+                        {t("header.Expired")}
                       </Link>
                     </li>
                     <li className="nav-item">
@@ -743,7 +758,8 @@ function YourJobPosts() {
                         }`}
                         onClick={() => setActiveStatus("scheduled")}
                       >
-                        <i className="fas fa-archive"></i> Scheduled
+                        <i className="fas fa-archive"></i>
+                        {t("header.Scheduled")}
                       </Link>
                     </li>
                   </ul>
@@ -753,7 +769,7 @@ function YourJobPosts() {
                 <div className="your-job-post-detail-info">
                   <div className="tab-content">
                     {loading ? (
-                      <p>Loading jobs...</p>
+                      <p>{t("header.loading_jobs")}</p>
                     ) : jobs.length === 0 ? (
                       <div className="empty-job-wrapper">
                         <div className="empty-job-content">
@@ -763,10 +779,7 @@ function YourJobPosts() {
 
                           <h4>{getEmptyMessage()}</h4>
 
-                          <p>
-                            Start by creating a new job post or change the
-                            filter to see more results.
-                          </p>
+                          <p>{t("header.Start_by_creating")}</p>
                         </div>
                       </div>
                     ) : (
@@ -797,11 +810,11 @@ function YourJobPosts() {
                                 <ul>
                                   <li onClick={() => jobUpdate(job)}>
                                     <i className="fa-solid fa-pencil cursor-pointer"></i>{" "}
-                                    Edit
+                                    {t("header.Edit")}
                                   </li>
                                   <li onClick={() => handleView(job._id)}>
                                     <i className="fa-regular fa-eye"></i>
-                                    Preview
+                                    {t("header.Preview")}
                                   </li>
                                   <li
                                     onClick={() =>
@@ -816,16 +829,16 @@ function YourJobPosts() {
                                       className="fa-solid fa-file cursor-pointer"
                                       title="Copy as draft"
                                     ></i>{" "}
-                                    Copy as draft
+                                    {t("header.Copy_as_draft")}
                                   </li>
 
                                   <li onClick={() => archiveData(job._id)}>
                                     <i className="fa-solid fa-box-archive cursor-pointer"></i>
-                                    Archive
+                                    {t("header.Archive")}
                                   </li>
                                   <li onClick={() => handleDelete(job._id)}>
                                     <i className="fa-regular fa-trash-can"></i>
-                                    Delete
+                                    {t("header.Delete")}
                                   </li>
                                 </ul>
                               </div>
@@ -933,17 +946,19 @@ function YourJobPosts() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name">
+                      {t("header.Connect_Work")}{" "}
+                    </span>
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>
@@ -974,82 +989,82 @@ function YourJobPosts() {
           <Card variant="outlined" sx={{ p: 2 }}>
             <Divider sx={{ mb: 2 }} />
             <Typography>
-              <strong>Job Title:</strong>{" "}
+              <strong>{t("header.jobTitle")}:</strong>{" "}
               {viewData?.jobDetails?.jobTitle || "Not Provided"}
             </Typography>
             <Typography>
-              <strong>Job Category:</strong>{" "}
+              <strong>{t("header.Job_Category")}:</strong>{" "}
               {viewData?.jobDetails?.jobCategory?.name || "Not Provided"}
             </Typography>
             <Typography>
-              <strong>Employment Type:</strong>{" "}
+              <strong>{t("header.Employment_Type")}:</strong>{" "}
               {viewData?.jobDetails?.employmentType?.name || "Not Provided"}
             </Typography>
 
             <Typography>
-              <strong>Minimum Level:</strong>{" "}
+              <strong>{t("header.Minimum_Level")}:</strong>{" "}
               {viewData?.jobDetails?.minimumLevel?.name || "Not Provided"}
             </Typography>
 
             <Typography>
-              <strong>Remote Type:</strong>{" "}
+              <strong>{t("header.Remote_Type")}:</strong>{" "}
               {viewData?.jobDetails?.remote || "Not Provided"}
             </Typography>
             <Typography>
-              <strong>Reference Id:</strong>{" "}
+              <strong>{t("header.Reference_Id")}:</strong>{" "}
               {viewData?.jobDetails?.referenceId || "Not Provided"}
             </Typography>
             <Typography>
-              <strong>City:</strong>
+              <strong> {t("header.City")}:</strong>
               {viewData?.jobDetails?.city?.join(",") == null
                 ? viewData?.jobDetails?.companyId?.city?.join(",")
                 : viewData.jobDetails.city?.join(", ") || "Not Provided"}
             </Typography>
             <Typography>
               <p>
-                <strong>Country:</strong>{" "}
+                <strong>{t("header.Country")}:</strong>{" "}
                 {countryList.find(
                   (country) => country._id === viewData?.jobDetails?.country,
                 )?.name || "Not provided"}
               </p>
             </Typography>
             <Typography>
-              <strong>Enable External Apply:</strong>{" "}
+              <strong>{t("header.Enable_External_Apply")}:</strong>{" "}
               {viewData?.jobDetails?.enableExternalApply ? "Yes" : "No"}
             </Typography>
             {viewData?.jobDetails?.enableExternalApply && (
               <Typography>
-                <strong>External Apply Link:</strong>{" "}
+                <strong>{t("header.External_Apply_Link")}:</strong>{" "}
                 {viewData?.jobDetails?.ExternalApplyLink || "Not Provided"}
               </Typography>
             )}
             <Typography>
-              <strong>Job Assessment Required:</strong>{" "}
+              <strong>{t("header.Job_Assessment_Required")}:</strong>{" "}
               {viewData?.jobDetails?.isAssessmentRequired ? "Yes" : "No"}
             </Typography>
             {/* {viewData?.jobDetails} */}
             <Typography>
-              <strong>Confidential JobPost:</strong>{" "}
+              <strong>{t("header.Confidential_JobPost")}:</strong>{" "}
               {viewData?.jobDetails?.confidentialJobPost ? "Yes" : "No"}
             </Typography>
             <Typography>
-              <strong>Enable Email Notification:</strong>{" "}
+              <strong>{t("header.Enable_Email_Notification")}:</strong>{" "}
               {viewData?.jobDetails?.enableEmailNotification ? "Yes" : "No"}
             </Typography>
             <Typography>
-              <strong>Enable Relevant Job:</strong>{" "}
+              <strong>{t("header.Enable_Relevant_Job")}:</strong>{" "}
               {viewData?.jobDetails?.enableRemovalRelevantJobs ? "Yes" : "No"}
             </Typography>
             <Typography>
-              <strong>Min Salary:</strong>{" "}
+              <strong>{t("header.Min_Salary")}:</strong>{" "}
               {viewData?.jobDetails?.privatJobDetails?.minSalary}
             </Typography>
             <Typography>
-              <strong>Max Salary:</strong>{" "}
+              <strong>{t("header.Max_Salary")}:</strong>{" "}
               {viewData?.jobDetails?.privatJobDetails?.maxSalary}
             </Typography>
             <Typography>
-              <strong>Tags:</strong>
+              <strong>{t("header.Tags")}:</strong>
             </Typography>
             <ul>
               {viewData?.jobDetails?.tags?.map((item, index) => (
@@ -1059,7 +1074,7 @@ function YourJobPosts() {
               ))}
             </ul>
             <Typography>
-              <strong>Publish Job Date:</strong>{" "}
+              <strong>{t("header.Publish_Job_Date")}:</strong>{" "}
               {viewData?.jobDetails?.published_date
                 ? new Date(
                     viewData.jobDetails.published_date,
@@ -1071,7 +1086,7 @@ function YourJobPosts() {
                 : "-"}
             </Typography>
             <Typography>
-              <strong>Expire Job Date:</strong>{" "}
+              <strong>{t("header.Expire_Job_Date")}:</strong>{" "}
               {viewData?.jobDetails?.expiresAt
                 ? new Date(viewData.jobDetails?.expiresAt).toLocaleDateString(
                     "en-US",
@@ -1084,11 +1099,11 @@ function YourJobPosts() {
                 : "-"}
             </Typography>
             <Typography>
-              <strong>Short Description:</strong>{" "}
+              <strong>{t("header.Short_Description")}:</strong>{" "}
               {viewData?.jobDetails?.shortDescription || "null"}
             </Typography>
             <Typography>
-              <strong>Job Description:</strong>{" "}
+              <strong>{t("header.Job_Description")}:</strong>{" "}
               <p
                 dangerouslySetInnerHTML={{
                   __html: viewData?.jobDetails?.jobDescription,
@@ -1096,7 +1111,7 @@ function YourJobPosts() {
               />
             </Typography>
             <Typography>
-              <strong>Status:</strong>{" "}
+              <strong>Status {t("header.jobTitle")}:</strong>{" "}
               <span
                 className="text-capitalize"
                 style={{
@@ -1120,7 +1135,7 @@ function YourJobPosts() {
           {/* Close Button */}
           <Box textAlign="right" mt={3}>
             <button className="default-btn btn" onClick={handleViewClose}>
-              Close
+              {t("header.Close")}
             </button>
           </Box>
         </Box>

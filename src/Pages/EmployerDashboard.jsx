@@ -6,8 +6,9 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import { useTranslation } from "react-i18next";
 function EmployerDashboard() {
+  const { t, i18n } = useTranslation("global");
   const [activity, setActivity] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -103,7 +104,7 @@ function EmployerDashboard() {
       const token = localStorage.getItem("token");
 
       if (!companyId) {
-        toast.error("Company ID not found!");
+        toast.error(t("header.Company_ID_not_found"));
         return;
       }
 
@@ -288,15 +289,16 @@ function EmployerDashboard() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Dashboard</h1>
+            <h1> {t("header.dashboard")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
                   {" "}
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.dashboard")}
                 </Link>
               </li>
             </ol>
@@ -326,7 +328,7 @@ function EmployerDashboard() {
               {localStorage.getItem("user_role") === "Recruiter" && (
                 <div className="user-welcome">
                   <h3>
-                    Hello, {fName} {lName}
+                    {t("header.Hello")}, {fName} {lName}
                   </h3>
                   <p>{userRole}</p>
                 </div>
@@ -339,28 +341,28 @@ function EmployerDashboard() {
                   className={`btn btn-outline-primary ${filter === "today" ? "active" : ""}`}
                   onClick={() => setFilter("today")}
                 >
-                  Today
+                  {t("header.Today")}
                 </button>
                 <button
                   type="button"
                   className={`btn btn-outline-primary ${filter === "week" ? "active" : ""}`}
                   onClick={() => setFilter("week")}
                 >
-                  Week
+                  {t("header.Week")}
                 </button>
                 <button
                   type="button"
                   className={`btn btn-outline-primary ${filter === "month" ? "active" : ""}`}
                   onClick={() => setFilter("month")}
                 >
-                  Month
+                  {t("header.Month")}
                 </button>
                 <button
                   type="button"
                   className={`btn btn-outline-primary ${filter === "custom" ? "active" : ""}`}
                   onClick={() => setFilter("custom")}
                 >
-                  Custom Date
+                  {t("header.Custom_Date")}
                 </button>
               </div>
               {filter === "custom" && (
@@ -371,7 +373,7 @@ function EmployerDashboard() {
                     selectsStart
                     startDate={startDate}
                     endDate={endDate}
-                    placeholderText="Start Date"
+                    placeholderText={t("header.Start_Date")}
                     className="form-control"
                     dateFormat="yyyy-MM-dd"
                     maxDate={new Date()}
@@ -384,7 +386,7 @@ function EmployerDashboard() {
                     startDate={startDate}
                     endDate={endDate}
                     minDate={startDate}
-                    placeholderText="End Date"
+                    placeholderText={t("header.End_Date")}
                     className="form-control"
                     dateFormat="yyyy-MM-dd"
                     maxDate={new Date()}
@@ -395,7 +397,7 @@ function EmployerDashboard() {
             <div className="row mb-4">
               <div className="col-lg-4">
                 <div className="employer-dashboard-common-heading mb-3">
-                  <h2>Overview</h2>
+                  <h2>{t("header.Overview")}</h2>
                 </div>
                 <div className="d-flex flex-column" style={{ gap: "10px" }}>
                   <Link className="text-decoration-none" to="/your-job-posts">
@@ -406,7 +408,7 @@ function EmployerDashboard() {
                       <div className="content-wrapper">
                         <div className="main-info">
                           <h5>{stats?.overview?.totalJobs || 0}</h5>
-                          <span>All Jobs</span>
+                          <span>{t("header.All_Jobs")}</span>
                         </div>
                         <div className="trend-info">
                           <i className="fa-solid fa-arrow-up" />
@@ -440,7 +442,7 @@ function EmployerDashboard() {
               <div className="col-lg-8">
                 <div className="ats-flow-section h-100">
                   <div className="employer-dashboard-common-heading mb-3">
-                    <h2>ATS Flow Stats</h2>
+                    <h2>{t("header.ATS_Flow_Stats")}</h2>
                   </div>
                   <div className="ats-card-grid">
                     <div className="ats-card ats-new">
@@ -449,7 +451,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.New || 0}</h5>
-                        <span>New</span>
+                        <span>{t("header.New")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-pre">
@@ -458,7 +460,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.Preselected || 0}</h5>
-                        <span>Pre-selected</span>
+                        <span>{t("header.Pre_selected")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-con">
@@ -467,7 +469,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.Contacted || 0}</h5>
-                        <span>Contacted</span>
+                        <span>{t("header.Contacted")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-hr">
@@ -476,7 +478,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.HRInterview || 0}</h5>
-                        <span>HR Interview</span>
+                        <span>{t("header.HR_Interview")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-tech">
@@ -485,7 +487,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.TechInterview || 0}</h5>
-                        <span>Tech Interview</span>
+                        <span>{t("header.Tech_Interview")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-off">
@@ -494,7 +496,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.Offered || 0}</h5>
-                        <span>Offer</span>
+                        <span>{t("header.Offer")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-hire">
@@ -503,7 +505,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.Hired || 0}</h5>
-                        <span>Hired</span>
+                        <span>{t("header.Hired")}</span>
                       </div>
                     </div>
                     <div className="ats-card ats-rej">
@@ -512,7 +514,7 @@ function EmployerDashboard() {
                       </div>
                       <div className="ats-card-content">
                         <h5>{stats?.atsFlow?.Rejected || 0}</h5>
-                        <span>Rejected</span>
+                        <span>{t("header.Rejected")}</span>
                       </div>
                     </div>
                   </div>
@@ -524,12 +526,12 @@ function EmployerDashboard() {
           {/* Job performance analyticssection start here */}
           <section className="job-performance-analytics-info">
             <div className="employer-dashboard-common-heading">
-              <h2>Job performance analytics</h2>
+              <h2>{t("header.Job_performance_analytics")}</h2>
             </div>
             <div className="performance-line-chart-funnel">
               <div className="chart-box">
                 <div>
-                  <strong>Job Views vs. Applications</strong>
+                  <strong>{t("header.Job_Views_vs_Applications")}</strong>
                 </div>
                 <ReactApexChart
                   options={lineChartConfig.options}
@@ -544,7 +546,7 @@ function EmployerDashboard() {
                   style={{ "margin-bottom": "20px" }}
                 >
                   <h2 style={{ "font-size": "18px", margin: "0px" }}>
-                    Recruitment Pipeline
+                    {t("header.Recruitment_Pipeline")}
                   </h2>
                 </div>
                 <div className="recruitment-pipeline">
@@ -555,7 +557,7 @@ function EmployerDashboard() {
                     <span className="step-count">
                       {stats?.funnel?.uniqueViews || 0}
                     </span>
-                    <span className="step-label">Views</span>
+                    <span className="step-label">{t("header.Views")}</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
@@ -564,7 +566,7 @@ function EmployerDashboard() {
                     <span className="step-count">
                       {stats?.funnel?.uniqueClicks || 0}
                     </span>
-                    <span className="step-label">Clicks</span>
+                    <span className="step-label">{t("header.Clicks")}</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
@@ -573,7 +575,7 @@ function EmployerDashboard() {
                     <span className="step-count">
                       {stats?.funnel?.applied || 0}
                     </span>
-                    <span className="step-label">Applied</span>
+                    <span className="step-label">{t("header.Applied")}</span>
                   </div>
                   <div className="step-item active">
                     <div className="step-icon-circle">
@@ -582,7 +584,7 @@ function EmployerDashboard() {
                     <span className="step-count">
                       {stats?.funnel?.hired || 0}
                     </span>
-                    <span className="step-label">Hired</span>
+                    <span className="step-label">{t("header.Hired")}</span>
                   </div>
                 </div>
               </div>
@@ -592,7 +594,7 @@ function EmployerDashboard() {
           {/* response rate analytics section start here */}
           <section className="response-rates-info-area">
             <div className="employer-dashboard-common-heading">
-              <h2>Job OverView</h2>
+              <h2>{t("header.Job_OverView")}</h2>
             </div>
             <div className="dashboard">
               <div className="left dashboard-bottom">
@@ -610,14 +612,20 @@ function EmployerDashboard() {
                               setPage(1);
                             }}
                           >
-                            <option value={-1}>Plus récent</option>
-                            <option value={1}>Plus ancien</option>
+                            <option value={-1}>
+                              {" "}
+                              {t("header.Plus_récent")}
+                            </option>
+                            <option value={1}>
+                              {" "}
+                              {t("header.Plus_ancien")}
+                            </option>
                           </select>
                         </div>
                       </div>
                       <div className="table-search-box-info">
                         <input
-                          placeholder="search"
+                          placeholder={t("header.search")}
                           type="search"
                           value={search}
                           onChange={(e) => {
@@ -631,11 +639,11 @@ function EmployerDashboard() {
                       <table className="table table-bordered">
                         <thead>
                           <tr>
-                            <th>S.No</th>
-                            <th>Job Title</th>
-                            <th>Location</th>
-                            <th>Employment Type</th>
-                            <th>Views</th>
+                            <th>{t("header.S_No")}</th>
+                            <th>{t("header.jobTitle")}</th>
+                            <th>{t("header.location")}</th>
+                            <th>{t("header.Employment_Type")}</th>
+                            <th>{t("header.Views")}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -665,7 +673,7 @@ function EmployerDashboard() {
                     disabled={page === 1}
                     onClick={() => setPage(page - 1)}
                   >
-                    Prev
+                    {t("header.Prev")}
                   </button>
                   {[...Array(totalPages)].map((_, index) => (
                     <button
@@ -681,12 +689,12 @@ function EmployerDashboard() {
                     disabled={page === totalPages}
                     onClick={() => setPage(page + 1)}
                   >
-                    Next
+                    {t("header.Next")}
                   </button>
                 </div>
               </div>
               <div className="right dashboard-bottom">
-                <h5>Candidate Engagement Insights</h5>
+                <h5>{t("header.Candidate_Engagement_Insights")}</h5>
                 <ReactApexChart
                   options={chartData.options}
                   series={chartData.series}
@@ -706,17 +714,19 @@ function EmployerDashboard() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name">
+                      {t("header.Connect_Work")}{" "}
+                    </span>
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>

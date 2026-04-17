@@ -1993,8 +1993,50 @@ function ManagesApplicants() {
                                       style={{
                                         height: "250px",
                                         overflow: "auto",
+                                        zIndex: 1,
                                       }}
                                     >
+                                      <li>
+                                        <h6 className="dropdown-header">
+                                          Add to Folder
+                                        </h6>
+                                      </li>
+
+                                      {autoJobFolders.map((folder) => (
+                                        <li key={folder._id}>
+                                          <button
+                                            className="dropdown-item d-flex align-items-center gap-2"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleBookmarkCandidate(
+                                                selectedCandidate?.userId?._id,
+                                                folder._id,
+                                              );
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-folder text-warning" />
+
+                                            <div
+                                              className="d-flex flex-column"
+                                              style={{ lineHeight: "1.2" }}
+                                            >
+                                              <span
+                                                className="fw-bold"
+                                                style={{ fontSize: "12px" }}
+                                              >
+                                                Job Application
+                                              </span>
+
+                                              <span
+                                                className="text-muted"
+                                                style={{ fontSize: "10px" }}
+                                              >
+                                                {folder.name}
+                                              </span>
+                                            </div>
+                                          </button>
+                                        </li>
+                                      ))}
                                       <li>
                                         <h6 className="dropdown-header">
                                           Manual Folders
@@ -2211,6 +2253,7 @@ function ManagesApplicants() {
                                     style={{
                                       height: "250px",
                                       overflow: "auto",
+                                      zIndex: 1,
                                     }}
                                   >
                                     <li>

@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { useTranslation } from "react-i18next";
 const EmployerWallet = () => {
+    const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
   const [paymentsHistory, setPaymentsHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -111,7 +112,7 @@ const EmployerWallet = () => {
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading User Wallet, please wait...</p>
+      <p> {t("header.Loading_User_Wallet_please_wait")}</p>
     </div>
   );
   const creditTransactions = [...packsHistory, ...addOnHistory];
@@ -152,20 +153,20 @@ const EmployerWallet = () => {
         <div className="responsive-content">
           {/* <!-- Breadcrumb Area --> */}
           <div className="breadcrumb-area">
-            <h1>My Wallet</h1>
+            <h1>{t("header.My_Wallet")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
                   {" "}
-                  <i className="fa-solid fa-angle-right" /> Dashboard{" "}
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}  {" "}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/employer-wallet">
-                  <i className="fa-solid fa-angle-right"></i>My Wallet
+                  <i className="fa-solid fa-angle-right"></i> {t("header.My_Wallet")}
                 </Link>
               </li>
             </ol>

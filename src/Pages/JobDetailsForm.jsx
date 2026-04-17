@@ -9,7 +9,12 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
+// ===============================
+// 1. INSTALL if not installed
+// npm install react-select
+// ===============================
 
+import Select from "react-select";
 function JobDetailsForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -66,8 +71,12 @@ function JobDetailsForm() {
       jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
     minimumLevel:
       jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
-    employmentType:
-      jobFromState.employmentType?._id || jobFromState.employmentType || "",
+    employmentType: Array.isArray(jobFromState.employmentType)
+      ? jobFromState.employmentType
+      : jobFromState.employmentType
+        ? [jobFromState.employmentType]
+        : [],
+    TJM: jobFromState.TJM || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
@@ -113,7 +122,9 @@ function JobDetailsForm() {
         ? jobFromState.cities
         : [],
   );
-
+  const isFreelanceSelected = formData.employmentType?.some(
+    (item) => item.value === "Freelance",
+  );
   // ---- Fetch if page was refreshed (no state) but we have an id
   useEffect(() => {
     if (!jobFromState._id && id) {
@@ -215,35 +226,6 @@ function JobDetailsForm() {
     fetchAssessmentLevels();
   }, []);
 
-  // const handleAssessment = async (e) => {
-  //   const assessmentId = e.target.value;
-  //   const jobId = id || jobFromState._id;
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     assessment: assessmentId,
-  //   }));
-
-  //   if (!assessmentId) return;
-
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const response = await axios.post(
-  //       `${API_BASE_URL}assignAssessmentToJob`,
-  //       { assessmentId, jobId },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     console.log(response.data);
-  //   } catch (error) {
-  //     console.error("Error while assign job assessment", error);
-  //     toast.error("Failed to assign assessment");
-  //   }
-  // };
   const handleAssessment = (e) => {
     const assessmentId = e.target.value;
 
@@ -268,36 +250,6 @@ function JobDetailsForm() {
     }));
   };
 
-  // const handleAssessmentToggle = async (e) => {
-  //   const { checked } = e.target;
-  //   const jobId = id || jobFromState._id;
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     isAssessmentRequired: checked,
-  //     assessment: checked ? prev.assessment : "",
-  //   }));
-
-  //   // If disabling, call API with empty assessmentId to unassign
-  //   if (!checked) {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       const response = await axios.post(
-  //         `${API_BASE_URL}assignAssessmentToJob`,
-  //         { assessmentId: "", jobId },
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
-  //       console.log(response.data);
-  //     } catch (error) {
-  //       console.error("Error while disabling job assessment", error);
-  //       toast.error("Failed to disable assessment");
-  //     }
-  //   }
-  // };
   const handleCountryChange = async (e) => {
     const selectedOption = e.target.options[e.target.selectedIndex];
 
@@ -443,9 +395,9 @@ function JobDetailsForm() {
 
   const [tagInput, setTagInput] = useState("");
 
-  const handleAddTag = (e) => {
-    e.preventDefault();
+  // Replace handleAddTag with reusable function
 
+  const handleAddTag = () => {
     const skill = tagInput.trim();
 
     if (skill === "") return;
@@ -463,6 +415,15 @@ function JobDetailsForm() {
 
     setTagInput("");
   };
+
+  // Add Enter key support
+  const handleTagKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
   const handleRemoveTag = (tag) => {
     setFormData((prev) => ({
       ...prev,
@@ -470,84 +431,38 @@ function JobDetailsForm() {
     }));
   };
 
-  //   const updatedFormData = {
-  //     ...formData,
-  //     tags: formData.tags.filter((t) => t !== tag),
-  //   };
-  //   setFormData(updatedFormData);
-  //   handlePublishJob(updatedFormData, false);
-  // };
-
-  // const handleChange = async (e) => {
-  //   const { name, value, type, checked, files } = e.target;
-  //   setFormData((prev) => {
-  //     let updated = { ...prev };
-
-  //     if (type === "checkbox") {
-  //       updated[name] = checked;
-  //       // If validation_required is unchecked, set retry_period_days to "0"
-  //       if (name === "validation_required" && !checked) {
-  //         updated.retry_period_days = "0";
-  //       }
-  //     } else if (type === "file") {
-  //       const file = files[0];
-  //       if (file && file.size > 2 * 1024 * 1024) {
-  //         alert("File size exceeds 2 MB limit");
-  //         return prev;
-  //       }
-  //       updated[name] = file;
-  //       updated.coverPhotoPreview = file ? URL.createObjectURL(file) : null;
-  //     } else {
-  //       updated[name] = value;
-  //     }
-
-  //     // ✅ Clear error on change
-  //     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-
-  //     // ✅ If Country changes → Fetch cities
-  //     if (name === "Country" && value) {
-  //       fetchCitiesByCountry(value);
-  //     }
-
-  //     // ✅ Debounce auto-save (updateJob)
-  //     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-  //     debounceTimer.current = setTimeout(() => {
-  //       handlePublishJob(updated);
-  //     }, 1000);
-
-  //     return updated;
-  //   });
-  // };
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked, files, options } = e.target;
 
     setFormData((prev) => {
       let updated = { ...prev };
 
-      if (type === "checkbox") {
+      // MULTIPLE SELECT
+      if (name === "employmentType") {
+        const selectedValues = Array.from(options)
+          .filter((option) => option.selected)
+          .map((option) => option.value);
+
+        updated.employmentType = selectedValues;
+      }
+
+      // CHECKBOX
+      else if (type === "checkbox") {
         updated[name] = checked;
+      }
 
-        if (name === "validation_required" && !checked) {
-          updated.retry_period_days = "0";
-        }
-      } else if (type === "file") {
-        const file = files[0];
+      // FILE
+      else if (type === "file") {
+        updated[name] = files[0];
+      }
 
-        if (file && file.size > 2 * 1024 * 1024) {
-          toast.error("File size exceeds 2MB");
-          return prev;
-        }
-
-        updated[name] = file;
-        updated.coverPhotoPreview = file ? URL.createObjectURL(file) : null;
-      } else {
+      // NORMAL INPUT
+      else {
         updated[name] = value;
       }
 
       return updated;
     });
-
-    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
   const fetchCitiesByCountry = async (countryId) => {
     try {
@@ -632,7 +547,14 @@ function JobDetailsForm() {
         console.error("❌ No token found");
         return;
       }
+      const isFreelanceSelected = data.employmentType?.some(
+        (item) => item.value === "Freelance",
+      );
 
+      if (isFreelanceSelected && !data.TJM) {
+        toast.error("Please enter TJM");
+        return;
+      }
       if (data.isAssessmentRequired && !data.assessment) {
         toast.error("Please select an assessment");
         return;
@@ -642,8 +564,12 @@ function JobDetailsForm() {
       formDataToSend.append("jobTitle", data.jobTitle || "");
       formDataToSend.append("jobCategory", data.jobCategory || "");
       formDataToSend.append("minimumLevel", data.minimumLevel || "");
+      formDataToSend.append(
+        "employmentType",
+        JSON.stringify(data.employmentType.map((item) => item.value)),
+      );
 
-      formDataToSend.append("employmentType", data.employmentType || "");
+      formDataToSend.append("TJM", data.TJM || "");
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
       formDataToSend.append("city", JSON.stringify(data.city || []));
@@ -815,30 +741,46 @@ function JobDetailsForm() {
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Employment Type </label>
+                            <label>Employment Type</label>
 
-                            <select
-                              className="form-select form-control"
-                              name="employmentType"
+                            <Select
+                              isMulti
+                              options={jobTypes?.map((type) => ({
+                                value: type.name,
+                                label: type.name,
+                              }))}
+                              placeholder="Select employment type"
                               value={formData.employmentType}
-                              onChange={handleChange}
-                            >
-                              <option value="" disabled>
-                                Select employment type
-                              </option>
-
-                              {jobTypes.length > 0 ? (
-                                jobTypes.map((type) => (
-                                  <option key={type._id} value={type._id}>
-                                    {type.name}
-                                  </option>
-                                ))
-                              ) : (
-                                <option disabled>Loading job types...</option>
-                              )}
-                            </select>
+                              onChange={(selected) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  employmentType: selected || [],
+                                }))
+                              }
+                            />
                           </div>
                         </div>
+                        {isFreelanceSelected && (
+                          <div className="col-lg-6 col-md-6 mt-3">
+                            <div className="form-group">
+                              <label>TJM (Taux Journalier Moyen)</label>
+
+                              <input
+                                type="number"
+                                className="form-control"
+                                name="TJM"
+                                value={formData.TJM}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    TJM: e.target.value,
+                                  }))
+                                }
+                                placeholder="Enter TJM"
+                              />
+                            </div>
+                          </div>
+                        )}
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
@@ -1090,6 +1032,7 @@ function JobDetailsForm() {
                               placeholder="Enter Skills"
                               value={tagInput}
                               onChange={(e) => setTagInput(e.target.value)}
+                              onKeyDown={handleTagKeyDown}
                             />
                           </div>
                           <div
@@ -1692,7 +1635,7 @@ function JobDetailsForm() {
               </div>
               <div className="job-payment-text-price">
                 <div className="job-payment-text">
-                  <h5>Simple Job Post</h5>
+                  <h5>Job Post</h5>
                 </div>
                 <div className="job-payment-price">
                   <h5>{simpleJobCredit} Credits</h5>
@@ -1769,5 +1712,3 @@ function JobDetailsForm() {
 }
 
 export default JobDetailsForm;
-
-

@@ -1702,8 +1702,59 @@ function CandinatesList() {
                                       />
                                     </button>
 
-                                    <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <ul
+                                      className="dropdown-menu dropdown-menu-end shadow border-0"
+                                      style={{
+                                        height: "250px",
+                                        overflow: "auto",
+                                        zIndex: 1,
+                                      }}
+                                    >
                                       {/* DEFAULT SAVE */}
+                                      <li>
+                                        <h6 className="dropdown-header">
+                                          Add to Folder
+                                        </h6>
+                                      </li>
+
+                                      {autoJobFolders.map((folder) => (
+                                        <li key={folder._id}>
+                                          <button
+                                            className="dropdown-item d-flex align-items-center gap-2"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleBookmarkCandidate(
+                                                user._id,
+                                                folder._id,
+                                              );
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-folder text-warning" />
+
+                                            <div
+                                              className="d-flex flex-column"
+                                              style={{ lineHeight: "1.2" }}
+                                            >
+                                              <span
+                                                className="fw-bold"
+                                                style={{ fontSize: "12px" }}
+                                              >
+                                                Job Application
+                                              </span>
+
+                                              <span
+                                                className="text-muted"
+                                                style={{ fontSize: "10px" }}
+                                              >
+                                                {folder.name}
+                                              </span>
+                                            </div>
+                                          </button>
+                                        </li>
+                                      ))}
+                                      <li>
+                                        <hr className="dropdown-divider" />
+                                      </li>
                                       <li>
                                         <button
                                           className="dropdown-item d-flex align-items-center gap-2"
@@ -1914,7 +1965,58 @@ function CandinatesList() {
                                       }
                                     />
                                   </button>
-                                  <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+                                  <ul
+                                    className="dropdown-menu dropdown-menu-end shadow border-0"
+                                    style={{
+                                      height: "215px",
+                                      overflow: "auto",
+                                      zIndex: 1,
+                                    }}
+                                  >
+                                    <li>
+                                      <h6 className="dropdown-header">
+                                        Add to Folder
+                                      </h6>
+                                    </li>
+
+                                    {autoJobFolders.map((folder) => (
+                                      <li key={folder._id}>
+                                        <button
+                                          className="dropdown-item d-flex align-items-center gap-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleBookmarkCandidate(
+                                              candidateDetails?.userId?._id,
+                                              folder._id,
+                                            );
+                                          }}
+                                        >
+                                          <i className="fa-solid fa-folder text-warning" />
+
+                                          <div
+                                            className="d-flex flex-column"
+                                            style={{ lineHeight: "1.2" }}
+                                          >
+                                            <span
+                                              className="fw-bold"
+                                              style={{ fontSize: "12px" }}
+                                            >
+                                              Job Application
+                                            </span>
+
+                                            <span
+                                              className="text-muted"
+                                              style={{ fontSize: "10px" }}
+                                            >
+                                              {folder.name}
+                                            </span>
+                                          </div>
+                                        </button>
+                                      </li>
+                                    ))}
+                                    <li>
+                                      <hr className="dropdown-divider" />
+                                    </li>
                                     <li>
                                       <h6 className="dropdown-header">
                                         Manual Folders
@@ -2411,7 +2513,7 @@ function CandinatesList() {
                           </div>
                           <div className="col-12 col-xl-4">
                             <div
-                              className="sticky-md-top"
+                              className="sticky-md-top Career-Preference-details"
                               style={{ top: "20px" }}
                             >
                               <div
@@ -2510,8 +2612,6 @@ function CandinatesList() {
                                         </div>
 
                                         <div className="fw-bold small">
-                                  
-
                                           {Array.isArray(
                                             candidateDetails.career_goals
                                               ?.DesiredJobCategory,
