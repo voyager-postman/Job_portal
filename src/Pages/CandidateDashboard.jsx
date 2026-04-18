@@ -759,7 +759,12 @@ function CandidateDashboard() {
                                           </li>
                                           <li>
                                             <i className="fa-regular fa-user" />
-                                            &nbsp;{job?.employmentType || "N/A"}
+                                            &nbsp;
+                                            {Array.isArray(
+                                              job?.employmentType,
+                                            ) && job.employmentType.length > 0
+                                              ? job.employmentType.join(", ")
+                                              : "N/A"}
                                           </li>
                                           <li>
                                             <i className="fa-solid fa-location-dot" />{" "}

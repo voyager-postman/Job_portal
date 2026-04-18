@@ -72,11 +72,12 @@ function JobDetailsForm() {
     minimumLevel:
       jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
     employmentType: Array.isArray(jobFromState.employmentType)
-      ? jobFromState.employmentType
-      : jobFromState.employmentType
-        ? [jobFromState.employmentType]
-        : [],
-    TJM: jobFromState.TJM || "",
+      ? jobFromState.employmentType.map((item) => ({
+          value: item._id,
+          label: item.name,
+        }))
+      : [],
+    TJM: jobFromState.TJM?.amount || "",
     remote: jobFromState.remote || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
@@ -122,8 +123,8 @@ function JobDetailsForm() {
         ? jobFromState.cities
         : [],
   );
-  const isFreelanceSelected = formData.employmentType?.some(
-    (item) => item.value === "Freelance",
+  const isFreelanceSelected = formData.employmentType?.some((item) =>
+    item.label?.toLowerCase().includes("freelance"),
   );
   // ---- Fetch if page was refreshed (no state) but we have an id
   useEffect(() => {
@@ -148,11 +149,18 @@ function JobDetailsForm() {
             jobTitle: job.jobTitle || "",
             jobCategory: job.jobCategory?._id || job.jobCategory || "",
             minimumLevel: job.minimumLevel?._id || job.minimumLevel || "",
-            employmentType: job.employmentType?._id || job.employmentType || "",
+            // employmentType: job.employmentType?._id || job.employmentType || "",
+            employmentType: Array.isArray(job.employmentType)
+              ? job.employmentType.map((item) => ({
+                  value: item._id,
+                  label: item.name,
+                }))
+              : [],
             remote: job.remote || "",
             jobAddress: job.jobAddress || "",
             city: jobCities,
             region: job.region || "",
+            TJM: job.TJM?.amount || "",
             Country: job.country?._id || job.country || "",
             shortDescription: job.shortDescription || "",
             tags: job.tags || [],
@@ -663,6 +671,15 @@ function JobDetailsForm() {
   const featuredJobCredit = formData.enableFeaturedJob ? 1 : 0;
 
   const totalCredits = simpleJobCredit + featuredJobCredit;
+  // top of component (before return)
+  const today = new Date();
+console.log(expiresAt);
+  const expiryDate = expiresAt ? new Date(expiresAt) : null;
+
+  const diffDays = expiryDate
+    ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+    : 30;
+    console.log(diffDays);
   return (
     <>
       <ToastContainer />
@@ -746,8 +763,9 @@ function JobDetailsForm() {
                             <Select
                               isMulti
                               options={jobTypes?.map((type) => ({
-                                value: type.name,
-                                label: type.name,
+                                value: type._id, // pass id
+                                label: type.name, // show name
+                                name: type.name, // extra field if needed
                               }))}
                               placeholder="Select employment type"
                               value={formData.employmentType}
@@ -1630,8 +1648,11 @@ function JobDetailsForm() {
               >
                 <i className="fa-solid fa-circle-info me-2" />
                 Your job post will be active for{" "}
-                <strong style={{ "font-size": "15px" }}>30</strong> days once
-                you publish it.
+                <strong style={{ "font-size": "15px" }}>
+                  {" "}
+                  {diffDays > 0 ? diffDays : 0}
+                </strong>{" "}
+                days once you publish it.
               </div>
               <div className="job-payment-text-price">
                 <div className="job-payment-text">

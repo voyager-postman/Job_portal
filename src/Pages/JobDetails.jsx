@@ -1707,7 +1707,11 @@ function JobDetails() {
                       Type of contract
                     </h4>
                     <p className="active_link">
-                      {job?.jobDetails?.employmentType?.name || "N/A"}
+                      {job?.jobDetails?.employmentType?.length > 0
+                        ? job.jobDetails.employmentType
+                            .map((item) => item.name)
+                            .join(", ")
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
@@ -1745,10 +1749,20 @@ function JobDetails() {
                       <i className="fa-solid fa-money-bill" />
                       Salary
                     </h4>
+
                     <p>
-                      ${job?.jobDetails?.privatJobDetails?.minSalary}-$
-                      {job?.jobDetails?.privatJobDetails?.maxSalary}{" "}
+                      ${job?.jobDetails?.privatJobDetails?.minSalary} - $
+                      {job?.jobDetails?.privatJobDetails?.maxSalary}
                     </p>
+
+                    {job?.jobDetails?.TJM?.amount && (
+                      <p className="mt-2">
+                        <strong>TJM -</strong>
+                       
+                        {job.jobDetails.TJM.amount}{" "}
+                        {job.jobDetails.TJM.currency}/j
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1839,7 +1853,12 @@ function JobDetails() {
                     </li>
                     <li>
                       <i className="fa-regular fa-user" />{" "}
-                      {job?.jobDetails?.employmentType?.name || "Full time"}
+                      {/* {job?.jobDetails?.employmentType?.name || "Full time"} */}
+                      {job?.jobDetails?.employmentType?.length > 0
+                        ? job.jobDetails.employmentType
+                            .map((item) => item.name)
+                            .join(", ")
+                        : "N/A"}
                     </li>
                   </ul>
 
@@ -2103,7 +2122,12 @@ function JobDetails() {
                             </li>
                             <li>
                               <i className="fa-regular fa-user" />{" "}
-                              {item?.employmentType?.name || "Full Time"}
+                              {Array.isArray(item?.employmentType) &&
+                              item.employmentType.length > 0
+                                ? item.employmentType
+                                    .map((type) => type.name)
+                                    .join(", ")
+                                : "Full Time"}
                             </li>
                             <li>
                               <i className="fa-solid fa-location-dot" />{" "}
