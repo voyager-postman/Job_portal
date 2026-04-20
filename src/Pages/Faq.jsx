@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 const Faq = () => {
+  const { t, i18n } = useTranslation("global");
   const { type } = useParams(); // recruiter | jobseeker
   const [activeIndex, setActiveIndex] = useState(0);
   const [formData, setFormData] = useState({
@@ -51,9 +53,9 @@ const Faq = () => {
               <h2>{formData.heading}</h2>
               <ul>
                 <li className="menu-divide-arrow">
-                  <Link to="/">Home</Link>
+                  <Link to="/">{t("header.home")}</Link>
                 </li>
-                <li>FAQ</li>
+                <li>{t("header.FAQ")}</li>
               </ul>
             </div>
           </div>
@@ -73,7 +75,7 @@ const Faq = () => {
             <div className="col-lg-6">
               <div className="faq-accordion pl-15">
                 <div className="faq-title">
-                  <span>FAQ</span>
+                  <span>{t("header.FAQ")}</span>
                   <h2>{formData.subHeading}</h2>
                 </div>
 

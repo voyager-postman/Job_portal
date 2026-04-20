@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 function EmployerHomePage() {
+  const { t, i18n } = useTranslation("global");
   const [sliders, setSliders] = useState([]);
   const [secondSection, setSecondSection] = useState(null);
   const [thirdSection, setThirdSection] = useState(null);
@@ -30,7 +31,7 @@ function EmployerHomePage() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch recruiter home data");
+      toast.error(t("Failed_to_fetch_recruiter_home_data"));
     }
   };
 
@@ -77,7 +78,7 @@ function EmployerHomePage() {
                   <p>{slider.paragraph}</p>
 
                   <Link to="/employer-register" className="default-btn btn">
-                    Get Start
+                 {t("header.Get_Start")}
                   </Link>
                 </div>
               </div>

@@ -32,7 +32,10 @@ function JobDetailsForm() {
 
     return defaultExpiry.toISOString().split("T")[0];
   };
-  const [expiresAt, setExpiresAt] = useState(getDefaultExpiryDate());
+  const [expiresAt, setExpiresAt] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [aiLoading, setAiLoading] = useState(false);
   const Title = job?.jobTitle;
   const Category = job?.jobCategory;
   console.log("Job Title:-", Title);
@@ -123,9 +126,14 @@ function JobDetailsForm() {
         ? jobFromState.cities
         : [],
   );
-  const isFreelanceSelected = formData.employmentType?.some((item) =>
-    item.label?.toLowerCase().includes("freelance"),
+  const isFreelanceSelected = formData.employmentType?.some(
+    (item) => item?.label?.trim().toLowerCase() === "freelance",
   );
+
+  console.log(isFreelanceSelected);
+  // const isFreelanceSelected = formData.employmentType?.some((item) =>
+  //   item.label?.toLowerCase().includes("freelance"),
+  // );
   // ---- Fetch if page was refreshed (no state) but we have an id
   useEffect(() => {
     if (!jobFromState._id && id) {
@@ -187,6 +195,11 @@ function JobDetailsForm() {
               : "0",
             status: job.status || "draft",
           }));
+          if (job.expiresAt) {
+            setExpiresAt(new Date(job.expiresAt).toISOString().split("T")[0]);
+          } else {
+            setExpiresAt(getDefaultExpiryDate());
+          }
           console.log("Job Details Data:", job);
           setSelectedCities(jobCities);
         })
@@ -380,7 +393,14 @@ function JobDetailsForm() {
       console.error(error);
     }
   };
-
+  useEffect(() => {
+    if (!isFreelanceSelected && formData.TJM) {
+      setFormData((prev) => ({
+        ...prev,
+        TJM: "",
+      }));
+    }
+  }, [isFreelanceSelected]);
   const fetchCountryList = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}get/countries`);
@@ -541,7 +561,17 @@ function JobDetailsForm() {
       return updated;
     });
   };
-
+  useEffect(() => {
+    if (jobFromState?._id) {
+      if (jobFromState.expiresAt) {
+        setExpiresAt(
+          new Date(jobFromState.expiresAt).toISOString().split("T")[0],
+        );
+      } else {
+        setExpiresAt(getDefaultExpiryDate());
+      }
+    }
+  }, [jobFromState]);
   const handlePublishJob = async (
     data = formData,
     // isPublish = false,
@@ -556,9 +586,23 @@ function JobDetailsForm() {
         return;
       }
       const isFreelanceSelected = data.employmentType?.some(
-        (item) => item.value === "Freelance",
+        (item) => item?.label?.trim().toLowerCase() === "freelance",
       );
+      // const isFreelanceSelected = data.employmentType?.some(
+      //   (item) =>
+      //     item.label?.toLowerCase().includes("freelance") ||
+      //     item.name?.toLowerCase().includes("freelance"),
+      // );
 
+      if (!data.jobTitle?.trim()) {
+        toast.error("Please enter Job Title");
+        return;
+      }
+
+      if (!data.jobCategory) {
+        toast.error("Please select Job Category");
+        return;
+      }
       if (isFreelanceSelected && !data.TJM) {
         toast.error("Please enter TJM");
         return;
@@ -577,7 +621,7 @@ function JobDetailsForm() {
         JSON.stringify(data.employmentType.map((item) => item.value)),
       );
 
-      formDataToSend.append("TJM", data.TJM || "");
+      formDataToSend.append("TJM", isFreelanceSelected ? data.TJM || "" : "");
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
       formDataToSend.append("city", JSON.stringify(data.city || []));
@@ -673,13 +717,32 @@ function JobDetailsForm() {
   const totalCredits = simpleJobCredit + featuredJobCredit;
   // top of component (before return)
   const today = new Date();
-console.log(expiresAt);
+  console.log(expiresAt);
   const expiryDate = expiresAt ? new Date(expiresAt) : null;
 
   const diffDays = expiryDate
     ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
     : 30;
-    console.log(diffDays);
+  console.log(diffDays);
+  // Function
+  // const generateJobDescription = async () => {
+  //   try {
+  //     setAiLoading(true);
+
+  //     const res = await axios.post(`${API_BASE_URL}generateJobDescription`, {
+  //       title: formData.jobTitle,
+  //     });
+
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       jobDescription: res.data.description,
+  //     }));
+  //   } catch (error) {
+  //     toast.error("Failed to generate");
+  //   } finally {
+  //     setAiLoading(false);
+  //   }
+  // };
   return (
     <>
       <ToastContainer />
@@ -1106,18 +1169,28 @@ console.log(expiresAt);
                     <button
                       type="button"
                       className="btn default-btn"
+                      // onClick={generateJobDescription}
+                      disabled={aiLoading}
                       style={{
                         padding: "8px 15px",
-                        "font-size": "14px",
+                        fontSize: "14px",
                         display: "flex",
-                        "-webkit-align-items": "center",
-                        "-webkit-box-align": "center",
-                        "-ms-flex-align": "center",
-                        "align-items": "center",
+                        alignItems: "center",
                         gap: "8px",
+                        opacity: aiLoading ? 0.7 : 1,
                       }}
                     >
-                      ✨ Generate with AI
+                      {aiLoading ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm"
+                            role="status"
+                          ></span>
+                          Generating...
+                        </>
+                      ) : (
+                        <>✨ Generate with AI</>
+                      )}
                     </button>
                   </div>
                   <div className="form-group">
