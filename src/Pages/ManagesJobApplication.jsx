@@ -624,7 +624,11 @@ function ManagesJobApplication() {
                                 </li>
                                 <li>
                                   <i className="fa-regular fa-user" />{" "}
-                                  {job?.employmentType?.name || "N/A"}{" "}
+                                  {job?.employmentType?.length > 0
+                                    ? job.employmentType
+                                        .map((item) => item.name)
+                                        .join(", ")
+                                    : "N/A"}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-location-dot" />{" "}
@@ -632,7 +636,11 @@ function ManagesJobApplication() {
                                 </li>
                                 <li>
                                   <i className="fa-regular fa-file" />{" "}
-                                  {job?.jobCategory?.name || "N/A"}
+                                  {job?.jobCategory?.length > 0
+                                    ? job.jobCategory
+                                        .map((item) => item.name)
+                                        .join(", ")
+                                    : "N/A"}
                                 </li>
                                 <li>
                                   <i className="fa-solid fa-users" /> Available:{" "}
@@ -919,11 +927,20 @@ function ManagesJobApplication() {
                                   </li>
                                   <li>
                                     <i className="fa-regular fa-file" />{" "}
-                                    {jobData?.jobCategory?.name || "N/A"}
+                                    {jobData?.jobCategory?.length > 0
+                                      ? jobData.jobCategory
+                                          .map((item) => item.name)
+                                          .join(", ")
+                                      : "N/A"}
                                   </li>
+
                                   <li>
                                     <i className="fa-regular fa-user" />{" "}
-                                    {jobData?.employmentType?.name || "N/A"}
+                                    {jobData?.employmentType?.length > 0
+                                      ? jobData.employmentType
+                                          .map((item) => item.name)
+                                          .join(", ")
+                                      : "N/A"}
                                   </li>
                                   <li>
                                     <i className="fa-solid fa-location-dot" />{" "}

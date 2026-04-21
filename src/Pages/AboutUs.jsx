@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { ToastContainer, toast } from "react-toastify";
 
 import AOS from "aos";
 const steps = [

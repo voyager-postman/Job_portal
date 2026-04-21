@@ -755,7 +755,11 @@ function CandidateDashboard() {
                                           </li>
                                           <li>
                                             <i className="fa-regular fa-file" />{" "}
-                                            {job?.jobCategory?.name || "N/A"}
+                                            {job?.jobCategory?.length > 0
+                                              ? job.jobCategory
+                                                  .map((item) => item.name)
+                                                  .join(", ")
+                                              : "N/A"}
                                           </li>
                                           <li>
                                             <i className="fa-regular fa-user" />

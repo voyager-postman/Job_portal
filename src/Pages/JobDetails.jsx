@@ -1723,7 +1723,9 @@ function JobDetails() {
                     </h4>
                     <Link to="/jobs">
                       <p className="active_link">
-                        {job?.jobDetails?.jobCategory?.name || "N/A"}
+                    {job?.jobDetails?.jobCategory?.length > 0
+  ? job.jobDetails.jobCategory.map((item) => item.name).join(", ")
+  : "N/A"}
                       </p>
                     </Link>
                   </div>
@@ -1758,7 +1760,6 @@ function JobDetails() {
                     {job?.jobDetails?.TJM?.amount && (
                       <p className="mt-2">
                         <strong>TJM -</strong>
-                       
                         {job.jobDetails.TJM.amount}{" "}
                         {job.jobDetails.TJM.currency}/j
                       </p>
@@ -1848,8 +1849,11 @@ function JobDetails() {
                     </li>
                     <li>
                       <i className="fa-regular fa-file" />{" "}
-                      {job?.jobDetails?.jobCategory?.name ||
-                        "Experience not specified"}
+                      {job?.jobDetails?.jobCategory?.length > 0
+                        ? job.jobDetails.jobCategory
+                            .map((item) => item.name)
+                            .join(", ")
+                        : "N/A"}
                     </li>
                     <li>
                       <i className="fa-regular fa-user" />{" "}
@@ -2117,8 +2121,11 @@ function JobDetails() {
                             </li>
                             <li>
                               <i className="fa-regular fa-file" />{" "}
-                              {item?.jobCategory?.name ||
-                                "Category not specified"}
+                              {item?.jobCategory?.length > 0
+                                ? item.jobCategory
+                                    .map((cat) => cat.name)
+                                    .join(", ")
+                                : "Category not specified"}
                             </li>
                             <li>
                               <i className="fa-regular fa-user" />{" "}

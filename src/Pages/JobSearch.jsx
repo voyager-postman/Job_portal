@@ -2471,7 +2471,10 @@ function JobSearch() {
                                       </li>
                                       <li>
                                         <i className="fa-regular fa-file" />{" "}
-                                        {job?.jobCategory || "N/A"}{" "}
+                                        {Array.isArray(job?.jobCategory) &&
+                                        job.jobCategory.length > 0
+                                          ? job.jobCategory.join(", ")
+                                          : "N/A"}
                                       </li>
                                       <li>
                                         <i className="fa-regular fa-user" />

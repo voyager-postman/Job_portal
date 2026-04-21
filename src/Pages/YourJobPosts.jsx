@@ -867,7 +867,11 @@ function YourJobPosts() {
                               </li>
                               <li>
                                 <i className="fa-solid fa-file-invoice"></i>{" "}
-                                {job.employmentType?.name || "Not provided"}
+                                {job.employmentType?.length > 0
+                                  ? job.employmentType
+                                      .map((item) => item.name)
+                                      .join(", ")
+                                  : "Not provided"}{" "}
                               </li>
                               <li>
                                 <i className="fa-solid fa-user-plus"></i>{" "}
@@ -994,11 +998,19 @@ function YourJobPosts() {
             </Typography>
             <Typography>
               <strong>{t("header.Job_Category")}:</strong>{" "}
-              {viewData?.jobDetails?.jobCategory?.name || "Not Provided"}
+              {viewData?.jobDetails?.jobCategory?.length > 0
+                ? viewData.jobDetails.jobCategory
+                    .map((item) => item.name)
+                    .join(", ")
+                : "Not Provided"}
             </Typography>
             <Typography>
               <strong>{t("header.Employment_Type")}:</strong>{" "}
-              {viewData?.jobDetails?.employmentType?.name || "Not Provided"}
+              {viewData?.jobDetails?.employmentType?.length > 0
+                ? viewData.jobDetails.employmentType
+                    .map((item) => item.name)
+                    .join(", ")
+                : "Not Provided"}
             </Typography>
 
             <Typography>

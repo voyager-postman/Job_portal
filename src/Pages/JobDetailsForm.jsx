@@ -70,8 +70,25 @@ function JobDetailsForm() {
   // ---- Initialize once with either state job or empty
   const [formData, setFormData] = useState(() => ({
     jobTitle: jobFromState.jobTitle || "",
-    jobCategory:
-      jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
+    recruitmentProcess:
+      jobFromState.recruitmentProcess?.length > 0
+        ? jobFromState.recruitmentProcess
+        : [{ step: 1, title: "" }],
+    jobCategory: Array.isArray(jobFromState.jobCategory)
+      ? jobFromState.jobCategory.map((item) => ({
+          value: item._id,
+          label: item.name,
+        }))
+      : jobFromState.jobCategory
+        ? [
+            {
+              value: jobFromState.jobCategory._id || jobFromState.jobCategory,
+              label: jobFromState.jobCategory.name || "",
+            },
+          ]
+        : [],
+    // jobCategory:
+    //   jobFromState.jobCategory?._id || jobFromState.jobCategory || "",
     minimumLevel:
       jobFromState.minimumLevel?._id || jobFromState.minimumLevel || "",
     employmentType: Array.isArray(jobFromState.employmentType)
@@ -165,6 +182,11 @@ function JobDetailsForm() {
                 }))
               : [],
             remote: job.remote || "",
+            recruitmentProcess:
+              job.recruitmentProcess?.length > 0
+                ? job.recruitmentProcess
+                : [{ step: 1, title: "" }],
+
             jobAddress: job.jobAddress || "",
             city: jobCities,
             region: job.region || "",
@@ -223,7 +245,50 @@ function JobDetailsForm() {
 
     fetchSeniorityLevels();
   }, []);
+  const handleStepChange = (index, value) => {
+    const updated = [...formData.recruitmentProcess];
 
+    updated[index] = {
+      ...updated[index],
+      step: index + 1,
+      title: value,
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      recruitmentProcess: updated,
+    }));
+  };
+
+  const addStep = () => {
+    setFormData((prev) => ({
+      ...prev,
+      recruitmentProcess: [
+        ...prev.recruitmentProcess,
+        {
+          step: prev.recruitmentProcess.length + 1,
+          title: "",
+        },
+      ],
+    }));
+  };
+  const removeStep = (index) => {
+    let updated = formData.recruitmentProcess.filter((_, i) => i !== index);
+
+    updated = updated.map((item, i) => ({
+      ...item,
+      step: i + 1,
+    }));
+
+    if (updated.length === 0) {
+      updated = [{ step: 1, title: "" }];
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      recruitmentProcess: updated,
+    }));
+  };
   useEffect(() => {
     const fetchAssessmentLevels = async () => {
       try {
@@ -599,7 +664,7 @@ function JobDetailsForm() {
         return;
       }
 
-      if (!data.jobCategory) {
+      if (!data.jobCategory || data.jobCategory.length === 0) {
         toast.error("Please select Job Category");
         return;
       }
@@ -614,13 +679,19 @@ function JobDetailsForm() {
       const formDataToSend = new FormData();
       formDataToSend.append("job_id", id || jobFromState._id);
       formDataToSend.append("jobTitle", data.jobTitle || "");
-      formDataToSend.append("jobCategory", data.jobCategory || "");
+      formDataToSend.append(
+        "jobCategory",
+        JSON.stringify(data.jobCategory.map((item) => item.value)),
+      );
       formDataToSend.append("minimumLevel", data.minimumLevel || "");
       formDataToSend.append(
         "employmentType",
         JSON.stringify(data.employmentType.map((item) => item.value)),
       );
-
+      formDataToSend.append(
+        "recruitmentProcess",
+        JSON.stringify(data.recruitmentProcess || []),
+      );
       formDataToSend.append("TJM", isFreelanceSelected ? data.TJM || "" : "");
       formDataToSend.append("remote", data.remote || "");
       formDataToSend.append("jobAddress", data.jobAddress || "");
@@ -649,6 +720,10 @@ function JobDetailsForm() {
       formDataToSend.append("maxSalary", data.maxSalary || "");
       formDataToSend.append("isAssessmentRequired", data.isAssessmentRequired);
       formDataToSend.append("assessment", data.assessment || "");
+      formDataToSend.append(
+        "recruitmentSteps",
+        JSON.stringify(data.recruitmentSteps || []),
+      );
       formDataToSend.append(
         "retry_period_days",
         data.validation_required ? data.retry_period_days : "0",
@@ -724,25 +799,7 @@ function JobDetailsForm() {
     ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
     : 30;
   console.log(diffDays);
-  // Function
-  // const generateJobDescription = async () => {
-  //   try {
-  //     setAiLoading(true);
 
-  //     const res = await axios.post(`${API_BASE_URL}generateJobDescription`, {
-  //       title: formData.jobTitle,
-  //     });
-
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       jobDescription: res.data.description,
-  //     }));
-  //   } catch (error) {
-  //     toast.error("Failed to generate");
-  //   } finally {
-  //     setAiLoading(false);
-  //   }
-  // };
   return (
     <>
       <ToastContainer />
@@ -896,7 +953,7 @@ function JobDetailsForm() {
                           </div>
                         </div>
 
-                        <div className="col-lg-6 col-md-6">
+                        {/* <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>Job category</label>
                             <span className="text-danger">*</span>
@@ -916,6 +973,30 @@ function JobDetailsForm() {
                                 </option>
                               ))}
                             </select>
+                          </div>
+                        </div> */}
+                        <div className="col-lg-6 col-md-6">
+                          <div className="form-group">
+                            <label>
+                              Job category{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+
+                            <Select
+                              isMulti
+                              options={categoryList.map((item) => ({
+                                value: item._id,
+                                label: item.name,
+                              }))}
+                              value={formData.jobCategory}
+                              placeholder="Choose Categories"
+                              onChange={(selected) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  jobCategory: selected || [],
+                                }))
+                              }
+                            />
                           </div>
                         </div>
                         {/* Country Field */}
@@ -1238,6 +1319,69 @@ function JobDetailsForm() {
                         }));
                       }}
                     />
+                  </div>
+                </div>
+                <div className="job-description-box-info">
+                  <div
+                    style={{
+                      display: "flex",
+                      "-webkit-box-pack": "space-between",
+                      "-webkit-justify-content": "space-between",
+                      "-ms-flex-pack": "space-between",
+                      "justify-content": "space-between",
+                      "-webkit-align-items": "center",
+                      "-webkit-box-align": "center",
+                      "-ms-flex-align": "center",
+                      "align-items": "center",
+                      "margin-bottom": "15px",
+                    }}
+                  >
+                    <h3 style={{ margin: "0px" }}>Processus de recrutement</h3>
+
+                    <button
+                      type="button"
+                      className="btn default-btn"
+                      onClick={addStep}
+                    >
+                      <i className="fa-solid fa-plus" /> Ajouter une étape
+                    </button>
+                  </div>
+
+                  <div className="recruitment-steps-list">
+                    {formData.recruitmentProcess.map((item, index) => (
+                      <div
+                        key={index}
+                        className="form-group mb-4 p-3 border rounded"
+                        style={{
+                          position: "relative",
+                          background: "#fcfcfc",
+                        }}
+                      >
+                        <div className="d-flex align-items-center mb-2">
+                          <span className="badge bg-primary me-2">
+                            Etape {item.step}
+                          </span>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger ms-auto"
+                            onClick={() => removeStep(index)}
+                          >
+                            <i className="fa-solid fa-trash-can" />
+                          </button>
+                        </div>
+
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={item.title}
+                          onChange={(e) =>
+                            handleStepChange(index, e.target.value)
+                          }
+                          placeholder={`Description de l'étape ${item.step}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="job-description-box-info">
@@ -1723,7 +1867,7 @@ function JobDetailsForm() {
                 Your job post will be active for{" "}
                 <strong style={{ "font-size": "15px" }}>
                   {" "}
-                  {diffDays > 0 ? diffDays : 0}
+                  {diffDays > 0 ? diffDays : 30}
                 </strong>{" "}
                 days once you publish it.
               </div>
