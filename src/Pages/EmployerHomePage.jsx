@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { ToastContainer, toast } from "react-toastify";
 
 function EmployerHomePage() {
   const { t, i18n } = useTranslation("global");
@@ -78,7 +79,7 @@ function EmployerHomePage() {
                   <p>{slider.paragraph}</p>
 
                   <Link to="/employer-register" className="default-btn btn">
-                 {t("header.Get_Start")}
+                    {t("header.Get_Start")}
                   </Link>
                 </div>
               </div>

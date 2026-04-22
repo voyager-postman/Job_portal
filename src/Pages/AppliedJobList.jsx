@@ -7,8 +7,9 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { TbMessages } from "react-icons/tb";
 import moment from "moment";
-
+import { useTranslation } from "react-i18next";
 function AppliedJobList() {
+  const { t, i18n } = useTranslation("global");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,19 +67,19 @@ function AppliedJobList() {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: t("header.Are_you_sure"),
+      text: "header.You_are_not_be_able_to_revert_this",
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: t("header.Yes_delete_it"),
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
           if (!token) {
-            toast.error("You need to log in first.");
+            toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
           const response = await axios.post(
@@ -102,7 +103,7 @@ function AppliedJobList() {
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading Application jobs, please wait...</p>
+      <p>{t("header.Loading_Application_jobs_please_wait")}</p>
     </div>
   );
 
@@ -113,20 +114,21 @@ function AppliedJobList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Application Management</h1>
+            <h1>{t("header.Application_Management")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard{" "}
+                  <i className="fa-solid fa-angle-right" />
+                  {t("header.dashboard")}{" "}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/applied-jobs-list">
-                  <i className="fa-solid fa-angle-right" /> Application
-                  Management
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.Application_Management")}
                 </Link>
               </li>
             </ol>
@@ -136,7 +138,7 @@ function AppliedJobList() {
           {/*Applied jobs list start here */}
           <section className="applied-jobs-list-info">
             <div className="application-management-filter-info">
-              <h5>Job Applications</h5>
+              <h5>{t("header.Job_Applications")}</h5>
             </div>
             <div className="applied-jobs-search-box-info">
               <div className="employer-candidate-search-box d-flex flex-wrap align-items-center justify-content-between">
@@ -151,7 +153,7 @@ function AppliedJobList() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="Search By: Keywords, Job Title"
+                        placeholder={t("header.Search_By_Keywords_Job_Title")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)} // ✅ update search term
                       />
@@ -165,14 +167,14 @@ function AppliedJobList() {
                     className="default-btn btn px-4"
                     onClick={() => fetchJobs(searchTerm)}
                   >
-                    Find
+                    {t("header.Find")}
                   </button>
                 </div>
 
                 {/* Show Dropdown */}
                 <div className="ms-3 d-flex align-items-center">
                   <span className="me-2 fw-semibold text-secondary text-nowrap">
-                    Show:
+                    {t("header.Show")}
                   </span>
 
                   <select
@@ -212,8 +214,7 @@ function AppliedJobList() {
                   className="text-muted mb-3"
                   style={{ maxWidth: "400px", margin: "0 auto" }}
                 >
-                  No job postings match your current search. Try adjusting your
-                  search keywords or reset filters to see results.
+                  {t("header.No_job_postings_match")}
                 </p>
 
                 <button
@@ -225,7 +226,7 @@ function AppliedJobList() {
                     fetchJobs("", 1);
                   }}
                 >
-                  Reset Search
+                  {t("header.Reset_Search")}
                 </button>
               </div>
             ) : (
@@ -233,15 +234,15 @@ function AppliedJobList() {
                 <table className="table align-middle table-hover">
                   <thead>
                     <tr className="custom-header-row">
-                      <th>Job Title</th>
-                      <th>Recruiters</th>
-                      <th>Status</th>
-                      <th>Published Date</th>
-                      <th>Expired</th>
-                      <th>Views</th>
-                      <th>Applicants</th>
-                      <th>Location</th>
-                      <th>Action</th>
+                      <th>{t("header.jobTitle")}</th>
+                      <th>{t("header.Recruiters")}</th>
+                      <th>{t("header.Status")}</th>
+                      <th>{t("header.Published_Date")}</th>
+                      <th> {t("header.Expired")}</th>
+                      <th> {t("header.view")}</th>
+                      <th> {t("header.Applicants")}</th>
+                      <th> {t("header.location")}</th>
+                      <th> {t("header.Action")}</th>
                     </tr>
                   </thead>
 
@@ -330,7 +331,7 @@ function AppliedJobList() {
                               className="fw-bold text-primary"
                               // style={{ color: "#0d6efd", fontWeight: "500" }}
                             >
-                              {job.applicantCount} Applicants
+                              {job.applicantCount} {t("header.Applicants")}
                             </Link>
                           ) : (
                             <span
@@ -340,7 +341,7 @@ function AppliedJobList() {
                                 cursor: "not-allowed",
                               }}
                             >
-                              0 Applicants
+                              0 {t("header.Applicants")}
                             </span>
                           )}
                         </td>
@@ -388,7 +389,7 @@ function AppliedJobList() {
                                   }}
                                 >
                                   <i className="fa-regular fa-eye me-2"></i>
-                                  View Details
+                                  {t("header.View_Details")}
                                 </Link>
                               </li>
 
@@ -402,7 +403,7 @@ function AppliedJobList() {
                                   }}
                                 >
                                   <i className="fa-regular fa-pen-to-square me-2"></i>
-                                  Edit Job
+                                  {t("header.Edit_Job")}
                                 </Link>
                               </li>
 
@@ -416,7 +417,7 @@ function AppliedJobList() {
                                   onClick={() => handleDelete(job._id)}
                                 >
                                   <i className="fa-regular fa-trash-can me-2"></i>
-                                  Delete
+                                  {t("header.Delete")}
                                 </button>
                               </li>
                             </ul>
@@ -485,17 +486,19 @@ function AppliedJobList() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name">
+                      {t("header.Connect_Work")}
+                    </span>{" "}
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>

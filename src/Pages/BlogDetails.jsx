@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
-
+import { useTranslation } from "react-i18next";
 function BlogDetails() {
+    const { t, i18n } = useTranslation("global");
   const { id } = useParams();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ function BlogDetails() {
         <div className="container">
           <div className="text-center">
             <div className="spinner-border" role="status">
-              <span className="visually-hidden">Loading...</span>
+              <span className="visually-hidden">{t("header.Loading")}</span>
             </div>
           </div>
         </div>
@@ -86,7 +87,7 @@ function BlogDetails() {
             {error}
           </div>
           <Link to="/blog" className="default-btn btn">
-            Back to Blog List
+           {t("header.Back_to_Blog_List")}
           </Link>
         </div>
       </div>
@@ -107,7 +108,7 @@ function BlogDetails() {
               <h1>{blog.title}</h1>
               <ul>
                 <li>
-                  <Link to="/">Home</Link>
+                  <Link to="/">{t("header.home")}</Link>
                 </li>
                 <li>{blog.title}</li>
               </ul>

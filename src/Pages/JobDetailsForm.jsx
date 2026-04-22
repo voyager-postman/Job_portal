@@ -20,6 +20,17 @@ function JobDetailsForm() {
   const { id } = useParams();
   const location = useLocation();
   const job = location.state?.job || {};
+  const [creditInfo, setCreditInfo] = useState({
+    totalJobCredits: 0,
+    remainingJobCredits: 0,
+    dailyLimit: 0,
+    usedToday: 0,
+    remainingToday: 0,
+    packName: "",
+    daysLeft: 0,
+  });
+    const [loading, setLoading] = useState(false);
+  
   const fromPath = location.state?.from || "/your-job-posts";
   console.log("job from state:", job);
   const theme = useTheme();
@@ -259,7 +270,49 @@ function JobDetailsForm() {
       recruitmentProcess: updated,
     }));
   };
+  const fetchcreditStatus = async () => {
+    try {
+      setLoading(true);
 
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(`${API_BASE_URL}credit-status`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        const data = response.data.data;
+
+        // Priority:
+        // purchasedPack active => use purchasedPack
+        // else welcomePack
+
+        const pack = data?.purchasedPack?.active
+          ? data.purchasedPack
+          : data.welcomePack;
+
+        setCreditInfo({
+          totalJobCredits: pack?.jobCreditsTotal || 0,
+          remainingJobCredits: pack?.jobCreditsRemaining || 0,
+          dailyLimit: pack?.dailyJobLimit || 0,
+          usedToday: pack?.jobUsedToday || 0,
+          remainingToday: data?.remainingToday?.jobPostingRemaining || 0,
+          packName: pack?.packName || "Welcome Pack",
+          daysLeft: pack?.daysLeft || 0,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchcreditStatus();
+  }, []);
   const addStep = () => {
     setFormData((prev) => ({
       ...prev,
@@ -549,6 +602,11 @@ function JobDetailsForm() {
         updated[name] = files[0];
       }
 
+      // Prevent negative values
+      else if (name === "TJM" || name === "availablePosts") {
+        updated[name] = value < 0 ? "" : value;
+      }
+
       // NORMAL INPUT
       else {
         updated[name] = value;
@@ -650,6 +708,55 @@ function JobDetailsForm() {
         console.error("❌ No token found");
         return;
       }
+      const minSalary = Number(data.minSalary || 0);
+      const maxSalary = Number(data.maxSalary || 0);
+
+      if (data.minSalary && !data.maxSalary) {
+        toast.error("Please enter Maximum salary");
+        return;
+      }
+
+      if (!data.minSalary && data.maxSalary) {
+        toast.error("Please enter Minimum salary");
+        return;
+      }
+
+      if (data.minSalary && data.maxSalary) {
+        if (minSalary <= 0 || maxSalary <= 0) {
+          toast.error("Salary must be greater than 0");
+          return;
+        }
+
+        if (minSalary > maxSalary) {
+          toast.error("Minimum salary cannot be greater than Maximum salary");
+          return;
+        }
+
+        if (minSalary === maxSalary) {
+          toast.error("Minimum salary and Maximum salary cannot be the same");
+          return;
+        }
+      }
+      if (Number(data.TJM) < 0) {
+        toast.error("TJM cannot be negative");
+        return;
+      }
+
+      if (Number(data.availablePosts) <= 0) {
+        toast.error("Available jobs must be greater than 0");
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const selectedExpiry = expiresAt ? new Date(expiresAt) : null;
+
+      if (statusType === "published") {
+        if (!selectedExpiry || selectedExpiry < today) {
+          toast.error("Expiry date cannot be in the past");
+          return;
+        }
+      }
       const isFreelanceSelected = data.employmentType?.some(
         (item) => item?.label?.trim().toLowerCase() === "freelance",
       );
@@ -676,6 +783,7 @@ function JobDetailsForm() {
         toast.error("Please select an assessment");
         return;
       }
+
       const formDataToSend = new FormData();
       formDataToSend.append("job_id", id || jobFromState._id);
       formDataToSend.append("jobTitle", data.jobTitle || "");
@@ -905,15 +1013,11 @@ function JobDetailsForm() {
 
                               <input
                                 type="number"
+                                min="0"
                                 className="form-control"
                                 name="TJM"
                                 value={formData.TJM}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    TJM: e.target.value,
-                                  }))
-                                }
+                                onChange={handleChange}
                                 placeholder="Enter TJM"
                               />
                             </div>
@@ -1663,9 +1767,10 @@ function JobDetailsForm() {
                               {/* <span className="text-danger">*</span> */}
                               <input
                                 className="form-control"
-                                type="text"
+                                type="number"
                                 name="minSalary"
-                                placeholder="Enter the minimum salary (€)"
+                                min="0"
+                                placeholder="Enter minimum salary"
                                 value={formData.minSalary}
                                 onChange={handleChange}
                               />
@@ -1677,9 +1782,10 @@ function JobDetailsForm() {
                               {/* <span className="text-danger">*</span> */}
                               <input
                                 className="form-control"
-                                type="text"
+                                type="number"
                                 name="maxSalary"
-                                placeholder="Enter the maximum salary (€)"
+                                min="0"
+                                placeholder="Enter maximum salary"
                                 value={formData.maxSalary}
                                 onChange={handleChange}
                               />
@@ -1771,7 +1877,18 @@ function JobDetailsForm() {
                       className="form-control mt-2"
                       value={expiresAt}
                       min={new Date().toISOString().split("T")[0]}
-                      onChange={(e) => setExpiresAt(e.target.value)}
+                      onChange={(e) => {
+                        const selected = new Date(e.target.value);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        if (selected < today) {
+                          toast.error("Please select a future expiry date");
+                          return;
+                        }
+
+                        setExpiresAt(e.target.value);
+                      }}
                     />
 
                     <div className="job-detail-in-cart-info">
@@ -1855,66 +1972,151 @@ function JobDetailsForm() {
             </div>
 
             <div className="job-payment-detail-box-info">
-              <div className="job-payment-detail-info">
-                <h4>Payment details</h4>
+              {/* Header */}
+              <div className="job-payment-detail-info mb-3">
+                <h4 style={{ fontWeight: "700", marginBottom: "0" }}>
+                  Payment Details
+                </h4>
               </div>
+
+              {/* Info Alert */}
               <div
                 className="alert alert-info"
-                role="alert"
-                style={{ "font-size": "14px", "margin-bottom": "20px" }}
+                style={{
+                  borderRadius: "10px",
+                  fontSize: "14px",
+                  padding: "14px",
+                  marginBottom: "20px",
+                }}
               >
-                <i className="fa-solid fa-circle-info me-2" />
+                <i className="fa-solid fa-circle-info me-2"></i>
                 Your job post will be active for{" "}
-                <strong style={{ "font-size": "15px" }}>
-                  {" "}
-                  {diffDays > 0 ? diffDays : 30}
-                </strong>{" "}
-                days once you publish it.
-              </div>
-              <div className="job-payment-text-price">
-                <div className="job-payment-text">
-                  <h5>Job Post</h5>
-                </div>
-                <div className="job-payment-price">
-                  <h5>{simpleJobCredit} Credits</h5>
-                </div>
+                <strong>{diffDays > 0 ? diffDays : 30}</strong> days once
+                published.
               </div>
 
-              {formData.enableFeaturedJob && (
-                <div className="job-payment-text-price">
-                  <div className="job-payment-text">
-                    <h5>Featured Jobs</h5>
+              {/* KPI Cards Better UI */}
+              <div className="row g-3 mb-4">
+                <div className="col-4">
+                  <div
+                    style={{
+                      background: "#f8f9ff",
+                      borderRadius: "12px",
+                      padding: "15px 10px",
+                      textAlign: "center",
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        marginBottom: "8px",
+                        color: "#666",
+                      }}
+                    >
+                      Credits Left
+                    </p>
+                    <h3 style={{ color: "#2d6cdf", margin: 0 }}>
+                      {creditInfo.remainingJobCredits}/
+                      {creditInfo.totalJobCredits}
+                    </h3>
                   </div>
-                  <div className="job-payment-price">
-                    <h5>{featuredJobCredit} Credits</h5>
+                </div>
+
+                <div className="col-4">
+                  <div
+                    style={{
+                      background: "#f8fff8",
+                      borderRadius: "12px",
+                      padding: "15px 10px",
+                      textAlign: "center",
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        marginBottom: "8px",
+                        color: "#666",
+                      }}
+                    >
+                      Daily Limit
+                    </p>
+                    <h3 style={{ color: "#198754", margin: 0 }}>
+                      {creditInfo.dailyLimit}
+                    </h3>
                   </div>
                 </div>
-              )}
 
-              <div className="job-payment-divider"></div>
-
-              <div className="job-payment-text-price">
-                <div className="job-payment-text">
-                  <h2>Total</h2>
-                </div>
-                <div className="job-payment-price">
-                  <h2>{totalCredits} Credits</h2>
+                <div className="col-4">
+                  <div
+                    style={{
+                      background: "#fff8f8",
+                      borderRadius: "12px",
+                      padding: "15px 10px",
+                      textAlign: "center",
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        marginBottom: "8px",
+                        color: "#666",
+                      }}
+                    >
+                      Used Today
+                    </p>
+                    <h3 style={{ color: "#dc3545", margin: 0 }}>
+                      {creditInfo.usedToday}
+                    </h3>
+                  </div>
                 </div>
               </div>
 
-              <div className="job-payment-divider"></div>
+              {/* Charges */}
+              <div className="border-top pt-3">
+                <div className="d-flex justify-content-between mb-2">
+                  <span>Job Post</span>
+                  <strong>1 Credit</strong>
+                </div>
 
-              <div className="job-payment-text-price">
-                <div className="job-payment-text">
-                  <h2>Grand Total</h2>
-                </div>
-                <div className="job-payment-price">
-                  <h2>{totalCredits} Credits</h2>
-                </div>
+                {formData.enableFeaturedJob && (
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Featured Job</span>
+                    <strong>1 Credit</strong>
+                  </div>
+                )}
               </div>
 
-              <div className="job-payment-divider"></div>
-              <div className="job-payment-divider"></div>
+              {/* Total */}
+              <div
+                className="d-flex justify-content-between mt-3 pt-3"
+                style={{ borderTop: "1px dashed #ddd" }}
+              >
+                <span style={{ fontWeight: "700", color: "#0d6efd" }}>
+                  Total Cost
+                </span>
+                <span style={{ fontWeight: "700", color: "#ff6600" }}>
+                  {totalCredits} Credits
+                </span>
+              </div>
+
+              {/* Remaining */}
+              <div
+                className="d-flex justify-content-between mt-3 pt-3"
+                style={{ borderTop: "1px dashed #ddd" }}
+              >
+                <span style={{ fontWeight: "700", color: "#0d6efd" }}>
+                  Remaining After Publish
+                </span>
+                <span style={{ fontWeight: "700", color: "#198754" }}>
+                  {creditInfo.remainingJobCredits - totalCredits >= 0
+                    ? creditInfo.remainingJobCredits - totalCredits
+                    : 0}{" "}
+                  Credits
+                </span>
+              </div>
             </div>
           </div>
           <div className="copy-right-area bg-f0f4fc">

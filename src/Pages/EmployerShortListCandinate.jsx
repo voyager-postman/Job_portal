@@ -4,9 +4,10 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
-
+import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
+  const { t, i18n } = useTranslation("global");
   const cityDropdownRef = useRef(null);
   const experienceRef = useRef(null);
   const educationRef = useRef(null);
@@ -69,24 +70,24 @@ function EmployerShortListCandinate() {
   const [minValue, setMinValue] = useState(0);
   const [maxValue, setMaxValue] = useState(5000);
   const educationLevels = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
 
   const handleDownloadCV = () => {
     const resumes = candidateDetails?.resumeUrls;
 
     if (!resumes || resumes.length === 0) {
-      toast.info("No CV uploaded by candidate", {
+      toast.info(t("header.No_CV_uploaded_by_candidate"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -195,13 +196,13 @@ function EmployerShortListCandinate() {
 
       if (res.data.success) {
         setFolders((prev) => [...prev, res.data.folder]);
-        toast.success("Folder created successfully");
+        toast.success(t("header.Folder_created_successfully"));
         setShowModal(false);
         setFolderName(""); // reset input
       }
     } catch (error) {
       console.error("Error creating folder:", error);
-      toast.error("Failed to create folder");
+      toast.error("header.Failed_to_create_folder");
     }
   };
   useEffect(() => {
@@ -231,14 +232,16 @@ function EmployerShortListCandinate() {
 
   const handleDeleteFolder = async (folderId) => {
     const result = await Swal.fire({
-      title: "Delete Folder?",
-      text: "All bookmarked candidates inside this folder will be removed.",
-      icon: "warning",
+      title: t("header.Delete_Folder"),
+      text: t(
+        "header.All_bookmarked_candidates_inside_this_folder_will_be_removed",
+      ),
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: t("header.Yes_delete_it"),
+      cancelButtonText: t("header.Cancel"),
     });
 
     if (!result.isConfirmed) return;
@@ -266,20 +269,20 @@ function EmployerShortListCandinate() {
 
         // ✅ Success popup with OK button
         await Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "Folder deleted successfully.",
+          icon: t("header.success"),
+          title: t("header.Deleted"),
+          text: t("header.Folder_deleted_successfully"),
           confirmButtonColor: "#3085d6",
-          confirmButtonText: "OK",
+          confirmButtonText: t("header.OK"),
         });
       }
     } catch (error) {
       console.error("Delete folder error:", error);
 
       Swal.fire({
-        icon: "error",
-        title: "Failed",
-        text: "Unable to delete folder.",
+        icon: t("header.error"),
+        title: t("header.Failed"),
+        text: t("header.Unable_to_delete_folder"),
         confirmButtonColor: "#d33",
       });
     } finally {
@@ -559,14 +562,14 @@ function EmployerShortListCandinate() {
   ]);
   const handleRemoveBookmark = async (bookmarkId) => {
     const result = await Swal.fire({
-      title: "Remove from Bookmark?",
-      text: "This candidate will be removed from your bookmarks.",
-      icon: "warning",
+      title: t("header.Remove_from_Bookmark"),
+      text: t("header.This_candidate_will_be_removed_from_your_bookmarks"),
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, remove",
-      cancelButtonText: "Cancel",
+      confirmButtonText: t("header.Yes_remove"),
+      cancelButtonText: t("header.Cancel"),
     });
 
     if (!result.isConfirmed) return;
@@ -589,20 +592,20 @@ function EmployerShortListCandinate() {
 
         // ✅ Success popup WITH OK button
         await Swal.fire({
-          icon: "success",
-          title: "Removed!",
-          text: "Candidate removed from bookmark.",
+          icon: t("header.success"),
+          title: t("header.Removed"),
+          text: t("header.Candidate_removed_from_bookmark"),
           confirmButtonColor: "#3085d6",
-          confirmButtonText: "OK",
+          confirmButtonText: t("header.OK"),
         });
       }
     } catch (error) {
       console.error("Remove bookmark error:", error);
 
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Something went wrong.",
+        icon: t("header.error"),
+        title: t("header.error"),
+        text: t("header.something_wrong"),
         confirmButtonColor: "#d33",
       });
     } finally {
@@ -662,25 +665,27 @@ function EmployerShortListCandinate() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1> Bookmark Candidates</h1>
+            <h1> {t("header.Bookmark_Candidates")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/"> {t("header.home")}</Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/bookmark-candidate">
-                  <i className="fa-solid fa-angle-right" /> Bookmark Candidates
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.Bookmark_Candidates")}
                 </Link>
               </li>
             </ol>
           </div>
           <div className="employer-dashboard-common-heading  pb-3">
-            <h2>Candidates Bookmark</h2>
+            <h2> {t("header.Candidates_Bookmark")}</h2>
           </div>
           {/* End Breadcrumb Area */}
           {/*Start Bookmark Jobs Area*/}
@@ -688,9 +693,9 @@ function EmployerShortListCandinate() {
             <div className="row g-3 mb-4">
               <div className="col-12 mb-3">
                 <h5 className="mb-0 fw-bold">
-                  All Candidates{" "}
+                  All Candidates{t("header.All_Candidates")}{" "}
                   <span className="text-muted fs-6 fw-normal">
-                    ({totalCandidates || 0} Candidates)
+                    ({totalCandidates || 0} {t("header.candidates")})
                   </span>
                 </h5>
               </div>
@@ -711,7 +716,7 @@ function EmployerShortListCandinate() {
                     <input
                       className="form-control ps-5 py-2"
                       type="text"
-                      placeholder="Search candidates by name..."
+                      placeholder={t("header.Search_candidates_by_name")}
                       value={search}
                       onChange={(e) => {
                         setSearch(e.target.value);
@@ -739,7 +744,9 @@ function EmployerShortListCandinate() {
                         showFilter ? "fa-chevron-up" : "fa-filter"
                       }`}
                     />
-                    {showFilter ? "Hide Filters" : "Show Filters"}
+                    {showFilter
+                      ? t("header.Hide_Filters")
+                      : t("header.Show_Filters")}
                   </button>
                   <button
                     className="btn btn-primary px-4 fw-bold"
@@ -754,7 +761,7 @@ function EmployerShortListCandinate() {
                       border: "none",
                     }}
                   >
-                    Find Candidate
+                    {t("header.Find_Candidate")}
                   </button>
                 </div>
               </div>
@@ -776,7 +783,7 @@ function EmployerShortListCandinate() {
                       className="m-0 fw-bold"
                       style={{ "font-size": "16px", color: "rgb(26, 26, 26)" }}
                     >
-                      Filtres Avancés
+                      {t("header.Filtres_Avancés")}
                     </h2>
                   </div>
                   <div className="row g-3 mb-4">
@@ -792,7 +799,7 @@ function EmployerShortListCandinate() {
                             fontWeight: "600",
                           }}
                         >
-                          Experience
+                          {t("header.Experience")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -844,7 +851,8 @@ function EmployerShortListCandinate() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedExperience.length} selected
+                                {selectedExperience.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -855,7 +863,7 @@ function EmployerShortListCandinate() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -899,7 +907,7 @@ function EmployerShortListCandinate() {
                             fontWeight: "600",
                           }}
                         >
-                          Education
+                          {t("header.Education")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -951,7 +959,8 @@ function EmployerShortListCandinate() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedEducation.length} selected
+                                {selectedEducation.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -962,7 +971,7 @@ function EmployerShortListCandinate() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1005,7 +1014,7 @@ function EmployerShortListCandinate() {
                             fontWeight: "600",
                           }}
                         >
-                          Availability
+                          {t("header.aboutUs")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -1059,7 +1068,8 @@ function EmployerShortListCandinate() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedAvailability.length} selected
+                                {selectedAvailability.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -1070,7 +1080,7 @@ function EmployerShortListCandinate() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1113,7 +1123,7 @@ function EmployerShortListCandinate() {
                             fontWeight: "600",
                           }}
                         >
-                          Salary
+                          {t("header.Salary")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -1165,7 +1175,7 @@ function EmployerShortListCandinate() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedSalary.length} selected
+                                {selectedSalary.length} {t("header.selected")}
                               </span>
 
                               <button
@@ -1176,7 +1186,7 @@ function EmployerShortListCandinate() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1218,7 +1228,7 @@ function EmployerShortListCandinate() {
                             color: "rgb(75, 85, 99)",
                           }}
                         >
-                          Compétences
+                          {t("header.Compétences")}
                         </label>
 
                         {/* INPUT */}
@@ -1303,7 +1313,7 @@ function EmployerShortListCandinate() {
                             color: "rgb(75, 85, 99)",
                           }}
                         >
-                          Localisation
+                          {t("header.Localisation")}
                         </label>
                         <div className="row g-2 mb-3">
                           <div className="col-6">
@@ -1403,7 +1413,7 @@ function EmployerShortListCandinate() {
                                 color: "rgb(51, 65, 85)",
                               }}
                             >
-                              Recherche Freelance
+                              {t("header.Recherche_Freelance")}
                             </label>
                           </div>
 
@@ -1418,7 +1428,8 @@ function EmployerShortListCandinate() {
                                   letterSpacing: "0.5px",
                                 }}
                               >
-                                Budget TJM (MAD)
+                                {t("header.Budget_TJM_MAD")}{" "}
+                                {t("header.Recherche_Freelance")}
                               </span>
 
                               <div
@@ -1519,7 +1530,7 @@ function EmployerShortListCandinate() {
                       onClick={handleResetFilters}
                     >
                       <i className="fa-solid fa-rotate-left" />
-                      Réinitialiser tous les filtres
+                      {t("header.Réinitialiser_tous_les_filtres")}
                     </button>
                   </div>
                 </div>
@@ -1529,14 +1540,16 @@ function EmployerShortListCandinate() {
             <div className="row g-3 align-items-end mt-2">
               <div className="col-12 col-md-5">
                 <label className="filter-label-inline text-primary">
-                  Job Offers
+                  {t("header.job_offers")}
                 </label>
                 <select
                   className="form-select form-select-sm fw-bold border-primary shadow-sm"
                   value={activeFolder}
                   onChange={(e) => handleFolderClick(e.target.value)}
                 >
-                  <option value="all">All Job Offers / None Selected</option>
+                  <option value="all">
+                    {t("header.All_Job_Offers_None_Selected")}
+                  </option>
 
                   {autoJobFolders.map((folder) => (
                     <option key={folder._id} value={folder._id}>
@@ -1547,7 +1560,7 @@ function EmployerShortListCandinate() {
               </div>
               <div className="col-12 col-md-5">
                 <label className="filter-label-inline text-success">
-                  Custom Folders
+                  {t("header.Custom_Folders")}
                 </label>
 
                 <div className="d-flex gap-2">
@@ -1558,7 +1571,7 @@ function EmployerShortListCandinate() {
                     onChange={(e) => handleFolderClick(e.target.value)}
                   >
                     <option value="all">
-                      All Custom Folders / None Selected
+                      {t("header.All_Custom_Folders_None_Selected")}
                     </option>
 
                     {customFolders.map((folder) => (
@@ -1579,7 +1592,7 @@ function EmployerShortListCandinate() {
                     className="btn btn-sm btn-outline-success text-nowrap shadow-sm d-flex align-items-center gap-1"
                     onClick={() => setShowModal(true)}
                   >
-                    + Create
+                    + {t("header.Create")}
                   </button>
 
                   {/* DELETE BUTTON (CONDITIONAL) */}
@@ -1614,7 +1627,7 @@ function EmployerShortListCandinate() {
                     "border-radius": "8px",
                   }}
                 >
-                  Reset Filters
+                  {t("header.Reset_Filters")}
                 </button>
               </div>
             </div>
@@ -1636,7 +1649,7 @@ function EmployerShortListCandinate() {
                     className="text-muted fw-bold"
                     style={{ "font-size": "13px" }}
                   >
-                    Total:{" "}
+                    {t("header.Total")}:{" "}
                     <span className="text-primary">
                       ({totalCandidates || 0})
                     </span>
@@ -1654,11 +1667,13 @@ function EmployerShortListCandinate() {
                       cursor: "pointer",
                     }}
                   >
-                    <option value="">Sort By Experience</option>
+                    <option value="">
+                      Sort By Experience{t("header.Sort_By_Experience")}
+                    </option>
 
                     {/* ✅ FIXED */}
-                    <option value="asc">Least Experienced</option>
-                    <option value="desc">Most Experienced</option>
+                    <option value="asc">{t("header.Least_Experienced")}</option>
+                    <option value="desc">{t("header.Most_Experienced")}</option>
                   </select>
                 </div>
                 <div
@@ -1759,7 +1774,7 @@ function EmployerShortListCandinate() {
                   ) : (
                     <div className="text-center p-5 bg-white rounded border shadow-sm">
                       <p className="text-muted mb-0">
-                        No candidates found in this folder/filter.
+                        {t("header.No_candidates_found_in_this_folder_filter")}
                       </p>
                     </div>
                   )}
@@ -1837,7 +1852,7 @@ function EmployerShortListCandinate() {
                                     onClick={handleDownloadCV}
                                   >
                                     <i className="fa-solid fa-download me-1" />{" "}
-                                    Download CV
+                                    {t("header.Download_CV")}
                                   </button>
                                 )}
                               </div>
@@ -1909,7 +1924,7 @@ function EmployerShortListCandinate() {
                                           className="text-muted small"
                                           style={{ "font-size": "10px" }}
                                         >
-                                          Email
+                                          {t("header.email")}
                                         </div>
                                         <div
                                           className="fw-bold small"
@@ -1947,7 +1962,7 @@ function EmployerShortListCandinate() {
                                           className="text-muted small"
                                           style={{ "font-size": "10px" }}
                                         >
-                                          Phone
+                                          {t("header.phone")}
                                         </div>
                                         <div
                                           className="fw-bold small"
@@ -2013,7 +2028,7 @@ function EmployerShortListCandinate() {
                                         className="fa-solid fa-envelope"
                                         style={{ marginRight: "5px" }}
                                       />
-                                      Envoyer un message
+                                      {t("header.Envoyer_un_message")}
                                     </Link>
                                   </div>
                                 </div>
@@ -2030,7 +2045,7 @@ function EmployerShortListCandinate() {
                                     }}
                                   >
                                     <i className="fa-regular fa-eye me-2" />
-                                    Afficher les coordonnées
+                                    {t("header.Afficher_les_coordonnées")}
                                   </button>
                                 </div>
                               )}
@@ -2050,7 +2065,7 @@ function EmployerShortListCandinate() {
                                     borderRadius: "4px",
                                   }}
                                 />
-                                Professional Summary
+                                {t("header.Professional_Summary")}
                               </h5>
 
                               <p
@@ -2076,7 +2091,7 @@ function EmployerShortListCandinate() {
                                       borderRadius: "4px",
                                     }}
                                   />
-                                  Work Experience
+                                  {t("header.Work_Experience")}
                                 </h5>
 
                                 {candidateDetails?.workHistory?.length > 2 && (
@@ -2173,7 +2188,7 @@ function EmployerShortListCandinate() {
                                   ))
                                 ) : (
                                   <p className="text-muted small">
-                                    No experience added
+                                    {t("header.No_experience_added")}
                                   </p>
                                 )}
                               </div>
@@ -2189,7 +2204,7 @@ function EmployerShortListCandinate() {
                                       borderRadius: "4px",
                                     }}
                                   />
-                                  Education
+                                  {t("header.Education")}
                                 </h5>
                               </div>
 
@@ -2244,7 +2259,7 @@ function EmployerShortListCandinate() {
                                   )
                                 ) : (
                                   <p className="text-muted small">
-                                    No education added
+                                    {t("header.No_education_added")}
                                   </p>
                                 )}
                               </div>
@@ -2259,7 +2274,7 @@ function EmployerShortListCandinate() {
                                     borderRadius: "4px",
                                   }}
                                 />
-                                Technical Skills
+                                {t("header.Technical_Skills")}
                               </h5>
 
                               <div className="d-flex flex-wrap gap-2 mt-3">
@@ -2280,7 +2295,7 @@ function EmployerShortListCandinate() {
                                   )
                                 ) : (
                                   <span className="text-muted small">
-                                    No skills added
+                                    {t("header.No_skills_added")}
                                   </span>
                                 )}
                               </div>
@@ -2300,7 +2315,7 @@ function EmployerShortListCandinate() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-bullseye text-primary" />
-                                    Career Preferences
+                                    {t("header.Career_Preferences")}
                                   </h6>
 
                                   {candidateDetails?.career_goals ? (
@@ -2314,7 +2329,7 @@ function EmployerShortListCandinate() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Desired Roles
+                                          {t("header.Desired_Roles")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2339,7 +2354,7 @@ function EmployerShortListCandinate() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Contract Types
+                                          {t("header.Contract_Types")}
                                         </div>
 
                                         <div className="d-flex flex-wrap gap-1">
@@ -2383,11 +2398,10 @@ function EmployerShortListCandinate() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Occupation Type
+                                          {t("header.Occupation_Type")}
                                         </div>
 
                                         <div className="fw-bold small">
-                                      
                                           {Array.isArray(
                                             candidateDetails.career_goals
                                               ?.DesiredJobCategory,
@@ -2409,7 +2423,7 @@ function EmployerShortListCandinate() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Job Search Status
+                                          {t("header.Job_Search_Status")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2427,19 +2441,19 @@ function EmployerShortListCandinate() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Work Eligibility (France)
+                                          {t("header.Work_Eligibility_France")}
                                         </div>
 
                                         <div className="fw-bold small d-flex align-items-center gap-2">
                                           {candidateDetails?.eligibleToWorkInFrance ? (
                                             <span className="text-success d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-check" />{" "}
-                                              Eligible
+                                              {t("header.Eligible")}
                                             </span>
                                           ) : (
                                             <span className="text-danger d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-xmark" />{" "}
-                                              Not Eligible
+                                              {t("header.Not_Eligible")}
                                             </span>
                                           )}
                                         </div>
@@ -2452,7 +2466,7 @@ function EmployerShortListCandinate() {
                                             className="text-muted text-uppercase mb-1"
                                             style={{ fontSize: "10px" }}
                                           >
-                                            Availability
+                                            {t("header.Availability")}
                                           </div>
 
                                           <div className="fw-bold small text-success">
@@ -2466,7 +2480,7 @@ function EmployerShortListCandinate() {
                                             className="text-muted text-uppercase mb-1"
                                             style={{ fontSize: "10px" }}
                                           >
-                                            Min Salary
+                                            {t("header.Min_Salary")}
                                           </div>
 
                                           <div className="fw-bold small">
@@ -2487,7 +2501,7 @@ function EmployerShortListCandinate() {
                                         {/* TJM */}
                                         <div className="mt-2 pt-2 border-top border-light-subtle d-flex justify-content-between">
                                           <div className="text-muted small fw-bold">
-                                            TJM
+                                            {t("header.TJM")}
                                           </div>
 
                                           <div
@@ -2504,7 +2518,7 @@ function EmployerShortListCandinate() {
                                     </div>
                                   ) : (
                                     <p className="text-muted small">
-                                      No career goals specified
+                                      {t("header.No_career_goals_specified")}
                                     </p>
                                   )}
                                 </div>
@@ -2513,7 +2527,7 @@ function EmployerShortListCandinate() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-language text-primary" />
-                                    Languages
+                                    {t("header.Languages")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2548,7 +2562,7 @@ function EmployerShortListCandinate() {
                                       )
                                     ) : (
                                       <span className="text-muted small">
-                                        No languages added
+                                        {t("header.No_languages_added")}
                                       </span>
                                     )}
                                   </div>
@@ -2558,7 +2572,7 @@ function EmployerShortListCandinate() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-medal text-warning" />
-                                    Certifications
+                                    {t("header.Certifications")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2600,7 +2614,7 @@ function EmployerShortListCandinate() {
                                       )
                                     ) : (
                                       <p className="text-muted small">
-                                        No certificates added
+                                        {t("header.No_certificates_added")}
                                       </p>
                                     )}
                                   </div>
@@ -2616,7 +2630,9 @@ function EmployerShortListCandinate() {
                         style={{ minHeight: "500px" }}
                       >
                         <p className="text-muted">
-                          Sélectionnez un candidat pour voir les détails
+                          {t(
+                            "header.Sélectionnez_un_candidat_pour_voir_les_détails",
+                          )}
                         </p>
                       </div>
                     )}
@@ -2635,17 +2651,19 @@ function EmployerShortListCandinate() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name">
+                      {t("header.Connect_Work")}
+                    </span>{" "}
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>
@@ -2663,7 +2681,7 @@ function EmployerShortListCandinate() {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content ">
                 <div className="modal-header">
-                  <h5 className="modal-title">Create Folder</h5>
+                  <h5 className="modal-title">{t("header.Create_Folder")}</h5>
                   <button
                     type="button"
                     className="btn-close"
@@ -2675,7 +2693,7 @@ function EmployerShortListCandinate() {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Enter folder name"
+                    placeholder={t("header.Enter_folder_name")}
                     value={folderName}
                     onChange={(e) => setFolderName(e.target.value)}
                   />
@@ -2686,14 +2704,14 @@ function EmployerShortListCandinate() {
                     className="btn btn-secondary"
                     onClick={() => setShowModal(false)}
                   >
-                    Cancel
+                    {t("header.Cancel")}
                   </button>
 
                   <button
                     className="btn btn-primary"
                     onClick={handleCreateFolder}
                   >
-                    Create
+                    {t("header.Create")}
                   </button>
                 </div>
               </div>
