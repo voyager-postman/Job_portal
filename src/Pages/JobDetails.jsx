@@ -40,11 +40,6 @@ function JobDetails() {
   console.log(id);
   const from = location.state?.from;
   console.log(from);
-  // useEffect(() => {
-  //   if (location.state?.from) {
-  //     localStorage.setItem("jobFrom", location.state.from);
-  //   }
-  // }, [location.state]);
 
   const breadcrumbLabel = from?.includes("/manage-job-application")
     ? "Manage Job Application"
@@ -65,22 +60,60 @@ function JobDetails() {
   // };
 
   // const breadcrumbLabel = breadcrumbLabelMap[from];
-
   const fetchJobDetails = async () => {
     try {
+      setLoading(true);
+
       const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      setJob(res.data?.data || res.data); // Adjust according to your API response
-      console.log(res);
-      setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
-      setAssessmentDetails(res?.data?.data?.assessmentResult);
+
+      const responseData = res.data?.data;
+      const jobDetails = responseData?.jobDetails;
+      console.log(jobDetails.confidentialJobPost);
+      console.log(userRole);
+      // ✅ Only Jobseeker Block
+      if (userRole === "JobSeeker" && jobDetails?.confidentialJobPost == true) {
+        toast.error("This confidential job is not available.");
+        console.log(from);
+        const redirectPath = token ? "/job-search" : "/job";
+        setTimeout(() => {
+          navigate(redirectPath);
+        }, 1000); // 1.5 sec delay
+
+        return;
+      }
+      // ✅ Recruiter / Admin / Other can open
+      setJob(responseData);
+      setLinkUrl(jobDetails?.jobLink || "");
+      setAssessmentDetails(responseData?.assessmentResult || null);
     } catch (error) {
       console.error("Error fetching job details:", error);
+
+      toast.error(
+        error?.response?.data?.message || "Unable to load job details.",
+      );
+
+      navigate(-1);
     } finally {
       setLoading(false);
     }
   };
+  // const fetchJobDetails = async () => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     setJob(res.data?.data || res.data); // Adjust according to your API response
+  //     console.log(res);
+  //     setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
+  //     setAssessmentDetails(res?.data?.data?.assessmentResult);
+  //   } catch (error) {
+  //     console.error("Error fetching job details:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   useEffect(() => {
     if (id) {
       fetchJobDetails();
@@ -1723,9 +1756,11 @@ function JobDetails() {
                     </h4>
                     <Link to="/jobs">
                       <p className="active_link">
-                    {job?.jobDetails?.jobCategory?.length > 0
-  ? job.jobDetails.jobCategory.map((item) => item.name).join(", ")
-  : "N/A"}
+                        {job?.jobDetails?.jobCategory?.length > 0
+                          ? job.jobDetails.jobCategory
+                              .map((item) => item.name)
+                              .join(", ")
+                          : "N/A"}
                       </p>
                     </Link>
                   </div>

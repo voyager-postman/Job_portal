@@ -29,8 +29,11 @@ function JobDetailsForm() {
     packName: "",
     daysLeft: 0,
   });
-    const [loading, setLoading] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
+  const [globalCurrency, setGlobalCurrency] = useState({
+    code: "MAD",
+    symbol: "DH",
+  });
   const fromPath = location.state?.from || "/your-job-posts";
   console.log("job from state:", job);
   const theme = useTheme();
@@ -239,7 +242,34 @@ function JobDetailsForm() {
         .catch((err) => console.error("Failed to fetch job:", err));
     }
   }, [id, jobFromState._id]);
+  const fetchGlobalCurrency = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
 
+      if (res.data.success) {
+        const currencyCode = res.data.data?.code || "MAD";
+        const currencySymbol = res.data.data?.symbol || "DH";
+
+        setGlobalCurrency({
+          code: currencyCode,
+          symbol: currencySymbol,
+        });
+
+        // update form state also
+        setCareerGoalsData((prev) => ({
+          ...prev,
+          salaryCurrency: currencyCode,
+          TJMCurrency: currencyCode,
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGlobalCurrency();
+  }, []);
   useEffect(() => {
     const fetchSeniorityLevels = async () => {
       try {
@@ -907,7 +937,76 @@ function JobDetailsForm() {
     ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
     : 30;
   console.log(diffDays);
+  // ===============================
+  // Add State (already have aiLoading)
+  // ===============================
+  const generateJobDescription = async () => {
+    try {
+      if (!formData.jobTitle?.trim()) {
+        toast.error("Please enter Job Title");
+        return;
+      }
 
+      if (!formData.jobCategory || formData.jobCategory.length === 0) {
+        toast.error("Please select Job Category");
+        return;
+      }
+
+      setAiLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const payload = {
+        jobTitle: formData.jobTitle || "",
+
+        jobCategory: formData.jobCategory.map((item) => item.label),
+
+        skills: formData.tags || [],
+
+        experience:
+          seniorityLevels.find((item) => item._id === formData.minimumLevel)
+            ?.name || "",
+
+        employmentType: formData.employmentType.map((item) => item.label),
+
+        city: formData.city || [],
+
+        country:
+          countryList.find((item) => item._id === formData.Country)?.name || "",
+
+        shortDescription: formData.shortDescription || "",
+
+        tags: formData.tags || [],
+      };
+
+      const response = await axios.post(
+        `${API_BASE_URL}generate-job-description`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        setFormData((prev) => ({
+          ...prev,
+          jobDescription:
+            response.data.jobDescription || response.data.data || "",
+        }));
+
+        toast.success("Job Description Generated Successfully");
+      } else {
+        toast.error("Failed to generate description");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setAiLoading(false);
+    }
+  };
   return (
     <>
       <ToastContainer />
@@ -1354,7 +1453,7 @@ function JobDetailsForm() {
                     <button
                       type="button"
                       className="btn default-btn"
-                      // onClick={generateJobDescription}
+                      onClick={generateJobDescription}
                       disabled={aiLoading}
                       style={{
                         padding: "8px 15px",
@@ -1762,8 +1861,10 @@ function JobDetailsForm() {
                         <div className="row">
                           <div className="col-lg-6 col-md-6">
                             <div className="form-group">
-                              <label>Min salary (Gross $)</label>
-
+                              <label>
+                                Min salary (Gross{" "}
+                                {globalCurrency.symbol || globalCurrency.code})
+                              </label>
                               {/* <span className="text-danger">*</span> */}
                               <input
                                 className="form-control"
@@ -1778,7 +1879,10 @@ function JobDetailsForm() {
                           </div>
                           <div className="col-lg-6 col-md-6">
                             <div className="form-group">
-                              <label>Max salary (Gross $)</label>
+                              <label>
+                                Max salary (Gross{" "}
+                                {globalCurrency.symbol || globalCurrency.code})
+                              </label>
                               {/* <span className="text-danger">*</span> */}
                               <input
                                 className="form-control"

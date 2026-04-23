@@ -24,6 +24,10 @@ function CandidateProfile() {
     "Post Doctorate",
     "Professional Degree",
   ];
+  const [globalCurrency, setGlobalCurrency] = useState({
+    code: "MAD",
+    symbol: "DH",
+  });
   const jobTypeOptions = [
     { value: "Immediate", label: "Immediate" },
     { value: "Temporary", label: "Temporary" },
@@ -66,6 +70,34 @@ function CandidateProfile() {
     { label: "Full professional", code: "Full professional" },
     { label: "Native / Bilingual", code: "Native / Bilingual" },
   ];
+  const fetchGlobalCurrency = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
+
+      if (res.data.success) {
+        const currencyCode = res.data.data?.code || "MAD";
+        const currencySymbol = res.data.data?.symbol || "DH";
+
+        setGlobalCurrency({
+          code: currencyCode,
+          symbol: currencySymbol,
+        });
+
+        // update form state also
+        setCareerGoalsData((prev) => ({
+          ...prev,
+          salaryCurrency: currencyCode,
+          TJMCurrency: currencyCode,
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGlobalCurrency();
+  }, []);
 
   const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
   const [languageForm, setLanguageForm] = useState({
@@ -187,17 +219,7 @@ function CandidateProfile() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [educationList, setEducationList] = useState([]);
-  // const [careerGoalsData, setCareerGoalsData] = useState({
-  //   desiredJobTitle: "",
-  //   employmentType: [],
-  //   occupationType: "",
-  //   availabilityToJoin: "",
-  //   eligibleToWork: false,
-  //   salaryAmount: "",
-  //   salaryType: "Hourly",
-  //   salaryCurrency: "MAD",
-  //   lookingForJob: "",
-  // });
+
   const [careerGoalsData, setCareerGoalsData] = useState({
     desiredJobTitle: [],
     employmentType: [],
@@ -801,139 +823,6 @@ function CandidateProfile() {
     }));
   };
 
-  // Save Career Goals
-  // const handleSaveGoals = async () => {
-  //   try {
-  //     if (
-  //       !careerGoalsData.desiredJobTitle ||
-  //       careerGoalsData.desiredJobTitle.length === 0
-  //     ) {
-  //       toast.error("Please enter a Desired Job Title", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (
-  //       !careerGoalsData.employmentType ||
-  //       careerGoalsData.employmentType.length === 0
-  //     ) {
-  //       toast.error("Please select a Job Type", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (
-  //       !careerGoalsData.occupationType ||
-  //       careerGoalsData.occupationType.length === 0
-  //     ) {
-  //       toast.error("Please select a Desired Occupation Type", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (!careerGoalsData.availabilityToJoin) {
-  //       toast.error("Please select a Available to join", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (!careerGoalsData.salaryType) {
-  //       toast.error(
-  //         "Please select a Salary Type (Hourly, Daily, Monthly, Yearly)",
-  //         {
-  //           autoClose: 2000,
-  //           theme: "colored",
-  //         },
-  //       );
-  //       return;
-  //     }
-
-  //     if (!careerGoalsData.salaryCurrency) {
-  //       toast.error("Please select a Salary Currency", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-
-  //     if (!careerGoalsData.lookingForJob) {
-  //       toast.error("Please select a job opportunity", {
-  //         autoClose: 2000,
-  //         theme: "colored",
-  //       });
-  //       return;
-  //     }
-  //     const token = localStorage.getItem("token");
-
-  //     const payload = {
-  //       DesiredJobTitle: careerGoalsData.desiredJobTitle.map(
-  //         (item) => item.value,
-  //       ),
-
-  //       DesiredEmploymentType: careerGoalsData.employmentType.map(
-  //         (item) => item.value,
-  //       ),
-
-  //       DesiredOccupationType: careerGoalsData.occupationType.map(
-  //         (item) => item.value,
-  //       ),
-
-  //       availabilityToJoin: careerGoalsData.availabilityToJoin,
-
-  //       MinimumDesiredSalary: {
-  //         amount: String(careerGoalsData.salaryAmount),
-  //         currency: careerGoalsData.salaryCurrency,
-  //         type: careerGoalsData.salaryType,
-  //       },
-  //       jobSearchStatus: careerGoalsData.lookingForJob,
-  //       eligibleToWorkInFrance: careerGoalsData.eligibleToWork,
-  //     };
-  //     const response = await axios.put(
-  //       `${API_BASE_URL}updateCareerGoals`,
-  //       payload,
-  //       { headers: { Authorization: `Bearer ${token}` } },
-  //     );
-
-  //     if (response.status === 200) {
-  //       setProfileData((prev) => ({
-  //         ...prev,
-  //         career_goals: {
-  //           DesiredJobTitle: payload.DesiredJobTitle,
-  //           DesiredEmploymentType: payload.DesiredEmploymentType,
-  //           DesiredOccupationType: payload.DesiredOccupationType,
-  //           MinimumDesiredSalary: payload.MinimumDesiredSalary,
-  //           jobSearchStatus: payload.jobSearchStatus,
-  //           availabilityToJoin: payload.availabilityToJoin,
-  //         },
-  //         eligibleToWorkInFrance: payload.eligibleToWorkInFrance,
-  //       }));
-
-  //       setCheckStatus((prev) => ({ ...prev, careerGoals: 1 }));
-  //       setEditMode(false);
-
-  //       toast.success(
-  //         profileData.career_goals
-  //           ? "Career Goals updated successfully!"
-  //           : "Career Goals added successfully!",
-  //         { autoClose: 2000, theme: "colored" },
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving career goals:", error);
-  //     toast.error("Failed to save Career Goals", {
-  //       autoClose: 2000,
-  //       theme: "colored",
-  //     });
-  //   }
-  // };
   const handleSaveGoals = async () => {
     const isFreelanceSelected = careerGoalsData.employmentType?.some(
       (item) => item.value === "Freelance",
@@ -2893,7 +2782,8 @@ function CandidateProfile() {
                             salaryAmount:
                               goals?.MinimumDesiredSalary?.amount || "",
                             salaryCurrency:
-                              goals?.MinimumDesiredSalary?.currency || "MAD",
+                              goals?.MinimumDesiredSalary?.currency ||
+                              globalCurrency.code,
                             salaryType:
                               goals?.MinimumDesiredSalary?.type || "Monthly",
 
@@ -2902,11 +2792,10 @@ function CandidateProfile() {
                               typeof goals?.TJM === "object"
                                 ? goals?.TJM?.amount
                                 : goals?.TJM || "",
-
                             TJMCurrency:
                               typeof goals?.TJM === "object"
                                 ? goals?.TJM?.currency
-                                : "MAD",
+                                : globalCurrency.code,
 
                             eligibleToWork:
                               profileData?.eligibleToWorkInFrance ?? false,
@@ -2991,7 +2880,7 @@ function CandidateProfile() {
                       {isFreelanceSelected && (
                         <div className="col-md-6 saas-form-group">
                           <label className="saas-label">
-                            TJM (Taux Journalier Moyen) en MAD
+                            TJM (Taux Journalier Moyen) en {globalCurrency.code}
                           </label>
 
                           <input
@@ -3020,44 +2909,10 @@ function CandidateProfile() {
                           <option value="More">More</option>
                         </select>
                       </div>
-                      {/* <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">
-                          Minimum Salary (MAD / Monthly)
-                        </label>
 
-                        <div className="d-flex gap-2">
-                          <select
-                            className="saas-input"
-                            name="salaryAmount"
-                            value={careerGoalsData.salaryAmount}
-                            onChange={handleCareerGoalsChange}
-                          >
-                            <option value="">Select Range</option>
-                            <option value="0-5000">0 - 5000</option>
-                            <option value="5000-10000">5000 - 10000</option>
-                            <option value="10000-15000">
-                              10000 - 15000 dh
-                            </option>
-                            <option value="15000-20000">
-                              15000 - 20000 dh
-                            </option>
-                            <option value="20000+">20000+ dh</option>
-                          </select>
-
-                          <select
-                            className="saas-select"
-                            name="salaryCurrency"
-                            value={careerGoalsData.salaryCurrency}
-                            onChange={handleCareerGoalsChange}
-                            style={{ width: "100px" }}
-                          >
-                            <option value="MAD">MAD</option>
-                          </select>
-                        </div>
-                      </div> */}
                       <div className="col-md-6 saas-form-group">
                         <label className="saas-label">
-                          Minimum Salary (MAD / Monthly)
+                          Minimum Salary ({globalCurrency.code} / Monthly)
                         </label>
 
                         <div className="d-flex gap-2">
@@ -3083,7 +2938,9 @@ function CandidateProfile() {
                             onChange={handleCareerGoalsChange}
                             style={{ width: "100px" }}
                           >
-                            <option value="MAD">MAD</option>
+                            <option value={globalCurrency.code}>
+                              {globalCurrency.code}
+                            </option>
                           </select>
                         </div>
                       </div>
@@ -3202,7 +3059,7 @@ function CandidateProfile() {
                                 ? typeof profileData.career_goals.TJM ===
                                   "object"
                                   ? `${profileData.career_goals.TJM.amount} ${profileData.career_goals.TJM.currency}`
-                                  : `${profileData.career_goals.TJM} MAD`
+                                  : `${profileData.career_goals.TJM} ${globalCurrency.code}`
                                 : "-"}
                             </p>
                           </div>
@@ -3434,7 +3291,7 @@ function CandidateProfile() {
                             EmploymentType: "",
                             workLocation: "",
                             salaryAmount: "",
-                            salaryCurrency: "MAD",
+                            salaryCurrency: globalCurrency.code,
                             salaryType: "Monthly",
                           });
                           setEditWork(true);
@@ -3492,7 +3349,7 @@ function CandidateProfile() {
                           <label className="saas-label">
                             {workExperienceData.EmploymentType === "Freelance"
                               ? "TJM (Taux Journalier Moyen)"
-                              : `Salary Amount (${workExperienceData.salaryCurrency} / ${workExperienceData.salaryType})`}
+                              : `Salary Amount (${globalCurrency.code} / ${workExperienceData.salaryType})`}
                           </label>
                           <input
                             className="saas-input"
@@ -3510,7 +3367,9 @@ function CandidateProfile() {
                             value={workExperienceData.salaryCurrency}
                             onChange={handleChangeOfWork}
                           >
-                            <option value="MAD">MAD</option>
+                            <option value={globalCurrency.code}>
+                              {globalCurrency.code}
+                            </option>
                           </select>
                         </div>
 
@@ -3695,16 +3554,19 @@ function CandidateProfile() {
                                     {exp?.EmploymentType === "Freelance" ? (
                                       <>
                                         <strong>
-                                          TJM (Taux Journalier Moyen)
+                                          TJM (Taux Journalier Moyen) ($
+                                          {globalCurrency.code})
                                         </strong>{" "}
                                         <br />
                                         {exp?.currentSalary?.amount}{" "}
-                                        {exp?.currentSalary?.currency || "MAD"}
+                                        {exp?.currentSalary?.currency ||
+                                          globalCurrency.code}
                                       </>
                                     ) : (
                                       <>
                                         {exp?.currentSalary?.amount}{" "}
-                                        {exp?.currentSalary?.currency || "MAD"}{" "}
+                                        {exp?.currentSalary?.currency ||
+                                          globalCurrency.code}
                                         /{" "}
                                         {exp?.currentSalary?.payrollFrequency ||
                                           "Monthly"}
@@ -3743,7 +3605,8 @@ function CandidateProfile() {
                                       salaryAmount:
                                         exp.currentSalary?.amount || "",
                                       salaryCurrency:
-                                        exp.currentSalary?.currency || "MAD",
+                                        exp.currentSalary?.currency ||
+                                        globalCurrency.code,
                                       salaryType:
                                         exp.currentSalary?.payrollFrequency ||
                                         "Monthly",
