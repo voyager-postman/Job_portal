@@ -3196,7 +3196,6 @@ input:checked + .slider:before {
   border-radius: 5px !important;
   padding: 7px 20px !important;
   margin-left: 25px;
-  
 }
 
 .enter-skill-info {
@@ -4616,14 +4615,14 @@ width:65%;
 .job-payment-detail-box-info {
   width: 70%;
   background: #fff;
-  padding: 20px 30px;
+  padding: 15px 20px;
   margin-left: 30px;
 }
 
 .job-payment-detail-info h4 {
   font-size: 18px;
   margin-bottom: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #eeee;
 }
 
@@ -7425,6 +7424,7 @@ width:100%;
 .publish-job-payment-details .job-payment-detail-box-info {
   width: 30%;
   position: sticky;
-  height: 510px;
+  height: 420px;
   top: 90px;
+  overflow: auto;
 }

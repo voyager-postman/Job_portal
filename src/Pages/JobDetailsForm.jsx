@@ -20,6 +20,12 @@ function JobDetailsForm() {
   const { id } = useParams();
   const location = useLocation();
   const job = location.state?.job || {};
+  // ===============================
+  // State
+  // ===============================
+  // ===============================
+  // State
+  // ===============================
   const [creditInfo, setCreditInfo] = useState({
     totalJobCredits: 0,
     remainingJobCredits: 0,
@@ -28,6 +34,22 @@ function JobDetailsForm() {
     remainingToday: 0,
     packName: "",
     daysLeft: 0,
+
+    // Full Credit
+    fullCredit: {
+      jobCredits: {
+        total: 0,
+        used: 0,
+        remaining: 0,
+      },
+    },
+
+    // Featured Job Info
+    featuredJobsAvailable: false,
+    maxFeaturedJobs: 0,
+    featuredJobsUsed: 0,
+    maxActiveFeaturedJobs: 0,
+    featuredJobDurationDays: 0,
   });
   const [loading, setLoading] = useState(false);
   const [globalCurrency, setGlobalCurrency] = useState({
@@ -315,22 +337,42 @@ function JobDetailsForm() {
       if (response.data.success) {
         const data = response.data.data;
 
-        // Priority:
-        // purchasedPack active => use purchasedPack
-        // else welcomePack
-
         const pack = data?.purchasedPack?.active
           ? data.purchasedPack
           : data.welcomePack;
 
+        const feature = pack?.features || {};
+
         setCreditInfo({
           totalJobCredits: pack?.jobCreditsTotal || 0,
           remainingJobCredits: pack?.jobCreditsRemaining || 0,
+
+          // ✅ Daily Limit
           dailyLimit: pack?.dailyJobLimit || 0,
-          usedToday: pack?.jobUsedToday || 0,
+
+          // ✅ Used Today
+          usedToday: data?.usageToday?.jobPostingUsed || 0,
+
           remainingToday: data?.remainingToday?.jobPostingRemaining || 0,
+
           packName: pack?.packName || "Welcome Pack",
           daysLeft: pack?.daysLeft || 0,
+
+          // ✅ Full Credit
+          fullCredit: data?.fullCredit || {
+            jobCredits: {
+              total: 0,
+              used: 0,
+              remaining: 0,
+            },
+          },
+
+          // Featured Jobs
+          featuredJobsAvailable: feature?.featuredJobsAvailable || false,
+          maxFeaturedJobs: feature?.maxFeaturedJobs || 0,
+          featuredJobsUsed: feature?.featuredJobsUsed || 0,
+          maxActiveFeaturedJobs: feature?.maxActiveFeaturedJobs || 0,
+          featuredJobDurationDays: feature?.featuredJobDurationDays || 0,
         });
       }
     } catch (error) {
@@ -339,7 +381,6 @@ function JobDetailsForm() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchcreditStatus();
   }, []);
@@ -928,6 +969,8 @@ function JobDetailsForm() {
   const featuredJobCredit = formData.enableFeaturedJob ? 1 : 0;
 
   const totalCredits = simpleJobCredit + featuredJobCredit;
+  const totalCredits1 = simpleJobCredit;
+
   // top of component (before return)
   const today = new Date();
   console.log(expiresAt);
@@ -992,8 +1035,7 @@ function JobDetailsForm() {
       if (response.data.success) {
         setFormData((prev) => ({
           ...prev,
-          jobDescription:
-            response.data.jobDescription || response.data.data || "",
+          jobDescription: response.data.description || "",
         }));
 
         toast.success("Job Description Generated Successfully");
@@ -1906,65 +1948,69 @@ function JobDetailsForm() {
                       <h3>Job Promotion</h3>
                       <hr></hr>
                     </div>
-                    <h3>Featured Your Job</h3>
-                    <p className="text-muted small">
-                      Increase visibility of your job post with these promotion
-                      options.
-                    </p>
 
-                    {/* FEATURED JOB */}
-                    <div className="job-option-branding-content-switch">
-                      <div className="job-option-branding-content">
-                        <p>Featured Job</p>
-                        <span className="feature-desc">
-                          Priority placement — job appears at top of list
-                        </span>
-                      </div>
-
-                      <div className="job-option-branding-switch">
-                        <label className="switch">
-                          <input
-                            type="checkbox"
-                            name="enableFeaturedJob"
-                            checked={formData.enableFeaturedJob}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                enableFeaturedJob: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span className="slider round"></span>
-                        </label>
-                      </div>
-                    </div>
-                    {/* {formData.isFeatured && ( */}
-                    {formData.enableFeaturedJob && (
+                    {creditInfo.featuredJobsAvailable && (
                       <>
-                        <div className="col-lg-12 mt-3">
-                          <div className="card border-warning shadow-sm">
-                            <div className="card-body">
-                              <h6 className="text-warning mb-3">
-                                ⭐ Featured Job Benefits
-                              </h6>
+                        <h3>Featured Your Job</h3>
+                        <p className="text-muted small">
+                          Increase visibility of your job post with these
+                          promotion options.
+                        </p>
 
-                              <ul className="mb-0">
-                                <li>
-                                  Job will appear on the{" "}
-                                  <strong>Homepage</strong>
-                                </li>
-                                <li>
-                                  Job will be highlighted in{" "}
-                                  <strong>Search Results</strong>
-                                </li>
-                                <li>
-                                  Job will appear in{" "}
-                                  <strong>Highlighted Listings</strong>
-                                </li>
-                              </ul>
-                            </div>
+                        {/* FEATURED JOB */}
+                        <div className="job-option-branding-content-switch">
+                          <div className="job-option-branding-content">
+                            <p>Featured Job</p>
+                            <span className="feature-desc">
+                              Priority placement — job appears at top of list
+                            </span>
+                          </div>
+
+                          <div className="job-option-branding-switch">
+                            <label className="switch">
+                              <input
+                                type="checkbox"
+                                name="enableFeaturedJob"
+                                checked={formData.enableFeaturedJob}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    enableFeaturedJob: e.target.checked,
+                                  }))
+                                }
+                              />
+                              <span className="slider round"></span>
+                            </label>
                           </div>
                         </div>
+                        {/* {formData.isFeatured && ( */}
+
+                        {formData.enableFeaturedJob && (
+                          <div className="col-lg-12 mt-3">
+                            <div className="card border-warning shadow-sm">
+                              <div className="card-body">
+                                <h6 className="text-warning mb-3">
+                                  ⭐ Featured Job Benefits
+                                </h6>
+
+                                <ul className="mb-0">
+                                  <li>
+                                    Job will appear on the{" "}
+                                    <strong>Homepage</strong>
+                                  </li>
+                                  <li>
+                                    Job will be highlighted in{" "}
+                                    <strong>Search Results</strong>
+                                  </li>
+                                  <li>
+                                    Job will appear in{" "}
+                                    <strong>Highlighted Listings</strong>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         <hr />
                       </>
                     )}
@@ -2098,15 +2144,17 @@ function JobDetailsForm() {
                 <strong>{diffDays > 0 ? diffDays : 30}</strong> days once
                 published.
               </div>
+              {/* Featured Job Details */}
 
               {/* KPI Cards Better UI */}
               <div className="row g-3 mb-4">
+                {/* Credits Left */}
                 <div className="col-4">
                   <div
                     style={{
                       background: "#f8f9ff",
                       borderRadius: "12px",
-                      padding: "15px 10px",
+                      padding: "10px 2px",
                       textAlign: "center",
                       boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
                     }}
@@ -2120,19 +2168,26 @@ function JobDetailsForm() {
                     >
                       Credits Left
                     </p>
-                    <h3 style={{ color: "#2d6cdf", margin: 0 }}>
-                      {creditInfo.remainingJobCredits}/
-                      {creditInfo.totalJobCredits}
+
+                    <h3
+                      style={{ color: "#2d6cdf", margin: 0, fontSize: "15px" }}
+                    >
+                      {creditInfo.fullCredit?.jobCredits?.total === -1
+                        ? "Unlimited"
+                        : `${creditInfo.fullCredit?.jobCredits?.remaining || 0}/${
+                            creditInfo.fullCredit?.jobCredits?.total || 0
+                          }`}
                     </h3>
                   </div>
                 </div>
 
+                {/* Daily Limit */}
                 <div className="col-4">
                   <div
                     style={{
                       background: "#f8fff8",
                       borderRadius: "12px",
-                      padding: "15px 10px",
+                      padding: "10px 2px",
                       textAlign: "center",
                       boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
                     }}
@@ -2146,18 +2201,24 @@ function JobDetailsForm() {
                     >
                       Daily Limit
                     </p>
-                    <h3 style={{ color: "#198754", margin: 0 }}>
-                      {creditInfo.dailyLimit}
+
+                    <h3
+                      style={{ color: "#198754", margin: 0, fontSize: "15px" }}
+                    >
+                      {creditInfo.dailyLimit === -1
+                        ? "Unlimited"
+                        : creditInfo.dailyLimit}
                     </h3>
                   </div>
                 </div>
 
+                {/* Used Today */}
                 <div className="col-4">
                   <div
                     style={{
                       background: "#fff8f8",
                       borderRadius: "12px",
-                      padding: "15px 10px",
+                      padding: "10px 2px",
                       textAlign: "center",
                       boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
                     }}
@@ -2171,16 +2232,76 @@ function JobDetailsForm() {
                     >
                       Used Today
                     </p>
-                    <h3 style={{ color: "#dc3545", margin: 0 }}>
+
+                    <h3
+                      style={{ color: "#dc3545", margin: 0, fontSize: "15px" }}
+                    >
                       {creditInfo.usedToday}
                     </h3>
                   </div>
                 </div>
               </div>
+              {creditInfo.featuredJobsAvailable && (
+                <div
+                  className="mt-4 p-3"
+                  style={{
+                    background: "#fff8e1",
+                    borderRadius: "12px",
+                    border: "1px solid #ffe082",
+                  }}
+                >
+                  <h5
+                    style={{
+                      fontWeight: "700",
+                      marginBottom: "5px",
+                      fontSize: "16px",
+                      color: "#ff9800",
+                    }}
+                  >
+                    Featured Job Benefits
+                  </h5>
 
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Total Featured Jobs</span>
+                    <strong>{creditInfo.maxFeaturedJobs}</strong>
+                  </div>
+
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Used Featured Jobs</span>
+                    <strong>{creditInfo.featuredJobsUsed || 0}</strong>
+                  </div>
+
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Remaining Featured Jobs</span>
+                    <strong>
+                      {creditInfo.maxFeaturedJobs - creditInfo.featuredJobsUsed}
+                    </strong>
+                  </div>
+
+                  <div className="d-flex justify-content-between mb-2">
+                    <span>Max Active Featured</span>
+                    <strong>{creditInfo.maxActiveFeaturedJobs}</strong>
+                  </div>
+
+                  <div className="d-flex justify-content-between">
+                    <span>Expiry Duration</span>
+                    <strong>{creditInfo.featuredJobDurationDays} Days</strong>
+                  </div>
+                </div>
+              )}
               {/* Charges */}
-              <div className="border-top pt-3">
-                <div className="d-flex justify-content-between mb-2">
+              <div
+                className="border-top "
+                style={{
+                  marginTop: "20px",
+                }}
+              >
+                <div
+                  className="d-flex justify-content-between "
+                  style={{
+                    paddingTop: "15px",
+                  }}
+                >
                   <span>Job Post</span>
                   <strong>1 Credit</strong>
                 </div>
@@ -2202,23 +2323,9 @@ function JobDetailsForm() {
                   Total Cost
                 </span>
                 <span style={{ fontWeight: "700", color: "#ff6600" }}>
-                  {totalCredits} Credits
-                </span>
-              </div>
-
-              {/* Remaining */}
-              <div
-                className="d-flex justify-content-between mt-3 pt-3"
-                style={{ borderTop: "1px dashed #ddd" }}
-              >
-                <span style={{ fontWeight: "700", color: "#0d6efd" }}>
-                  Remaining After Publish
-                </span>
-                <span style={{ fontWeight: "700", color: "#198754" }}>
-                  {creditInfo.remainingJobCredits - totalCredits >= 0
-                    ? creditInfo.remainingJobCredits - totalCredits
-                    : 0}{" "}
-                  Credits
+                  {formData.enableFeaturedJob
+                    ? "1 Job Credit + 1 Featured Credit"
+                    : "1 Job Credit"}
                 </span>
               </div>
             </div>

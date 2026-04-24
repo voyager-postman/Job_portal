@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 const EmployerWallet = () => {
-    const { t, i18n } = useTranslation("global");
+  const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
   const [paymentsHistory, setPaymentsHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -161,12 +161,14 @@ const EmployerWallet = () => {
               <li className="item">
                 <Link to="/employer-dashboard">
                   {" "}
-                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}  {" "}
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.dashboard")}{" "}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/employer-wallet">
-                  <i className="fa-solid fa-angle-right"></i> {t("header.My_Wallet")}
+                  <i className="fa-solid fa-angle-right"></i>{" "}
+                  {t("header.My_Wallet")}
                 </Link>
               </li>
             </ol>
@@ -509,8 +511,9 @@ const EmployerWallet = () => {
                               {purchasedPack.features?.hasFeaturedJobs && (
                                 <div className="user-wallet-credit-box">
                                   <h3>
-                                    {purchasedPack.features.featuredJobsUsed}/
-                                    {purchasedPack.features.maxFeaturedJobs}
+                                    {purchasedPack.features.featuredJobsUsed ||
+                                      0}
+                                    /{purchasedPack.features.maxFeaturedJobs}
                                   </h3>
 
                                   <h4>Featured Job Slots</h4>

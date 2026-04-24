@@ -70,20 +70,28 @@ function JobDetails() {
 
       const responseData = res.data?.data;
       const jobDetails = responseData?.jobDetails;
-      console.log(jobDetails.confidentialJobPost);
+
+      console.log(jobDetails?.confidentialJobPost);
       console.log(userRole);
-      // ✅ Only Jobseeker Block
-      if (userRole === "JobSeeker" && jobDetails?.confidentialJobPost == true) {
-        toast.error("This confidential job is not available.");
-        console.log(from);
-        const redirectPath = token ? "/job-search" : "/job";
-        setTimeout(() => {
-          navigate(redirectPath);
-        }, 1000); // 1.5 sec delay
+
+      // ✅ Block JobSeeker for confidential jobs
+      if (
+        userRole === "JobSeeker" &&
+        jobDetails?.confidentialJobPost === true
+      ) {
+        toast.error(
+          "This confidential job is no longer available for candidate access.",
+        );
+
+        // ❌ Do not navigate anywhere
+        setJob(null);
+        setAssessmentDetails(null);
+        setLinkUrl("");
 
         return;
       }
-      // ✅ Recruiter / Admin / Other can open
+
+      // ✅ Recruiter / Admin / Others can access
       setJob(responseData);
       setLinkUrl(jobDetails?.jobLink || "");
       setAssessmentDetails(responseData?.assessmentResult || null);
@@ -93,8 +101,6 @@ function JobDetails() {
       toast.error(
         error?.response?.data?.message || "Unable to load job details.",
       );
-
-      navigate(-1);
     } finally {
       setLoading(false);
     }
