@@ -65,12 +65,10 @@ function JobDetailsForm() {
   const getDefaultExpiryDate = () => {
     const defaultExpiry = new Date();
     defaultExpiry.setDate(defaultExpiry.getDate() + 30);
-
     return defaultExpiry.toISOString().split("T")[0];
   };
-  const [expiresAt, setExpiresAt] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+
+  const [expiresAt, setExpiresAt] = useState(getDefaultExpiryDate());
   const [aiLoading, setAiLoading] = useState(false);
   const Title = job?.jobTitle;
   const Category = job?.jobCategory;
@@ -820,8 +818,10 @@ function JobDetailsForm() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const selectedExpiry = expiresAt ? new Date(expiresAt) : null;
-
+      const selectedExpiry = expiresAt
+        ? new Date(expiresAt)
+        : new Date(getDefaultExpiryDate());
+      selectedExpiry.setHours(0, 0, 0, 0);
       if (statusType === "published") {
         if (!selectedExpiry || selectedExpiry < today) {
           toast.error("Expiry date cannot be in the past");
@@ -831,11 +831,6 @@ function JobDetailsForm() {
       const isFreelanceSelected = data.employmentType?.some(
         (item) => item?.label?.trim().toLowerCase() === "freelance",
       );
-      // const isFreelanceSelected = data.employmentType?.some(
-      //   (item) =>
-      //     item.label?.toLowerCase().includes("freelance") ||
-      //     item.name?.toLowerCase().includes("freelance"),
-      // );
 
       if (!data.jobTitle?.trim()) {
         toast.error("Please enter Job Title");
@@ -976,9 +971,7 @@ function JobDetailsForm() {
   console.log(expiresAt);
   const expiryDate = expiresAt ? new Date(expiresAt) : null;
 
-  const diffDays = expiryDate
-    ? Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
-    : 30;
+  const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
   console.log(diffDays);
   // ===============================
   // Add State (already have aiLoading)
@@ -2029,6 +2022,8 @@ function JobDetailsForm() {
                       min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => {
                         const selected = new Date(e.target.value);
+                        selected.setHours(0, 0, 0, 0);
+
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
 
@@ -2142,7 +2137,7 @@ function JobDetailsForm() {
                 <i className="fa-solid fa-circle-info me-2"></i>
                 Your job post will be active for{" "}
                 <strong>{diffDays > 0 ? diffDays : 30}</strong> days once
-                published.
+                published. published.
               </div>
               {/* Featured Job Details */}
 

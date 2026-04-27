@@ -14,6 +14,10 @@ function YourJobPosts() {
   const location = useLocation();
   // const [isPost, setIsPost] = useState("");
   const [cateroryList, setCategoryList] = useState([]);
+  // add with your other useState hooks
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [sortOpen, setSortOpen] = useState(false);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [jobTitle, setJobTitle] = useState("");
   const [jobCategory, setJobCategory] = useState("");
@@ -37,64 +41,6 @@ function YourJobPosts() {
     }
   }, [location.state]);
 
-  // const handleCreate = async () => {
-  //   if (!jobTitle || !jobCategory) {
-  //     toast.error("Please fill all required fields");
-  //     return;
-  //   }
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const tempTitle = jobTitle;
-  //     const tempCategory = jobCategory;
-
-  //     const response = await axios.post(
-  //       `${API_BASE_URL}createJob`,
-  //       { jobTitle: tempTitle, jobCategory: tempCategory },
-  //       { headers: { Authorization: `Bearer ${token}` } },
-  //     );
-
-  //     console.log("Job Created:", response.data);
-  //     const createdJob = response.data.job;
-  //     toast.success("Job created successfully!");
-
-  //     // Clear inputs AFTER successful navigation
-  //     setJobTitle("");
-  //     setJobCategory("");
-
-  //     const modalElement = document.getElementById("exampleModal");
-  //     const modal = window.bootstrap.Modal.getInstance(modalElement);
-  //     modal.hide();
-
-  //     // If you want to copy the draft here:
-  //     // await copyDraft(createdJob._id, tempTitle, tempCategory);
-
-  //     navigate(`/job-details-form/${createdJob._id}`, {
-  //       state: { jobData: createdJob },
-  //     });
-  //   } catch (error) {
-  //     const status = error.response?.status;
-  //     const errorMessage = error.response?.data?.message;
-
-  //     console.log("Status:", status);
-  //     console.log("Message:", errorMessage);
-
-  //     if (status === 400 && errorMessage?.includes("credits")) {
-  //       toast.warning(errorMessage, {
-  //         autoClose: 5000,
-  //       });
-
-  //       setTimeout(() => {
-  //         const modalElement = document.getElementById("exampleModal");
-  //         const modal = window.bootstrap.Modal.getInstance(modalElement);
-  //         modal.hide();
-
-  //         navigate("/add-plan"); // change if needed
-  //       }, 2000);
-  //       return;
-  //     }
-  //     toast.error(errorMessage || "Something went wrong");
-  //   }
-  // };
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
       toast.error(t("header.Please_fill_all_required_fields"));
@@ -207,28 +153,133 @@ function YourJobPosts() {
   }, []);
 
   // Fetch jobs based on status
-  const fetchJobs = async (status, page = currentPage, limit = perPage) => {
+  // Controller
+  const getRecruiterJobList = async (req, res) => {
+    try {
+      const recruiterId = req.user.id;
+
+      const {
+        status = "all",
+        page = 1,
+        limit = 10,
+        search = "",
+        sort = "newest",
+      } = req.query;
+
+      // Filter Object
+      let filter = { recruiterId };
+
+      if (status !== "all") {
+        filter.status = status;
+      }
+
+      // Search by Job Title
+      if (search) {
+        filter.jobTitle = { $regex: search, $options: "i" };
+      }
+
+      // Sorting
+      let sortOption = {};
+
+      switch (sort) {
+        case "a-z":
+          sortOption = { jobTitle: 1 };
+          break;
+
+        case "z-a":
+          sortOption = { jobTitle: -1 };
+          break;
+
+        case "oldest":
+          sortOption = { createdAt: 1 };
+          break;
+
+        case "newest":
+        default:
+          sortOption = { createdAt: -1 };
+          break;
+      }
+
+      // Pagination
+      const skip = (page - 1) * limit;
+
+      const jobs = await Job.find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(Number(limit));
+
+      const totalJobs = await Job.countDocuments(filter);
+
+      res.status(200).json({
+        success: true,
+        jobs,
+        pagination: {
+          currentPage: Number(page),
+          totalPages: Math.ceil(totalJobs / limit),
+          totalJobs,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+  };
+  // const fetchJobs = async (status, page = currentPage, limit = perPage) => {
+  //   try {
+  //     setLoading(true);
+  //     const token = localStorage.getItem("token");
+  //     const res = await axios.get(
+  //       `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}`,
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       },
+  //     );
+  //     setJobs(res.data.jobs || []);
+  //     setTotalPages(res?.data?.pagination?.totalPages || 1);
+  //     setTotalResults(res?.data?.pagination?.totalJobs || 0);
+  //     console.log(res.data.jobs || []);
+  //   } catch (err) {
+  //     console.error("Error fetching jobs:", err);
+  //     setJobs([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const fetchJobs = async (
+    status,
+    page = currentPage,
+    limit = perPage,
+    search = searchTerm,
+    sort = sortBy,
+  ) => {
     try {
       setLoading(true);
+
       const token = localStorage.getItem("token");
+
       const res = await axios.get(
-        `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}`,
+        `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}&search=${search}&sort=${sort}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+
       setJobs(res.data.jobs || []);
       setTotalPages(res?.data?.pagination?.totalPages || 1);
       setTotalResults(res?.data?.pagination?.totalJobs || 0);
-      console.log(res.data.jobs || []);
     } catch (err) {
-      console.error("Error fetching jobs:", err);
+      console.error(err);
       setJobs([]);
     } finally {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    fetchJobs(activeStatus, currentPage, perPage, searchTerm, sortBy);
+  }, [activeStatus, currentPage, searchTerm, sortBy]);
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
   const endResult = Math.min(currentPage * perPage, totalResults);
 
@@ -433,26 +484,29 @@ function YourJobPosts() {
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
-          <div className="breadcrumb-area">
-            <h1> {t("header.Manage_Job_Posts")}</h1>
-            <ol className="breadcrumb">
-              <li className="item">
-                <Link to="/">{t("header.home")} </Link>
-              </li>
-              <li className="item">
-                <Link to="/employer-dashboard">
-                  {" "}
-                  <i className="fa-solid fa-angle-right" />
-                  {t("header.dashboard")}{" "}
-                </Link>
-              </li>
-              <li className="item">
-                <Link to="/your-job-posts">
-                  <i className="fa-solid fa-angle-right" />{" "}
-                  {t("header.Job_Posts")}
-                </Link>
-              </li>
-            </ol>
+
+          <div className="breadcrumb-area d-flex justify-content-between align-items-center">
+            <div>
+              <h1> {t("header.Manage_Job_Posts")}</h1>
+              <ol className="breadcrumb">
+                <li className="item">
+                  <Link to="/">{t("header.home")} </Link>
+                </li>
+                <li className="item">
+                  <Link to="/employer-dashboard">
+                    {" "}
+                    <i className="fa-solid fa-angle-right" />
+                    {t("header.dashboard")}{" "}
+                  </Link>
+                </li>
+                <li className="item">
+                  <Link to="/your-job-posts">
+                    <i className="fa-solid fa-angle-right" />{" "}
+                    {t("header.Job_Posts")}
+                  </Link>
+                </li>
+              </ol>
+            </div>
           </div>
           {/* End Breadcrumb Area */}
 
@@ -463,10 +517,12 @@ function YourJobPosts() {
             </div>
             <div className="employer-dashboard-box">
               <div className="row">
-                <div className="col-md-4 mb-3">
+                {/* All Jobs */}
+                <div className="col-md-4 mb-3 kpi-blue">
                   <Link
                     className={`${activeStatus === "all" ? "active" : ""}`}
                     onClick={() => setActiveStatus("all")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
@@ -482,12 +538,13 @@ function YourJobPosts() {
                     </div>
                   </Link>
                 </div>
-                <div className="col-md-4 mb-3">
+
+                {/* Published Jobs */}
+                <div className="col-md-4 mb-3 kpi-cyan">
                   <Link
-                    className={`${
-                      activeStatus === "published" ? "active" : ""
-                    }`}
+                    className={`${activeStatus === "published" ? "active" : ""}`}
                     onClick={() => setActiveStatus("published")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
@@ -503,17 +560,20 @@ function YourJobPosts() {
                     </div>
                   </Link>
                 </div>
-                <div className="col-md-4 mb-3">
+
+                {/* Draft Jobs */}
+                <div className="col-md-4 mb-3 kpi-orange">
                   <Link
                     className={`${activeStatus === "draft" ? "active" : ""}`}
                     onClick={() => setActiveStatus("draft")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
                         <i className="fa-solid fa-pencil"></i>
                       </div>
                       <div className="employer-box-content">
-                        <h4>{t("header.Draft_Job")} </h4>
+                        <h4>{t("header.Draft_Job")}</h4>
                         <h5>{dashboardStats?.draft?.count ?? 0}</h5>
                         {renderWeeklyChange(
                           dashboardStats?.draft?.weeklyChange ?? 0,
@@ -522,10 +582,13 @@ function YourJobPosts() {
                     </div>
                   </Link>
                 </div>
-                <div className="col-md-4 mb-3">
+
+                {/* Archived Jobs */}
+                <div className="col-md-4 mb-3 kpi-purple">
                   <Link
                     className={`${activeStatus === "archived" ? "active" : ""}`}
                     onClick={() => setActiveStatus("archived")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
@@ -541,12 +604,13 @@ function YourJobPosts() {
                     </div>
                   </Link>
                 </div>
-                <div className="col-md-4 mb-3">
+
+                {/* Unpublished Jobs */}
+                <div className="col-md-4 mb-3 kpi-green">
                   <Link
-                    className={`${
-                      activeStatus === "unpublished" ? "active" : ""
-                    }`}
+                    className={`${activeStatus === "unpublished" ? "active" : ""}`}
                     onClick={() => setActiveStatus("unpublished")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
@@ -562,10 +626,13 @@ function YourJobPosts() {
                     </div>
                   </Link>
                 </div>
-                <div className="col-md-4 mb-3">
+
+                {/* Expired Jobs */}
+                <div className="col-md-4 mb-3 kpi-red">
                   <Link
                     className={`${activeStatus === "expired" ? "active" : ""}`}
                     onClick={() => setActiveStatus("expired")}
+                    style={{ textDecoration: "none" }}
                   >
                     <div className="employer-dashboard-box-icon-content">
                       <div className="employer-box-icon">
@@ -767,6 +834,170 @@ function YourJobPosts() {
               </div>
               <div className="col-lg-9 col-md-9">
                 <div className="your-job-post-detail-info">
+                  {/* Search + Sort */}
+                  <div className="row mb-4 align-items-center">
+                    <div className="col-lg-8 col-md-7">
+                      <div
+                        className="search-bar-container"
+                        style={{ position: "relative" }}
+                      >
+                        <i
+                          className="fa-solid fa-magnifying-glass"
+                          style={{
+                            position: "absolute",
+                            left: "15px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            color: "#8898aa",
+                          }}
+                        />
+
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder={t("header.Search_by_job_title")}
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          style={{
+                            borderRadius: "12px",
+                            paddingLeft: "45px",
+                            border: "1px solid #e9ecef",
+                            height: "48px",
+                            fontSize: "15px",
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-lg-4 col-md-5 mt-3 mt-md-0">
+                      <div className="d-flex align-items-center justify-content-md-end gap-3">
+                        <span
+                          className="text-muted small font-weight-bold"
+                          style={{
+                            whiteSpace: "nowrap",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          {t("header.Sort_By")}
+                        </span>
+
+                        <div className="custom-dropdown-container position-relative">
+                          {/* Trigger */}
+                          <div
+                            className="custom-dropdown-trigger"
+                            onClick={() => setSortOpen(!sortOpen)}
+                            style={{
+                              cursor: "pointer",
+                              border: "1px solid #e9ecef",
+                              borderRadius: "10px",
+                              padding: "10px 14px",
+                              minWidth: "190px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              background: "#fff",
+                            }}
+                          >
+                            <span>
+                              {sortBy === "newest"
+                                ? "Recent (Newest)"
+                                : sortBy === "oldest"
+                                  ? "Oldest First"
+                                  : sortBy === "az"
+                                    ? "A to Z"
+                                    : "Z to A"}
+                            </span>
+
+                            <i
+                              className={`fa-solid fa-chevron-down ms-2 ${
+                                sortOpen ? "rotate-180" : ""
+                              }`}
+                              style={{
+                                transition: "transform 0.3s",
+                                transform: sortOpen
+                                  ? "rotate(180deg)"
+                                  : "rotate(0deg)",
+                              }}
+                            />
+                          </div>
+
+                          {/* Menu */}
+                          {sortOpen && (
+                            <div
+                              className="custom-dropdown-menu show"
+                              style={{
+                                position: "absolute",
+                                top: "105%",
+                                right: 0,
+                                width: "190px",
+                                background: "#fff",
+                                border: "1px solid #e9ecef",
+                                borderRadius: "10px",
+                                boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+                                zIndex: 999,
+                                overflow: "hidden",
+                              }}
+                            >
+                              <div
+                                className={`custom-dropdown-item ${
+                                  sortBy === "newest" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  setSortBy("newest");
+                                  setSortOpen(false);
+                                }}
+                              >
+                                <i className="fa-solid fa-clock me-2" /> Recent
+                                First
+                              </div>
+
+                              <div
+                                className={`custom-dropdown-item ${
+                                  sortBy === "oldest" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  setSortBy("oldest");
+                                  setSortOpen(false);
+                                }}
+                              >
+                                <i className="fa-solid fa-history me-2" />{" "}
+                                Oldest First
+                              </div>
+
+                              <div
+                                className={`custom-dropdown-item ${
+                                  sortBy === "a-z" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  setSortBy("a-z");
+                                  setSortOpen(false);
+                                }}
+                              >
+                                <i className="fa-solid fa-sort-alpha-down me-2" />{" "}
+                                A to Z
+                              </div>
+
+                              <div
+                                className={`custom-dropdown-item ${
+                                  sortBy === "z-a" ? "active" : ""
+                                }`}
+                                onClick={() => {
+                                  setSortBy("z-a");
+                                  setSortOpen(false);
+                                }}
+                              >
+                                <i className="fa-solid fa-sort-alpha-up me-2" />{" "}
+                                Z to A
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Jobs */}
                   <div className="tab-content">
                     {loading ? (
                       <p>{t("header.loading_jobs")}</p>
@@ -778,116 +1009,200 @@ function YourJobPosts() {
                           </div>
 
                           <h4>{getEmptyMessage()}</h4>
-
                           <p>{t("header.Start_by_creating")}</p>
                         </div>
                       </div>
                     ) : (
-                      jobs.map((job) => (
-                        <div className="job-short-detail-box">
-                          <div className="job-short-heading-crud">
-                            <div className="job-short-detail-heading">
-                              <h4>{job.jobTitle}</h4>
-                            </div>
-                            <span
-                              style={{
-                                padding: "5px 10px",
-                                backgroundColor: "#f0f5f7",
-                                cursor: "pointer",
-                              }}
-                              onClick={() =>
-                                setMenuOpen((prev) =>
-                                  prev === job._id ? null : job._id,
-                                )
-                              }
-                              className="job-short-detail-crud-info"
-                            >
-                              <i className=" fa-solid fa-ellipsis-vertical menu-icon "></i>
-                            </span>
-
-                            {menuOpen === job._id && (
-                              <div className="job-short-detail-crud-menu">
-                                <ul>
-                                  <li onClick={() => jobUpdate(job)}>
-                                    <i className="fa-solid fa-pencil cursor-pointer"></i>{" "}
-                                    {t("header.Edit")}
-                                  </li>
-                                  <li onClick={() => handleView(job._id)}>
-                                    <i className="fa-regular fa-eye"></i>
-                                    {t("header.Preview")}
-                                  </li>
-                                  <li
-                                    onClick={() =>
-                                      copyDraft(
-                                        job._id,
-                                        job.jobTitle,
-                                        job.jobCategory,
-                                      )
-                                    }
-                                  >
-                                    <i
-                                      className="fa-solid fa-file cursor-pointer"
-                                      title="Copy as draft"
-                                    ></i>{" "}
-                                    {t("header.Copy_as_draft")}
-                                  </li>
-
-                                  <li onClick={() => archiveData(job._id)}>
-                                    <i className="fa-solid fa-box-archive cursor-pointer"></i>
-                                    {t("header.Archive")}
-                                  </li>
-                                  <li onClick={() => handleDelete(job._id)}>
-                                    <i className="fa-regular fa-trash-can"></i>
-                                    {t("header.Delete")}
-                                  </li>
-                                </ul>
+                      jobs
+                        .filter((job) =>
+                          job.jobTitle
+                            ?.toLowerCase()
+                            .includes(searchTerm.toLowerCase()),
+                        )
+                        .map((job) => (
+                          <div key={job._id} className="job-short-detail-box">
+                            {/* Top */}
+                            <div className="job-short-heading-crud d-flex align-items-center">
+                              <div className="job-short-detail-heading">
+                                <h4>{job.jobTitle}</h4>
                               </div>
-                            )}
-                          </div>
-                          <div className="job-short-detail-tags">
-                            <ul>
-                              <li>
-                                <i className="fa-solid fa-location-dot"></i>{" "}
-                                {job.city?.length
-                                  ? (() => {
-                                      const cityText = job.city.join(", ");
-                                      return cityText.length > 20
-                                        ? cityText.slice(0, 20) + "..."
-                                        : cityText;
-                                    })()
-                                  : job.companyId?.city
-                                    ? job.companyId.city.length > 20
-                                      ? job.companyId.city.slice(0, 20) + "..."
-                                      : job.companyId.city
+
+                              <div className="d-flex align-items-center ms-auto gap-2">
+                                {/* Test Badge */}
+                                {job.isAssessmentRequired && (
+                                  <span
+                                    className="badge bg-info"
+                                    style={{
+                                      "font-size": "10px",
+                                      "-webkit-text-transform": "uppercase",
+                                      "text-transform": "uppercase",
+                                      "border-radius": "30px",
+                                      padding: "4px 10px",
+                                      "white-space": "nowrap",
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-vial mr-1" />
+                                    Test
+                                  </span>
+                                )}
+
+                                {/* Private Badge */}
+                                {job.confidentialJobPost && (
+                                  <span
+                                    className="badge bg-dark rounded-pill"
+                                    style={{
+                                      "font-size": "10px",
+                                      "-webkit-text-transform": "uppercase",
+                                      "text-transform": "uppercase",
+                                      "border-radius": "30px",
+                                      padding: "4px 10px",
+                                      "white-space": "nowrap",
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-user-secret me-1"></i>{" "}
+                                    Private
+                                  </span>
+                                )}
+
+                                {/* Menu */}
+                                <span
+                                  className="job-short-detail-crud-info"
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() =>
+                                    setMenuOpen((prev) =>
+                                      prev === job._id ? null : job._id,
+                                    )
+                                  }
+                                >
+                                  <i className="fa-solid fa-ellipsis-vertical menu-icon"></i>
+                                </span>
+                              </div>
+
+                              {/* Dropdown */}
+                              {menuOpen === job._id && (
+                                <div className="job-short-detail-crud-menu shadow-lg show">
+                                  <ul>
+                                    <li onClick={() => jobUpdate(job)}>
+                                      <i className="fa-solid fa-pencil text-primary"></i>{" "}
+                                      {t("header.Edit")}
+                                    </li>
+
+                                    <li onClick={() => handleView(job._id)}>
+                                      <i className="fa-regular fa-eye text-info"></i>{" "}
+                                      {t("header.Preview")}
+                                    </li>
+
+                                    <li
+                                      onClick={() =>
+                                        copyDraft(
+                                          job._id,
+                                          job.jobTitle,
+                                          job.jobCategory,
+                                        )
+                                      }
+                                    >
+                                      <i
+                                        className="fa-solid fa-clone text-success"
+                                        title="Copy as draft"
+                                      ></i>{" "}
+                                      {t("header.Copy_as_draft")}
+                                    </li>
+
+                                    <li onClick={() => archiveData(job._id)}>
+                                      <i className="fa-solid fa-box-archive text-warning"></i>{" "}
+                                      {t("header.Archive")}
+                                    </li>
+
+                                    <li onClick={() => handleDelete(job._id)}>
+                                      <i className="fa-regular fa-trash-can text-danger"></i>{" "}
+                                      {t("header.Delete")}
+                                    </li>
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Bottom Tags */}
+                            <div className="job-short-detail-tags">
+                              <ul>
+                                <li>
+                                  <i className="fa-solid fa-location-dot"></i>
+                                  {job.city?.join(", ") ||
+                                    job.companyId?.city ||
+                                    "Not provided"}
+                                </li>
+
+                                <li>
+                                  <i className="fa-solid fa-calendar-days"></i>
+                                  {new Date(job.createdAt).toLocaleDateString()}
+                                </li>
+
+                                <li>
+                                  <i className="fa-solid fa-file-invoice"></i>
+                                  {job.employmentType?.length > 0
+                                    ? job.employmentType
+                                        .map((x) => x.name)
+                                        .join(", ")
                                     : "Not provided"}
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-calendar-days"></i>{" "}
-                                {new Date(job.createdAt).toLocaleDateString()}
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-file-invoice"></i>{" "}
-                                {job.employmentType?.length > 0
-                                  ? job.employmentType
-                                      .map((item) => item.name)
-                                      .join(", ")
-                                  : "Not provided"}{" "}
-                              </li>
-                              <li>
-                                <i className="fa-solid fa-user-plus"></i>{" "}
-                                {job.remote || "Not provided"}
-                              </li>
-                            </ul>
+                                </li>
+
+                                <li>
+                                  <i className="fa-solid fa-user-plus"></i>
+                                  {job.remote || "Not provided"}
+                                </li>
+
+                                {/* Status */}
+                                <li>
+                                  <span
+                                    className={`badge ${
+                                      job.status === "published"
+                                        ? "bg-success"
+                                        : job.status === "draft"
+                                          ? "bg-warning"
+                                          : job.status === "unpublished"
+                                            ? "bg-secondary"
+                                            : job.status === "archived"
+                                              ? "bg-secondary"
+                                              : "bg-secondary"
+                                    }`}
+                                    style={{
+                                      fontSize: "11px",
+                                      textTransform: "uppercase",
+                                      borderRadius: "30px",
+                                      padding: "5px 12px",
+                                    }}
+                                  >
+                                    {job.status}
+                                  </span>
+                                </li>
+
+                                {/* Views */}
+                                {job.totalUniqueViews > 0 && (
+                                  <li>
+                                    <i className="fa-solid fa-eye"></i>
+                                    {job.totalUniqueViews} Views
+                                  </li>
+                                )}
+
+                                {/* Applicants */}
+                                {job.total_applicants > 0 && (
+                                  <li>
+                                    <i className="fa-solid fa-users"></i>
+                                    {job.total_applicants} Applicants
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     )}
                   </div>
                 </div>
+
+                {/* Pagination */}
                 {jobs.length > 0 && totalPages > 1 && (
                   <div className="paginations mb-30">
                     <ul>
-                      {/* Previous button */}
                       <li>
                         <a
                           href="#"
@@ -898,10 +1213,10 @@ function YourJobPosts() {
                           }}
                           className={currentPage === 1 ? "disabled" : ""}
                         >
-                          <i className="fa-solid fa-angle-left" />
+                          <i className="fa-solid fa-angle-left"></i>
                         </a>
                       </li>
-                      {/* Page numbers */}
+
                       {Array.from({ length: totalPages }, (_, i) => (
                         <li key={i + 1}>
                           <a
@@ -917,7 +1232,6 @@ function YourJobPosts() {
                         </li>
                       ))}
 
-                      {/* Next button */}
                       <li>
                         <a
                           href="#"
@@ -930,8 +1244,7 @@ function YourJobPosts() {
                             currentPage === totalPages ? "disabled" : ""
                           }
                         >
-                          {" "}
-                          <i className="fa-solid fa-angle-right" />
+                          <i className="fa-solid fa-angle-right"></i>
                         </a>
                       </li>
                     </ul>

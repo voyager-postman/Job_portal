@@ -24,13 +24,19 @@ import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function JobSearch() {
   const location = useLocation();
+  const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   console.log("Received Alert Data:", alert);
   const [resumeList, setResumeList] = useState([]);
+  const [globalCurrency, setGlobalCurrency] = useState({
+    code: "MAD",
+    symbol: "DH",
+  });
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [showAlertOptions, setShowAlertOptions] = useState(false);
@@ -49,7 +55,34 @@ function JobSearch() {
   const [alertCreated, setAlertCreated] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const fetchGlobalCurrency = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
 
+      if (res.data.success) {
+        const currencyCode = res.data.data?.code || "MAD";
+        const currencySymbol = res.data.data?.symbol || "DH";
+
+        setGlobalCurrency({
+          code: currencyCode,
+          symbol: currencySymbol,
+        });
+
+        // update form state also
+        setCareerGoalsData((prev) => ({
+          ...prev,
+          salaryCurrency: currencyCode,
+          TJMCurrency: currencyCode,
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGlobalCurrency();
+  }, []);
   // Loading state for city suggestions
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   useEffect(() => {
@@ -1193,7 +1226,7 @@ function JobSearch() {
             <div className="job-listing-search-form job-search-info-area">
               <form onSubmit={handleSubmit}>
                 <div className="row g-0">
-                  <div className="col-lg-3 col-sm-6">
+                  <div className="col-lg-7 col-sm-6">
                     <div className="form-group">
                       <input
                         className="form-control"
@@ -1221,25 +1254,7 @@ function JobSearch() {
                       <i className="flaticon-location" />
                     </div>
                   </div>
-                  <div className="col-lg-4 col-sm-6">
-                    <div className="form-group style">
-                      <select
-                        className="form-select form-control"
-                        value={filters.category}
-                        onChange={(e) =>
-                          setFilters({ ...filters, category: e.target.value })
-                        }
-                      >
-                        <option value="">Choose A Category</option>
-                        {categories.map((cat) => (
-                          <option key={cat._id} value={cat._id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
-                      <i className="flaticon-list" />
-                    </div>
-                  </div>
+
                   <div className="col-lg-2 col-sm-6">
                     <div className="search-btn">
                       <button type="submit" className="default-btn btn">
@@ -1255,339 +1270,14 @@ function JobSearch() {
           <div className="job-filter-job-list-info">
             <div className="container">
               <div className="row">
-                {/* <div className="col-lg-3 col-sm-3">
-                  <div className="job-filter-main-info">
-                    <div
-                      className="job-filter-heading-area job-filter-cancel-heading"
-                      onClick={() => navigate("/job-search")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <h4>
-                        <i className="fa-regular fa-file" /> Job offers
-                      </h4>
-                    </div>
-                    <NavLink
-                      to="/companies-list"
-                      className={({ isActive }) =>
-                        `job-filter-heading-area ${isActive ? "active" : ""}`
-                      }
-                    >
-                      <h4>
-                        <i className="fa-regular fa-building" /> Companies
-                      </h4>
-                    </NavLink>
-
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fa-solid fa-gear" /> Tech Stack
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <select
-                          className="form-select form-control"
-                          aria-label="Default select example"
-                        >
-                          <option selected>Select Tech Stack</option>
-                          <option value={1}>Java</option>
-                          <option value={2}>Python</option>
-                          <option value={3}>React</option>
-                          <option value={2}>Python</option>
-                          <option value={3}>React</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fa-solid fa-gear" /> Job Type
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <ul>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Full Time</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Part Time</label>
-                          </li>
-
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Freelance</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Internship</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Remote</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> Hybrid Jobs</label>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fa-solid fa-location-dot" /> Location
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <select
-                          className="form-select form-control"
-                          aria-label="Default select example"
-                        >
-                          <option selected>Select Location</option>
-                          <option value={1}>India</option>
-                          <option value={2}>USA</option>
-                          <option value={3}>Paris</option>
-                          <option value={4}>Germany</option>
-                          <option value={2}>Spain</option>
-                          <option value={3}>Mau</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div class="job-filter-search-area">
-                      <div class="job-filter-heading-cancel">
-                        <div class="job-filter-heading">
-                          <h4>
-                            <i class="fas fa-signal"></i> Experience Level
-                          </h4>
-                        </div>
-                        <div class="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div class="job-filter-select-info">
-                        <ul>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              value="Other Preferences"
-                            />
-                            <label for="vehicle1"> 0 - 2 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              value="Other Preferences"
-                            />
-                            <label for="vehicle1"> 2 - 4 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              value="Other Preferences"
-                            />
-                            <label for="vehicle1"> 5 - 7 Years</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              value="Other Preferences"
-                            />
-                            <label for="vehicle1"> 8 - 10 Years</label>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fas fa-money-bill-alt" /> Salary Range
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <ul>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> 0 to $100</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> $ 101 to $ 150</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> $ 151 to $ 200</label>
-                          </li>
-                          <li>
-                            <input
-                              type="checkbox"
-                              id="OtherPreferences"
-                              name="OtherPreferences"
-                              defaultValue="Other Preferences"
-                            />
-                            <label htmlFor="vehicle1"> $ 201 to $ 250</label>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fas fa-building" /> Industry Sector
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <select
-                          className="form-select form-control"
-                          aria-label="Default select example"
-                        >
-                          <option selected>Select Industry</option>
-                          <option value={1}>Agriculture</option>
-                          <option value={2}>Air Transport</option>
-                          <option value={3}>Automotive</option>
-                          <option value={4}>Biotechnology</option>
-                          <option value={2}>Chemicals</option>
-                          <option value={3}>Construction</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
-                      <div className="job-filter-heading-cancel">
-                        <div className="job-filter-heading">
-                          <h4>
-                            <i className="fas fa-building" /> Company
-                          </h4>
-                        </div>
-                        <div className="job-filter-cancel-heading">
-                          <h4>Clear</h4>
-                        </div>
-                      </div>
-                      <div className="job-filter-select-info">
-                        <select
-                          className="form-select form-control"
-                          aria-label="Default select example"
-                        >
-                          <option selected>Select Company</option>
-                          <option value={1}>Agriculture</option>
-                          <option value={2}>Air Transport</option>
-                          <option value={3}>Automotive</option>
-                          <option value={4}>Biotechnology</option>
-                          <option value={2}>Chemicals</option>
-                          <option value={3}>Construction</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
                 <div className="col-lg-4 col-md-4">
-                  <div className="job-filter-main-info sidebar-scroll-touch-footer">
-                    <div className="job-filter-heading-area">
-                      <h4>
-                        <Link to="/companies-list" className="active">
-                          <i className="fa-regular fa-file" /> Job offers
-                        </Link>
-                      </h4>
-                    </div>
-                    <div className="job-filter-heading-area">
-                      <h4>
-                        <Link to="/companies-list">
-                          <i className="fa-regular fa-building" /> Companies
-                        </Link>
-                      </h4>
-                    </div>
-                    <div className="divder-line-info" />
-
-                    <div className="job-filter-search-area">
+                  <div className="job-filter-main-info sidebar-scroll-touch-footer modern-sidebar-style">
+                    <div className="modern-filter-section">
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
                             <i className="fa-solid fa-laptop-code" />
-                            Tech Stack
+                            {t("header.tech_Stack")}
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -1595,7 +1285,7 @@ function JobSearch() {
                             style={{ cursor: "pointer" }}
                             onClick={handleClearTechStacks}
                           >
-                            Clear
+                            {t("header.Clear")}
                           </h4>
                         </div>
                       </div>
@@ -1667,14 +1357,14 @@ function JobSearch() {
                           aria-controls="techStackCollapse"
                         >
                           <span className="show-more">
-                            Show More{" "}
+                            {t("header.show_more")}{" "}
                             <i
                               className="fa fa-angle-down"
                               aria-hidden="true"
                             />
                           </span>
                           <span className="show-less">
-                            Show Less{" "}
+                            {t("header.show_less")}{" "}
                             <i className="fa fa-angle-up" aria-hidden="true" />
                           </span>
                         </div>
@@ -1682,11 +1372,12 @@ function JobSearch() {
                     </div>
 
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
+                    <div className="modern-filter-section">
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fa-solid fa-briefcase" /> Job Type
+                            <i className="fa-solid fa-briefcase" />
+                            {t("header.job_type")}
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -1694,7 +1385,7 @@ function JobSearch() {
                             style={{ cursor: "pointer" }}
                             onClick={handleClearFilters}
                           >
-                            Clear
+                            {t("header.Clear")}
                           </h4>
                         </div>
                       </div>
@@ -1745,14 +1436,14 @@ function JobSearch() {
                             aria-controls="jobTypesCollapse"
                           >
                             <span className="show-more">
-                              Show More{" "}
+                              {t("header.show_more")}{" "}
                               <i
                                 className="fa fa-angle-down"
                                 aria-hidden="true"
                               />
                             </span>
                             <span className="show-less">
-                              Show Less{" "}
+                              {t("header.show_less")}{" "}
                               <i
                                 className="fa fa-angle-up"
                                 aria-hidden="true"
@@ -1763,11 +1454,12 @@ function JobSearch() {
                       </div>
                     </div>
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
+                    <div className="modern-filter-section">
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fa-solid fa-location-dot" /> Location
+                            <i className="fa-solid fa-location-dot" />{" "}
+                            {t("header.Location")}
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -1775,7 +1467,7 @@ function JobSearch() {
                             style={{ cursor: "pointer" }}
                             onClick={handleClearLocations} // clear all selected locations
                           >
-                            Clear
+                            {t("header.Clear")}
                           </h4>
                         </div>
                       </div>
@@ -1792,7 +1484,10 @@ function JobSearch() {
 
                           {/* Suggestions dropdown */}
                           {isLocationLoading && (
-                            <div className="suggestion-box">Searching...</div>
+                            <div className="suggestion-box">
+                              {" "}
+                              {t("header.searching")}...
+                            </div>
                           )}
 
                           {!isLocationLoading &&
@@ -1825,11 +1520,12 @@ function JobSearch() {
                     </div>
 
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
+                    <div className="modern-filter-section">
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fas fa-signal" /> Seniority Level
+                            <i className="fas fa-signal" />{" "}
+                            {t("header.seniority_level")}
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -1837,7 +1533,7 @@ function JobSearch() {
                             style={{ cursor: "pointer" }}
                             onClick={handleClearSeniority}
                           >
-                            Clear
+                            {t("header.Clear")}
                           </h4>
                         </div>
                       </div>
@@ -1896,14 +1592,14 @@ function JobSearch() {
                             aria-controls="seniorityCollapse"
                           >
                             <span className="show-more">
-                              Show More{" "}
+                              {t("header.show_more")}{" "}
                               <i
                                 className="fa fa-angle-down"
                                 aria-hidden="true"
                               />
                             </span>
                             <span className="show-less">
-                              Show Less{" "}
+                              {t("header.show_less")}{" "}
                               <i
                                 className="fa fa-angle-up"
                                 aria-hidden="true"
@@ -1915,11 +1611,12 @@ function JobSearch() {
                     </div>
 
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area">
+                    <div className="modern-filter-section">
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fas fa-money-bill-alt" /> Salary Range
+                            <i className="fas fa-money-bill-alt" />{" "}
+                            {t("header.salary_range")}
                           </h4>
                         </div>
                         <div className="job-filter-cancel-heading">
@@ -1927,7 +1624,7 @@ function JobSearch() {
                             style={{ cursor: "pointer" }}
                             onClick={handleClearSalaryFilters}
                           >
-                            Clear
+                            {t("header.Clear")}
                           </h4>
                         </div>
                       </div>
@@ -1979,32 +1676,33 @@ function JobSearch() {
                           aria-controls="salaryCollapse"
                         >
                           <span className="show-more">
-                            Show More{" "}
+                            {t("header.show_more")}{" "}
                             <i
                               className="fa fa-angle-down"
                               aria-hidden="true"
                             />
                           </span>
                           <span className="show-less">
-                            Show Less{" "}
+                            {t("header.show_less")}{" "}
                             <i className="fa fa-angle-up" aria-hidden="true" />
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="divder-line-info" />
-                    <div className="job-filter-search-area" ref={wrapperRef}>
+                    <div className="modern-filter-section" ref={wrapperRef}>
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fas fa-building" /> Industry Sector
+                            <i className="fas fa-building" />
+                            {t("header.industry_sector")}
                           </h4>
                         </div>
                         <div
                           className="job-filter-cancel-heading"
                           onClick={clearAll}
                         >
-                          <h4>Clear</h4>
+                          <h4>{t("header.Clear")}</h4>
                         </div>
                       </div>
 
@@ -2030,7 +1728,7 @@ function JobSearch() {
                             ))}
                             <input
                               type="text"
-                              placeholder="Search industries..."
+                              placeholder={t("header.Search_industries")}
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
                               onFocus={() => setShowOptions(true)}
@@ -2060,7 +1758,7 @@ function JobSearch() {
                                 ))
                               ) : (
                                 <li className="no-options">
-                                  No industries found
+                                  {t("header.no_industries")}
                                 </li>
                               )}
                             </ul>
@@ -2070,20 +1768,21 @@ function JobSearch() {
                     </div>
                     <div className="divder-line-info" />
                     <div
-                      className="job-filter-search-area"
+                      className="modern-filter-section"
                       ref={companyContainerRef}
                     >
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
                           <h4>
-                            <i className="fas fa-building" /> Company
+                            <i className="fas fa-building" />
+                            {t("header.company")}
                           </h4>
                         </div>
                         <div
                           className="job-filter-cancel-heading"
                           onClick={handleClearCompanies}
                         >
-                          <h4>Clear</h4>
+                          <h4>{t("header.Clear")}</h4>
                         </div>
                       </div>
 
@@ -2106,7 +1805,7 @@ function JobSearch() {
 
                             <input
                               type="text"
-                              placeholder="Search Company..."
+                              placeholder={t("header.Search_Company")}
                               value={companySearchTerm}
                               onChange={(e) =>
                                 setCompanySearchTerm(e.target.value)
@@ -2128,7 +1827,7 @@ function JobSearch() {
                                 ))
                               ) : (
                                 <li className="no-options">
-                                  No companies found
+                                  {t("header.No_companies_found")}
                                 </li>
                               )}
                             </ul>
@@ -2140,179 +1839,203 @@ function JobSearch() {
                 </div>
                 <div className="col-lg-8 col-md-8">
                   <div className="available-job-posts-info">
-                    <div className="available-job-posts-heading">
-                      <h4>
-                        <i className="fa-regular fa-file" />
-                        {totalJobData?.total} available job posts
-                      </h4>
-                      <div className="job-alert-tag-btn">
-                        <div className="filter-tag-info-area">
-                          {Object.entries(appliedFilters).map(
-                            ([key, value]) => (
-                              <span key={key} className="filter-tag">
-                                {typeof value === "object" ? value.name : value}{" "}
-                                {/* show name if object */}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() => handleRemoveFilterJob(key)}
-                                />
-                              </span>
-                            ),
-                          )}
+                    <div className="available-job-posts-info modern-available-jobs-header">
+                      {/* Top Header */}
+                      <div className="modern-header-top">
+                        <div className="available-job-posts-heading1">
+                          <h4>
+                            <span className="modern-count-badge">
+                              {totalJobData?.total || 0}
+                            </span>{" "}
+                            {t("header.available_job_posts")}
+                          </h4>
+                        </div>
 
-                          {/* ✅ Dynamic selected filters */}
-                          {selectedJobTypes.map((id) => {
-                            const jobType = jobTypes.find((j) => j._id === id);
-                            return (
-                              <span key={id} className="filter-tag">
-                                {jobType?.name || "Job Type"}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() =>
-                                    handleJobTypeChange({
-                                      target: { value: id, checked: false },
-                                    })
+                        {/* Alert Button */}
+                        {hasAnyFilter && (
+                          <>
+                            {!alertCreated ? (
+                              <button
+                                type="button"
+                                className="modern-alert-btn"
+                                onClick={(e) => {
+                                  e.preventDefault();
+
+                                  if (!userId) {
+                                    navigate("/login");
+                                    return;
                                   }
-                                />
-                              </span>
-                            );
-                          })}
 
-                          {selectedLocations.map((loc) => (
-                            <span key={loc._id} className="filter-tag">
-                              {loc.name}
+                                  const modalEl =
+                                    document.getElementById("exampleModal1");
+
+                                  if (modalEl) {
+                                    const modalInstance =
+                                      new window.bootstrap.Modal(modalEl);
+                                    modalInstance.show();
+                                  }
+                                }}
+                              >
+                                <i className="fa-regular fa-bell me-2"></i>
+                                {t("header.set_alert")}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="modern-alert-btn"
+                              >
+                                <i className="fa-solid fa-circle-check me-2"></i>
+                                {t("header.alert_created")}
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {/* Filter Pills */}
+                      <div className="modern-filter-pill-area">
+                        {/* appliedFilters */}
+                        {Object.entries(appliedFilters).map(([key, value]) => (
+                          <span key={key} className="modern-filter-pill">
+                            {typeof value === "object" ? value.name : value}
+
+                            <i
+                              className="fa-solid fa-xmark"
+                              onClick={() => handleRemoveFilterJob(key)}
+                            ></i>
+                          </span>
+                        ))}
+
+                        {/* Job Types */}
+                        {selectedJobTypes.map((id) => {
+                          const jobType = jobTypes.find((j) => j._id === id);
+
+                          return (
+                            <span key={id} className="modern-filter-pill">
+                              {jobType?.name || "Job Type"}
+
                               <i
                                 className="fa-solid fa-xmark"
-                                style={{ cursor: "pointer", marginLeft: "6px" }}
-                                onClick={() => handleRemoveLocation(loc._id)}
-                              />
+                                onClick={() =>
+                                  handleJobTypeChange({
+                                    target: {
+                                      value: id,
+                                      checked: false,
+                                    },
+                                  })
+                                }
+                              ></i>
                             </span>
-                          ))}
+                          );
+                        })}
 
-                          {selected.length > 0 &&
-                            selected.map((industry) => (
-                              <span key={industry._id} className="filter-tag">
-                                {industry.name}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() => removeTag(industry._id)}
-                                />
-                              </span>
-                            ))}
+                        {/* Locations */}
+                        {selectedLocations.map((loc) => (
+                          <span key={loc._id} className="modern-filter-pill">
+                            {loc.name}
 
-                          {selectedSeniority.map((id) => {
-                            const level = seniorityLevels.find(
-                              (l) => l._id === id,
-                            );
-                            return (
-                              <span key={id} className="filter-tag">
-                                {level?.name || "Seniority Level"}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() =>
-                                    handleSeniorityChange({
-                                      target: { value: id, checked: false },
-                                    })
-                                  }
-                                />
-                              </span>
-                            );
-                          })}
-                          {selectedSalaryRanges.map((range) => {
-                            const label =
-                              salaryRanges.find((r) => r.range === range)
-                                ?.range || range;
-                            return (
-                              <span key={range} className="filter-tag">
-                                {label}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() => handleRemoveSalaryTag(range)}
-                                />
-                              </span>
-                            );
-                          })}
+                            <i
+                              className="fa-solid fa-xmark"
+                              onClick={() => handleRemoveLocation(loc._id)}
+                            ></i>
+                          </span>
+                        ))}
 
-                          {selectedTechStacks.map((id) => {
-                            const cat = categories.find((c) => c._id === id);
-                            return (
-                              <span key={id} className="filter-tag">
-                                {cat?.name} ({cat?.jobCount})
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() =>
-                                    handleTechStackChange({
-                                      target: { value: id, checked: false },
-                                    })
-                                  }
-                                />
-                              </span>
-                            );
-                          })}
-                          {selectedCompanies.length > 0 &&
-                            selectedCompanies.map((company) => (
-                              <span key={company._id} className="filter-tag">
-                                {company.brandName}
-                                <i
-                                  className="fa-solid fa-xmark"
-                                  style={{
-                                    cursor: "pointer",
-                                    marginLeft: "6px",
-                                  }}
-                                  onClick={() =>
-                                    handleRemoveCompany(company._id)
-                                  }
-                                />
-                              </span>
-                            ))}
+                        {/* Industries */}
+                        {selected.map((industry) => (
+                          <span
+                            key={industry._id}
+                            className="modern-filter-pill"
+                          >
+                            {industry.name}
 
-                          <div className="set-alart-and-notification">
-                            {hasAnyFilter && (
-                              <>
-                                {!alertCreated ? (
-                                  <button
-                                    className="default-btn btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#exampleModal1"
-                                  >
-                                    <i className="fa-solid fa-bell"></i> Set
-                                    Alert
-                                  </button>
-                                ) : (
-                                  <button className="default-btn btn">
-                                    <i className="fa-solid fa-circle-check"></i>{" "}
-                                    Notification created
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        {/* ✅ Show buttons only if any filter is selected */}
+                            <i
+                              className="fa-solid fa-xmark"
+                              onClick={() => removeTag(industry._id)}
+                            ></i>
+                          </span>
+                        ))}
+
+                        {/* Seniority */}
+                        {selectedSeniority.map((id) => {
+                          const level = seniorityLevels.find(
+                            (l) => l._id === id,
+                          );
+
+                          return (
+                            <span key={id} className="modern-filter-pill">
+                              {level?.name}
+
+                              <i
+                                className="fa-solid fa-xmark"
+                                onClick={() =>
+                                  handleSeniorityChange({
+                                    target: {
+                                      value: id,
+                                      checked: false,
+                                    },
+                                  })
+                                }
+                              ></i>
+                            </span>
+                          );
+                        })}
+
+                        {/* Salary */}
+                        {selectedSalaryRanges.map((range) => {
+                          const label =
+                            salaryRanges.find((r) => r.range === range)
+                              ?.range || range;
+
+                          return (
+                            <span key={range} className="modern-filter-pill">
+                              {label}
+
+                              <i
+                                className="fa-solid fa-xmark"
+                                onClick={() => handleRemoveSalaryTag(range)}
+                              ></i>
+                            </span>
+                          );
+                        })}
+
+                        {/* Tech Stack */}
+                        {selectedTechStacks.map((id) => {
+                          const cat = categories.find((c) => c._id === id);
+
+                          return (
+                            <span key={id} className="modern-filter-pill">
+                              {cat?.name}
+
+                              <i
+                                className="fa-solid fa-xmark"
+                                onClick={() =>
+                                  handleTechStackChange({
+                                    target: {
+                                      value: id,
+                                      checked: false,
+                                    },
+                                  })
+                                }
+                              ></i>
+                            </span>
+                          );
+                        })}
+
+                        {/* Companies */}
+                        {selectedCompanies.map((company) => (
+                          <span
+                            key={company._id}
+                            className="modern-filter-pill"
+                          >
+                            {company.brandName}
+
+                            <i
+                              className="fa-solid fa-xmark"
+                              onClick={() => handleRemoveCompany(company._id)}
+                            ></i>
+                          </span>
+                        ))}
                       </div>
                     </div>
                     {isLoadingJobs ? (
@@ -2325,240 +2048,236 @@ function JobSearch() {
                             {chunk.map((job) => (
                               <Link
                                 key={job._id}
-                                to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                state={{ from: "/job-search" }}
-                                className="job-link"
+                                to={`/job-details/${job._id}`}
+                                state={{ from: "/jobs" }}
+                                className="job-link text-decoration-none"
                               >
-                                {" "}
-                                <div className="available-job-posts-box">
-                                  <div className="available-job-company-name-save-job">
-                                    {job?.isFeatured && (
-                                      <span
-                                        className="featured-badge"
-                                        title="This is a featured job listing"
-                                      >
-                                        <i className="fa-solid fa-star"></i>{" "}
-                                        Featured
-                                      </span>
-                                    )}
-                                    <div className="available-job-company-name">
-                                      <a href="#">
-                                        <h4>
-                                          <img
-                                            crossorigin="anonymous"
-                                            src={
-                                              job?.logo
-                                                ? `${API_IMAGE_URL}${job.logo}`
-                                                : "assets/images/dashboard/images1.png"
-                                            }
-                                            alt="logo"
-                                          />
-                                          {job?.brandName}
-                                        </h4>
-                                      </a>
-                                    </div>
-                                    <div className="d-flex justify-space-between">
-                                      <div>
-                                        {job?.isAssessmentRequired && (
-                                          <>
-                                            {/* 🟢 PASSED */}
-                                            {job?.assessmentResult?.status ===
-                                              "passed" && (
-                                              <span className="test-passed-tag-area">
-                                                <i className="fa-solid fa-circle-check"></i>
-                                                Test Passed
-                                              </span>
-                                            )}
-
-                                            {/* 🔴 FAILED */}
-                                            {job?.assessmentResult?.status ===
-                                              "failed" && (
-                                              <span className="test-failed-tag-area">
-                                                <i className="fa-solid fa-circle-xmark"></i>
-                                                Test Failed
-                                              </span>
-                                            )}
-
-                                            {/* 🟠 NOT ATTEMPTED */}
-                                            {(!job?.assessmentResult ||
-                                              job?.assessmentResult?.status ===
-                                                "not_attempted") && (
-                                              <span className="test-required-tag-area">
-                                                <i className="fa-solid fa-clipboard-check"></i>
-                                                Test Required
-                                              </span>
-                                            )}
-                                          </>
-                                        )}
+                                <div className="modern-job-card clickable mb-4">
+                                  {/* Header */}
+                                  <div className="modern-job-header">
+                                    <div className="modern-company-info">
+                                      <div className="modern-logo-container">
+                                        <img
+                                          crossOrigin="anonymous"
+                                          alt="logo"
+                                          className="modern-company-logo"
+                                          src={
+                                            job?.logo
+                                              ? `${API_IMAGE_URL}${job.logo}`
+                                              : "assets/images/dashboard/images1.png"
+                                          }
+                                        />
                                       </div>
 
-                                      <div className="available-job-save-job">
+                                      <div className="modern-company-details">
+                                        <h4 className="modern-company-name">
+                                          {job?.brandName}
+                                        </h4>
+
+                                        <span className="modern-post-date">
+                                          <i className="fa-regular fa-clock me-1"></i>
+                                          {moment(job?.createdAt).fromNow()}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Right Actions */}
+                                    <div className="modern-job-actions">
+                                      {/* Featured */}
+                                      {job?.isFeatured && (
+                                        <span
+                                          className="modern-status-badge featured"
+                                          style={{
+                                            padding: "6px 12px",
+                                            fontSize: "11px",
+                                            borderRadius: "8px",
+                                            marginRight: "8px",
+                                          }}
+                                        >
+                                          <i className="fa-solid fa-star me-1"></i>
+                                          {t("header.Featured")}
+                                        </span>
+                                      )}
+
+                                      {/* Assessment */}
+                                      {job?.isAssessmentRequired && (
+                                        <span
+                                          className="modern-status-badge assessment"
+                                          style={{
+                                            padding: "6px 12px",
+                                            fontSize: "11px",
+                                            borderRadius: "8px",
+                                            marginRight: "8px",
+                                          }}
+                                        >
+                                          {job?.assessmentResult?.status ===
+                                          "passed"
+                                            ? "Test Passed"
+                                            : job?.assessmentResult?.status ===
+                                                "failed"
+                                              ? "Test Failed"
+                                              : t("header.Test_Required")}
+                                        </span>
+                                      )}
+
+                                      {/* Save */}
+                                      <button
+                                        className="modern-action-icon"
+                                        title="Save Job"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleSaveJob(job._id);
+                                        }}
+                                      >
                                         <i
                                           className={`fa-${
                                             job.isSaved ? "solid" : "regular"
                                           } fa-heart`}
-                                          style={{
-                                            cursor: "pointer",
-                                            color: job.isSaved
-                                              ? "#fb761a"
-                                              : "#fff",
-                                          }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            handleSaveJob(job._id);
-                                          }}
-                                        />
-                                        <i
-                                          className="fa-brands fa-linkedin-in"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.linkedin ||
-                                              "https://www.linkedin.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />{" "}
-                                        <i
-                                          className="fa-brands fa-facebook-f"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.facebook ||
-                                              "https://www.facebook.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
-                                        <i
-                                          className="fa-brands fa-instagram"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.instagram ||
-                                              "https://www.instagram.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
-                                        <i
-                                          className="fa-brands fa-x-twitter"
-                                          style={{ cursor: "pointer" }}
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const link =
-                                              job?.social_links?.twitter ||
-                                              "https://twitter.com/";
-                                            window.open(link, "_blank");
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="available-job-type-details">
-                                    <h5>{job?.jobTitle || "N/A"}</h5>
-                                    <p>{job?.shortDescription || "N/A"}</p>
-                                    <ul>
-                                      <li>
-                                        <i className="fa-regular fa-calendar" />{" "}
-                                        {moment(job?.createdAt).fromNow()}
-                                      </li>
-                                      <li>
-                                        <i className="fa-regular fa-file" />{" "}
-                                        {Array.isArray(job?.jobCategory) &&
-                                        job.jobCategory.length > 0
-                                          ? job.jobCategory.join(", ")
-                                          : "N/A"}
-                                      </li>
-                                      <li>
-                                        <i className="fa-regular fa-user" />
-                                        &nbsp;
-                                        {Array.isArray(job?.employmentType) &&
-                                        job.employmentType.length > 0
-                                          ? job.employmentType.join(", ")
-                                          : "N/A"}
-                                      </li>
-                                      <li>
-                                        <i className="fa-solid fa-location-dot" />{" "}
-                                        {job?.city && job?.city.length > 0
-                                          ? job.city.join(", ")
-                                          : job?.company_city || "N/A"}
-                                      </li>
-                                      <li>
-                                        <i className="fa-solid fa-users" />{" "}
-                                        Available:
-                                        {job?.availablePosts || 0}{" "}
-                                      </li>
-                                    </ul>
-                                  </div>
-
-                                  {/* <div className="available-job-type-apply-btn">
-                                    {job?.isApplied ? (
-                                      <button className="default-btn btn">
-                                        {job?.applicationStatus}
+                                        ></i>
                                       </button>
-                                    ) : (
-                                      <a
-                                        href="#"
-                                        className="default-btn btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#exampleModal"
-                                        onClick={() => {
-                                          setJobId(job._id);
-                                          handleJobClick(job._id);
-                                        }}
-                                      >
-                                        Apply Now
-                                      </a>
-                                    )}
-                                  </div> */}
-                                  <div className="available-job-type-apply-btn">
-                                    {/* 🔒 Already Applied */}
-                                    {job?.isApplied ? (
+
+                                      {/* Linkedin */}
                                       <button
-                                        className="default-btn btn"
-                                        disabled
-                                        style={{ color: "#ff6600" }}
-                                      >
-                                        {job?.applicationStatus}
-                                      </button>
-                                    ) : job?.isAssessmentRequired ? (
-                                      /* 🧪 Assessment Required → View Details */
-                                      <Link
-                                        to={`/job-details/${job._id}`}
-                                        className="default-btn btn"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        View Details
-                                      </Link>
-                                    ) : (
-                                      /* ✅ No Assessment → Direct Apply */
-                                      <a
-                                        href="#"
-                                        className="default-btn btn"
+                                        className="modern-action-icon"
+                                        title="LinkedIn"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
-                                          setJobId(job._id);
-                                          handleJobClick(job._id);
+                                          window.open(
+                                            job?.social_links?.linkedin ||
+                                              "https://linkedin.com",
+                                            "_blank",
+                                          );
                                         }}
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#exampleModal"
                                       >
-                                        Apply Now
-                                      </a>
-                                    )}
+                                        <i className="fa-brands fa-linkedin-in"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Body */}
+                                  <div className="modern-job-body">
+                                    <div className="modern-title-badge-area">
+                                      <h3
+                                        className="modern-job-title"
+                                        style={{ cursor: "pointer" }}
+                                      >
+                                        {job?.jobTitle}
+                                      </h3>
+                                    </div>
+
+                                    <p className="modern-job-description">
+                                      {job?.shortDescription || "N/A"}
+                                    </p>
+                                  </div>
+
+                                  {/* Meta */}
+                                  <div className="modern-job-meta">
+                                    <span className="modern-meta-tag">
+                                      <i className="fa-regular fa-file me-1"></i>
+                                      {job?.jobCategory || "N/A"}
+                                    </span>
+
+                                    <span className="modern-meta-tag">
+                                      <i className="fa-solid fa-signal me-1"></i>
+                                      {job?.experienceLevel || "All Levels"}
+                                    </span>
+
+                                    <span className="modern-meta-tag">
+                                      <i className="fa-regular fa-user me-1"></i>
+                                      {Array.isArray(job?.employmentType) &&
+                                      job.employmentType.length > 0
+                                        ? job.employmentType.join(", ")
+                                        : "N/A"}
+                                    </span>
+
+                                    <span className="modern-meta-tag">
+                                      <i className="fa-solid fa-location-dot me-1"></i>
+                                      {job?.city?.length > 0
+                                        ? job.city.join(", ")
+                                        : job?.company_city || "N/A"}
+                                    </span>
+                                  </div>
+
+                                  {/* Footer */}
+                                  <div className="modern-job-footer">
+                                    <div className="modern-job-info-badges">
+                                      <span className="modern-info-badge">
+                                        <i className="fa-solid fa-briefcase me-1"></i>
+                                        {job?.availablePosts || 0} Position(s)
+                                      </span>
+
+                                      <span className="modern-info-badge">
+                                        <i className="fa-solid fa-wallet me-1"></i>
+
+                                        {job?.privatJobDetails
+                                          ?.salaryNegotiable === true ? (
+                                          "Salaire à négocier"
+                                        ) : job?.privatJobDetails?.minSalary ||
+                                          job?.privatJobDetails?.maxSalary ? (
+                                          <>
+                                            {job?.privatJobDetails?.minSalary ||
+                                              0}{" "}
+                                            -{" "}
+                                            {job?.privatJobDetails?.maxSalary ||
+                                              0}{" "}
+                                            {globalCurrency.code}
+                                          </>
+                                        ) : (
+                                          "Salaire à négocier"
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    <div className="modern-job-footer-actions">
+                                      {job?.isApplied ? (
+                                        <button
+                                          className="modern-apply-btn"
+                                          disabled
+                                        >
+                                          {job?.applicationStatus}
+                                        </button>
+                                      ) : job?.isAssessmentRequired ? (
+                                        <button className="modern-apply-btn">
+                                          {t("header.View_Details")}
+                                        </button>
+                                      ) : (
+                                        <button
+                                          className="modern-apply-btn"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+
+                                            if (userRole !== "JobSeeker") {
+                                              navigate("/login");
+                                              return;
+                                            }
+
+                                            setJobId(job._id);
+                                            handleJobClick(job._id);
+
+                                            const modalEl =
+                                              document.getElementById(
+                                                "exampleModal",
+                                              );
+                                            if (modalEl) {
+                                              const modal =
+                                                new window.bootstrap.Modal(
+                                                  modalEl,
+                                                );
+                                              modal.show();
+                                            }
+                                          }}
+                                        >
+                                          {t("header.apply_now")}
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </Link>
                             ))}
-                            {/* Modal (keep outer modal structure unchanged) */}
                             <div
                               className="modal fade"
                               id="exampleModal"
@@ -2573,7 +2292,7 @@ function JobSearch() {
                                       className="modal-title fs-5"
                                       id="exampleModalLabel"
                                     >
-                                      Apply now
+                                      {t("header.apply_now")}
                                     </h1>
                                     <button
                                       type="button"
@@ -2707,7 +2426,7 @@ function JobSearch() {
                                               : "none",
                                         }}
                                       >
-                                        <h4>or</h4>
+                                        <h4>{t("header.or")}</h4>
                                       </div>
 
                                       {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
@@ -2771,9 +2490,11 @@ function JobSearch() {
                                                 fileInputRef.current.click();
                                             }}
                                           >
-                                            Custom resume with cover letter
-                                            Upload Your File (PDF/DOC/DOCX)
+                                            {t(
+                                              "header.Custom_resume_with_cover_letter",
+                                            )}
                                           </a>
+
                                           <input
                                             ref={fileInputRef}
                                             type="file"
@@ -2800,7 +2521,7 @@ function JobSearch() {
                                           onClick={handleApplyJob}
                                           disabled={
                                             isApplying || !isSelectionMade()
-                                          } // ✅ Disabled if nothing selected
+                                          }
                                         >
                                           {isApplying ? (
                                             <>
@@ -2809,10 +2530,10 @@ function JobSearch() {
                                                 role="status"
                                                 aria-hidden="true"
                                               ></span>
-                                              Applying...
+                                              {t("header.applying")}
                                             </>
                                           ) : (
-                                            "Apply Now"
+                                            t("header.apply_now")
                                           )}
                                         </button>
                                       </div>
@@ -2822,27 +2543,35 @@ function JobSearch() {
                                 </div>
                               </div>
                             </div>
-
                             {/* Show Swiper only if this chunk has 10 jobs */}
                             {chunk.length === 10 && (
-                              <section className="job-card-companies-inf-area">
-                                <div className="container">
+                              <section className="modern-company-carousel-section">
+                                <div className="modern-carousel-content-wrapper">
+                                  <h3 className="modern-carousel-title">
+                                    Entreprises qui Recrutent
+                                  </h3>
                                   <Swiper
                                     modules={[
                                       Navigation,
                                       SwiperPagination,
                                       Autoplay,
                                     ]}
-                                    spaceBetween={20}
-                                    slidesPerView={3}
+                                    spaceBetween={24}
+                                    slidesPerView={3} // ✅ default desktop 3 cards
                                     navigation
-                                    // pagination={{ clickable: true }}
                                     autoplay={{ delay: 3000 }}
                                     loop={true}
+                                    pagination={{
+                                      clickable: true,
+                                      dynamicBullets: true,
+                                      dynamicMainBullets: 4, // controls how many dots are visible
+                                    }}
                                     breakpoints={{
                                       320: { slidesPerView: 1 },
+                                      576: { slidesPerView: 1.2 },
                                       768: { slidesPerView: 2 },
-                                      1024: { slidesPerView: 3 },
+                                      992: { slidesPerView: 3 },
+                                      1200: { slidesPerView: 3 }, // ✅ keep 3 on large screen
                                     }}
                                   >
                                     {companies?.companies?.length > 0 ? (
@@ -2850,93 +2579,94 @@ function JobSearch() {
                                         const company = item?.companyId;
                                         const topThreeJobs =
                                           item?.jobList?.slice(0, 3) || [];
+                                        const latestJob = topThreeJobs[0];
+
                                         return (
                                           <SwiperSlide key={company?._id}>
-                                            <div className="job-card-companies-box">
-                                              <div className="job-card-companies-img">
+                                            <div
+                                              className="modern-company-card"
+                                              onClick={() =>
+                                                handleViewCompany(company?._id)
+                                              }
+                                              style={{ cursor: "pointer" }}
+                                            >
+                                              {/* Cover */}
+                                              <div className="modern-company-cover-container">
                                                 <img
                                                   alt={
                                                     company?.brandName ||
-                                                    "Company Cover"
+                                                    "Company"
                                                   }
+                                                  className="modern-company-cover-img"
+                                                  crossOrigin="anonymous"
                                                   src={
                                                     company?.coverPhoto
                                                       ? `${API_IMAGE_URL}${company.coverPhoto}`
                                                       : "/jobPortal/assets/images/company/company-img-1.jpg"
                                                   }
-                                                  crossOrigin="anonymous"
                                                 />
 
-                                                <div className="job-card-companies-logo">
+                                                <div className="modern-company-cover-overlay"></div>
+
+                                                {/* Logo */}
+                                                <div className="modern-company-logo-badge">
                                                   <img
                                                     alt="logo"
+                                                    crossOrigin="anonymous"
                                                     src={
                                                       company?.logo
                                                         ? `${API_IMAGE_URL}${company.logo}`
                                                         : "/jobPortal/assets/images/icon/icon-25.png"
                                                     }
-                                                    crossOrigin="anonymous"
                                                   />
                                                 </div>
                                               </div>
 
-                                              <div className="job-card-companies-name">
-                                                <h4
-                                                  onClick={() =>
-                                                    handleViewCompany(
-                                                      company?._id,
-                                                    )
-                                                  }
-                                                  style={{
-                                                    cursor: "pointer",
-                                                  }}
-                                                >
-                                                  {company?.brandName ||
-                                                    "Unnamed Company"}
-                                                </h4>
-                                              </div>
+                                              {/* Content */}
+                                              <div className="modern-company-content">
+                                                <div className="modern-company-header-row">
+                                                  <h4 className="modern-company-card-name">
+                                                    {company?.brandName ||
+                                                      "Unnamed Company"}
+                                                  </h4>
 
-                                              {/* ✅ Latest Jobs */}
-                                              <div className="job-card-companies-name">
-                                                <h5>Latest Jobs</h5>
+                                                  <span className="modern-job-count-badge">
+                                                    {item?.jobCount || 0}{" "}
+                                                    {t("header.Jobs")}
+                                                  </span>
+                                                </div>
 
-                                                <ul>
-                                                  {topThreeJobs.length > 0 ? (
-                                                    topThreeJobs.map((job) => (
-                                                      <li key={job._id}>
-                                                        <Link
-                                                          to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                                          className="job-link"
-                                                          style={{
-                                                            color: "#007bff",
-                                                            textDecoration:
-                                                              "none",
-                                                            fontWeight: "500",
-                                                          }}
-                                                        >
-                                                          {job.jobTitle}
-                                                        </Link>{" "}
-                                                      </li>
-                                                    ))
+                                                {/* Latest Job */}
+                                                <div className="modern-latest-job-info">
+                                                  <span className="modern-latest-job-label">
+                                                    {t("header.Latest_Job")}
+                                                  </span>
+
+                                                  {latestJob ? (
+                                                    <Link
+                                                      to={`/job-details/${latestJob._id}`}
+                                                      className="modern-one-job-link"
+                                                      onClick={(e) =>
+                                                        e.stopPropagation()
+                                                      }
+                                                    >
+                                                      {latestJob.jobTitle}
+                                                    </Link>
                                                   ) : (
-                                                    <li>No jobs available</li>
+                                                    <div
+                                                      className="modern-one-job-link"
+                                                      style={{
+                                                        opacity: "0.6",
+                                                      }}
+                                                    >
+                                                      <span>
+                                                        {t(
+                                                          "header.noJobsAvailable",
+                                                        )}
+                                                      </span>
+                                                    </div>
                                                   )}
-                                                </ul>
-                                              </div>
-
-                                              {/* ✅ View Jobs Button */}
-                                              <div className="view-job-count-btn">
-                                                <button
-                                                  className="default-btn btn"
-                                                  onClick={() =>
-                                                    handleViewCompany(
-                                                      company?._id,
-                                                    )
-                                                  }
-                                                >
-                                                  View {item?.jobCount || 0}{" "}
-                                                  Jobs
-                                                </button>
+                                                </div>
                                               </div>
                                             </div>
                                           </SwiperSlide>
@@ -2944,7 +2674,7 @@ function JobSearch() {
                                       })
                                     ) : (
                                       <p className="text-center mt-4">
-                                        No companies available.
+                                        {t("header.no_companies")}
                                       </p>
                                     )}
                                   </Swiper>
@@ -2955,10 +2685,12 @@ function JobSearch() {
                         ))}
                       </>
                     ) : (
-                      <p className="text-center mt-3">No jobs found</p>
+                      <p className="text-center mt-3">
+                        {" "}
+                        {t("header.no_jobs_found")}
+                      </p>
                     )}
                   </div>
-
                   <Stack
                     direction="row"
                     spacing={2}
@@ -2985,10 +2717,10 @@ function JobSearch() {
                       }}
                       size="small"
                     >
-                      <MenuItem value={15}>15 / page</MenuItem>
-                      <MenuItem value={25}>25 / page</MenuItem>
-                      <MenuItem value={50}>50 / page</MenuItem>
-                      <MenuItem value={100}>100 / page</MenuItem>
+                      <MenuItem value={15}>15 /{t("header.page")}</MenuItem>
+                      <MenuItem value={25}>25 / {t("header.page")}</MenuItem>
+                      <MenuItem value={50}>50 / {t("header.page")}</MenuItem>
+                      <MenuItem value={100}>100 /{t("header.page")}</MenuItem>
                     </Select>
                   </Stack>
                 </div>

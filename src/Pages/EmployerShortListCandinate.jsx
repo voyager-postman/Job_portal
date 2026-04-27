@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
+
+
   const cityDropdownRef = useRef(null);
   const experienceRef = useRef(null);
   const educationRef = useRef(null);
@@ -149,7 +151,7 @@ function EmployerShortListCandinate() {
       const message = error.response?.data?.message;
       const exhausted = error.response?.data?.is_exhausted;
 
-      toast.error(message || "Something went wrong");
+    toast.error(message || t("header.something_wrong"));
 
       // 🚀 Navigate only if exhausted
       if (exhausted === 1) {

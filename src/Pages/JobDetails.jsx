@@ -87,6 +87,9 @@ function JobDetails() {
         setJob(null);
         setAssessmentDetails(null);
         setLinkUrl("");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
 
         return;
       }

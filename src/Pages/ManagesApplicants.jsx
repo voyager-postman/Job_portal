@@ -5,8 +5,12 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import Swal from "sweetalert2";
 function ManagesApplicants() {
+  const { t, i18n } = useTranslation("global");
+
   const navigate = useNavigate();
   const location = useLocation();
   const experienceRef = useRef(null);
@@ -92,17 +96,17 @@ function ManagesApplicants() {
     { label: "+ de 15 ans", value: "15+" },
   ];
   const educationLevels = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -238,7 +242,7 @@ function ManagesApplicants() {
         },
       );
 
-      toast.success(`Candidate status updated to ${value}`);
+      toast.success(t("header.Candidate_status_updated_to", { value }));
 
       // Update UI instantly (without refresh)
       setCandidates((prev) =>
@@ -300,7 +304,7 @@ function ManagesApplicants() {
       }
     } catch (error) {
       console.error("Error fetching company jobs:", error);
-      toast.error("Failed to load job list");
+      toast.error(t("header.failed_to_load_job_list"));
     }
   };
   useEffect(() => {
@@ -448,7 +452,7 @@ function ManagesApplicants() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load applicants");
+      toast.error(t("header.failed_to_load_applicants"));
     } finally {
       setLoading(false);
     }
@@ -536,13 +540,13 @@ function ManagesApplicants() {
         status: value,
       }));
 
-      toast.success(`Candidate status updated to ${value}`);
+      toast.success(t("header.Candidate_status_updated_to", { value }));
 
       // Refresh list
       fetchApplicants(currentPage);
     } catch (error) {
       console.error("Update Status Error:", error);
-      toast.error("Failed to update status");
+      toast.error(t("header.failed_to_update_status"));
     }
   };
 
@@ -591,19 +595,19 @@ function ManagesApplicants() {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
+      title: t("header.Are_you_sure"),
+      text: t("header.You_are_not_be_able_to_revert_this"),
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: t("header.Yes_delete_it"),
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
           if (!token) {
-            toast.error("You need to log in first.");
+            toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
 
@@ -634,7 +638,7 @@ function ManagesApplicants() {
           }
         } catch (error) {
           console.error(error);
-          toast.error("Failed to delete applicant");
+          toast.error(t("header.failed_to_delete_applicant"));
         }
       }
     });
@@ -674,7 +678,7 @@ function ManagesApplicants() {
 
     // If empty string after clicking OK → show validation
     if (folderName.trim() === "") {
-      toast.error("Folder name is required");
+      toast.error(t("header.folder_name_required"));
       return;
     }
 
@@ -693,11 +697,11 @@ function ManagesApplicants() {
 
       if (res.data.success) {
         setFolders((prev) => [...prev, res.data.folder]);
-        toast.success("Folder created successfully");
+        toast.success(t("header.Folder_created_successfully"));
       }
     } catch (error) {
       console.error("Error creating folder:", error);
-      toast.error("Failed to create folder");
+      toast.error(t("header.Failed_to_create_folder"));
     }
   };
   const handleFolderClick = (folderId) => {
@@ -774,7 +778,7 @@ function ManagesApplicants() {
       );
 
       if (res.data.success) {
-        toast.success("Candidate bookmarked successfully");
+        toast.success(t("header.candidate_bookmarked_successfully"));
 
         // ✅ Refresh current candidate details
         if (selectedCandidate?._id) {
@@ -789,9 +793,9 @@ function ManagesApplicants() {
         error.response &&
         error.response.data?.message === "Already bookmarked in this folder"
       ) {
-        toast.warning("Already bookmarked in this folder ⚠️");
+        toast.warning(t("header.already_bookmarked_in_folder"));
       } else {
-        toast.error("Something went wrong ");
+        toast.error(t("header.something_wrong"));
       }
     }
   };
@@ -837,7 +841,7 @@ function ManagesApplicants() {
       const message = error.response?.data?.message;
       const exhausted = error.response?.data?.is_exhausted;
 
-      toast.error(message || "Something went wrong");
+      toast.error(message || t("header.something_wrong"));
 
       // 🚀 Navigate only if credits exhausted
       if (exhausted === 1) {
