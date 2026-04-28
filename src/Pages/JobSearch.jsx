@@ -30,6 +30,8 @@ function JobSearch() {
   const location = useLocation();
   const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
+    const userRole = localStorage.getItem("user_role");
+
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   console.log("Received Alert Data:", alert);
   const [resumeList, setResumeList] = useState([]);
@@ -2127,6 +2129,12 @@ function JobSearch() {
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
+
+                                          if (userRole !== "JobSeeker") {
+                                            navigate("/login");
+                                            return;
+                                          }
+
                                           handleSaveJob(job._id);
                                         }}
                                       >

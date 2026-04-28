@@ -2181,12 +2181,33 @@ const JobList = () => {
                                         )}
 
                                         {/* Save */}
+                                        {/* <button
+                                          className="modern-action-icon"
+                                          title="Save Job"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSaveJob(job._id);
+                                          }}
+                                        >
+                                          <i
+                                            className={`fa-${
+                                              job.isSaved ? "solid" : "regular"
+                                            } fa-heart`}
+                                          ></i>
+                                        </button> */}
                                         <button
                                           className="modern-action-icon"
                                           title="Save Job"
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
+
+                                            if (userRole !== "JobSeeker") {
+                                              navigate("/login");
+                                              return;
+                                            }
+
                                             handleSaveJob(job._id);
                                           }}
                                         >
