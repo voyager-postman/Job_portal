@@ -1,364 +1,129 @@
-import { Link } from "react-router-dom";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useLocation, Link } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from "../Url/Url";
-import { API_IMAGE_URL } from "../Url/Url";
-import Swal from "sweetalert2";
-
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-function EmployerShortListCandinate() {
-  const cityDropdownRef = useRef(null);
-  const [perPage, setPerPage] = useState(20);
-  const [hoveredCandidate, setHoveredCandidate] = useState(null);
-  const [showCityOptions, setShowCityOptions] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [totalCandidates, setTotalCandidates] = useState(0); // ✅ ADD THIS
-  const token = localStorage.getItem("token");
-  const [selectedJob, setSelectedJob] = useState("");
-  const [search, setSearch] = useState("");
-  const [folders, setFolders] = useState([]);
-  const [applicants, setApplicants] = useState([]);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [selectedAvailability, setSelectedAvailability] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedCities, setSelectedCities] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedExperience, setSelectedExperience] = useState("");
-  const [seniorityLevels, setSeniorityLevels] = useState([]);
-  const [selectedEducation, setSelectedEducation] = useState("");
-  const [showProfile, setShowProfile] = useState(false);
-  const [activeFolder, setActiveFolder] = useState("all");
-  const [skillInput, setSkillInput] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [country, setCountry] = useState([]);
-  const [cityList, setCityList] = useState([]);
-  // const [customFolders, setCustomFolders] = useState([
-  //   { id: "top-talents", name: "Top Talents", type: "custom" },
-  // ]);
-  const educationLevels = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
-  ];
-  const [candidates, setCandidates] = useState([
-    {
-      id: 1,
-      name: "VISHAL PATEL",
-      skill: "node js",
-      city: "Varanasi",
-      folder: "all",
-    },
-    {
-      id: 2,
-      name: "Neha Singh",
-      skill: "React Developer",
-      city: "Noida",
-      folder: "marketing",
-    },
-  ]);
 
-  console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-  const handleFolderClick = (folderId) => {
-    setActiveFolder(folderId);
-    setCurrentPage(1);
-  };
+function CompanyDetailsPage() {
+  const location = useLocation();
+  const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
+  const fileInputRef = useRef(null);
+  const [jobId, setJobId] = useState(null);
+  const [isApplying, setIsApplying] = useState(false);
+  const [resumeList, setResumeList] = useState([]);
+  const [coverLetterList, setCoverLetterList] = useState([]);
+  const [selectedType, setSelectedType] = useState(null);
+  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+  const { companyId } = location.state || {}; // 👈 receive the ID here
+  const [company, setCompany] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [copiedJobId, setCopiedJobId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const from = location.state?.from || "/";
+  // const breadcrumbLabel = from.includes("/manage-job-application")
+  //   ? "Manage Job Application"
+  //   : "Search Company List";
 
-  const handleCreateFolder = async () => {
-    const folderName = prompt("Enter folder name");
+  const breadcrumbLabel = from?.includes("/manage-job-application")
+    ? "Manage Job Application"
+    : from?.includes("/companies-list")
+      ? "Search Company List"
+      : from?.includes("/companies")
+        ? "Companies"
+        : // : from?.includes("/")
+          //   ? "Home"
+          "Search Company List";
 
-    // If user clicked Cancel → do nothing
-    if (folderName === null) {
-      return;
-    }
-
-    // If empty string after clicking OK → show validation
-    if (folderName.trim() === "") {
-      toast.error("Folder name is required");
-      return;
-    }
-
+  const getCompanyDetails = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.post(
-        `${API_BASE_URL}createBookmarkFolder`,
-        { name: folderName },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (res.data.success) {
-        setFolders((prev) => [...prev, res.data.folder]);
-        toast.success("Folder created successfully");
-      }
-    } catch (error) {
-      console.error("Error creating folder:", error);
-      toast.error("Failed to create folder");
-    }
-  };
-
-  // const handleDeleteFolder = async (folderId) => {
-  //   const result = await Swal.fire({
-  //     title: "Delete Folder?",
-  //     text: "All bookmarked candidates inside this folder will be removed.",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#6c757d",
-  //     confirmButtonText: "Yes, delete",
-  //   });
-
-  //   if (result.isConfirmed) {
-  //     try {
-  //       setLoading(true);
-
-  //       const res = await axios.delete(
-  //         `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
-
-  //       if (res.data.success) {
-  //         Swal.fire({
-  //           icon: "success",
-  //           title: "Deleted!",
-  //           text: "Folder deleted successfully.",
-  //           timer: 1500,
-  //           showConfirmButton: false,
-  //         });
-  //         fetchFolders();
-
-  //         // Refresh folders list
-
-  //         // If active folder was deleted → reset
-  //         if (activeFolder === folderId) {
-  //           setActiveFolder("all");
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Delete folder error:", error);
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Failed",
-  //         text: "Unable to delete folder.",
-  //       });
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
-  const handleDeleteFolder = async (folderId) => {
-    const result = await Swal.fire({
-      title: "Delete Folder?",
-      text: "All bookmarked candidates inside this folder will be removed.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      setLoading(true);
-
-      const res = await axios.delete(
-        `${API_BASE_URL}bookmark-folder/${folderId}/candidates`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (res.data.success) {
-        // ✅ Remove folder instantly from UI (No reload flicker)
-        setFolders((prev) => prev.filter((folder) => folder._id !== folderId));
-
-        // ✅ If deleted folder was active → reset to "all"
-        if (activeFolder === folderId) {
-          setActiveFolder("all");
-        }
-
-        // ✅ Success popup with OK button
-        await Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "Folder deleted successfully.",
-          confirmButtonColor: "#3085d6",
-          confirmButtonText: "OK",
-        });
-      }
-    } catch (error) {
-      console.error("Delete folder error:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Failed",
-        text: "Unable to delete folder.",
-        confirmButtonColor: "#d33",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchCountry = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}get/countries`);
-      setCountry(res.data.countries || []);
-      console.log("candidates-search- Country Data", res.data.countries);
-    } catch (error) {
-      console.error("Error While Fetching Country:", error);
-    }
-  };
-  useEffect(() => {
-    fetchCountry();
-
-    // Close city dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (
-        cityDropdownRef.current &&
-        !cityDropdownRef.current.contains(event.target)
-      ) {
-        setShowCityOptions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  const fetchCitiesByCountry = async (countryId) => {
-    if (!countryId) return;
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}getCitiesByCountry?countryId=${countryId}`,
-      );
-      const cities = response.data?.cities || [];
-      setCityList(cities);
-
-      // ✅ If editing, keep previously selected cities (if they still exist in the list)
-      // console.log("City data on the behalf of country", cities);
-    } catch (error) {
-      console.error(error);
-      setCityList([]);
-    }
-  };
-  useEffect(() => {
-    const fetchSeniorityLevels = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}getActiveSeniorityLevelList`,
-        );
-        if (res.data.success && Array.isArray(res.data.levels)) {
-          setSeniorityLevels(res.data.levels);
-        }
-      } catch (error) {
-        console.error("Error fetching seniority levels:", error);
-      }
-    };
-
-    fetchSeniorityLevels();
-  }, []);
-  const filters = {
-    selectedJob,
-    selectedSkills,
-    selectedExperience,
-    selectedEducation,
-    selectedAvailability,
-    selectedCountry,
-    selectedCity,
-  };
-  const fetchApplicants = async (
-    page = 1,
-    customFilters = filters,
-    customSearch = search,
-    folderId = activeFolder,
-  ) => {
-    try {
-      setLoading(true);
-
-      const res = await axios.get(`${API_BASE_URL}getFolderCandidates`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          folderId: folderId !== "all" ? folderId : undefined,
-          search: customSearch || undefined,
-          skills:
-            customFilters.selectedSkills?.length > 0
-              ? customFilters.selectedSkills.join(",")
-              : undefined,
-          experience: customFilters.selectedExperience || undefined,
-          education: customFilters.selectedEducation || undefined,
-          availability: customFilters.selectedAvailability || undefined,
-          country: customFilters.selectedCountry || undefined,
-          city: customFilters.selectedCity || undefined,
-          page: page,
-          limit: perPage,
-        },
-      });
-
-      if (res.data.success) {
-        setApplicants(res.data.data);
-        setTotalCandidates(res.data.total || 0); // ✅ ADD THIS
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load applicants");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchApplicants(currentPage);
-  }, [
-    currentPage,
-    perPage,
-    activeFolder,
-    selectedJob,
-    search,
-    selectedSkills,
-    selectedExperience,
-    selectedEducation,
-    selectedAvailability,
-    selectedCountry,
-    selectedCity,
-  ]);
-  const handleRemoveBookmark = async (bookmarkId) => {
-    const result = await Swal.fire({
-      title: "Remove from Bookmark?",
-      text: "This candidate will be removed from your bookmarks.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, remove",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      setLoading(true);
-
       const res = await axios.get(
-        `${API_BASE_URL}removeBookmark/${bookmarkId}`,
+        `${API_BASE_URL}GetCompanyDetails/${companyId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setCompany(res?.data?.company);
+      console.log(res.data?.company);
+    } catch (error) {
+      console.error("Error fetching company details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (companyId) getCompanyDetails();
+  }, [companyId]);
+
+  function decodeHtml(html) {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  // Optionally decode twice if double-encoded
+  const decodedHtml = decodeHtml(decodeHtml(company?.aboutCompany || ""));
+  function decodeHtml1(html) {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
+
+  useEffect(() => {
+    const fetchResume = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Resume Data:-", res.data.profile);
+        const profile = res.data.profile;
+        setResumeList(profile.resumeUrls || []);
+        setCoverLetterList(profile.coverLetter || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchResume();
+  }, []);
+
+  const handleSelect = (type, id = null) => {
+    setSelectedType(type);
+    setSelectedId(id);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedCustomFile(file);
+      setSelectedType("custom");
+      setSelectedId(null);
+    }
+  };
+
+  const getFileName = (url) => {
+    return url?.split("/").pop();
+  };
+
+  // Double decode for escaped HTML
+  const decodedHtml1 = decodeHtml1(decodeHtml1(company?.careerDetail || ""));
+  const handleSaveJob = async (jobId) => {
+    try {
+      // 🧠 Step 1: Check if user is logged in
+      if (!token) {
+        toast.warning("⚠️ Please login first to save jobs!");
+        // optionally redirect to login page:
+        // navigate("/login");
+        return;
+      }
+
+      // 🧠 Step 2: Call API
+      const res = await axios.post(
+        `${API_BASE_URL}savedJob`,
+        { job_id: jobId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -366,1077 +131,1104 @@ function EmployerShortListCandinate() {
         },
       );
 
+      console.log("✅ API Response:", res.data);
+
+      // 🧠 Step 3: Handle response
       if (res.data.success) {
-        fetchApplicants(currentPage);
-        // ✅ Remove instantly from UI (better UX)
+        const { message } = res.data;
 
-        // ✅ Success popup WITH OK button
-        await Swal.fire({
-          icon: "success",
-          title: "Removed!",
-          text: "Candidate removed from bookmark.",
-          confirmButtonColor: "#3085d6",
-          confirmButtonText: "OK",
-        });
+        // Optional: Optimistic UI update
+        // setJobList((prevJobs) =>
+        //   prevJobs.map((job) =>
+        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
+        //   )
+        // );
+
+        if (companyId) getCompanyDetails();
+        if (message.toLowerCase().includes("saved")) {
+          toast.success(message + " ❤️");
+        } else if (message.toLowerCase().includes("unsaved")) {
+          toast.info(message + " 💔");
+        } else {
+          toast.success(message);
+        }
+      } else {
+        toast.error(res.data.message || "Something went wrong.");
       }
-    } catch (error) {
-      console.error("Remove bookmark error:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Something went wrong.",
-        confirmButtonColor: "#d33",
-      });
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("❌ Save/Unsave error:", err);
+      toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
-  // const handleRemoveBookmark = async (bookmarkId) => {
-  //   const result = await Swal.fire({
-  //     title: "Remove from Bookmark?",
-  //     text: "This candidate will be removed from your bookmarks.",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#d33",
-  //     cancelButtonColor: "#6c757d",
-  //     confirmButtonText: "Yes, remove",
-  //   });
 
-  //   if (result.isConfirmed) {
-  //     try {
-  //       setLoading(true);
+  const handleLinkClick = (e) => {
+    e.preventDefault(); // prevent navigation
+    fileInputRef.current.click(); // open file dialog
+  };
 
-  //       const res = await axios.get(
-  //         `${API_BASE_URL}removeBookmark/${bookmarkId}`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         },
-  //       );
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
-  //       if (res.data.success) {
-  //         Swal.fire({
-  //           icon: "success",
-  //           title: "Removed!",
-  //           text: "Candidate removed from bookmark.",
-  //           timer: 1500,
-  //           showConfirmButton: false,
-  //         });
-  //         fetchApplicants(currentPage);
-  //         // OR instant remove without API refetch (faster UI)
-  //         // setApplicants(prev => prev.filter(item => item._id !== bookmarkId));
-  //       }
-  //     } catch (error) {
-  //       console.error("Remove bookmark error:", error);
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Error",
-  //         text: "Something went wrong.",
-  //       });
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
-  const fetchFolders = async () => {
+  const handleApplyJob = async () => {
+    if (!jobId) {
+      console.error("❌ jobId is missing");
+      return;
+    }
+    setIsApplying(true); // 🔥 Start loader
+
+    const formData = new FormData();
+
+    if (selectedType === "resume") {
+      formData.append("cv", selectedId);
+    }
+
+    if (selectedType === "cover") {
+      formData.append("coverLetter", selectedId);
+    }
+
+    if (selectedType === "custom") {
+      const file = fileInputRef.current?.files?.[0];
+
+      // ✅ FILE REQUIRED
+      if (!file) {
+        toast.error("Please select a resume file.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return;
+      }
+
+      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+        setIsApplying(false);
+        return; // ⛔ STOP — DO NOT HIT API
+      }
+
+      formData.append("customResume", file);
+    }
+
+    formData.append("jobId", jobId);
+
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(`${API_BASE_URL}getFolders`, {
+      const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (res.data.success) {
-        setFolders(res.data.folders);
+      toast.success(res.data.message || "Applied successfully!");
+      if (companyId) getCompanyDetails();
+
+      const modal = document.getElementById("exampleModal");
+      if (modal) {
+        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+        bootstrapModal?.hide();
       }
     } catch (error) {
-      console.error("Error fetching folders:", error);
+      console.error("Apply job error:", error);
+
+      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
+      if (error?.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else if (
+        error?.response?.status === 413 ||
+        error?.message?.includes("413")
+      ) {
+        toast.error("Uploaded file is too large. Max size is 2MB.", {
+          autoClose: 2000,
+          theme: "colored",
+        });
+      } else {
+        toast.error("Something went wrong!");
+      }
+    } finally {
+      setIsApplying(false); // 🔥 Stop loader
     }
   };
-  useEffect(() => {
-    fetchFolders();
-  }, []);
-  const autoJobFolders = folders.filter((folder) => folder.type === "AUTO_JOB");
 
-  const customFolders = folders.filter((folder) => folder.type === "CUSTOM");
+  function decodeHtml(html) {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  }
 
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
+  // ✅ Decode the careerDetail content
+  const decodedCareerDetail = decodeHtml(
+    decodeHtml(company?.careerDetail || ""),
+  );
 
-    // Case: wrong URL like "/uploads/https://..."
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
+  const handleCopy = async (e, linkUrl, jobId) => {
+    console.log(linkUrl);
+    e.preventDefault();
+
+    // ❌ No link case
+    if (!linkUrl) {
+      toast.error("Link not available", {
+        autoClose: 1500,
+        theme: "colored",
+      });
+      return;
     }
 
-    // Case: full external URL
-    if (url.startsWith("http")) {
-      return url;
-    }
+    try {
+      await navigator.clipboard.writeText(linkUrl);
+      setCopiedJobId(jobId);
 
-    // Case: local upload (relative path)
-    return `${API_IMAGE_URL}${url}`;
+      // reset after 2 sec
+      setTimeout(() => setCopiedJobId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+      toast.error("Failed to copy link");
+    }
   };
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
+    }
+  };
+
   return (
     <>
       <ToastContainer />
-      <div className="main-dashboard-content d-flex flex-column">
-        <div className="responsive-content">
-          {/* Breadcrumb Area */}
-          <div className="breadcrumb-area">
-            <h1> Bookmark Candidates</h1>
-            <ol className="breadcrumb">
-              <li className="item">
-                <Link to="/">Home </Link>
-              </li>
-              <li className="item">
-                <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
-                </Link>
-              </li>
-              <li className="item">
-                <Link to="/bookmark-candidate">
-                  <i className="fa-solid fa-angle-right" /> Bookmark Candidates
-                </Link>
-              </li>
-            </ol>
-          </div>
-          {/* End Breadcrumb Area */}
-          {/*Start Bookmark Jobs Area*/}
-          <div className="bookmark-container">
-            <aside className="folder-sidebar">
-              <div className="folder-sidebar-header">
-                <h3>Bookmarks</h3>
-              </div>
-
-              <div className="folder-list-container">
-                {/* ALL CANDIDATES */}
-                <div className="folder-section">
-                  <div
-                    className={`folder-item ${activeFolder === "all" ? "active" : ""}`}
-                    onClick={() => handleFolderClick("all")}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      viewBox="0 0 512 512"
-                      className="folder-icon"
-                      height="1em"
-                      width="1em"
-                    >
-                      <path d="M400 480a16 16 0 0 1-10.63-4L256 357.41 122.63 476A16 16 0 0 1 96 464V96a64.07 64.07 0 0 1 64-64h192a64.07 64.07 0 0 1 64 64v368a16 16 0 0 1-16 16z" />
-                    </svg>
-
-                    <span className="folder-name">All Candidates</span>
-                    <span className="folder-count">{totalCandidates}</span>
-                  </div>
-                </div>
-
-                {/* JOB OFFERS */}
-                {/* JOB OFFERS */}
-                <div className="folder-section">
-                  <div className="folder-section-label">Job Offers</div>
-
-                  {autoJobFolders.map((folder) => (
-                    <div
-                      key={folder._id}
-                      className={`folder-item ${
-                        activeFolder === folder._id ? "active" : ""
-                      }`}
-                      onClick={() => handleFolderClick(folder._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 512 512"
-                        className="folder-icon"
-                        height="1em"
-                        width="1em"
-                      >
-                        <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zM464 128h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48z" />
-                      </svg>
-
-                      <span className="folder-name">{folder.name}</span>
-
-                      <span className="folder-badge auto">Auto</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CUSTOM FOLDERS */}
-                {/* CUSTOM FOLDERS */}
-                <div className="folder-section">
-                  <div className="folder-section-label">Custom Folders</div>
-
-                  {customFolders.map((folder) => (
-                    <div
-                      key={folder._id}
-                      className={`folder-item ${
-                        activeFolder === folder._id ? "active" : ""
-                      }`}
-                      onClick={() => handleFolderClick(folder._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 512 512"
-                        className="folder-icon"
-                        height="1em"
-                        width="1em"
-                      >
-                        <path d="M464 128H272l-64-64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V176c0-26.51-21.49-48-48-48z" />
-                      </svg>
-
-                      <span className="folder-name">{folder.name}</span>
-
-                      <div
-                        className="folder-actions"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          className="btn btn-sm text-danger"
-                          onClick={() => handleDeleteFolder(folder._id)}
-                        >
-                          <div className="folder-actions ms-auto d-flex gap-2">
-                            <svg
-                              stroke="currentColor"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              viewBox="0 0 448 512"
-                              className="text-danger"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
-                              style={{ "font-size": "12px" }}
-                            >
-                              <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                            </svg>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button
-                    className="create-folder-btn w-100 mt-2"
-                    onClick={handleCreateFolder}
-                  >
-                    + Create Folder
-                  </button>
-                </div>
-              </div>
-            </aside>
-            <main className="bookmark-main-content">
-              <header className="bookmark-content-header">
-                <div className="header-left">
-                  <h1>
-                    {activeFolder === "all"
-                      ? "All Candidates"
-                      : folders.find((f) => f._id === activeFolder)?.name ||
-                        "Folder"}
-                  </h1>
-                  <p className="text-muted mb-0">
-                    {totalCandidates} candidate
-                    {totalCandidates !== 1 && "s"} in this folder
-                  </p>
-                </div>
-                <div className="header-right header-controls">
-                  <select
-                    className="per-page-select"
-                    value={perPage}
-                    onChange={(e) => {
-                      setPerPage(Number(e.target.value));
-                      setCurrentPage(1); // reset to first page
-                    }}
-                  >
-                    <option value={20}>Show: 20</option>
-                    <option value={30}>Show: 30</option>
-                    <option value={50}>Show: 50</option>
-                  </select>
-                  <div className="search-input-group">
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      strokeWidth={0}
-                      viewBox="0 0 512 512"
-                      color="#999"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{ color: "rgb(153, 153, 153)" }}
-                    >
-                      <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                    </svg>
-                    <input
-                      placeholder="Search candidates..."
-                      type="text"
-                      value={search}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                    />
-                  </div>
-                </div>
-              </header>
-              <div className="bookmark-filters-row px-4 pt-3 pb-2 bg-white border-bottom">
-                <div className="row g-2 align-items-end">
-                  <div className="col-md">
-                    <label className="filter-label-inline">SKILLS</label>
-
-                    <input
-                      type="text"
-                      className="form-control form-control-sm w-100"
-                      placeholder="Type skill & press Enter"
-                      value={skillInput}
-                      style={{ height: "38px", fontSize: "12px" }}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && skillInput.trim()) {
-                          e.preventDefault();
-                          if (!selectedSkills.includes(skillInput.trim())) {
-                            setSelectedSkills((prev) => [
-                              ...prev,
-                              skillInput.trim(),
-                            ]);
-                          }
-                          setSkillInput("");
-                        }
-                      }}
-                    />
-
-                    {selectedSkills.length > 0 && (
-                      <div className="d-flex flex-wrap gap-1 mt-2">
-                        {selectedSkills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="badge bg-primary d-flex align-items-center gap-1"
-                            style={{ fontSize: "10px" }}
-                          >
-                            {skill}
-                            <span
-                              style={{ cursor: "pointer", marginLeft: "6px" }}
-                              onClick={() =>
-                                setSelectedSkills((prev) =>
-                                  prev.filter((s) => s !== skill),
-                                )
-                              }
-                            >
-                              ✕
-                            </span>
-                          </span>
-                        ))}
-                      </div>
+      {from !== "/" && (
+        <section className="inner-breadcrumb-main-area ">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-sm-12">
+                <div className="breadcrumb-main-list-area mt-4">
+                  <h4>Job Details</h4>
+                  <ul>
+                    <li>
+                      <Link to="/">Home</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    {from !== "/companies" && (
+                      <li>
+                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
                     )}
-                  </div>
-
-                  <div className="col">
-                    <label className="filter-label-inline">Country</label>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{
-                        fontSize: "12px",
-                        height: "38px",
-                        cursor: "pointer",
-                      }}
-                      value={selectedCountry || ""}
-                      // onChange={(e) => {
-                      //   const selectedOption =
-                      //     e.target.options[e.target.selectedIndex];
-
-                      //   const countryId =
-                      //     selectedOption.getAttribute("data-id"); // numeric id
-
-                      //   const countryObjectId = e.target.value; // name (as before)
-
-                      //   // setSelectedCountry(countryObjectId);
-                      //   // setSelectedCities([]); // Reset cities when country changes
-                      //   setSelectedCountry(countryObjectId);
-                      //   setSelectedCities([]);
-                      //   setSelectedCity(""); // ⭐ THIS WAS MISSING
-                      //   setCityList([]); // optional but cleaner
-                      //   if (countryId) {
-                      //     fetchCitiesByCountry(countryId);
-                      //   } else {
-                      //     setCityList([]);
-                      //   }
-
-                      //   setCurrentPage(1);
-                      // }}
-                      onChange={(e) => {
-                        const selectedOption =
-                          e.target.options[e.target.selectedIndex];
-
-                        const countryId =
-                          selectedOption.getAttribute("data-id");
-
-                        const countryObjectId = e.target.value;
-
-                        setSelectedCountry(countryObjectId);
-                        setSelectedCity(""); // reset city
-                        setSelectedCities([]); // reset multi-city
-                        setCityList([]); // clear dropdown list
-
-                        if (countryId) {
-                          fetchCitiesByCountry(countryId);
-                        }
-
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <option value="">All Country</option>
-
-                      {country.map((count) => (
-                        <option
-                          key={count._id}
-                          value={count.name}
-                          data-id={count.id}
-                        >
-                          {count.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">City</label>
-                    <select
-                      className="form-select form-select-sm"
-                      style={{
-                        fontSize: "12px",
-                        height: "38px",
-                        cursor: "pointer",
-                      }}
-                      value={selectedCity || ""}
-                      onChange={(e) => {
-                        setSelectedCity(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      disabled={!selectedCountry} // disable if no country selected
-                    >
-                      <option value="">All Cities</option>
-
-                      {cityList.map((city) => (
-                        <option key={city._id} value={city.name}>
-                          {city.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Exp.</label>
-
-                    <select
-                      value={selectedExperience}
-                      onChange={(e) => setSelectedExperience(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ "font-size": "13px", padding: "8px" }}
-                    >
-                      <option value="">All Levels</option>
-                      {seniorityLevels.map((level) => (
-                        <option key={level._id} value={level.name}>
-                          {level.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Edu.</label>
-
-                    <select
-                      value={selectedEducation}
-                      onChange={(e) => setSelectedEducation(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ "font-size": "13px", padding: "8px" }}
-                    >
-                      <option value="">Any</option>
-                      {educationLevels.map((edu) => (
-                        <option key={edu} value={edu}>
-                          {edu}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col">
-                    <label className="filter-label-inline">Availability</label>
-
-                    <select
-                      value={selectedAvailability}
-                      onChange={(e) => setSelectedAvailability(e.target.value)}
-                      className="form-select form-select-sm"
-                      style={{ fontSize: "13px", padding: "8px" }}
-                    >
-                      <option value="">Any Status</option>
-                      <option value="Immediate">Immediate</option>
-                      <option value="15 Days">15 Days</option>
-                      <option value="30 Days">30 Days</option>
-                      <option value="45 Days">45 Days</option>
-                      <option value="60 Days">60 Days</option>
-                      <option value="90 Days">90 Days</option>
-                      <option value="Negotiable">Negotiable</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="d-flex justify-content-end gap-2 mt-3">
-                  <button
-                    className="btn btn-sm btn-outline-secondary px-3"
-                    onClick={() => {
-                      setSelectedSkills([]);
-                      setSelectedExperience("");
-                      setSelectedEducation("");
-                      setSelectedAvailability("");
-                      setSelectedCountry("");
-                      setSelectedCity("");
-                      setSearch("");
-                      setCurrentPage(1);
-                    }}
-                  >
-                    Reset
-                  </button>
-                  <button
-                    className="btn btn-sm btn-primary px-4"
-                    onClick={() => {
-                      setCurrentPage(1);
-                      fetchApplicants(1);
-                    }}
-                  >
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
-              <div
-                className="bookmark-list-area p-4"
-                style={{ overflow: "visible" }}
-              >
-                {" "}
-                <div className="bookmark-user-list-cell">
-                  {applicants.length === 0 ? (
-                    <div className="p-5 text-center text-muted">
-                      <div
-                        className="d-flex flex-column align-items-center justify-content-center text-center"
-                        style={{ height: "60vh" }}
-                      >
-                        <div style={{ fontSize: "50px" }}>🔍</div>
-
-                        <h5 className="mt-3 fw-bold">No Candidates Found</h5>
-
-                        <p
-                          className="text-muted mb-3"
-                          style={{ maxWidth: "400px" }}
-                        >
-                          No applicants match your current filters. Try
-                          adjusting your filter criteria or reset filters to see
-                          more candidates.
-                        </p>
-
-                        <button
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => {
-                            setSelectedSkills([]);
-                            setSelectedExperience("");
-                            setSelectedEducation("");
-                            setSelectedAvailability("");
-                            setSelectedCountry("");
-                            setSelectedCity("");
-                            setSearch("");
-                            setCurrentPage(1);
-                          }}
-                        >
-                          Reset Filters
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    applicants.map((candidate) => {
-                      const user = candidate.userId;
-                      const role = candidate.aboutRole;
-
-                      return (
-                        <div
-                          key={candidate._id}
-                          className="candidate-row"
-                          onClick={() => {
-                            setSelectedCandidate(candidate);
-                            setShowProfile(true);
-                          }}
-                          onMouseEnter={() => setHoveredCandidate(candidate)}
-                          onMouseLeave={() => setHoveredCandidate(null)}
-                        >
-                          <img
-                            crossOrigin="anonymous"
-                            className="candidate-avatar"
-                            alt={candidate.fullName}
-                            src={
-                              cleanImageUrl(user.profileImage) ||
-                              "assets/images/userIcon.png"
-                            }
-                          />
-
-                          <div className="candidate-info">
-                            <h4 className="candidate-name">
-                              {candidate.fullName}
-                            </h4>
-
-                            <div className="candidate-meta">
-                              <span className="me-3">
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 512 512"
-                                  className="me-1"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z" />
-                                </svg>
-                                {role?.jobTitle || "N/A"}
-                              </span>
-                              <span>
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 512 512"
-                                  className="me-1"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                                </svg>
-                                {user?.city && user?.Nationality
-                                  ? `${user.city}, ${user.Nationality}`
-                                  : user?.city || user?.Nationality || "N/A"}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="candidate-actions">
-                            <Link
-                              className="btn btn-sm btn-light"
-                              to={`/candidates-details`}
-                              state={{
-                                userId: candidate?.userId?._id,
-                                from: "/bookmark-candidate",
-                              }}
-                            >
-                              View Profile
-                            </Link>
-
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveBookmark(candidate.bookmarkId);
-                              }}
-                            >
-                              <div className="folder-actions ms-auto d-flex gap-2">
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 448 512"
-                                  className="text-danger"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  style={{ "font-size": "12px" }}
-                                >
-                                  <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                                </svg>
-                              </div>
-                            </button>
-                          </div>
-                          {hoveredCandidate?._id === candidate._id && (
-                            <div className="hover-profile-card">
-                              <div className="user-hover-short-details card">
-                                {/* HEADER */}
-                                <div className="header">
-                                  <img
-                                    crossOrigin="anonymous"
-                                    className="profile-pic"
-                                    alt={candidate.fullName}
-                                    src={
-                                      cleanImageUrl(user?.profileImage) ||
-                                      "assets/images/userIcon.png"
-                                    }
-                                  />
-
-                                  <div className="header-info">
-                                    <h1>{candidate.fullName}</h1>
-                                    <p>
-                                      {candidate.aboutRole?.jobTitle || "N/A"}
-                                    </p>
-                                    <svg
-                                      stroke="currentColor"
-                                      fill="currentColor"
-                                      strokeWidth={0}
-                                      viewBox="0 0 512 512"
-                                      className="me-1"
-                                      height="1em"
-                                      width="1em"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z" />
-                                    </svg>
-                                    {candidate.userId?.city &&
-                                    candidate.userId?.Nationality
-                                      ? `${candidate.userId.city}, ${candidate.userId.Nationality}`
-                                      : candidate.userId?.city ||
-                                        candidate.userId?.Nationality ||
-                                        "N/A"}
-                                  </div>
-                                </div>
-
-                                {/* DETAILS GRID */}
-                                <div className="details-grid">
-                                  <div className="detail-item">
-                                    <p>Experience</p>
-                                    <span>
-                                      {candidate.aboutRole?.yearOfExperience
-                                        ? `${candidate.aboutRole.yearOfExperience} Years`
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Availability</p>
-                                    <span className="na">
-                                      {candidate.career_goals
-                                        ?.availabilityToJoin || "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Education</p>
-                                    <span>
-                                      {candidate.education?.length > 0
-                                        ? `${candidate.education[0].degree}`
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-
-                                  <div className="detail-item">
-                                    <p>Languages</p>
-                                    <span>
-                                      {candidate.languages?.length > 0
-                                        ? candidate.languages
-                                            .map(
-                                              (lang) =>
-                                                `${lang.language} (${lang.proficiency})`,
-                                            )
-                                            .join(", ")
-                                        : "N/A"}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* PROFESSIONAL SUMMARY */}
-                                {candidate.professionalSummary && (
-                                  <div className="skills-section">
-                                    <h2>PROFESSIONAL SUMMARY</h2>
-                                    <p>{candidate.professionalSummary}</p>
-                                  </div>
-                                )}
-
-                                {/* SKILLS */}
-                                {candidate.skills?.length > 0 && (
-                                  <div className="skills-section">
-                                    <h2>Skills</h2>
-                                    <div className="skills-list">
-                                      {candidate.skills
-                                        .slice(0, 6)
-                                        .map((skill, index) => (
-                                          <span
-                                            key={index}
-                                            className="skill-tag"
-                                          >
-                                            {skill}
-                                          </span>
-                                        ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            </main>
-          </div>
-
-          <div
-            className={`side-panel-overlay ${showProfile ? "open" : ""}`}
-            onClick={() => setShowProfile(false)}
-          >
-            <div
-              className="side-panel-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="side-panel-header">
-                <h2>Candidate Profile</h2>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowProfile(false)}
-                >
-                  <svg
-                    stroke="currentColor"
-                    fill="currentColor"
-                    strokeWidth={0}
-                    viewBox="0 0 1024 1024"
-                    fillRule="evenodd"
-                    height="1em"
-                    width="1em"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="side-panel-body">
-                <div className="profile-top text-center mb-4">
-                  {selectedCandidate && (
-                    <>
-                      <img
-                        crossOrigin="anonymous"
-                        className="profile-img-large mb-3"
-                        src={
-                          cleanImageUrl(
-                            selectedCandidate.userId?.profileImage,
-                          ) || "assets/images/userIcon.png"
-                        }
-                        alt={selectedCandidate.fullName}
-                      />
-
-                      <h3>{selectedCandidate.fullName}</h3>
-
-                      <p className="text-muted">
-                        {selectedCandidate.aboutRole?.jobTitle}
-                      </p>
-                    </>
-                  )}
-                </div>
-                <div className="profile-info-section">
-                  <h4>Contact Information</h4>
-                  <ul className="info-list">
                     <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 512 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z" />
-                      </svg>{" "}
-                      <li>{selectedCandidate?.userId?.email}</li>
+                      <Link to={from}>{breadcrumbLabel}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
                     </li>
                     <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 512 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M493.4 24.6l-104-24c-11.3-2.6-22.9 3.3-27.5 13.9l-48 112c-4.2 9.8-1.4 21.3 6.9 28l60.6 49.6c-36 76.7-98.9 140.5-177.2 177.2l-49.6-60.6c-6.8-8.3-18.2-11.1-28-6.9l-112 48C3.9 366.5-2 378.1.6 389.4l24 104C27.1 504.2 36.7 512 48 512c256.1 0 464-207.5 464-464 0-11.2-7.7-20.9-18.6-23.4z" />
-                      </svg>{" "}
-                      {selectedCandidate?.userId?.phone}
-                    </li>
-                    <li>
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        strokeWidth={0}
-                        viewBox="0 0 384 512"
-                        height="1em"
-                        width="1em"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z" />
-                      </svg>{" "}
-                      {selectedCandidate?.userId?.city}
+                      {loading
+                        ? "Loading..."
+                        : company?.brandName ||
+                          company?.brandName ||
+                          "Company Details"}
                     </li>
                   </ul>
                 </div>
-                <div className="profile-info-section work-section">
-                  <h6 className="section-title1">WORK EXPERIENCE</h6>
-
-                  <div className="divider" />
-
-                  {/* Total Experience */}
-                  <div className="total-exp">
-                    <svg
-                      stroke="currentColor"
-                      fill="currentColor"
-                      strokeWidth={0}
-                      viewBox="0 0 512 512"
-                      height="16"
-                      width="16"
-                      className="me-2"
-                    >
-                      <path d="M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z" />
-                    </svg>
-                    {selectedCandidate?.workHistory?.reduce(
-                      (total, job) =>
-                        total + parseFloat(job.yearOfExperience || 0),
-                      0,
-                    )}{" "}
-                    Years Experience
-                  </div>
-
-                  {/* Experience List */}
-                  {selectedCandidate?.workHistory
-                    ?.sort(
-                      (a, b) => new Date(b.startDate) - new Date(a.startDate),
-                    )
-                    .map((job) => (
-                      <div key={job._id} className="experience-block">
-                        <div className="job-title">{job.jobTitle}</div>
-
-                        <div className="company-name">
-                          at{" "}
-                          {job.keep_employer_anonymous
-                            ? "Confidential"
-                            : job.companyName}
-                        </div>
-
-                        <div className="job-duration">
-                          {new Date(job.startDate).getFullYear()} -{" "}
-                          {job.currentlyWorkingHere
-                            ? "Present"
-                            : job.endDate
-                              ? new Date(job.endDate).getFullYear()
-                              : ""}
-                        </div>
-                      </div>
-                    ))}
-                </div>
-
-                <div className="profile-info-section education-section">
-                  <h6 className="section-title1">EDUCATION</h6>
-
-                  <div className="divider" />
-
-                  {selectedCandidate?.education
-                    ?.sort(
-                      (a, b) => new Date(b.startDate) - new Date(a.startDate),
-                    )
-                    .map((edu) => (
-                      <div key={edu._id} className="education-block">
-                        <div className="education-row">
-                          <svg
-                            stroke="currentColor"
-                            fill="currentColor"
-                            stroke-width="0"
-                            viewBox="0 0 640 512"
-                            height="1em"
-                            width="1em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"></path>
-                          </svg>
-
-                          <div>
-                            <div className="degree-line">
-                              {edu.degree} - {edu.University}
-                            </div>
-
-                            <div className="education-year">
-                              ({new Date(edu.startDate).getFullYear()} -{" "}
-                              {edu.currentlyStudyingHere
-                                ? "Present"
-                                : new Date(edu.endDate).getFullYear()}
-                              )
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-
-                <div className="profile-info-section">
-                  <h4>Skills</h4>
-                  <div className="skills-tags">
-                    {selectedCandidate?.skills?.map((skill, index) => (
-                      <span key={index} className="skill-tag">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="side-panel-footer">
-                <Link
-                  className="default-btn btn-primary w-100 mb-2"
-                  to={`/candidates-details`}
-                  state={{
-                    userId: selectedCandidate?.userId?._id,
-                    from: "/bookmark-candidate",
-                  }}
-                >
-                  {" "}
-                  View Full Profile
-                </Link>
-                <button
-                  className="btn btn-outline-danger w-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowProfile(false);
-                    handleRemoveBookmark(selectedCandidate.bookmarkId);
-                  }}
-                >
-                  Remove from Folder
-                </button>
               </div>
             </div>
           </div>
+        </section>
+      )}
 
-          {/*End Bookmark Jobs Area*/}
-          <div className="copy-right-area bg-f0f4fc">
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-left-content">
-                  <p>
-                    {" "}
-                    <span className="copy">© </span>
-                    <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
-                  </p>
+      <section className="company-detail-info-area">
+        <div className="container">
+          <div className="row">
+            <div className="company-img-short-detail">
+              <div className="company-img-info">
+                {/* <img src="assets/images/company/company-img-1.jpg" /> */}
+                <img
+                  crossorigin="anonymous"
+                  src={
+                    company?.coverPhoto
+                      ? `${API_IMAGE_URL}${company.coverPhoto}` // Replace API_IMAGE_URL with your base URL
+                      : "assets/images/company/company-img-1.jpg" // default image
+                  }
+                  alt={company?.name || "Company cover photo"}
+                />
+              </div>
+              <div className="company-short-detail-info">
+                <div className="company-short-detail-img">
+                  <img
+                    crossorigin="anonymous"
+                    src={
+                      company?.logo
+                        ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
+                        : "assets/images/partner-logo/partner-logo-2.png" // default image
+                    }
+                    alt={company?.name || "Company Logo"}
+                  />
+                </div>
+                <div className="company-about-short-detail">
+                  <h4>{company?.brandName}</h4>
+                  <div className="subscribe-best-employer-btn">
+                    <span className="subscribe-btn default-btn btn">
+                      + Subscribe
+                    </span>
+                    <span>
+                      <div className="best-employer-btn">
+                        <i className="fa-solid fa-award" /> Best Employer
+                      </div>
+                    </span>
+                  </div>
+                  <ul>
+                    <li>
+                      <i className="fa-solid fa-user" />
+                      {company?.numberOfEmployees}
+                    </li>
+                    <li>
+                      <i className="fa-solid fa-globe" />
+                      Services
+                    </li>
+                    <li>
+                      <a
+                        href={
+                          company?.links?.officialWebsite
+                            ? company.links.officialWebsite
+                            : "http://itdevelopmentservices.com/jobPortal/"
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <i className="fa-solid fa-arrow-up-right-from-square" />{" "}
+                        Visit the company website
+                      </a>
+                    </li>
+                  </ul>
                 </div>
               </div>
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-right-content">
-                  <p>
-                    Designed By{" "}
-                    <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+            </div>
+            <div className="company-detail-tab-description-info">
+              <div className="company-detail-tab-info">
+                {/* Nav tabs */}
+                <ul className="nav nav-tabs" role="tablist">
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link active"
+                      data-bs-toggle="tab"
+                      href="#menu1"
+                      aria-selected="true"
+                      role="tab"
+                    >
+                      About the company{" "}
                     </a>
-                  </p>
+                  </li>
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link"
+                      data-bs-toggle="tab"
+                      href="#menu2"
+                      aria-selected="false"
+                      tabIndex={-1}
+                      role="tab"
+                    >
+                      Current openings
+                    </a>
+                  </li>
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link"
+                      data-bs-toggle="tab"
+                      href="#menu3"
+                      aria-selected="false"
+                      tabIndex={-1}
+                      role="tab"
+                    >
+                      Office photos
+                    </a>
+                  </li>
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link"
+                      data-bs-toggle="tab"
+                      href="#menu4"
+                      aria-selected="false"
+                      tabIndex={-1}
+                      role="tab"
+                    >
+                      Office videos
+                    </a>
+                  </li>
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link"
+                      data-bs-toggle="tab"
+                      href="#menu5"
+                      aria-selected="false"
+                      tabIndex={-1}
+                      role="tab"
+                    >
+                      Career Details
+                    </a>
+                  </li>
+                  <li className="nav-item" role="presentation">
+                    <a
+                      className="nav-link"
+                      data-bs-toggle="tab"
+                      href="#menu6"
+                      aria-selected="false"
+                      tabIndex={-1}
+                      role="tab"
+                    >
+                      Links
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div className="company-detail-tab-description">
+                {/* Tab panes */}
+                <div className="tab-content">
+                  <div id="menu1" className="tab-pane active" role="tabpanel">
+                    <h5>Company Information</h5>
+                    <div className="company-profile-detail-info">
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-building-columns" />
+                          Company Name
+                        </h4>
+                        <p>{company?.brandName || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-gear" />
+                          Industry
+                        </h4>
+                        <p>{company?.industries || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-user" />
+                          Number of Employees
+                        </h4>
+                        <p>{company?.numberOfEmployees || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-phone" />
+                          Phone number
+                        </h4>
+                        <p>
+                          +{company?.phone?.countryCode}{" "}
+                          {company?.phone?.number}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="company-profile-detail-info">
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-address-card" />
+                          Street Address
+                        </h4>
+                        <p>{company?.companyAddress || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-city" />
+                          City
+                        </h4>
+                        <p>{company?.city || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-map-location-dot" />
+                          State
+                        </h4>
+                        <p>{company?.region || "N/A"}</p>
+                      </div>
+                      <div className="company-profile-detail-box">
+                        <h4>
+                          <i className="fa-solid fa-globe" />
+                          Country
+                        </h4>
+                        <p>{company?.Country || "N/A"}</p>
+                      </div>
+                    </div>
+                    <div
+                      className="company-profile-description"
+                      dangerouslySetInnerHTML={{ __html: decodedHtml }}
+                    />
+                  </div>
+                  <div id="menu2" className="tab-pane fade" role="tabpanel">
+                    <h5>Current openings</h5>
+                    {company?.jobs?.length > 0 ? (
+                      company.jobs.map((job) => (
+                        <div className="company-detail-job-box">
+                          <Link
+                            key={job._id}
+                            to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                            className="job-link"
+                          >
+                            <div className="company-detail-card">
+                              <h4>{job.jobTitle || "N/A"}</h4>
+                              <ul>
+                                <li>
+                                  <i className="fa-solid fa-location-dot" />
+                                  {job.city?.length
+                                    ? job.city.join(", ")
+                                    : "N/A"}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-calendar-days" />
+                                  {new Date(job.createdAt).toLocaleString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-signal" />
+                                  {job.minimumLevel?.name || "N/A"}
+                                </li>
+                                <li>
+                                  <i className="fa-solid fa-user" />
+                                  {job?.employmentType?.name || "N/A"}
+                                </li>
+                              </ul>
+                            </div>
+                          </Link>
+                          <div className="company-detail-apply-link-save-btn">
+                            <div className="company-detail-apply-btn">
+                              {job?.isApplied ? (
+                                <button
+                                  className="default-btn btn"
+                                  disabled
+                                  style={{ color: "#ff6600" }}
+                                >
+                                  {job?.applicationStatus}
+                                </button>
+                              ) : (
+                                <Link
+                                  to={`/job-details/${job._id}`}
+                                  className="default-btn btn"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  View Details
+                                </Link>
+                              )}
+                              {/* Button trigger modal */}
+                              {/* <a
+                                href="#"
+                                data-bs-toggle="modal"
+                                data-bs-target="#ApplyQuickly"
+                                className="default-btn btn"
+                              >
+                                Apply Quickly
+                              </a> */}
+                              {/* Modal */}
+                              {/* <div
+                                className="modal fade"
+                                id="ApplyQuickly"
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby="ApplyQuicklyLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="staticBackdropLabel"
+                                      >
+                                        Apply Now
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    <div className="modal-body">
+                                      <div className="company-detail-show-upload">
+                                        <div className="company-detail-doc-tyep">
+                                          <h4>
+                                            <i className="fa-solid fa-circle-check" />
+                                            Resume Name, pdf,doc
+                                          </h4>
+                                        </div>
+                                        <div className="company-detail-download-edit">
+                                          <i className="fa-solid fa-ellipsis-vertical" />
+                                          <ul>
+                                            <li>
+                                              <i className="fa-solid fa-arrow-down" />{" "}
+                                              Download
+                                            </li>
+                                            <li>
+                                              <i className="fa-solid fa-trash" />{" "}
+                                              Delete
+                                            </li>
+                                          </ul>
+                                        </div>
+                                      </div>
+                                      <div className="company-detail-attechment-info">
+                                        &nbsp; &nbsp; &nbsp; &nbsp;{" "}
+                                        <div className="control-label-file-up">
+                                          <i className="fa-solid fa-arrow-up-from-bracket" />{" "}
+                                          Upload CV
+                                          <input
+                                            type="file"
+                                            id="attach"
+                                            className="optional-inputfile"
+                                            name="attach"
+                                            accept=".pdf, .doc, .docx"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="company-detail modal-footer">
+                                      <a href="#" className="default-btn btn">
+                                        Apply
+                                      </a>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div> */}
+                              <div
+                                className="modal fade"
+                                id="exampleModal"
+                                tabIndex={-1}
+                                aria-labelledby="exampleModalLabel"
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id="exampleModalLabel"
+                                      >
+                                        Apply now
+                                      </h1>
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+                                    {/* NOTE: use className, not class */}
+                                    <div className="modal-body">
+                                      <div className="job-apply-defult-resume-custom-resume">
+                                        {/* RESUME LIST - inline hide */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{
+                                            display:
+                                              Array.isArray(resumeList) &&
+                                              resumeList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          {Array.isArray(resumeList) &&
+                                            resumeList.map((resume) => {
+                                              const fileName = getFileName(
+                                                resume.url,
+                                              );
+                                              return (
+                                                <div
+                                                  key={resume._id}
+                                                  className={
+                                                    "job-apply-custom-resume-info " +
+                                                    (selectedType ===
+                                                      "resume" &&
+                                                    selectedId === resume.url
+                                                      ? "active"
+                                                      : "")
+                                                  }
+                                                  onClick={() =>
+                                                    handleSelect(
+                                                      "resume",
+                                                      resume.url,
+                                                    )
+                                                  }
+                                                  style={{ cursor: "pointer" }}
+                                                >
+                                                  <span className="file-name-text">
+                                                    <i className="fa-solid fa-file" />{" "}
+                                                    {fileName}
+                                                  </span>
+
+                                                  {selectedType === "resume" &&
+                                                    selectedId ===
+                                                      resume.url && (
+                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                    )}
+                                                </div>
+                                              );
+                                            })}
+                                        </div>
+
+                                        {/* OR DIVIDER for resume - inline hide */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder-line"
+                                          style={{
+                                            display:
+                                              Array.isArray(resumeList) &&
+                                              resumeList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          <h4>or</h4>
+                                        </div>
+
+                                        {/* COVER LETTER LIST - inline hide */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{
+                                            display:
+                                              Array.isArray(coverLetterList) &&
+                                              coverLetterList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          {Array.isArray(coverLetterList) &&
+                                            coverLetterList.map((cover) => {
+                                              const fileName = getFileName(
+                                                cover.url,
+                                              );
+                                              return (
+                                                <div
+                                                  key={cover._id}
+                                                  className={
+                                                    "job-apply-custom-resume-info " +
+                                                    (selectedType === "cover" &&
+                                                    selectedId === cover.url
+                                                      ? "active"
+                                                      : "")
+                                                  }
+                                                  onClick={() =>
+                                                    handleSelect(
+                                                      "cover",
+                                                      cover.url,
+                                                    )
+                                                  }
+                                                  style={{ cursor: "pointer" }}
+                                                >
+                                                  <span className="file-name-text">
+                                                    <i className="fa-solid fa-file" />{" "}
+                                                    {fileName}
+                                                  </span>
+
+                                                  {selectedType === "cover" &&
+                                                    selectedId ===
+                                                      cover.url && (
+                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                    )}
+                                                </div>
+                                              );
+                                            })}
+                                        </div>
+
+                                        {/* OR DIVIDER for cover - inline hide */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder-line"
+                                          style={{
+                                            display:
+                                              Array.isArray(coverLetterList) &&
+                                              coverLetterList.length > 0
+                                                ? "block"
+                                                : "none",
+                                          }}
+                                        >
+                                          <h4>or</h4>
+                                        </div>
+
+                                        {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
+                                        <div
+                                          className="job-apply-custom-resume-info-area"
+                                          style={{ display: "block" }}
+                                        >
+                                          {/* Show selected custom file if exists */}
+                                          <div
+                                            style={{
+                                              display: selectedCustomFile
+                                                ? "block"
+                                                : "none",
+                                            }}
+                                          >
+                                            <div
+                                              className={
+                                                "job-apply-custom-resume-info " +
+                                                (selectedType === "custom"
+                                                  ? "active"
+                                                  : "")
+                                              }
+                                              onClick={() =>
+                                                selectedCustomFile &&
+                                                handleSelect("custom")
+                                              }
+                                              style={{
+                                                cursor: selectedCustomFile
+                                                  ? "pointer"
+                                                  : "default",
+                                              }}
+                                            >
+                                              <span className="file-name-text">
+                                                <i className="fa-solid fa-file" />{" "}
+                                                {selectedCustomFile
+                                                  ? selectedCustomFile.name
+                                                  : ""}
+                                              </span>
+
+                                              {selectedType === "custom" && (
+                                                <i className="fa-solid fa-circle-check selected-check-icon" />
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          {/* Upload Button — prevent default and open file input */}
+                                          <div
+                                            className="job-apply-custom-resume-cover-letter-btn"
+                                            style={{ marginTop: 12 }}
+                                          >
+                                            <a
+                                              href="#"
+                                              className="default-btn btn"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                // ensure fileInputRef.current exists
+                                                if (
+                                                  fileInputRef &&
+                                                  fileInputRef.current
+                                                )
+                                                  fileInputRef.current.click();
+                                              }}
+                                            >
+                                              Custom resume with cover letter
+                                            </a>
+
+                                            <input
+                                              ref={fileInputRef}
+                                              type="file"
+                                              accept=".pdf,.doc,.docx"
+                                              onChange={handleFileUpload}
+                                              style={{ display: "none" }}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Divider before apply button (always keep in DOM) */}
+                                        <div
+                                          className="defult-resume-custom-resume-divder"
+                                          style={{ marginTop: 16 }}
+                                        />
+
+                                        {/* APPLY BUTTON - always present */}
+                                        <div
+                                          className="job-apply-defult-resume-btn"
+                                          style={{ marginTop: 12 }}
+                                        >
+                                          <button
+                                            className="default-btn btn w-100"
+                                            onClick={handleApplyJob}
+                                            disabled={
+                                              isApplying || !isSelectionMade()
+                                            }
+                                          >
+                                            {isApplying ? (
+                                              <>
+                                                <span
+                                                  className="spinner-border spinner-border-sm me-2"
+                                                  role="status"
+                                                  aria-hidden="true"
+                                                ></span>
+                                                Applying...
+                                              </>
+                                            ) : (
+                                              "Apply Now"
+                                            )}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>{" "}
+                                    {/* .modal-body */}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="company-detail-link-save-icon">
+                              <ul>
+                                <li style={{ position: "relative" }}>
+                                  <a
+                                    href="#"
+                                    onClick={(e) =>
+                                      handleCopy(e, job?.link, job?._id)
+                                    }
+                                    style={{
+                                      cursor: job?.link
+                                        ? "pointer"
+                                        : "not-allowed",
+                                    }}
+                                    title={
+                                      !job?.link
+                                        ? "Link not available"
+                                        : copiedJobId === job?._id
+                                          ? "Copied!"
+                                          : "Copy link"
+                                    }
+                                  >
+                                    {job?.link ? (
+                                      <i className="fa-solid fa-link" />
+                                    ) : (
+                                      <span style={{ color: "#ffff" }}>
+                                        No Link
+                                      </span>
+                                    )}
+                                  </a>
+
+                                  {/* Show "Copied!" only for this job */}
+                                  {copiedJobId === job._id && (
+                                    <span
+                                      style={{
+                                        position: "absolute",
+                                        top: "-20px",
+                                        left: "50%",
+                                        transform: "translateX(-50%)",
+                                        backgroundColor: "#333",
+                                        color: "#fff",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
+                                        fontSize: "12px",
+                                        opacity: 0.9,
+                                      }}
+                                    >
+                                      Copied!
+                                    </span>
+                                  )}
+                                </li>
+
+                                <li>
+                                  <i
+                                    className={`fa-${
+                                      job.isSaved ? "solid" : "regular"
+                                    } fa-heart`}
+                                    style={{
+                                      cursor: "pointer",
+                                      color: job.isSaved ? "#fb761a" : "#fff",
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleSaveJob(job._id);
+                                    }}
+                                  />
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted">No jobs available</p>
+                    )}
+                  </div>
+                  <div id="menu3" className="tab-pane fade" role="tabpanel">
+                    <div className="company-detail-third-tab">
+                      <h5>Office Photos</h5>
+                      <div className="row">
+                        {/* <div className="col-lg-3 col-md-4">
+                          <div className="company-office-photos-box">
+                            <img src="assets/images/company/company-img-1.jpg" />
+                          </div>
+                        </div> */}
+                        {company?.photos?.length > 0 ? (
+                          company.photos.map((photo) => (
+                            <div className="col-lg-3 col-md-4" key={photo._id}>
+                              <div className="company-office-photos-box">
+                                <img
+                                  crossorigin="anonymous"
+                                  src={`${API_IMAGE_URL}${photo.url}`}
+                                  alt="Office"
+                                />
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted">No photos available</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div id="menu4" className="tab-pane fade" role="tabpanel">
+                    <div className="company-detail-fourth-tab">
+                      <h5>Office Videos</h5>
+                      <div className="row">
+                        {company?.videos?.length > 0 ? (
+                          company.videos.map((video) => (
+                            <div className="col-lg-3 col-md-4">
+                              <div className="company-office-video-box">
+                                <video
+                                  crossorigin="anonymous"
+                                  width="100%"
+                                  height={150}
+                                  controls
+                                >
+                                  <source
+                                    crossorigin="anonymous"
+                                    src={`${API_IMAGE_URL}${video.url}`}
+                                    type="video/mp4"
+                                  />
+                                </video>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted">No videos available</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div id="menu5" className="tab-pane fade" role="tabpanel">
+                    <div className="company-detail-fifth-tab">
+                      <h5>Career Details</h5>
+
+                      {decodedCareerDetail?.trim() ? (
+                        <div
+                          className="company-career-detail"
+                          dangerouslySetInnerHTML={{
+                            __html: decodedCareerDetail,
+                          }}
+                        />
+                      ) : (
+                        <p className="text-muted">No Career Details</p>
+                      )}
+                    </div>
+                  </div>
+                  <div id="menu6" className="tab-pane fade" role="tabpanel">
+                    <div className="company-detail-sixth-tab">
+                      <h5>Links</h5>
+                      <div className="company-detail-official-website">
+                        <h4>
+                          <i className="fa-solid fa-globe" />{" "}
+                          {company?.brandName}
+                        </h4>
+                        <h5>
+                          {company?.links?.officialWebsite ? (
+                            <a
+                              href={company.links.officialWebsite}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {company.links.officialWebsite}
+                            </a>
+                          ) : (
+                            <span className="text-muted">
+                              No website available
+                            </span>
+                          )}
+                        </h5>
+                      </div>
+                      <div className="company-detail-social-link">
+                        <div className="company-detail-social-box">
+                          <h4>
+                            <i className="fa-brands fa-linkedin" /> Linkedin
+                          </h4>
+                          {company?.links?.linkedin ? (
+                            <a
+                              href={company.links.linkedin}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              https://www.instagram.com/
+                            </a>
+                          ) : (
+                            <span className="text-muted">No LinkedIn link</span>
+                          )}
+                        </div>
+                        <div className="company-detail-social-box">
+                          <h4>
+                            <i className="fa-brands fa-facebook-f" /> facebook
+                          </h4>
+                          {company?.links?.facebook ? (
+                            <a
+                              href={company.links.facebook}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              https://www.facebook.com/
+                            </a>
+                          ) : (
+                            <span className="text-muted">No Facebook link</span>
+                          )}
+                        </div>
+                        <div className="company-detail-social-box">
+                          <h4>
+                            <i className="fa-brands fa-instagram" /> Instagram
+                          </h4>
+                          {company?.links?.instagram ? (
+                            <a
+                              href={company.links.instagram}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              https://www.instagram.com/
+                            </a>
+                          ) : (
+                            <span className="text-muted">
+                              No Instagram link
+                            </span>
+                          )}
+                        </div>
+                        <div className="company-detail-social-box">
+                          <h4>
+                            <i className="fa-brands fa-x-twitter" /> Twitter
+                          </h4>
+                          {company?.links?.twitter ? (
+                            <a
+                              href={company.links.twitter}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              https://www.twitter.com/
+                            </a>
+                          ) : (
+                            <span className="text-muted">No Twitter link</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </>
   );
 }
 
-export default EmployerShortListCandinate;
+export default CompanyDetailsPage;

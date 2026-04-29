@@ -3,13 +3,18 @@ import { useLocation, Link } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
-
+import "./Main.css";
 function CompanyDetailsPage() {
   const location = useLocation();
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
+  const [aboutMuted, setAboutMuted] = useState(true);
+  const [aboutLoaded, setAboutLoaded] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
+  const [hoveredVideo, setHoveredVideo] = useState(null);
+  const [loadedVideo, setLoadedVideo] = useState({});
+  const [mutedVideos, setMutedVideos] = useState({});
   const [resumeList, setResumeList] = useState([]);
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
@@ -313,7 +318,15 @@ function CompanyDetailsPage() {
       console.log(console.error);
     }
   };
+  const getYoutubeId = (url) => {
+    const regExp = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/;
+    const match = url?.match(regExp);
+    return match ? match[1] : "";
+  };
 
+  const mediaType = company?.aboutPremium?.media?.type;
+  const mediaUrl = company?.aboutPremium?.media?.url;
+  const videoId = getYoutubeId(mediaUrl);
   return (
     <>
       <ToastContainer />
@@ -322,7 +335,7 @@ function CompanyDetailsPage() {
           <div className="container">
             <div className="row">
               <div className="col-lg-12 col-sm-12">
-                <div className="breadcrumb-main-list-area mt-4">
+                <div className="breadcrumb-main-list-area ">
                   <h4>Job Details</h4>
                   <ul>
                     <li>
@@ -353,245 +366,591 @@ function CompanyDetailsPage() {
           </div>
         </section>
       )}
-
-      <section className="company-detail-info-area">
+      <div className="company-details-container">
+        <section className="company-hero-section">
+          <img
+            crossOrigin="anonymous"
+            className="company-hero-image"
+            alt="Hero"
+            src={
+              company?.coverPhoto
+                ? `${API_IMAGE_URL}${company.coverPhoto}` // Replace API_IMAGE_URL with your base URL
+                : "assets/images/company/company-img-1.jpg" // default image
+            }
+          />
+        </section>
         <div className="container">
-          <div className="row">
-            <div className="company-img-short-detail">
-              <div className="company-img-info">
-                {/* <img src="assets/images/company/company-img-1.jpg" /> */}
+          <div className="company-branding-area">
+            <div className="branding-card-content">
+              <div className="company-logo-wrapper">
                 <img
-                  crossorigin="anonymous"
+                  crossOrigin="anonymous"
+                  alt="Logo"
                   src={
-                    company?.coverPhoto
-                      ? `${API_IMAGE_URL}${company.coverPhoto}` // Replace API_IMAGE_URL with your base URL
-                      : "assets/images/company/company-img-1.jpg" // default image
+                    company?.logo
+                      ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
+                      : "assets/images/partner-logo/partner-logo-2.png" // default image
                   }
-                  alt={company?.name || "Company cover photo"}
                 />
               </div>
-              <div className="company-short-detail-info">
-                <div className="company-short-detail-img">
-                  <img
-                    crossorigin="anonymous"
-                    src={
-                      company?.logo
-                        ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
-                        : "assets/images/partner-logo/partner-logo-2.png" // default image
-                    }
-                    alt={company?.name || "Company Logo"}
-                  />
+              <div className="company-title-info">
+                <h2>{company?.brandName}</h2>
+                <div className="company-badges">
+                  <span className="badge-item">
+                    <i className="fa-solid fa-building me-1" />{" "}
+                    {company?.industries || "N/A"}
+                  </span>
+                  <span className="badge-item">
+                    <i className="fa-solid fa-location-dot me-1" />{" "}
+                    {company?.city || "N/A"}
+                  </span>
                 </div>
-                <div className="company-about-short-detail">
-                  <h4>{company?.brandName}</h4>
-                  <div className="subscribe-best-employer-btn">
-                    <span className="subscribe-btn default-btn btn">
-                      + Subscribe
-                    </span>
-                    <span>
-                      <div className="best-employer-btn">
-                        <i className="fa-solid fa-award" /> Best Employer
-                      </div>
-                    </span>
-                  </div>
-                  <ul>
-                    <li>
-                      <i className="fa-solid fa-user" />
-                      {company?.numberOfEmployees}
-                    </li>
-                    <li>
-                      <i className="fa-solid fa-globe" />
-                      Services
-                    </li>
-                    <li>
-                      <a
-                        href={
-                          company?.links?.officialWebsite
-                            ? company.links.officialWebsite
-                            : "http://itdevelopmentservices.com/jobPortal/"
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <i className="fa-solid fa-arrow-up-right-from-square" />{" "}
-                        Visit the company website
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+              </div>
+              <div className="branding-actions d-none d-lg-flex gap-3">
+                <button
+                  className="btn btn-primary px-4 py-2 rounded-pill fw-bold"
+                  style={{
+                    "background-color": "rgb(251, 118, 26)",
+                    "border-color": "rgb(251, 118, 26)",
+                  }}
+                >
+                  <i className="fa-solid fa-plus me-2" />
+                  Suivre
+                </button>
               </div>
             </div>
-            <div className="company-detail-tab-description-info">
-              <div className="company-detail-tab-info">
-                {/* Nav tabs */}
-                <ul className="nav nav-tabs" role="tablist">
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link active"
-                      data-bs-toggle="tab"
-                      href="#menu1"
-                      aria-selected="true"
-                      role="tab"
-                    >
-                      About the company{" "}
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu2"
-                      aria-selected="false"
-                      tabIndex={-1}
-                      role="tab"
-                    >
-                      Current openings
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu3"
-                      aria-selected="false"
-                      tabIndex={-1}
-                      role="tab"
-                    >
-                      Office photos
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu4"
-                      aria-selected="false"
-                      tabIndex={-1}
-                      role="tab"
-                    >
-                      Office videos
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu5"
-                      aria-selected="false"
-                      tabIndex={-1}
-                      role="tab"
-                    >
-                      Career Details
-                    </a>
-                  </li>
-                  <li className="nav-item" role="presentation">
-                    <a
-                      className="nav-link"
-                      data-bs-toggle="tab"
-                      href="#menu6"
-                      aria-selected="false"
-                      tabIndex={-1}
-                      role="tab"
-                    >
-                      Links
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="company-detail-tab-description">
-                {/* Tab panes */}
-                <div className="tab-content">
-                  <div id="menu1" className="tab-pane active" role="tabpanel">
-                    <h5>Company Information</h5>
-                    <div className="company-profile-detail-info">
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-building-columns" />
-                          Company Name
-                        </h4>
-                        <p>{company?.brandName || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-gear" />
-                          Industry
-                        </h4>
-                        <p>{company?.industries || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-user" />
-                          Number of Employees
-                        </h4>
-                        <p>{company?.numberOfEmployees || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-phone" />
-                          Phone number
-                        </h4>
-                        <p>
-                          +{company?.phone?.countryCode}{" "}
-                          {company?.phone?.number}
+          </div>
+          <div className="company-nav-tabs">
+            <ul
+              className="nav nav-tabs justify-content-center border-0"
+              role="tablist"
+            >
+              <li className="nav-item" role="presentation">
+                <a
+                  className="nav-link active"
+                  data-bs-toggle="tab"
+                  href="#about-tab"
+                  aria-selected="false"
+                  role="tab"
+                  tabIndex={-1}
+                >
+                  L'entreprise
+                </a>
+              </li>
+              <li className="nav-item" role="presentation">
+                <a
+                  className="nav-link"
+                  data-bs-toggle="tab"
+                  href="#teams-tab"
+                  aria-selected="false"
+                  tabIndex={-1}
+                  role="tab"
+                >
+                  Teams
+                </a>
+              </li>
+              <li className="nav-item" role="presentation">
+                <a
+                  className="nav-link "
+                  data-bs-toggle="tab"
+                  href="#jobs-tab"
+                  aria-selected="true"
+                  role="tab"
+                >
+                  Offres d'emploi ({company?.jobs?.length || 0})
+                </a>
+              </li>
+              <li className="nav-item" role="presentation">
+                <a
+                  className="nav-link"
+                  data-bs-toggle="tab"
+                  href="#career-tab"
+                  aria-selected="false"
+                  tabIndex={-1}
+                  role="tab"
+                >
+                  Carrière
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="main-content-grid">
+            <div className="content-left">
+              <div className="tab-content mt-2">
+                <div
+                  id="about-tab"
+                  className="tab-pane fade show active"
+                  role="tabpanel"
+                >
+                  <div className="content-section border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white mb-4">
+                    <div className="about-premium-wrapper">
+                      <div className="about-premium-header">
+                        <h3> {company?.aboutPremium?.mainTitle}</h3>
+                        <p className="lead">
+                          {company?.aboutPremium?.subtitle}
                         </p>
                       </div>
+                      <div
+                        className="about-premium-content row align-items-center mb-4"
+                        style={{}}
+                      >
+                        <div className="col-lg-6 about-text-column position-relative z-1">
+                          <p>{company?.aboutPremium?.description1}</p>
+                          <p>{company?.aboutPremium?.description2}</p>
+                          <div className="quote-highlight">
+                            {company?.aboutPremium?.quote}
+                          </div>
+                        </div>
+                        <div className="col-lg-6 mt-5 mt-lg-0 text-center">
+                          <div className="image-reveal-container">
+                            <div className="about-premium-video-wrapper position-relative">
+                              {/* If Video */}
+                              {mediaType === "video" && mediaUrl ? (
+                                <>
+                                  {!aboutLoaded && (
+                                    <div className="video-loader">
+                                      <div className="spinner-border text-light" />
+                                    </div>
+                                  )}
+
+                                  <iframe
+                                    id="about-video-iframe"
+                                    src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&mute=${
+                                      aboutMuted ? 1 : 0
+                                    }&loop=1&playlist=${videoId}&controls=0&modestbranding=1&playsinline=1`}
+                                    title="About Us Video"
+                                    frameBorder="0"
+                                    allow="autoplay; encrypted-media; picture-in-picture"
+                                    allowFullScreen
+                                    className="about-premium-video"
+                                    onLoad={() => setAboutLoaded(true)}
+                                  />
+
+                                  <button
+                                    className="video-mute-btn shadow"
+                                    title="Sound Toggle"
+                                    onClick={() => setAboutMuted(!aboutMuted)}
+                                  >
+                                    <i
+                                      className={`fa-solid ${
+                                        aboutMuted
+                                          ? "fa-volume-xmark"
+                                          : "fa-volume-high"
+                                      }`}
+                                    />
+                                  </button>
+                                </>
+                              ) : null}
+
+                              {/* If Image */}
+                              {mediaType === "image" && mediaUrl ? (
+                                <img
+                                  src={`${API_IMAGE_URL}${mediaUrl}`}
+                                  alt="About Company"
+                                  className="about-premium-video"
+                                  crossOrigin="anonymous"
+                                />
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="company-profile-detail-info">
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-address-card" />
-                          Street Address
-                        </h4>
-                        <p>{company?.companyAddress || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-city" />
-                          City
-                        </h4>
-                        <p>{company?.city || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-map-location-dot" />
-                          State
-                        </h4>
-                        <p>{company?.region || "N/A"}</p>
-                      </div>
-                      <div className="company-profile-detail-box">
-                        <h4>
-                          <i className="fa-solid fa-globe" />
-                          Country
-                        </h4>
-                        <p>{company?.Country || "N/A"}</p>
-                      </div>
+                    <div className="employee-reviews-section mt-5 border-top pt-5">
+                      <h4
+                        className="fw-bold mb-4 text-center"
+                        style={{
+                          color: "rgb(26, 26, 26)",
+                          fontSize: "1.8rem",
+                        }}
+                      >
+                        L'expérience de nos collaborateurs
+                      </h4>
+
+                      {company?.aboutPremium?.employeeExperience?.length >
+                        0 && (
+                        <div
+                          id="reviewsCarousel"
+                          className="carousel slide reviews-carousel-container shadow-sm rounded-4 bg-light p-4 p-md-5"
+                          data-bs-ride="carousel"
+                        >
+                          {/* Slides */}
+                          <div className="carousel-inner">
+                            {company.aboutPremium.employeeExperience.map(
+                              (item, index) => (
+                                <div
+                                  key={item._id}
+                                  className={`carousel-item ${index === 0 ? "active" : ""}`}
+                                  data-bs-interval={5000}
+                                >
+                                  <div className="review-card-content text-center px-md-5">
+                                    <i className="fa-solid fa-quote-left review-quote-icon mb-4" />
+
+                                    <p className="review-text fs-5 font-italic text-muted mb-4">
+                                      {item.testimony}
+                                    </p>
+
+                                    <div className="reviewer-profile d-flex flex-column align-items-center">
+                                      <img
+                                        alt={item.fullName}
+                                        className="reviewer-avatar mb-3 shadow-sm"
+                                        crossOrigin="anonymous"
+                                        src={
+                                          item.photo
+                                            ? `${API_IMAGE_URL}${item.photo}`
+                                            : "assets/images/userIcon.png"
+                                        }
+                                      />
+
+                                      <h5
+                                        className="fw-bold mb-1"
+                                        style={{ color: "rgb(26, 26, 26)" }}
+                                      >
+                                        {item.fullName}
+                                      </h5>
+
+                                      <span
+                                        style={{
+                                          color: "rgb(251, 118, 26)",
+                                          fontWeight: "600",
+                                          fontSize: "0.95rem",
+                                        }}
+                                      >
+                                        {item.role}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ),
+                            )}
+                          </div>
+
+                          {/* Prev */}
+                          <button
+                            className="carousel-control-prev custom-carousel-nav"
+                            type="button"
+                            data-bs-target="#reviewsCarousel"
+                            data-bs-slide="prev"
+                          >
+                            <span
+                              className="carousel-control-prev-icon review-nav-bg shadow"
+                              aria-hidden="true"
+                            />
+                            <span className="visually-hidden">Previous</span>
+                          </button>
+
+                          {/* Next */}
+                          <button
+                            className="carousel-control-next custom-carousel-nav"
+                            type="button"
+                            data-bs-target="#reviewsCarousel"
+                            data-bs-slide="next"
+                          >
+                            <span
+                              className="carousel-control-next-icon review-nav-bg shadow"
+                              aria-hidden="true"
+                            />
+                            <span className="visually-hidden">Next</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div
-                      className="company-profile-description"
-                      dangerouslySetInnerHTML={{ __html: decodedHtml }}
-                    />
                   </div>
-                  <div id="menu2" className="tab-pane fade" role="tabpanel">
-                    <h5>Current openings</h5>
+                  <div className="content-section border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white mb-4">
+                    <h4
+                      className="fw-bold mb-4"
+                      style={{
+                        color: "rgb(26, 26, 26)",
+                        fontSize: "1.8rem",
+                      }}
+                    >
+                      La vie chez Deloitte
+                    </h4>
+
+                    <p className="text-muted mb-4 fs-5">
+                      Découvrez notre quotidien, nos espaces et l'énergie de nos
+                      équipes.
+                    </p>
+
+                    <div className="media-grid-modern">
+                      {/* Photos */}
+                      {company?.photos?.map((photo) => (
+                        <div className="media-item-modern" key={photo._id}>
+                          <a
+                            href={`${API_IMAGE_URL}${photo.url}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <img
+                              crossOrigin="anonymous"
+                              alt="Company"
+                              loading="lazy"
+                              src={`${API_IMAGE_URL}${photo.url}`}
+                            />
+
+                            <div className="media-item-overlay">
+                              <i className="fa-solid fa-expand" />
+                            </div>
+                          </a>
+                        </div>
+                      ))}
+
+                      {/* Videos */}
+                      {company?.videos?.map((video) => {
+                        const getYoutubeId = (url) => {
+                          const regExp =
+                            /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/;
+                          const match = url.match(regExp);
+                          return match ? match[1] : "";
+                        };
+
+                        const videoId = getYoutubeId(video.url);
+                        const isHover = hoveredVideo === video._id;
+                        const isLoaded = loadedVideo[video._id];
+                        const isMuted = mutedVideos[video._id] !== false; // default mute
+
+                        return (
+                          <div
+                            className="media-item-modern video-media-item position-relative"
+                            key={video._id}
+                            onMouseEnter={() => setHoveredVideo(video._id)}
+                            onMouseLeave={() => setHoveredVideo(null)}
+                          >
+                            <a
+                              href={video.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {/* Loader */}
+                              {isHover && !isLoaded && (
+                                <div className="video-loader">
+                                  <div
+                                    className="spinner-border text-light"
+                                    role="status"
+                                  />
+                                </div>
+                              )}
+
+                              <iframe
+                                src={`https://www.youtube.com/embed/${videoId}?autoplay=${
+                                  isHover ? 1 : 0
+                                }&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&playsinline=1&loop=1&playlist=${videoId}`}
+                                title="Company Video"
+                                frameBorder="0"
+                                allow="autoplay; encrypted-media"
+                                className="grid-video-iframe"
+                                onLoad={() =>
+                                  setLoadedVideo((prev) => ({
+                                    ...prev,
+                                    [video._id]: true,
+                                  }))
+                                }
+                              />
+
+                              {/* Play icon hide on hover */}
+                              {!isHover && (
+                                <div className="video-overlay-play">
+                                  <i className="fa-solid fa-play" />
+                                </div>
+                              )}
+                            </a>
+
+                            {/* Sound Button */}
+                            <button
+                              type="button"
+                              className="sound-toggle-btn"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                setMutedVideos((prev) => ({
+                                  ...prev,
+                                  [video._id]: !isMuted,
+                                }));
+                              }}
+                            >
+                              <i
+                                className={`fa-solid ${
+                                  isMuted ? "fa-volume-xmark" : "fa-volume-high"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="mission-vision-wrapper mb-4">
+                    <div className="mission-card">
+                      <div className="d-flex align-items-center mb-4 text-primary">
+                        <i
+                          className="fa-solid fa-bullseye me-3 mb-0"
+                          style={{
+                            "font-size": "2.2rem",
+                            color: "rgb(251, 118, 26)",
+                          }}
+                        />
+                        <h4
+                          className="fw-bold mb-0"
+                          style={{ color: "rgb(26, 26, 26)" }}
+                        >
+                          Notre mission
+                        </h4>
+                      </div>
+                      <p
+                        className="text-muted fs-6"
+                        style={{ "line-height": "1.7", "font-size": "1.05rem" }}
+                      >
+                        {company?.aboutPremium?.mission}
+                      </p>
+                    </div>
+                    <div className="mission-card">
+                      <div className="d-flex align-items-center mb-4 text-primary">
+                        <i
+                          className="fa-regular fa-lightbulb me-3 mb-0"
+                          style={{
+                            "font-size": "2.2rem",
+                            color: "rgb(251, 118, 26)",
+                          }}
+                        />
+                        <h4
+                          className="fw-bold mb-0"
+                          style={{ color: "rgb(26, 26, 26)" }}
+                        >
+                          Notre vision
+                        </h4>
+                      </div>
+                      <p
+                        className="text-muted fs-6"
+                        style={{ "line-height": "1.7", "font-size": "1.05rem" }}
+                      >
+                        {company?.aboutPremium?.vision}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div id="teams-tab" className="tab-pane fade" role="tabpanel">
+                  <div className="content-section">
+                    <h4>Rencontrez l'équipe</h4>
+
+                    {/* First Team Member = CEO Section */}
+                    {company?.aboutPremium?.team?.length > 0 && (
+                      <div className="ceo-section">
+                        <div className="ceo-image-wrapper">
+                          <img
+                            crossOrigin="anonymous"
+                            className="ceo-image"
+                            src={
+                              company?.aboutPremium?.team?.[0]?.photo
+                                ? `${API_IMAGE_URL}${company.aboutPremium.team[0].photo}`
+                                : "assets/images/userIcon.png"
+                            }
+                            alt={company.aboutPremium.team[0].fullName}
+                          />
+                        </div>
+
+                        <div className="ceo-content">
+                          <h4>{company.aboutPremium.team[0].fullName}</h4>
+
+                          <h2>{company.aboutPremium.team[0].post}</h2>
+
+                          <p className="ceo-quote">
+                            {company.aboutPremium.team[0].testimonial}
+                          </p>
+
+                          {company?.aboutPremium?.leader?.interviewVideo && (
+                            <div className="mt-4">
+                              <a
+                                href={
+                                  company?.aboutPremium?.leader?.interviewVideo
+                                    ? company.aboutPremium.leader.interviewVideo
+                                    : "http://itdevelopmentservices.com/jobPortal/"
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-outline-light rounded-pill px-4"
+                              >
+                                <i className="fa-brands fa-youtube me-2" />
+                                Voir l'interview vidéo
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Remaining Team Members */}
+                    <div className="teams-grid">
+                      {company?.aboutPremium?.team?.slice(1).map((member) => (
+                        <div className="team-card" key={member._id}>
+                          <div className="team-card-header">
+                            <img
+                              className="team-avatar"
+                              crossOrigin="anonymous"
+                              src={
+                                member?.photo
+                                  ? `${API_IMAGE_URL}${member.photo}`
+                                  : "assets/images/userIcon.png"
+                              }
+                              alt={member.fullName}
+                            />
+
+                            <div className="team-info">
+                              <h5>{member.fullName}</h5>
+                              <p>{member.post}</p>
+                            </div>
+                          </div>
+
+                          <div className="testimonial-text">
+                            <p>{member.testimonial}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* If No Data */}
+                    {company?.aboutPremium?.team?.length === 0 && (
+                      <p className="text-muted">No team data available</p>
+                    )}
+                  </div>
+                </div>
+                <div
+                  id="jobs-tab"
+                  className="tab-pane fade show"
+                  role="tabpanel"
+                >
+                  <div className="content-section">
+                    <h4>Offres d'emploi disponibles</h4>
                     {company?.jobs?.length > 0 ? (
                       company.jobs.map((job) => (
-                        <div className="company-detail-job-box">
-                          <Link
-                            key={job._id}
-                            to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                            className="job-link"
+                        <div className="elegant-job-card-wrapper position-relative">
+                          <a
+                            className="elegant-job-card"
+                            href="/jobPortal/job-details/job1"
                           >
-                            <div className="company-detail-card">
-                              <h4>{job.jobTitle || "N/A"}</h4>
-                              <ul>
-                                <li>
-                                  <i className="fa-solid fa-location-dot" />
+                            <div className="job-card-main">
+                              <h5>
+                                {" "}
+                                <h4>{job.jobTitle || "N/A"}</h4>
+                              </h5>
+                              <div className="job-meta">
+                                <span>
+                                  <i className="fa-solid fa-location-dot" />{" "}
                                   {job.city?.length
                                     ? job.city.join(", ")
                                     : "N/A"}
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-calendar-days" />
+                                </span>
+                                <span>
+                                  <i className="fa-solid fa-briefcase" />{" "}
+                                  {job.minimumLevel?.name || "N/A"}
+                                </span>
+                                <span>
+                                  <i className="fa-solid fa-house-laptop" />{" "}
+                                  {job?.employmentType?.name || "N/A"}
+                                </span>
+                                <span>
+                                  <i className="fa-solid fa-calendar" /> Publié
+                                  le
                                   {new Date(job.createdAt).toLocaleString(
                                     "en-US",
                                     {
@@ -602,117 +961,34 @@ function CompanyDetailsPage() {
                                       minute: "2-digit",
                                     },
                                   )}
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-signal" />
-                                  {job.minimumLevel?.name || "N/A"}
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-user" />
-                                  {job?.employmentType?.name || "N/A"}
-                                </li>
-                              </ul>
+                                </span>
+                              </div>
                             </div>
-                          </Link>
-                          <div className="company-detail-apply-link-save-btn">
-                            <div className="company-detail-apply-btn">
+                            <div className="job-card-action d-flex align-items-center gap-3">
                               {job?.isApplied ? (
                                 <button
-                                  className="default-btn btn"
+                                  className="btn btn-outline-primary rounded-pill px-4"
                                   disabled
-                                  style={{ color: "#ff6600" }}
+                                  style={{
+                                    color: "rgb(251, 118, 26)",
+                                    "border-color": "rgb(251, 118, 26)",
+                                  }}
                                 >
                                   {job?.applicationStatus}
                                 </button>
                               ) : (
                                 <Link
                                   to={`/job-details/${job._id}`}
-                                  className="default-btn btn"
+                                  className="btn btn-outline-primary rounded-pill px-4"
+                                  style={{
+                                    color: "rgb(251, 118, 26)",
+                                    "border-color": "rgb(251, 118, 26)",
+                                  }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   View Details
                                 </Link>
                               )}
-                              {/* Button trigger modal */}
-                              {/* <a
-                                href="#"
-                                data-bs-toggle="modal"
-                                data-bs-target="#ApplyQuickly"
-                                className="default-btn btn"
-                              >
-                                Apply Quickly
-                              </a> */}
-                              {/* Modal */}
-                              {/* <div
-                                className="modal fade"
-                                id="ApplyQuickly"
-                                data-bs-backdrop="static"
-                                data-bs-keyboard="false"
-                                tabIndex={-1}
-                                aria-labelledby="ApplyQuicklyLabel"
-                                aria-hidden="true"
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h1
-                                        className="modal-title fs-5"
-                                        id="staticBackdropLabel"
-                                      >
-                                        Apply Now
-                                      </h1>
-                                      <button
-                                        type="button"
-                                        className="btn-close"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close"
-                                      />
-                                    </div>
-                                    <div className="modal-body">
-                                      <div className="company-detail-show-upload">
-                                        <div className="company-detail-doc-tyep">
-                                          <h4>
-                                            <i className="fa-solid fa-circle-check" />
-                                            Resume Name, pdf,doc
-                                          </h4>
-                                        </div>
-                                        <div className="company-detail-download-edit">
-                                          <i className="fa-solid fa-ellipsis-vertical" />
-                                          <ul>
-                                            <li>
-                                              <i className="fa-solid fa-arrow-down" />{" "}
-                                              Download
-                                            </li>
-                                            <li>
-                                              <i className="fa-solid fa-trash" />{" "}
-                                              Delete
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <div className="company-detail-attechment-info">
-                                        &nbsp; &nbsp; &nbsp; &nbsp;{" "}
-                                        <div className="control-label-file-up">
-                                          <i className="fa-solid fa-arrow-up-from-bracket" />{" "}
-                                          Upload CV
-                                          <input
-                                            type="file"
-                                            id="attach"
-                                            className="optional-inputfile"
-                                            name="attach"
-                                            accept=".pdf, .doc, .docx"
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="company-detail modal-footer">
-                                      <a href="#" className="default-btn btn">
-                                        Apply
-                                      </a>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div> */}
                               <div
                                 className="modal fade"
                                 id="exampleModal"
@@ -978,143 +1254,34 @@ function CompanyDetailsPage() {
                                   </div>
                                 </div>
                               </div>
+                              <i
+                                className={`fa-${
+                                  job.isSaved ? "solid" : "regular"
+                                } fa-heart fs-5`}
+                                style={{
+                                  cursor: "pointer",
+                                  color: job.isSaved ? "#fb761a" : "#dc3545",
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleSaveJob(job._id);
+                                }}
+                              />
                             </div>
-                            <div className="company-detail-link-save-icon">
-                              <ul>
-                                <li style={{ position: "relative" }}>
-                                  <a
-                                    href="#"
-                                    onClick={(e) =>
-                                      handleCopy(e, job?.link, job?._id)
-                                    }
-                                    style={{
-                                      cursor: job?.link
-                                        ? "pointer"
-                                        : "not-allowed",
-                                    }}
-                                    title={
-                                      !job?.link
-                                        ? "Link not available"
-                                        : copiedJobId === job?._id
-                                          ? "Copied!"
-                                          : "Copy link"
-                                    }
-                                  >
-                                    {job?.link ? (
-                                      <i className="fa-solid fa-link" />
-                                    ) : (
-                                      <span style={{ color: "#ffff" }}>
-                                        No Link
-                                      </span>
-                                    )}
-                                  </a>
-
-                                  {/* Show "Copied!" only for this job */}
-                                  {copiedJobId === job._id && (
-                                    <span
-                                      style={{
-                                        position: "absolute",
-                                        top: "-20px",
-                                        left: "50%",
-                                        transform: "translateX(-50%)",
-                                        backgroundColor: "#333",
-                                        color: "#fff",
-                                        padding: "2px 6px",
-                                        borderRadius: "4px",
-                                        fontSize: "12px",
-                                        opacity: 0.9,
-                                      }}
-                                    >
-                                      Copied!
-                                    </span>
-                                  )}
-                                </li>
-
-                                <li>
-                                  <i
-                                    className={`fa-${
-                                      job.isSaved ? "solid" : "regular"
-                                    } fa-heart`}
-                                    style={{
-                                      cursor: "pointer",
-                                      color: job.isSaved ? "#fb761a" : "#fff",
-                                    }}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleSaveJob(job._id);
-                                    }}
-                                  />
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
+                          </a>
                         </div>
                       ))
                     ) : (
                       <p className="text-muted">No jobs available</p>
                     )}
                   </div>
-                  <div id="menu3" className="tab-pane fade" role="tabpanel">
-                    <div className="company-detail-third-tab">
-                      <h5>Office Photos</h5>
-                      <div className="row">
-                        {/* <div className="col-lg-3 col-md-4">
-                          <div className="company-office-photos-box">
-                            <img src="assets/images/company/company-img-1.jpg" />
-                          </div>
-                        </div> */}
-                        {company?.photos?.length > 0 ? (
-                          company.photos.map((photo) => (
-                            <div className="col-lg-3 col-md-4" key={photo._id}>
-                              <div className="company-office-photos-box">
-                                <img
-                                  crossorigin="anonymous"
-                                  src={`${API_IMAGE_URL}${photo.url}`}
-                                  alt="Office"
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted">No photos available</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div id="menu4" className="tab-pane fade" role="tabpanel">
-                    <div className="company-detail-fourth-tab">
-                      <h5>Office Videos</h5>
-                      <div className="row">
-                        {company?.videos?.length > 0 ? (
-                          company.videos.map((video) => (
-                            <div className="col-lg-3 col-md-4">
-                              <div className="company-office-video-box">
-                                <video
-                                  crossorigin="anonymous"
-                                  width="100%"
-                                  height={150}
-                                  controls
-                                >
-                                  <source
-                                    crossorigin="anonymous"
-                                    src={`${API_IMAGE_URL}${video.url}`}
-                                    type="video/mp4"
-                                  />
-                                </video>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted">No videos available</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div id="menu5" className="tab-pane fade" role="tabpanel">
-                    <div className="company-detail-fifth-tab">
-                      <h5>Career Details</h5>
+                </div>
+                <div id="career-tab" className="tab-pane fade" role="tabpanel">
+                  <div className="content-section">
+                    <h4>Travailler chez Deloitte</h4>
 
+                    <div className="company-rich-text">
                       {decodedCareerDetail?.trim() ? (
                         <div
                           className="company-career-detail"
@@ -1127,106 +1294,138 @@ function CompanyDetailsPage() {
                       )}
                     </div>
                   </div>
-                  <div id="menu6" className="tab-pane fade" role="tabpanel">
-                    <div className="company-detail-sixth-tab">
-                      <h5>Links</h5>
-                      <div className="company-detail-official-website">
-                        <h4>
-                          <i className="fa-solid fa-globe" />{" "}
-                          {company?.brandName}
-                        </h4>
-                        <h5>
-                          {company?.links?.officialWebsite ? (
-                            <a
-                              href={company.links.officialWebsite}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {company.links.officialWebsite}
-                            </a>
-                          ) : (
-                            <span className="text-muted">
-                              No website available
-                            </span>
-                          )}
-                        </h5>
-                      </div>
-                      <div className="company-detail-social-link">
-                        <div className="company-detail-social-box">
-                          <h4>
-                            <i className="fa-brands fa-linkedin" /> Linkedin
-                          </h4>
-                          {company?.links?.linkedin ? (
-                            <a
-                              href={company.links.linkedin}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              https://www.instagram.com/
-                            </a>
-                          ) : (
-                            <span className="text-muted">No LinkedIn link</span>
-                          )}
-                        </div>
-                        <div className="company-detail-social-box">
-                          <h4>
-                            <i className="fa-brands fa-facebook-f" /> facebook
-                          </h4>
-                          {company?.links?.facebook ? (
-                            <a
-                              href={company.links.facebook}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              https://www.facebook.com/
-                            </a>
-                          ) : (
-                            <span className="text-muted">No Facebook link</span>
-                          )}
-                        </div>
-                        <div className="company-detail-social-box">
-                          <h4>
-                            <i className="fa-brands fa-instagram" /> Instagram
-                          </h4>
-                          {company?.links?.instagram ? (
-                            <a
-                              href={company.links.instagram}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              https://www.instagram.com/
-                            </a>
-                          ) : (
-                            <span className="text-muted">
-                              No Instagram link
-                            </span>
-                          )}
-                        </div>
-                        <div className="company-detail-social-box">
-                          <h4>
-                            <i className="fa-brands fa-x-twitter" /> Twitter
-                          </h4>
-                          {company?.links?.twitter ? (
-                            <a
-                              href={company.links.twitter}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              https://www.twitter.com/
-                            </a>
-                          ) : (
-                            <span className="text-muted">No Twitter link</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                </div>
+              </div>
+            </div>
+            <div className="content-right">
+              <div className="sidebar-fact-card">
+                <h5 className="sidebar-title">En un coup d'œil</h5>
+                <div className="fact-item">
+                  <div className="fact-icon">
+                    <i className="fa-solid fa-users" />
                   </div>
+                  <div className="fact-detail">
+                    <h6>Taille de l'entreprise</h6>
+                    <p>{company?.numberOfEmployees || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="fact-item">
+                  <div className="fact-icon">
+                    <i className="fa-solid fa-industry" />
+                  </div>
+                  <div className="fact-detail">
+                    <h6>Secteur</h6>
+                    <p>{company?.industries || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="fact-item">
+                  <div className="fact-icon">
+                    <i className="fa-solid fa-location-dot" />
+                  </div>
+                  <div className="fact-detail">
+                    <h6>Siège social</h6>
+                    <p>{company?.city || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="fact-item">
+                  <div className="fact-icon">
+                    <i className="fa-solid fa-phone" />
+                  </div>
+                  <div className="fact-detail">
+                    <h6>Contact</h6>
+                    <p>
+                      {" "}
+                      +{company?.phone?.countryCode} {company?.phone?.number}
+                    </p>
+                  </div>
+                </div>
+                <hr />
+                <h5 className="sidebar-title mt-4">Liens officiels</h5>
+
+                <div className="social-links-grid" />
+                <div className="social-links-grid">
+                  {/* Website */}
+                  {company?.links?.website && (
+                    <a
+                      href={company.links.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="social-link-btn"
+                      title="Website"
+                    >
+                      <i className="fa-solid fa-globe" />
+                    </a>
+                  )}
+
+                  {/* LinkedIn */}
+                  {company?.links?.linkedin && (
+                    <a
+                      href={company.links.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="social-link-btn"
+                      title="LinkedIn"
+                    >
+                      <i className="fa-brands fa-linkedin" />
+                    </a>
+                  )}
+
+                  {/* Facebook */}
+                  {company?.links?.facebook && (
+                    <a
+                      href={company.links.facebook}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="social-link-btn"
+                      title="Facebook"
+                    >
+                      <i className="fa-brands fa-facebook-f" />
+                    </a>
+                  )}
+
+                  {/* Instagram */}
+                  {company?.links?.instagram && (
+                    <a
+                      href={company.links.instagram}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="social-link-btn"
+                      title="Instagram"
+                    >
+                      <i className="fa-brands fa-instagram" />
+                    </a>
+                  )}
+
+                  {/* Twitter / X */}
+                  {company?.links?.twitter && (
+                    <a
+                      href={company.links.twitter}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="social-link-btn"
+                      title="Twitter"
+                    >
+                      <i className="fa-brands fa-x-twitter" />
+                    </a>
+                  )}
+                </div>
+                <div className="mt-4 pt-3 border-top">
+                  <p className="text-muted small mb-3">
+                    Besoin d'en savoir plus sur nos processus de recrutement ?
+                  </p>
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-outline-dark w-100 rounded-pill"
+                  >
+                    Consulter le site
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </>
   );
 }

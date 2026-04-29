@@ -901,18 +901,18 @@ function YourJobPosts() {
                           >
                             <span>
                               {sortBy === "newest"
-                                ? "Recent (Newest)"
+                                ? "Recent First"
                                 : sortBy === "oldest"
                                   ? "Oldest First"
-                                  : sortBy === "az"
+                                  : sortBy === "a-z"
                                     ? "A to Z"
-                                    : "Z to A"}
+                                    : sortBy === "z-a"
+                                      ? "Z to A"
+                                      : "Recent First"}
                             </span>
 
                             <i
-                              className={`fa-solid fa-chevron-down ms-2 ${
-                                sortOpen ? "rotate-180" : ""
-                              }`}
+                              className="fa-solid fa-chevron-down ms-2"
                               style={{
                                 transition: "transform 0.3s",
                                 transform: sortOpen
@@ -939,6 +939,7 @@ function YourJobPosts() {
                                 overflow: "hidden",
                               }}
                             >
+                              {/* Newest */}
                               <div
                                 className={`custom-dropdown-item ${
                                   sortBy === "newest" ? "active" : ""
@@ -948,10 +949,11 @@ function YourJobPosts() {
                                   setSortOpen(false);
                                 }}
                               >
-                                <i className="fa-solid fa-clock me-2" /> Recent
-                                First
+                                <i className="fa-solid fa-clock me-2" />
+                                Recent First
                               </div>
 
+                              {/* Oldest */}
                               <div
                                 className={`custom-dropdown-item ${
                                   sortBy === "oldest" ? "active" : ""
@@ -961,10 +963,11 @@ function YourJobPosts() {
                                   setSortOpen(false);
                                 }}
                               >
-                                <i className="fa-solid fa-history me-2" />{" "}
+                                <i className="fa-solid fa-history me-2" />
                                 Oldest First
                               </div>
 
+                              {/* A-Z */}
                               <div
                                 className={`custom-dropdown-item ${
                                   sortBy === "a-z" ? "active" : ""
@@ -974,10 +977,11 @@ function YourJobPosts() {
                                   setSortOpen(false);
                                 }}
                               >
-                                <i className="fa-solid fa-sort-alpha-down me-2" />{" "}
+                                <i className="fa-solid fa-arrow-down-a-z me-2" />
                                 A to Z
                               </div>
 
+                              {/* Z-A */}
                               <div
                                 className={`custom-dropdown-item ${
                                   sortBy === "z-a" ? "active" : ""
@@ -987,7 +991,7 @@ function YourJobPosts() {
                                   setSortOpen(false);
                                 }}
                               >
-                                <i className="fa-solid fa-sort-alpha-up me-2" />{" "}
+                                <i className="fa-solid fa-arrow-down-z-a me-2" />
                                 Z to A
                               </div>
                             </div>

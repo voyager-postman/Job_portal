@@ -30,8 +30,8 @@ function JobSearch() {
   const location = useLocation();
   const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
-    const userRole = localStorage.getItem("user_role");
-
+  const userRole = localStorage.getItem("user_role");
+  const userId = localStorage.getItem("user_id");
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   console.log("Received Alert Data:", alert);
   const [resumeList, setResumeList] = useState([]);

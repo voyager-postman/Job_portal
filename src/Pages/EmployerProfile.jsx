@@ -62,8 +62,8 @@ function EmployerProfile() {
   const [ceoData, setCeoData] = useState({
     name: "",
     title: "CEO",
-    photo: "",
-    photoFile: null,
+    photo: "", // preview / old image url
+    photoFile: null, // binary file
     message: "",
     videoUrl: "",
   });
@@ -130,18 +130,89 @@ function EmployerProfile() {
     updated[index][field] = value;
     setTeamMembers(updated);
   };
-
-  /* Upload Image */
-  const handleImageUpload2 = (e, index) => {
+  const handleImageUpload2 = async (e, index) => {
     const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // ==========================
+    // Type Validation
+    // ==========================
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // ==========================
+    // Size Validation
+    // ==========================
+    if (file.size > maxSize) {
+      toast.error("Image size must be less than 5MB", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
 
     const updated = [...teamMembers];
 
+    // ==========================
+    // Instant Preview
+    // ==========================
     updated[index].photo = URL.createObjectURL(file);
     updated[index].photoFile = file;
 
-    setTeamMembers(updated);
+    setTeamMembers([...updated]);
+
+    toast.success("Photo uploaded successfully", {
+      containerId: "verify-email-toast",
+    });
+
+    // ==========================
+    // Upload to Server
+    // ==========================
+    const uploadedUrl = await uploadImageToServer(file);
+
+    if (uploadedUrl) {
+      updated[index].photo = uploadedUrl;
+      updated[index].photoFile = null;
+
+      setTeamMembers([...updated]);
+    }
+
+    e.target.value = "";
   };
+  /* Upload Image */
+  // const handleImageUpload2 = async (e, index) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   const updated = [...teamMembers];
+
+  //   // instant preview
+  //   updated[index].photo = URL.createObjectURL(file);
+  //   updated[index].photoFile = file;
+
+  //   setTeamMembers([...updated]);
+
+  //   // upload to server
+  //   const uploadedUrl = await uploadImageToServer(file);
+
+  //   if (uploadedUrl) {
+  //     updated[index].photo = uploadedUrl; // save server path
+  //     updated[index].photoFile = null;
+
+  //     setTeamMembers([...updated]);
+  //   }
+  // };
   const handleMissionChange = (e) => {
     const { name, value } = e.target;
 
@@ -152,13 +223,61 @@ function EmployerProfile() {
   };
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
 
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // ==========================
+    // Type Validation
+    // ==========================
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // ==========================
+    // Size Validation
+    // ==========================
+    if (file.size > maxSize) {
+      toast.error("Image size must be less than 5MB", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // ==========================
+    // Preview + Save File
+    // ==========================
     setCeoData((prev) => ({
       ...prev,
       photo: URL.createObjectURL(file),
       photoFile: file,
     }));
+
+    toast.success("Photo uploaded successfully", {
+      containerId: "verify-email-toast",
+    });
+
+    e.target.value = "";
   };
+  // const handleImageUpload = (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   setCeoData((prev) => ({
+  //     ...prev,
+  //     photo: URL.createObjectURL(file), // preview only
+  //     photoFile: file, // binary file for API
+  //   }));
+  // };
   useEffect(() => {
     // Set default location — Noida
     setMapUrl(
@@ -198,17 +317,80 @@ function EmployerProfile() {
     }));
   };
   /* Upload Photo */
-  const handlePhotoUpload = (e, index) => {
+  // const handlePhotoUpload = async (e, index) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   const updated = [...reviews];
+
+  //   // instant preview
+  //   updated[index].photo = URL.createObjectURL(file);
+  //   setReviews([...updated]);
+
+  //   // upload image
+  //   const uploadedUrl = await uploadImageToServer(file);
+
+  //   if (uploadedUrl) {
+  //     updated[index].photo = uploadedUrl; // save server path
+  //     setReviews([...updated]);
+  //   }
+  // };
+  const handlePhotoUpload = async (e, index) => {
     const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // ==========================
+    // Type Validation
+    // ==========================
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // ==========================
+    // Size Validation
+    // ==========================
+    if (file.size > maxSize) {
+      toast.error("Image size must be less than 5MB", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
 
     const updated = [...reviews];
 
+    // ==========================
+    // Instant Preview
+    // ==========================
     updated[index].photo = URL.createObjectURL(file);
-    updated[index].photoFile = file;
+    setReviews([...updated]);
 
-    setReviews(updated);
+    toast.success("Photo uploaded successfully", {
+      containerId: "verify-email-toast",
+    });
+
+    // ==========================
+    // Upload to Server
+    // ==========================
+    const uploadedUrl = await uploadImageToServer(file);
+
+    if (uploadedUrl) {
+      updated[index].photo = uploadedUrl;
+      setReviews([...updated]);
+    }
+
+    e.target.value = "";
   };
-
   const handleSelectCity = (city) => {
     setFormData((prev) => ({
       ...prev,
@@ -293,9 +475,39 @@ function EmployerProfile() {
   }));
 
   /* Image Upload */
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    // Type Validation
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // Size Validation
+    if (file.size > maxSize) {
+      toast.error("Image size must be less than 5MB", {
+        containerId: "verify-email-toast",
+      });
+
+      e.target.value = "";
+      return;
+    }
+
+    // Success
+    toast.success("Image uploaded successfully", {
+      containerId: "verify-email-toast",
+    });
 
     setCompanyProfile((prev) => ({
       ...prev,
@@ -303,6 +515,17 @@ function EmployerProfile() {
       mediaImageFile: file,
     }));
   };
+  // const handleImageChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+
+  //   // Preview + Binary file store
+  //   setCompanyProfile((prev) => ({
+  //     ...prev,
+  //     mediaImage: URL.createObjectURL(file), // preview image
+  //     mediaImageFile: file, // original binary file
+  //   }));
+  // };
   /* Save API */
   // ==============================
   // FRONTEND (React)
@@ -493,157 +716,168 @@ function EmployerProfile() {
   //     setLoading(false);
   //   }
   // };
+
+  const uploadImageToServer = async (file) => {
+    try {
+      const data = new FormData();
+      data.append("image", file);
+
+      const res = await axios.post(`${API_BASE_URL}upload/Image`, data);
+
+      return res.data.url; // ✅ correct
+    } catch (error) {
+      console.log(error);
+      return "";
+    }
+  };
   const handleSubmit1 = async () => {
-  try {
-    // ===============================
-    // Validation
-    // ===============================
-    if (!companyProfile.mainTitle.trim()) {
-      return toast.error("Please enter main title", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (!companyProfile.subtitle.trim()) {
-      return toast.error("Please enter subtitle", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (!companyProfile.description1.trim()) {
-      return toast.error("Please enter description paragraph 1", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (!companyProfile.description2.trim()) {
-      return toast.error("Please enter description paragraph 2", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (!companyProfile.quote.trim()) {
-      return toast.error("Please enter quote", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (companyProfile.mediaType === "image" && !companyProfile.mediaImage) {
-      return toast.error("Please upload image", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    if (
-      companyProfile.mediaType === "video" &&
-      !companyProfile.videoUrl.trim()
-    ) {
-      return toast.error("Please enter video url", {
-        containerId: "verify-email-toast",
-      });
-    }
-
-    setLoading(true);
-
-    const token = localStorage.getItem("token");
-
-    // ===============================
-    // Use FormData for Image Upload
-    // ===============================
-    const formData = new FormData();
-
-    formData.append("mainTitle", companyProfile.mainTitle);
-    formData.append("subtitle", companyProfile.subtitle);
-    formData.append("description1", companyProfile.description1);
-    formData.append("description2", companyProfile.description2);
-    formData.append("quote", companyProfile.quote);
-    formData.append("mediaType", companyProfile.mediaType);
-
-    // If image selected
-    if (
-      companyProfile.mediaType === "image" &&
-      companyProfile.mediaImage instanceof File
-    ) {
-      formData.append("mediaImage", companyProfile.mediaImage);
-    } else {
-      formData.append("mediaImage", companyProfile.mediaImage || "");
-    }
-
-    // If video selected
-    formData.append(
-      "videoUrl",
-      companyProfile.mediaType === "video"
-        ? companyProfile.videoUrl
-        : ""
-    );
-
-    formData.append("mission", missionVision.mission);
-    formData.append("vision", missionVision.vision);
-
-    formData.append("leader_name", ceoData.name);
-    formData.append("leader_position", ceoData.title);
-    formData.append("leader_message", ceoData.message);
-    formData.append("leader_interviewVideo", ceoData.videoUrl);
-
-    // CEO Photo Upload
-    if (ceoData.photo instanceof File) {
-      formData.append("leader_photo", ceoData.photo);
-    } else {
-      formData.append("leader_photo", ceoData.photo || "");
-    }
-
-    // Employee Experience
-    formData.append(
-      "employeeExperience",
-      JSON.stringify(
-        reviews.map((item) => ({
-          fullName: item.fullName,
-          role: item.role,
-          testimony: item.testimonial,
-          photo: item.photo,
-        }))
-      )
-    );
-
-    // Team Members
-    formData.append(
-      "team",
-      JSON.stringify(
-        teamMembers.map((item) => ({
-          fullName: item.fullName,
-          post: item.position,
-          testimonial: item.shortText,
-          photo: item.photo,
-        }))
-      )
-    );
-
-    const res = await axios.post(
-      `${API_BASE_URL}updateCompanyPremiumSection`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+    try {
+      // ===============================
+      // Validation
+      // ===============================
+      if (!companyProfile.mainTitle.trim()) {
+        return toast.error("Please enter main title", {
+          containerId: "verify-email-toast",
+        });
       }
-    );
 
-    toast.success("Updated Successfully", {
-      containerId: "verify-email-toast",
-      autoClose: 3000,
-    });
+      if (!companyProfile.subtitle.trim()) {
+        return toast.error("Please enter subtitle", {
+          containerId: "verify-email-toast",
+        });
+      }
 
-    fetchCompanyDetails();
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Something went wrong", {
-      containerId: "verify-email-toast",
-      autoClose: 3000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!companyProfile.description1.trim()) {
+        return toast.error("Please enter description paragraph 1", {
+          containerId: "verify-email-toast",
+        });
+      }
+
+      if (!companyProfile.description2.trim()) {
+        return toast.error("Please enter description paragraph 2", {
+          containerId: "verify-email-toast",
+        });
+      }
+
+      if (!companyProfile.quote.trim()) {
+        return toast.error("Please enter quote", {
+          containerId: "verify-email-toast",
+        });
+      }
+
+      if (companyProfile.mediaType === "image" && !companyProfile.mediaImage) {
+        return toast.error("Please upload image", {
+          containerId: "verify-email-toast",
+        });
+      }
+
+      if (
+        companyProfile.mediaType === "video" &&
+        !companyProfile.videoUrl.trim()
+      ) {
+        return toast.error("Please enter video url", {
+          containerId: "verify-email-toast",
+        });
+      }
+
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      // ===============================
+      // Use FormData for Image Upload
+      // ===============================
+      const formData = new FormData();
+
+      formData.append("mainTitle", companyProfile.mainTitle);
+      formData.append("subtitle", companyProfile.subtitle);
+      formData.append("description1", companyProfile.description1);
+      formData.append("description2", companyProfile.description2);
+      formData.append("quote", companyProfile.quote);
+      formData.append("mediaType", companyProfile.mediaType);
+
+      // Upload Binary Image
+      if (
+        companyProfile.mediaType === "image" &&
+        companyProfile.mediaImageFile
+      ) {
+        formData.append("mediaImage", companyProfile.mediaImageFile);
+      } else {
+        formData.append("mediaImage", companyProfile.mediaImage || "");
+      }
+
+      // If video selected
+      formData.append(
+        "videoUrl",
+        companyProfile.mediaType === "video" ? companyProfile.videoUrl : "",
+      );
+
+      formData.append("mission", missionVision.mission);
+      formData.append("vision", missionVision.vision);
+
+      formData.append("leader_name", ceoData.name);
+      formData.append("leader_position", ceoData.title);
+      formData.append("leader_message", ceoData.message);
+      formData.append("leader_interviewVideo", ceoData.videoUrl);
+
+      // CEO Photo Upload
+      if (ceoData.photoFile) {
+        formData.append("leader_photo", ceoData.photoFile);
+      } else {
+        formData.append("leader_photo", ceoData.photo || "");
+      }
+
+      // Employee Experience
+      formData.append(
+        "employeeExperience",
+        JSON.stringify(
+          reviews.map((item) => ({
+            fullName: item.fullName,
+            role: item.role,
+            testimony: item.testimonial,
+            photo: item.photo, // now server path saved
+          })),
+        ),
+      );
+      // Team Members
+      formData.append(
+        "team",
+        JSON.stringify(
+          teamMembers.map((item) => ({
+            fullName: item.fullName,
+            post: item.position,
+            testimonial: item.shortText,
+            photo: item.photo,
+          })),
+        ),
+      );
+
+      const res = await axios.post(
+        `${API_BASE_URL}updateCompanyPremiumSection`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      toast.success("Updated Successfully", {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
+
+      fetchCompanyDetails();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Something went wrong", {
+        containerId: "verify-email-toast",
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const TOAST_OPTIONS = {
     containerId: "verify-email-toast",
     autoClose: 3000,
@@ -1087,11 +1321,12 @@ function EmployerProfile() {
           quote: premium.quote || "",
           mediaType: premium.media?.type || "image",
           mediaImage:
-            premium.media?.type === "image"
-              ? premium.media?.url
-                ? `${API_IMAGE_URL}${premium.media.url}`
-                : ""
+            premium.media?.type === "image" && premium.media?.url
+              ? `${API_IMAGE_URL}${premium.media.url}`
               : "",
+
+          mediaImageFile: null,
+
           videoUrl:
             premium.media?.type === "video" ? premium.media?.url || "" : "",
         });
@@ -1115,9 +1350,7 @@ function EmployerProfile() {
           (premium.employeeExperience || []).map((item) => ({
             fullName: item.fullName || "",
             role: item.role || "",
-            photo: item.photo?.startsWith("blob:")
-              ? item.photo
-              : `${API_IMAGE_URL}${item.photo}`,
+            photo: item.photo,
             testimonial: item.testimony || "",
           })),
         );
@@ -1126,10 +1359,8 @@ function EmployerProfile() {
           (premium.team || []).map((item) => ({
             fullName: item.fullName || "",
             position: item.post || "",
-            photo: item.photo?.startsWith("blob:")
-              ? item.photo
-              : `${API_IMAGE_URL}${item.photo}`,
-            shortText: item.testimonial || "",
+            photo: item.photo,
+            shortText: item.testimonial,
           })),
         );
       }
@@ -2873,6 +3104,7 @@ function EmployerProfile() {
                                     {companyProfile.mediaImage && (
                                       <div className="ms-2">
                                         <img
+                                          crossOrigin="anonymous"
                                           src={companyProfile.mediaImage}
                                           alt="Preview"
                                           style={{
@@ -3030,8 +3262,9 @@ function EmployerProfile() {
 
                                           {item.photo && (
                                             <img
-                                              src={item.photo}
                                               alt="Preview"
+                                              crossOrigin="anonymous"
+                                              src={`${API_IMAGE_URL}${item.photo}`}
                                               style={{
                                                 height: "38px",
                                                 width: "38px",
@@ -3184,6 +3417,7 @@ function EmployerProfile() {
 
                                       {ceoData.photo && (
                                         <img
+                                          crossOrigin="anonymous"
                                           src={ceoData.photo}
                                           alt="CEO"
                                           style={{
@@ -3353,7 +3587,8 @@ function EmployerProfile() {
 
                                           {item.photo && (
                                             <img
-                                              src={item.photo}
+                                              crossOrigin="anonymous"
+                                              src={`${API_IMAGE_URL}${item.photo}`}
                                               alt="Preview"
                                               style={{
                                                 width: "40px",

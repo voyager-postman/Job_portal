@@ -904,13 +904,13 @@ function Header({ bgColor }) {
                       <div className="option-item">
                         <div className="default-btn btn style-2  employer-login-register-button">
                           <Link to="/employer-login">
-                            <span>
+                            <span style={{color:"#fff"}}>
                               <i className="fa-regular fa-user" />{" "}
                               {t("header.login")} /
                             </span>
                           </Link>
                           <Link to="/employer-register">
-                            <span> {t("header.register")} </span>
+                            <span style={{color:"#fff"}}> {t("header.register")} </span>
                           </Link>
                         </div>
                       </div>
