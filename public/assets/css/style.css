@@ -13088,3 +13088,27 @@ i.fa-solid.fa-trash {
   color: #6c757d;
   font-size: 14px;
 }
+.ck-content img {
+  width: 300px !important;
+  height: 200px !important;
+  object-fit: cover; /* prevents distortion */
+}
+.company-career-detail img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 15px auto;
+}
+/* Dark background like screenshot */
+.custom-video-modal .modal-content {
+  background: transparent;
+  border: none;
+}
+
+.custom-video-modal .modal-dialog {
+  max-width: 1050px;
+}
+
+.modal-backdrop.show {
+  opacity: 0.9;
+}

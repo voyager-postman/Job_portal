@@ -58,11 +58,13 @@ function Companies() {
     getCompanyList();
   }, []);
   const handleViewCompany = (company, from) => {
-    navigate("/companies-details", {
-      state: { companyId: company, from }, // 👈 send ID as prop-like data
+    console.log(company);
+    const slug = company.brandName.toLowerCase().replace(/\s+/g, "-");
+
+    navigate(`/${slug}-${company._id}`, {
+      state: { from },
     });
   };
-
   const clearAll = () => {
     setSelected([]);
     setSearchTerm("");
@@ -329,7 +331,7 @@ function Companies() {
                                     className="default-btn btn"
                                     onClick={() =>
                                       handleViewCompany(
-                                        company?._id,
+                                        company,
                                         "/companies-list",
                                       )
                                     }

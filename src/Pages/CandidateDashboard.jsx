@@ -132,9 +132,13 @@ function CandidateDashboard() {
   };
 
   const handleViewCompany = (company) => {
-    navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
-    });
+    const slug = company?.brandName
+      ?.toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
+    navigate(`/${slug}-${company?._id}`);
   };
 
   const handleToggleVisibility = async (e) => {
@@ -1150,9 +1154,7 @@ function CandidateDashboard() {
                                                 <div className="job-card-companies-name">
                                                   <h4
                                                     onClick={() =>
-                                                      handleViewCompany(
-                                                        company?._id,
-                                                      )
+                                                      handleViewCompany(company)
                                                     }
                                                     style={{
                                                       cursor: "pointer",
@@ -1200,9 +1202,7 @@ function CandidateDashboard() {
                                                   <button
                                                     className="default-btn btn"
                                                     onClick={() =>
-                                                      handleViewCompany(
-                                                        company?._id,
-                                                      )
+                                                      handleViewCompany(company)
                                                     }
                                                   >
                                                     View {item?.jobCount || 0}{" "}

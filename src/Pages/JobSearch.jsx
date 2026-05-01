@@ -1178,9 +1178,13 @@ function JobSearch() {
   };
 
   const handleViewCompany = (company) => {
-    navigate("/companies-details", {
-      state: { companyId: company }, // 👈 send ID as prop-like data
-    });
+    const slug = company.brandName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
+    navigate(`/${slug}-${company._id}`);
   };
   const JobListLoader = () => (
     <div className="text-center py-5">
@@ -2594,7 +2598,7 @@ function JobSearch() {
                                             <div
                                               className="modern-company-card"
                                               onClick={() =>
-                                                handleViewCompany(company?._id)
+                                                handleViewCompany(company)
                                               }
                                               style={{ cursor: "pointer" }}
                                             >

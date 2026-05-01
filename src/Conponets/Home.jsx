@@ -259,8 +259,11 @@ function Home() {
   });
 
   const handleViewCompany = (company, from) => {
-    navigate("/companies-details", {
-      state: { companyId: company, from }, // 👈 send ID as prop-like data
+    console.log(company);
+    const slug = company.brandName.toLowerCase().replace(/\s+/g, "-");
+
+    navigate(`/${slug}-${company._id}`, {
+      state: { from },
     });
   };
 
@@ -681,7 +684,7 @@ function Home() {
                       <div className="available-company-btn">
                         <button
                           className="default-btn btn"
-                          onClick={() => handleViewCompany(company?._id, "/")}
+                          onClick={() => handleViewCompany(company, "/")}
                         >
                           {t("header.viewCompany")}
                         </button>

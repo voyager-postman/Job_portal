@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import { Modal } from "react-bootstrap";
 import "./Main.css";
 function CompanyDetailsPage() {
   const location = useLocation();
@@ -21,12 +22,15 @@ function CompanyDetailsPage() {
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [copied, setCopied] = useState(false);
-  const { companyId } = location.state || {}; // 👈 receive the ID here
+  const { companySlug } = useParams();
+
+  const companyId = companySlug.split("-").pop();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const from = location.state?.from || "/";
+  const [showVideoModal, setShowVideoModal] = useState(false);
   // const breadcrumbLabel = from.includes("/manage-job-application")
   //   ? "Manage Job Application"
   //   : "Search Company List";
@@ -75,7 +79,44 @@ function CompanyDetailsPage() {
     txt.innerHTML = html;
     return txt.value;
   }
+  const getYouTubeEmbedUrl1 = (url) => {
+    if (!url) return "";
 
+    let videoId = "";
+
+    if (url.includes("/shorts/")) {
+      videoId = url.split("/shorts/")[1].split("?")[0];
+    } else if (url.includes("watch?v=")) {
+      videoId = url.split("watch?v=")[1].split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
+    }
+
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1&controls=1`;
+  };
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return "";
+
+    // Shorts URL
+    if (url.includes("/shorts/")) {
+      const videoId = url.split("/shorts/")[1].split("?")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    // Watch URL
+    if (url.includes("watch?v=")) {
+      const videoId = url.split("watch?v=")[1].split("&")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    // youtu.be URL
+    if (url.includes("youtu.be/")) {
+      const videoId = url.split("youtu.be/")[1].split("?")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    return url;
+  };
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -327,6 +368,35 @@ function CompanyDetailsPage() {
   const mediaType = company?.aboutPremium?.media?.type;
   const mediaUrl = company?.aboutPremium?.media?.url;
   const videoId = getYoutubeId(mediaUrl);
+  const mediaItems = [
+    ...(company?.photos || []).map((photo) => ({
+      ...photo,
+      type: "photo",
+    })),
+    ...(company?.videos || []).map((video) => ({
+      ...video,
+      type: "video",
+    })),
+  ];
+  const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+  const shuffledMedia = React.useMemo(() => {
+    return shuffleArray(mediaItems);
+  }, [company]);
+  const addCrossOriginToHtml = (html) => {
+    if (!html) return "";
+
+    return html.replace(
+      /<img([^>]*?)src=/g,
+      '<img crossorigin="anonymous"$1src=',
+    );
+  };
   return (
     <>
       <ToastContainer />
@@ -515,9 +585,9 @@ function CompanyDetailsPage() {
 
                                   <iframe
                                     id="about-video-iframe"
-                                    src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&mute=${
+                                    src={`${getYouTubeEmbedUrl(mediaUrl)}?enablejsapi=1&autoplay=1&mute=${
                                       aboutMuted ? 1 : 0
-                                    }&loop=1&playlist=${videoId}&controls=0&modestbranding=1&playsinline=1`}
+                                    }&loop=1&controls=0&modestbranding=1&playsinline=1`}
                                     title="About Us Video"
                                     frameBorder="0"
                                     allow="autoplay; encrypted-media; picture-in-picture"
@@ -673,55 +743,50 @@ function CompanyDetailsPage() {
                     </p>
 
                     <div className="media-grid-modern">
-                      {/* Photos */}
-                      {company?.photos?.map((photo) => (
-                        <div className="media-item-modern" key={photo._id}>
-                          <a
-                            href={`${API_IMAGE_URL}${photo.url}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <img
-                              crossOrigin="anonymous"
-                              alt="Company"
-                              loading="lazy"
-                              src={`${API_IMAGE_URL}${photo.url}`}
-                            />
-
-                            <div className="media-item-overlay">
-                              <i className="fa-solid fa-expand" />
+                      {shuffledMedia.map((item) => {
+                        if (item.type === "photo") {
+                          return (
+                            <div className="media-item-modern" key={item._id}>
+                              <a
+                                href={`${API_IMAGE_URL}${item.url}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <img
+                                  crossOrigin="anonymous"
+                                  alt="Company"
+                                  loading="lazy"
+                                  src={`${API_IMAGE_URL}${item.url}`}
+                                />
+                                <div className="media-item-overlay">
+                                  <i className="fa-solid fa-expand" />
+                                </div>
+                              </a>
                             </div>
-                          </a>
-                        </div>
-                      ))}
+                          );
+                        }
 
-                      {/* Videos */}
-                      {company?.videos?.map((video) => {
-                        const getYoutubeId = (url) => {
+                        // VIDEO (reuse your existing logic)
+                        const getYoutubeId = (url = "") => {
                           const regExp =
-                            /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/;
+                            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&?/]+)/;
                           const match = url.match(regExp);
                           return match ? match[1] : "";
                         };
 
-                        const videoId = getYoutubeId(video.url);
-                        const isHover = hoveredVideo === video._id;
-                        const isLoaded = loadedVideo[video._id];
-                        const isMuted = mutedVideos[video._id] !== false; // default mute
+                        const videoId = getYoutubeId(item.url);
+                        const isHover = hoveredVideo === item._id;
+                        const isLoaded = loadedVideo[item._id];
+                        const isMuted = mutedVideos[item._id] !== false;
 
                         return (
                           <div
                             className="media-item-modern video-media-item position-relative"
-                            key={video._id}
-                            onMouseEnter={() => setHoveredVideo(video._id)}
+                            key={item._id}
+                            onMouseEnter={() => setHoveredVideo(item._id)}
                             onMouseLeave={() => setHoveredVideo(null)}
                           >
-                            <a
-                              href={video.url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {/* Loader */}
+                            <a href={item.url} target="_blank" rel="noreferrer">
                               {isHover && !isLoaded && (
                                 <div className="video-loader">
                                   <div
@@ -734,7 +799,7 @@ function CompanyDetailsPage() {
                               <iframe
                                 src={`https://www.youtube.com/embed/${videoId}?autoplay=${
                                   isHover ? 1 : 0
-                                }&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&playsinline=1&loop=1&playlist=${videoId}`}
+                                }&mute=${isMuted ? 1 : 0}&controls=0&loop=1&playlist=${videoId}`}
                                 title="Company Video"
                                 frameBorder="0"
                                 allow="autoplay; encrypted-media"
@@ -742,12 +807,11 @@ function CompanyDetailsPage() {
                                 onLoad={() =>
                                   setLoadedVideo((prev) => ({
                                     ...prev,
-                                    [video._id]: true,
+                                    [item._id]: true,
                                   }))
                                 }
                               />
 
-                              {/* Play icon hide on hover */}
                               {!isHover && (
                                 <div className="video-overlay-play">
                                   <i className="fa-solid fa-play" />
@@ -755,7 +819,6 @@ function CompanyDetailsPage() {
                               )}
                             </a>
 
-                            {/* Sound Button */}
                             <button
                               type="button"
                               className="sound-toggle-btn"
@@ -765,7 +828,7 @@ function CompanyDetailsPage() {
 
                                 setMutedVideos((prev) => ({
                                   ...prev,
-                                  [video._id]: !isMuted,
+                                  [item._id]: !isMuted,
                                 }));
                               }}
                             >
@@ -834,45 +897,40 @@ function CompanyDetailsPage() {
                     <h4>Rencontrez l'équipe</h4>
 
                     {/* First Team Member = CEO Section */}
-                    {company?.aboutPremium?.team?.length > 0 && (
+                    {company?.aboutPremium?.leader && (
                       <div className="ceo-section">
                         <div className="ceo-image-wrapper">
                           <img
                             crossOrigin="anonymous"
                             className="ceo-image"
                             src={
-                              company?.aboutPremium?.team?.[0]?.photo
-                                ? `${API_IMAGE_URL}${company.aboutPremium.team[0].photo}`
+                              company?.aboutPremium?.leader?.photo
+                                ? `${API_IMAGE_URL}${company.aboutPremium.leader.photo}`
                                 : "assets/images/userIcon.png"
                             }
-                            alt={company.aboutPremium.team[0].fullName}
+                            alt={company?.aboutPremium?.leader?.name}
                           />
                         </div>
 
                         <div className="ceo-content">
-                          <h4>{company.aboutPremium.team[0].fullName}</h4>
+                          <h4>{company?.aboutPremium?.leader?.name}</h4>
 
-                          <h2>{company.aboutPremium.team[0].post}</h2>
+                          <h2>{company?.aboutPremium?.leader?.position}</h2>
 
                           <p className="ceo-quote">
-                            {company.aboutPremium.team[0].testimonial}
+                            {company?.aboutPremium?.leader?.message}
                           </p>
 
                           {company?.aboutPremium?.leader?.interviewVideo && (
                             <div className="mt-4">
-                              <a
-                                href={
-                                  company?.aboutPremium?.leader?.interviewVideo
-                                    ? company.aboutPremium.leader.interviewVideo
-                                    : "http://itdevelopmentservices.com/jobPortal/"
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => setShowVideoModal(true)}
                                 className="btn btn-outline-light rounded-pill px-4"
                               >
                                 <i className="fa-brands fa-youtube me-2" />
                                 Voir l'interview vidéo
-                              </a>
+                              </button>
                             </div>
                           )}
                         </div>
@@ -881,7 +939,7 @@ function CompanyDetailsPage() {
 
                     {/* Remaining Team Members */}
                     <div className="teams-grid">
-                      {company?.aboutPremium?.team?.slice(1).map((member) => (
+                      {company?.aboutPremium?.team?.map((member) => (
                         <div className="team-card" key={member._id}>
                           <div className="team-card-header">
                             <img
@@ -967,12 +1025,14 @@ function CompanyDetailsPage() {
                             <div className="job-card-action d-flex align-items-center gap-3">
                               {job?.isApplied ? (
                                 <button
-                                  className="btn btn-outline-primary rounded-pill px-4"
-                                  disabled
                                   style={{
                                     color: "rgb(251, 118, 26)",
-                                    "border-color": "rgb(251, 118, 26)",
+                                    borderColor: "rgb(251, 118, 26)",
+                                    width: "150px", // 👈 force same width
+                                    textAlign: "center",
                                   }}
+                                  className="btn btn-outline-primary rounded-pill px-4"
+                                  disabled
                                 >
                                   {job?.applicationStatus}
                                 </button>
@@ -982,7 +1042,9 @@ function CompanyDetailsPage() {
                                   className="btn btn-outline-primary rounded-pill px-4"
                                   style={{
                                     color: "rgb(251, 118, 26)",
-                                    "border-color": "rgb(251, 118, 26)",
+                                    borderColor: "rgb(251, 118, 26)",
+                                    width: "150px", // 👈 force same width
+                                    textAlign: "center",
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -1286,7 +1348,7 @@ function CompanyDetailsPage() {
                         <div
                           className="company-career-detail"
                           dangerouslySetInnerHTML={{
-                            __html: decodedCareerDetail,
+                            __html: addCrossOriginToHtml(decodedCareerDetail),
                           }}
                         />
                       ) : (
@@ -1340,80 +1402,98 @@ function CompanyDetailsPage() {
                   </div>
                 </div>
                 <hr />
-                <h5 className="sidebar-title mt-4">Liens officiels</h5>
+                {company?.links?.website ||
+                company?.links?.linkedin ||
+                company?.links?.facebook ||
+                company?.links?.instagram ||
+                company?.links?.twitter ? (
+                  <>
+                    <h5 className="sidebar-title mt-4">Liens officiels</h5>
 
-                <div className="social-links-grid" />
-                <div className="social-links-grid">
-                  {/* Website */}
-                  {company?.links?.website && (
-                    <a
-                      href={company.links.website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="social-link-btn"
-                      title="Website"
-                    >
-                      <i className="fa-solid fa-globe" />
-                    </a>
-                  )}
+                    <div className="social-links-grid">
+                      {/* Website */}
+                      {company?.links?.website && (
+                        <a
+                          href={company.links.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="social-link-btn"
+                          title="Website"
+                        >
+                          <i className="fa-solid fa-globe" />
+                        </a>
+                      )}
 
-                  {/* LinkedIn */}
-                  {company?.links?.linkedin && (
-                    <a
-                      href={company.links.linkedin}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="social-link-btn"
-                      title="LinkedIn"
-                    >
-                      <i className="fa-brands fa-linkedin" />
-                    </a>
-                  )}
+                      {/* LinkedIn */}
+                      {company?.links?.linkedin && (
+                        <a
+                          href={company.links.linkedin}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="social-link-btn"
+                          title="LinkedIn"
+                        >
+                          <i className="fa-brands fa-linkedin" />
+                        </a>
+                      )}
 
-                  {/* Facebook */}
-                  {company?.links?.facebook && (
-                    <a
-                      href={company.links.facebook}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="social-link-btn"
-                      title="Facebook"
-                    >
-                      <i className="fa-brands fa-facebook-f" />
-                    </a>
-                  )}
+                      {/* Facebook */}
+                      {company?.links?.facebook && (
+                        <a
+                          href={company.links.facebook}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="social-link-btn"
+                          title="Facebook"
+                        >
+                          <i className="fa-brands fa-facebook-f" />
+                        </a>
+                      )}
 
-                  {/* Instagram */}
-                  {company?.links?.instagram && (
-                    <a
-                      href={company.links.instagram}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="social-link-btn"
-                      title="Instagram"
-                    >
-                      <i className="fa-brands fa-instagram" />
-                    </a>
-                  )}
+                      {/* Instagram */}
+                      {company?.links?.instagram && (
+                        <a
+                          href={company.links.instagram}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="social-link-btn"
+                          title="Instagram"
+                        >
+                          <i className="fa-brands fa-instagram" />
+                        </a>
+                      )}
 
-                  {/* Twitter / X */}
-                  {company?.links?.twitter && (
-                    <a
-                      href={company.links.twitter}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="social-link-btn"
-                      title="Twitter"
-                    >
-                      <i className="fa-brands fa-x-twitter" />
-                    </a>
-                  )}
-                </div>
+                      {/* Twitter / X */}
+                      {company?.links?.twitter && (
+                        <a
+                          href={company.links.twitter}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="social-link-btn"
+                          title="Twitter"
+                        >
+                          <i className="fa-brands fa-x-twitter" />
+                        </a>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h5 className="sidebar-title mt-4">Liens officiels</h5>
+                    <p className="text-muted">
+                      Aucun lien officiel disponible.
+                    </p>
+                  </>
+                )}
                 <div className="mt-4 pt-3 border-top">
                   <p className="text-muted small mb-3">
                     Besoin d'en savoir plus sur nos processus de recrutement ?
                   </p>
                   <a
+                    href={
+                      company?.links?.officialWebsite ||
+                      "https://itdevelopmentservices.com/jobPortal/"
+                    }
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-outline-dark w-100 rounded-pill"
@@ -1426,6 +1506,51 @@ function CompanyDetailsPage() {
           </div>
         </div>
       </div>
+      <Modal
+        show={showVideoModal}
+        onHide={() => setShowVideoModal(false)}
+        centered
+        size="xl"
+        backdrop="static"
+        dialogClassName="custom-video-modal"
+      >
+        <Modal.Body className="p-0 position-relative bg-dark rounded-4 overflow-hidden">
+          {/* Close Button */}
+          <button
+            onClick={() => setShowVideoModal(false)}
+            className="btn btn-dark position-absolute top-0 end-0 m-3 rounded-circle"
+            style={{ zIndex: 10 }}
+          >
+            <i className="fa-solid fa-xmark text-white"></i>
+          </button>
+
+          {/* Responsive Video */}
+          <div
+            style={{
+              position: "relative",
+              paddingBottom: "56.25%",
+              height: 0,
+            }}
+          >
+            <iframe
+              title="YouTube Video"
+              src={getYouTubeEmbedUrl1(
+                company?.aboutPremium?.leader?.interviewVideo,
+              )}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
+          </div>
+        </Modal.Body>
+      </Modal>
     </>
   );
 }

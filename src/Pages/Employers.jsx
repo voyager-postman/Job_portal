@@ -58,11 +58,13 @@ const Employers = () => {
     getCompanyList();
   }, []);
   const handleViewCompany = (company, from) => {
-    navigate("/companies-details", {
-      state: { companyId: company, from }, // 👈 send ID as prop-like data
+    console.log(company);
+    const slug = company.brandName.toLowerCase().replace(/\s+/g, "-");
+
+    navigate(`/${slug}-${company._id}`, {
+      state: { from },
     });
   };
-
   const clearAll = () => {
     setSelected([]);
     setSearchTerm("");
@@ -153,7 +155,8 @@ const Employers = () => {
                 <div className="job-filter-heading-area">
                   <h4>
                     <Link to="/jobs">
-                      <i className="fa-regular fa-file"></i>{t("header.job_offers")}
+                      <i className="fa-regular fa-file"></i>
+                      {t("header.job_offers")}
                     </Link>
                   </h4>
                 </div>
@@ -161,7 +164,8 @@ const Employers = () => {
                 <div className="job-filter-heading-area job-filter-cancel-heading">
                   <h4>
                     <Link to="/companies">
-                      <i className="fa-regular fa-building"></i>{t("header.companies")}
+                      <i className="fa-regular fa-building"></i>
+                      {t("header.companies")}
                     </Link>
                   </h4>
                 </div>
@@ -171,7 +175,8 @@ const Employers = () => {
                   <div className="job-filter-heading-cancel">
                     <div className="job-filter-heading">
                       <h4>
-                        <i className="fas fa-building" />{t("header.industry_sector")}
+                        <i className="fas fa-building" />
+                        {t("header.industry_sector")}
                       </h4>
                     </div>
                     <div
@@ -231,7 +236,10 @@ const Employers = () => {
                               </li>
                             ))
                           ) : (
-                            <li className="no-options"> {t("header.no_industries")}</li>
+                            <li className="no-options">
+                              {" "}
+                              {t("header.no_industries")}
+                            </li>
                           )}
                         </ul>
                       )}
@@ -247,7 +255,8 @@ const Employers = () => {
                 <div className="available-company-heading">
                   <h4>
                     <i className="fa-solid fa-building" />
-                    {companies?.totalCompanies} {t("header.available_companies")}
+                    {companies?.totalCompanies}{" "}
+                    {t("header.available_companies")}
                   </h4>
                   <div className="job-alert-tag-btn">
                     <div className="filter-tag-info-area">
@@ -330,11 +339,11 @@ const Employers = () => {
                                 <button
                                   className="default-btn btn"
                                   onClick={() =>
-                                    handleViewCompany(company?._id, "/companies")
+                                    handleViewCompany(company, "/companies")
                                   }
                                 >
-                                 {t("header.viewCompany")}
-                                </button> 
+                                  {t("header.viewCompany")}
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -342,8 +351,8 @@ const Employers = () => {
                       })
                     ) : (
                       <p className="text-center mt-4">
-                       {t("header.no_companies")}
-                      </p> 
+                        {t("header.no_companies")}
+                      </p>
                     )}
                   </div>
                 </div>

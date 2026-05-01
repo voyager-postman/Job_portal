@@ -281,7 +281,7 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-        <Route path="/companies-details" element={<CompanyDetailsPage />} />
+        <Route path="/:companySlug" element={<CompanyDetailsPage />} />
         <Route path="/job-details/:id" element={<JobDetails />} />
         <Route
           path="/job-details-list"

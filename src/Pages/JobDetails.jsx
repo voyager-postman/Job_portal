@@ -764,10 +764,14 @@ function JobDetails() {
                     <p>
                       <strong>Company Name: </strong>
                       <Link
-                        to={{
-                          pathname: "/companies-details",
-                        }}
-                        state={{ companyId: job?.jobDetails?.companyId?._id }}
+                        to={`/${job?.jobDetails?.companyId?.brandName
+                          ?.toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9\s-]/g, "")
+                          .replace(
+                            /\s+/g,
+                            "-",
+                          )}-${job?.jobDetails?.companyId?._id}`}
                       >
                         {job?.jobDetails?.companyId?.brandName}
                       </Link>

@@ -440,7 +440,6 @@ function YourJobPosts() {
       console.error("Dashboard Stats Error:", error);
     }
   };
-
   useEffect(() => {
     fetchJobDashboardStats();
   }, []);
@@ -1301,172 +1300,270 @@ function YourJobPosts() {
             maxHeight: "80vh",
             bgcolor: "background.paper",
             boxShadow: 24,
-            p: 3,
             overflowY: "scroll",
             overflowX: "hidden",
-            border: "2px solid none",
+            borderRadius: "16px",
           }}
         >
-          <Card variant="outlined" sx={{ p: 2 }}>
-            <Divider sx={{ mb: 2 }} />
-            <Typography>
-              <strong>{t("header.jobTitle")}:</strong>{" "}
+          {/* Close Button */}
+          <button
+            onClick={handleViewClose}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              zIndex: 10,
+              background: "rgba(255,255,255,0.8)",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              cursor: "pointer",
+            }}
+          >
+            <i className="fa-solid fa-xmark fs-5" />
+          </button>
+
+          {/* Header */}
+          <div
+            style={{
+              background:
+                "linear-gradient(135deg, rgb(251,118,26) 0%, rgb(230,96,22) 100%)",
+              padding: "60px 40px 40px",
+              color: "#fff",
+            }}
+          >
+            <span className="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill">
+              JOB PREVIEW
+            </span>
+
+            <h1 style={{ fontSize: "32px", fontWeight: "850" }}>
               {viewData?.jobDetails?.jobTitle || "Not Provided"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Job_Category")}:</strong>{" "}
-              {viewData?.jobDetails?.jobCategory?.length > 0
-                ? viewData.jobDetails.jobCategory
-                    .map((item) => item.name)
-                    .join(", ")
-                : "Not Provided"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Employment_Type")}:</strong>{" "}
-              {viewData?.jobDetails?.employmentType?.length > 0
-                ? viewData.jobDetails.employmentType
-                    .map((item) => item.name)
-                    .join(", ")
-                : "Not Provided"}
-            </Typography>
+            </h1>
 
-            <Typography>
-              <strong>{t("header.Minimum_Level")}:</strong>{" "}
-              {viewData?.jobDetails?.minimumLevel?.name || "Not Provided"}
-            </Typography>
+            <div className="d-flex flex-wrap gap-3 small fw-bold opacity-75">
+              <span>
+                <i className="fa-solid fa-location-dot me-1" />
+                {viewData?.jobDetails?.city?.length > 0
+                  ? viewData?.jobDetails?.city?.join(", ")
+                  : "Not Provided"}
+              </span>
 
-            <Typography>
-              <strong>{t("header.Remote_Type")}:</strong>{" "}
-              {viewData?.jobDetails?.remote || "Not Provided"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Reference_Id")}:</strong>{" "}
-              {viewData?.jobDetails?.referenceId || "Not Provided"}
-            </Typography>
-            <Typography>
-              <strong> {t("header.City")}:</strong>
-              {viewData?.jobDetails?.city?.join(",") == null
-                ? viewData?.jobDetails?.companyId?.city?.join(",")
-                : viewData.jobDetails.city?.join(", ") || "Not Provided"}
-            </Typography>
-            <Typography>
-              <p>
-                <strong>{t("header.Country")}:</strong>{" "}
-                {countryList.find(
-                  (country) => country._id === viewData?.jobDetails?.country,
-                )?.name || "Not provided"}
-              </p>
-            </Typography>
-            <Typography>
-              <strong>{t("header.Enable_External_Apply")}:</strong>{" "}
-              {viewData?.jobDetails?.enableExternalApply ? "Yes" : "No"}
-            </Typography>
-            {viewData?.jobDetails?.enableExternalApply && (
-              <Typography>
-                <strong>{t("header.External_Apply_Link")}:</strong>{" "}
-                {viewData?.jobDetails?.ExternalApplyLink || "Not Provided"}
-              </Typography>
+              <span>
+                <i className="fa-solid fa-briefcase me-1" />
+
+                {viewData?.jobDetails?.employmentType?.length > 0
+                  ? viewData?.jobDetails?.employmentType
+                      ?.map((item) => item?.name)
+                      ?.join(", ")
+                  : "Not Provided"}
+              </span>
+
+              <span>
+                <i className="fa-solid fa-layer-group me-1" />
+                {viewData?.jobDetails?.jobCategory?.length > 0
+                  ? viewData.jobDetails.jobCategory
+                      .map((item) => item.name)
+                      .join(", ")
+                  : "Not Provided"}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-4 p-md-5">
+            {/* Assessment */}
+            {viewData?.jobDetails?.isAssessmentRequired && (
+              <div className="modern-alert mb-5">
+                <div
+                  className="alert-icon"
+                  style={{ background: "rgb(94,114,228)" }}
+                >
+                  <i className="fa-solid fa-file-shield" />
+                </div>
+
+                <div className="alert-content">
+                  <h4>Skills Assessment Required</h4>
+
+                  <p>
+                    <p>
+                      This position requires a quick skills assessment to
+                      validate profile competency. Passing this will
+                      significantly increase visibility to the recruiter.
+                    </p>
+                  </p>
+
+                  <div
+                    className="alert-stats"
+                    style={{ color: "rgb(94, 114, 228)" }}
+                  >
+                    <span>
+                      <i className="fa-solid fa-clock" />{" "}
+                      {viewData?.jobDetails?.assessment?.totalDuration || 0}{" "}
+                      Minutes
+                    </span>
+
+                    <span>
+                      <i className="fa-solid fa-list-check" />{" "}
+                      {viewData?.jobDetails?.assessment?.totalQuestions || 0}{" "}
+                      Questions
+                    </span>
+
+                    <span>
+                      <i className="fa-solid fa-percentage" /> Pass:{" "}
+                      {viewData?.jobDetails?.assessment?.passingPercentage || 0}
+                      %
+                    </span>
+                  </div>
+                </div>
+              </div>
             )}
-            <Typography>
-              <strong>{t("header.Job_Assessment_Required")}:</strong>{" "}
-              {viewData?.jobDetails?.isAssessmentRequired ? "Yes" : "No"}
-            </Typography>
-            {/* {viewData?.jobDetails} */}
-            <Typography>
-              <strong>{t("header.Confidential_JobPost")}:</strong>{" "}
-              {viewData?.jobDetails?.confidentialJobPost ? "Yes" : "No"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Enable_Email_Notification")}:</strong>{" "}
-              {viewData?.jobDetails?.enableEmailNotification ? "Yes" : "No"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Enable_Relevant_Job")}:</strong>{" "}
-              {viewData?.jobDetails?.enableRemovalRelevantJobs ? "Yes" : "No"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Min_Salary")}:</strong>{" "}
-              {viewData?.jobDetails?.privatJobDetails?.minSalary}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Max_Salary")}:</strong>{" "}
-              {viewData?.jobDetails?.privatJobDetails?.maxSalary}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Tags")}:</strong>
-            </Typography>
-            <ul>
-              {viewData?.jobDetails?.tags?.map((item, index) => (
-                <li key={index}>
-                  <Typography>{item}</Typography>
-                </li>
-              ))}
-            </ul>
-            <Typography>
-              <strong>{t("header.Publish_Job_Date")}:</strong>{" "}
-              {viewData?.jobDetails?.published_date
-                ? new Date(
-                    viewData.jobDetails.published_date,
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })
-                : "-"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Expire_Job_Date")}:</strong>{" "}
-              {viewData?.jobDetails?.expiresAt
-                ? new Date(viewData.jobDetails?.expiresAt).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    },
-                  )
-                : "-"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Short_Description")}:</strong>{" "}
-              {viewData?.jobDetails?.shortDescription || "null"}
-            </Typography>
-            <Typography>
-              <strong>{t("header.Job_Description")}:</strong>{" "}
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: viewData?.jobDetails?.jobDescription,
-                }}
-              />
-            </Typography>
-            <Typography>
-              <strong>Status {t("header.jobTitle")}:</strong>{" "}
-              <span
-                className="text-capitalize"
+
+            {/* About Role */}
+            <div className="modern-content-block first ">
+              <h2
+                className="mb-4 d-flex align-items-center gap-2"
                 style={{
-                  color:
-                    viewData?.jobDetails?.status === "published"
-                      ? "#2a8855"
-                      : viewData?.jobDetails?.status === "expired"
-                        ? "#dc3545"
-                        : "#6c757d",
-                  borderRadius: "20px",
-                  fontSize: "14px",
-                  fontWeight: "700",
-                  // textTransform: "capitalize",
+                  "font-size": "20px",
+                  "font-weight": "700",
+                  color: "rgb(15, 23, 42)",
                 }}
               >
-                {viewData?.jobDetails?.status || "-"}
-              </span>
-            </Typography>
-          </Card>
+                <div
+                  style={{
+                    width: "4px",
+                    height: "24px",
+                    background: "rgb(251, 118, 26)",
+                    "border-radius": "2px",
+                  }}
+                />
+                About the role
+              </h2>
+              <div className="rich-text-content">
+                <p>
+                  {viewData?.jobDetails?.shortDescription || "Not Provided"}
+                </p>
+              </div>
+            </div>
 
-          {/* Close Button */}
-          <Box textAlign="right" mt={3}>
-            <button className="default-btn btn" onClick={handleViewClose}>
-              {t("header.Close")}
-            </button>
-          </Box>
+            {/* Job Description */}
+            <div className="modern-content-block ">
+              <h2
+                className="mb-4 d-flex align-items-center gap-2"
+                style={{
+                  "font-size": "20px",
+                  "font-weight": "700",
+                  color: "rgb(15, 23, 42)",
+                }}
+              >
+                <div
+                  style={{
+                    width: "4px",
+                    height: "24px",
+                    background: "rgb(251, 118, 26)",
+                    "border-radius": "2px",
+                  }}
+                />
+                Job Description
+              </h2>
+
+              <div
+                className="rich-text-content"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    viewData?.jobDetails?.jobDescription ||
+                    "<p>Not Provided</p>",
+                }}
+              />
+            </div>
+
+            {/* Recruitment Process */}
+            {viewData?.jobDetails?.recruitmentProcess?.length > 0 && (
+              <div className="modern-content-block mb-5">
+                <h2
+                  className="mb-4 d-flex align-items-center gap-2"
+                  style={{
+                    "font-size": "20px",
+                    "font-weight": "700",
+                    color: "rgb(15, 23, 42)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "4px",
+                      height: "24px",
+                      background: "rgb(251, 118, 26)",
+                      "border-radius": "2px",
+                    }}
+                  />
+                  Processus de recrutement
+                </h2>
+
+                <div className="recruitment-steps-modern mt-4">
+                  {viewData?.jobDetails?.recruitmentProcess?.map(
+                    (item, index) => (
+                      <div
+                        key={item._id}
+                        className="recruitment-step-item d-flex gap-4 mb-4"
+                        style={{
+                          opacity: 1,
+                          transform: "translateY(0)",
+                          visibility: "visible",
+                        }}
+                      >
+                        <div
+                          className="step-number-circle"
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                          }}
+                        >
+                          {item.step}
+                        </div>
+
+                        <div className="step-description-text p-3">
+                          <p className="mb-0 small fw-bold text-dark">
+                            {item.title.trim()}
+                          </p>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {viewData?.jobDetails?.tags?.length > 0 && (
+              <div className="modern-content-block last">
+                <h2
+                  className="mb-4 d-flex align-items-center gap-2"
+                  style={{
+                    "font-size": "20px",
+                    "font-weight": "700",
+                    color: "rgb(15, 23, 42)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "4px",
+                      height: "24px",
+                      background: "rgb(251, 118, 26)",
+                      "border-radius": "2px",
+                    }}
+                  />
+                  Related Tags
+                </h2>
+
+                <div className="job-tags-list d-flex flex-wrap gap-2">
+                  {viewData.jobDetails.tags.map((tag, index) => (
+                    <span key={index} className="job-tag text-decoration-none">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </Box>
       </Modal>
     </>

@@ -248,11 +248,17 @@ function ManagesJobApplication() {
     getCompanyList(selectedIndustryIds, pageNumber, pageSize);
   }, [pageNumber, pageSize, selected]);
 
-  const handleViewCompany = (company, from) => {
-    navigate("/companies-details", {
-      state: { companyId: company, from }, // 👈 send ID as prop-like data
-    });
-  };
+const handleViewCompany = (company, from) => {
+  const slug = company.brandName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-");
+
+  navigate(`/${slug}-${company._id}`, {
+    state: { from },
+  });
+};
 
   const totalPages = companies?.totalPages;
 
@@ -1301,7 +1307,7 @@ function ManagesJobApplication() {
                                     className="default-btn btn"
                                     onClick={() =>
                                       handleViewCompany(
-                                        company?._id,
+                                        company,
                                         `/manage-job-application?tab=${activeTab}`,
                                       )
                                     }

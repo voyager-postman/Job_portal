@@ -443,6 +443,17 @@ function EmployerProfile() {
     };
     fetchCountries();
   }, []);
+  function forceApplyCrossOrigin(editor) {
+    const domRoot = editor.editing.view.getDomRoot();
+
+    if (!domRoot) return;
+
+    const imgs = domRoot.querySelectorAll("img");
+
+    imgs.forEach((img) => {
+      img.setAttribute("crossorigin", "anonymous");
+    });
+  }
   useEffect(() => {
     const fetchIndustries = async () => {
       try {
@@ -716,7 +727,35 @@ function EmployerProfile() {
   //     setLoading(false);
   //   }
   // };
+  function addCrossOriginToImages(editor) {
+    const applyAttribute = () => {
+      const view = editor.editing.view;
+      const domRoot = view.getDomRoot();
 
+      if (!domRoot) return;
+
+      const images = domRoot.querySelectorAll("img");
+
+      images.forEach((img) => {
+        img.setAttribute("crossorigin", "anonymous");
+      });
+    };
+
+    // when editor ready
+    editor.on("ready", () => {
+      setTimeout(applyAttribute, 200);
+    });
+
+    // when typing/uploading/change
+    editor.model.document.on("change:data", () => {
+      setTimeout(applyAttribute, 100);
+    });
+
+    // when api setData()
+    editor.data.on("change", () => {
+      setTimeout(applyAttribute, 100);
+    });
+  }
   const uploadImageToServer = async (file) => {
     try {
       const data = new FormData();
@@ -1228,17 +1267,21 @@ function EmployerProfile() {
         setYoutubeVideos(
           vids.map((v) => {
             const url = v.url || "";
-
             let videoId = "";
 
-            // youtube watch
+            // Standard watch URL
             if (url.includes("youtube.com/watch?v=")) {
               videoId = url.split("v=")[1]?.split("&")[0];
             }
 
-            // youtu.be
+            // Short URL
             else if (url.includes("youtu.be/")) {
               videoId = url.split("youtu.be/")[1]?.split("?")[0];
+            }
+
+            // Shorts URL
+            else if (url.includes("youtube.com/shorts/")) {
+              videoId = url.split("shorts/")[1]?.split("?")[0];
             }
 
             return {
@@ -1691,6 +1734,7 @@ function EmployerProfile() {
       setIsUploadingVideos(false); // stop loader
     }
   };
+
   const getYoutubeId = (url) => {
     const regExp =
       /(?:youtube\.com\/watch\?v=|youtube\.com\/shorts\/|youtu\.be\/)([^&?/]+)/i;
@@ -2128,7 +2172,23 @@ function EmployerProfile() {
       });
     }
   };
+  const uploadAdapter = (loader) => {
+    return {
+      upload: async () => {
+        const file = await loader.file;
 
+        const imageUrl = await uploadImageToServer(file);
+
+        if (!imageUrl) {
+          throw new Error("Upload failed");
+        }
+
+        return {
+          default: `${API_IMAGE_URL}${imageUrl}`,
+        };
+      },
+    };
+  };
   return (
     <>
       <ToastContainer
@@ -2569,9 +2629,46 @@ function EmployerProfile() {
                                 <CKEditor
                                   editor={ClassicEditor}
                                   data={careerDetail}
+                                  config={{
+                                    toolbar: [
+                                      "heading",
+                                      "|",
+                                      "bold",
+                                      "italic",
+                                      "link",
+                                      "bulletedList",
+                                      "numberedList",
+                                      "|",
+                                      "insertTable",
+                                      "uploadImage",
+                                      "blockQuote",
+                                      "undo",
+                                      "redo",
+                                    ],
+
+                                    extraPlugins: [
+                                      function (editor) {
+                                        editor.plugins.get(
+                                          "FileRepository",
+                                        ).createUploadAdapter = (loader) => {
+                                          return uploadAdapter(loader);
+                                        };
+
+                                        addCrossOriginToImages(editor);
+                                      },
+                                    ],
+                                  }}
+                                  // ✅ MOST IMPORTANT
+                                  onReady={(editor) => {
+                                    addCrossOriginToImages(editor);
+
+                                    // when api data already loaded
+                                    setTimeout(() => {
+                                      forceApplyCrossOrigin(editor);
+                                    }, 300);
+                                  }}
                                   onChange={(event, editor) => {
-                                    const data = editor.getData();
-                                    setCareerDetail(data);
+                                    setCareerDetail(editor.getData());
                                   }}
                                 />
                               </div>

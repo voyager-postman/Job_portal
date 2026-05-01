@@ -4,8 +4,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 function CandinatesList() {
+  const { t, i18n } = useTranslation("global");
   const location = useLocation();
   const navigate = useNavigate();
   const { userId } = location.state || {};
@@ -37,7 +39,6 @@ function CandinatesList() {
   const [status, setStatus] = useState("");
   const [selectedJob, setSelectedJob] = useState(location.state?.jobId || "");
   const [showAllExperience, setShowAllExperience] = useState(false);
-
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [rating, setRating] = useState(0); // selected rating
@@ -82,17 +83,17 @@ function CandinatesList() {
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [selectedCities, setSelectedCities] = useState([]);
   const educationLevels = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
   const availabilityOptions = ["Immediate", "1 month", "1-3 months", "More"];
   useEffect(() => {
@@ -188,7 +189,7 @@ function CandinatesList() {
       );
 
       if (res.data.success) {
-        toast.success("Candidate bookmarked successfully");
+        toast.success(t("header.candidate_bookmarked_successfully"));
 
         // ✅ UPDATE LIST
         setCandidates((prev) =>
@@ -218,9 +219,9 @@ function CandinatesList() {
       if (
         error.response?.data?.message === "Already bookmarked in this folder"
       ) {
-        toast.warning("Already bookmarked ⚠️");
+        toast.warning(t("header.already_bookmarked_in_folder"));
       } else {
-        toast.error("Something went wrong");
+        toast.error(t("header.something_wrong"));
       }
     }
   };
@@ -684,7 +685,7 @@ function CandinatesList() {
     return text.length > limit ? text.substring(0, limit) + "..." : text;
   };
   const handleCreateFolder = async () => {
-    const folderName = prompt("Enter folder name");
+    const folderName = prompt(t("header.Enter_folder_name"));
 
     // ✅ If user clicked Cancel → stop here (no validation)
     if (folderName === null) {
@@ -693,7 +694,7 @@ function CandinatesList() {
 
     // ✅ If user clicked OK but left it empty
     if (folderName.trim() === "") {
-      toast.error("Folder name is required");
+      toast.error(t("header.folder_name_required"));
       return;
     }
 
@@ -712,11 +713,11 @@ function CandinatesList() {
 
       if (res.data.success) {
         setFolders((prev) => [...prev, res.data.folder]);
-        toast.success("Folder created successfully");
+        toast.success(t("header.Folder_created_successfully"));
       }
     } catch (error) {
       console.error("Error creating folder:", error);
-      toast.error("Failed to create folder");
+      toast.error(t("header.Failed_to_create_folder"));
     }
   };
   const autoJobFolders = folders.filter((folder) => folder.type === "AUTO_JOB");
@@ -731,26 +732,27 @@ function CandinatesList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Candidate Search</h1>
+            <h1>{t("header.Candidate_Search")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/candidates-search">
                   <i className="fa-solid fa-angle-right" />
-                  Candidate Search
+                  {t("header.Candidate_Search")}
                 </Link>
               </li>
             </ol>
           </div>
           <div class="employer-dashboard-common-heading  pb-3">
-            <h2>All Candidates</h2>
+            <h2>{t("header.All_Candidates")}</h2>
           </div>
           <div className="bg-white p-4 rounded shadow-sm border mt-3 mb-4 ">
             <div className="row g-3 mb-4">
@@ -814,7 +816,7 @@ function CandinatesList() {
                       border: "none",
                     }}
                   >
-                    Find Candidate
+                    {t("header.Find_Candidate")}
                   </button>
                 </div>
               </div>
@@ -836,7 +838,7 @@ function CandinatesList() {
                       className="m-0 fw-bold"
                       style={{ "font-size": "16px", color: "rgb(26, 26, 26)" }}
                     >
-                      Filtres Avancés
+                      {t("header.Filtres_Avancés")}
                     </h2>
                   </div>
                   <div className="row g-3 mb-4">
@@ -852,7 +854,7 @@ function CandinatesList() {
                             fontWeight: "600",
                           }}
                         >
-                          Experience
+                          {t("header.Experience")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -904,7 +906,8 @@ function CandinatesList() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedExperience.length} selected
+                                {selectedExperience.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -915,7 +918,7 @@ function CandinatesList() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -959,7 +962,7 @@ function CandinatesList() {
                             fontWeight: "600",
                           }}
                         >
-                          Education
+                          {t("header.Education")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -1011,7 +1014,8 @@ function CandinatesList() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedEducation.length} selected
+                                {selectedEducation.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -1022,7 +1026,7 @@ function CandinatesList() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1065,7 +1069,8 @@ function CandinatesList() {
                             fontWeight: "600",
                           }}
                         >
-                          Availability
+                          {" "}
+                          {t("header.Availability")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -1119,7 +1124,8 @@ function CandinatesList() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedAvailability.length} selected
+                                {selectedAvailability.length}{" "}
+                                {t("header.selected")}
                               </span>
 
                               <button
@@ -1130,7 +1136,7 @@ function CandinatesList() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1173,7 +1179,7 @@ function CandinatesList() {
                             fontWeight: "600",
                           }}
                         >
-                          Salary
+                          {t("header.Salary")}
                         </h3>
 
                         {/* SELECT BOX */}
@@ -1225,7 +1231,7 @@ function CandinatesList() {
                                 className="text-muted small"
                                 style={{ fontSize: "11px" }}
                               >
-                                {selectedSalary.length} selected
+                                {selectedSalary.length} {t("header.selected")}
                               </span>
 
                               <button
@@ -1236,7 +1242,7 @@ function CandinatesList() {
                                   color: "rgb(243, 122, 71)",
                                 }}
                               >
-                                Clear All
+                                {t("header.Clear_All")}
                               </button>
                             </div>
 
@@ -1278,7 +1284,7 @@ function CandinatesList() {
                             color: "rgb(75, 85, 99)",
                           }}
                         >
-                          Compétences
+                          {t("header.Compétences")}
                         </label>
 
                         {/* INPUT */}
@@ -1363,7 +1369,7 @@ function CandinatesList() {
                             color: "rgb(75, 85, 99)",
                           }}
                         >
-                          Localisation
+                          {t("header.Localisation")}
                         </label>
                         <div className="row g-2 mb-3">
                           <div className="col-6">
@@ -1463,7 +1469,7 @@ function CandinatesList() {
                                 color: "rgb(51, 65, 85)",
                               }}
                             >
-                              Recherche Freelance
+                              {t("header.Recherche_Freelance")}
                             </label>
                           </div>
 
@@ -1478,7 +1484,7 @@ function CandinatesList() {
                                   letterSpacing: "0.5px",
                                 }}
                               >
-                                Budget TJM (MAD)
+                                {t("header.Budget_TJM_MAD")}
                               </span>
 
                               <div
@@ -1579,7 +1585,7 @@ function CandinatesList() {
                       onClick={handleResetFilters}
                     >
                       <i className="fa-solid fa-rotate-left" />
-                      Réinitialiser tous les filtres
+                      {t("header.Réinitialiser_tous_les_filtres")}
                     </button>
                   </div>
                 </div>
@@ -1713,7 +1719,7 @@ function CandinatesList() {
                                       {/* DEFAULT SAVE */}
                                       <li>
                                         <h6 className="dropdown-header">
-                                          Add to Folder
+                                          {t("header.Add_to_Folder")}
                                         </h6>
                                       </li>
 
@@ -1739,7 +1745,7 @@ function CandinatesList() {
                                                 className="fw-bold"
                                                 style={{ fontSize: "12px" }}
                                               >
-                                                Job Application
+                                                {t("header.Job_Application")}
                                               </span>
 
                                               <span
@@ -1766,7 +1772,9 @@ function CandinatesList() {
                                             );
                                           }}
                                         >
-                                          Manual Folders
+                                          {t(
+                                            "header.Job_ApplManual_Foldersication",
+                                          )}
                                         </button>
                                       </li>
 
@@ -1800,7 +1808,9 @@ function CandinatesList() {
                                       ) : (
                                         <li>
                                           <span className="dropdown-item text-muted small">
-                                            No custom folders available
+                                            {t(
+                                              "header.No_custom_folders_available",
+                                            )}
                                           </span>
                                         </li>
                                       )}
@@ -1819,7 +1829,7 @@ function CandinatesList() {
                                           }}
                                         >
                                           <i className="fa-solid fa-plus me-2" />
-                                          Create New Folder
+                                          {t("header.Create_New_Folder")}
                                         </button>
                                       </li>
                                     </ul>
@@ -1862,7 +1872,7 @@ function CandinatesList() {
                   ) : (
                     <div className="text-center p-5 bg-white rounded border shadow-sm">
                       <p className="text-muted mb-0">
-                        No candidates found in this folder/filter.
+                        {t("header.No_candidates_found_in_this_folder")}
                       </p>
                     </div>
                   )}
@@ -1941,7 +1951,7 @@ function CandinatesList() {
                                     onClick={handleDownloadCV}
                                   >
                                     <i className="fa-solid fa-download me-1" />{" "}
-                                    Download CV
+                                    {t("header.Download_CV")}
                                   </button>
                                 )}
 
@@ -1975,7 +1985,7 @@ function CandinatesList() {
                                   >
                                     <li>
                                       <h6 className="dropdown-header">
-                                        Add to Folder
+                                        {t("header.Add_to_Folder")}
                                       </h6>
                                     </li>
 
@@ -2019,7 +2029,7 @@ function CandinatesList() {
                                     </li>
                                     <li>
                                       <h6 className="dropdown-header">
-                                        Manual Folders
+                                        {t("header.Manual_Folders")}
                                       </h6>
                                     </li>
 
@@ -2046,7 +2056,9 @@ function CandinatesList() {
                                     ) : (
                                       <li>
                                         <span className="dropdown-item text-muted small">
-                                          No custom folders available
+                                          {t(
+                                            "header.No_custom_folders_available",
+                                          )}
                                         </span>
                                       </li>
                                     )}
@@ -2060,7 +2072,7 @@ function CandinatesList() {
                                         onClick={handleCreateFolder}
                                       >
                                         <i className="fa-solid fa-plus me-2" />
-                                        Create New Folder
+                                        {t("header.Create_New_Folder")}
                                       </button>
                                     </li>
                                   </ul>
@@ -2134,7 +2146,7 @@ function CandinatesList() {
                                           className="text-muted small"
                                           style={{ "font-size": "10px" }}
                                         >
-                                          Email
+                                          {t("header.email")}
                                         </div>
                                         <div
                                           className="fw-bold small"
@@ -2172,7 +2184,7 @@ function CandinatesList() {
                                           className="text-muted small"
                                           style={{ "font-size": "10px" }}
                                         >
-                                          Phone
+                                          {t("header.phone")}
                                         </div>
                                         <div
                                           className="fw-bold small"
@@ -2238,7 +2250,7 @@ function CandinatesList() {
                                         className="fa-solid fa-envelope"
                                         style={{ marginRight: "5px" }}
                                       />
-                                      Envoyer un message
+                                      {t("header.Envoyer_un_message")}
                                     </Link>
                                   </div>
                                 </div>
@@ -2255,7 +2267,7 @@ function CandinatesList() {
                                     }}
                                   >
                                     <i className="fa-regular fa-eye me-2" />
-                                    Afficher les coordonnées
+                                  {t("header.Afficher_les_coordonnées")}
                                   </button>
                                 </div>
                               )}
@@ -2275,7 +2287,7 @@ function CandinatesList() {
                                     borderRadius: "4px",
                                   }}
                                 />
-                                Professional Summary
+                              {t("header.Professional_Summary")}
                               </h5>
 
                               <p
@@ -2301,7 +2313,7 @@ function CandinatesList() {
                                       borderRadius: "4px",
                                     }}
                                   />
-                                  Work Experience
+                                  {t("header.Work_Experience")}
                                 </h5>
 
                                 {candidateDetails?.workHistory?.length > 2 && (
@@ -2398,7 +2410,7 @@ function CandinatesList() {
                                   ))
                                 ) : (
                                   <p className="text-muted small">
-                                    No experience added
+                                    {t("header.No_experience_added")}
                                   </p>
                                 )}
                               </div>
@@ -2414,7 +2426,7 @@ function CandinatesList() {
                                       borderRadius: "4px",
                                     }}
                                   />
-                                  Education
+                                  {t("header.Education")}
                                 </h5>
                               </div>
 
@@ -2469,7 +2481,7 @@ function CandinatesList() {
                                   )
                                 ) : (
                                   <p className="text-muted small">
-                                    No education added
+                                   {t("header.No_education_added")}
                                   </p>
                                 )}
                               </div>
@@ -2484,7 +2496,7 @@ function CandinatesList() {
                                     borderRadius: "4px",
                                   }}
                                 />
-                                Technical Skills
+                                {t("header.Technical_Skills")}
                               </h5>
 
                               <div className="d-flex flex-wrap gap-2 mt-3">
@@ -2505,7 +2517,7 @@ function CandinatesList() {
                                   )
                                 ) : (
                                   <span className="text-muted small">
-                                    No skills added
+                                    {t("header.No_skills_added")}
                                   </span>
                                 )}
                               </div>
@@ -2525,7 +2537,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-bullseye text-primary" />
-                                    Career Preferences
+                                   {t("header.Career_Preferences")}
                                   </h6>
 
                                   {candidateDetails?.career_goals ? (
@@ -2539,7 +2551,7 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Desired Roles
+                                          {t("header.Desired_Roles")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2563,8 +2575,8 @@ function CandinatesList() {
                                             fontSize: "10px",
                                             letterSpacing: "1px",
                                           }}
-                                        >
-                                          Contract Types
+                                        > 
+                                         {t("header.Contract_Types")}
                                         </div>
 
                                         <div className="d-flex flex-wrap gap-1">
@@ -2608,7 +2620,7 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Occupation Type
+                                         {t("header.Occupation_Type")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2633,7 +2645,7 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Job Search Status
+                                          {t("header.Job_Search_Status")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2651,19 +2663,19 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                          Work Eligibility (France)
+                                         {t("header.Work_Eligibility_France")}
                                         </div>
 
                                         <div className="fw-bold small d-flex align-items-center gap-2">
                                           {candidateDetails?.eligibleToWorkInFrance ? (
                                             <span className="text-success d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-check" />{" "}
-                                              Eligible
+                                          {t("header.Eligible")}
                                             </span>
                                           ) : (
                                             <span className="text-danger d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-xmark" />{" "}
-                                              Not Eligible
+                                           {t("header.Not_Eligible")}
                                             </span>
                                           )}
                                         </div>
@@ -2676,7 +2688,7 @@ function CandinatesList() {
                                             className="text-muted text-uppercase mb-1"
                                             style={{ fontSize: "10px" }}
                                           >
-                                            Availability
+                                            {t("header.Availability")}
                                           </div>
 
                                           <div className="fw-bold small text-success">
@@ -2690,7 +2702,7 @@ function CandinatesList() {
                                             className="text-muted text-uppercase mb-1"
                                             style={{ fontSize: "10px" }}
                                           >
-                                            Min Salary
+                                          {t("header.Min_Salary")}
                                           </div>
 
                                           <div className="fw-bold small">
@@ -2711,7 +2723,7 @@ function CandinatesList() {
                                         {/* TJM */}
                                         <div className="mt-2 pt-2 border-top border-light-subtle d-flex justify-content-between">
                                           <div className="text-muted small fw-bold">
-                                            TJM
+                                           {t("header.TJM")}
                                           </div>
 
                                           <div
@@ -2728,7 +2740,7 @@ function CandinatesList() {
                                     </div>
                                   ) : (
                                     <p className="text-muted small">
-                                      No career goals specified
+                                     {t("header.No_career_goals_specified")}
                                     </p>
                                   )}
                                 </div>
@@ -2737,7 +2749,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-language text-primary" />
-                                    Languages
+                                {t("header.Languages")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2772,7 +2784,7 @@ function CandinatesList() {
                                       )
                                     ) : (
                                       <span className="text-muted small">
-                                        No languages added
+                                      {t("header.No_languages_added")}
                                       </span>
                                     )}
                                   </div>
@@ -2782,7 +2794,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-medal text-warning" />
-                                    Certifications
+                                   {t("header.Certifications")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2824,7 +2836,7 @@ function CandinatesList() {
                                       )
                                     ) : (
                                       <p className="text-muted small">
-                                        No certificates added
+                                        {t("header.No_certificates_added")}
                                       </p>
                                     )}
                                   </div>
@@ -2840,7 +2852,7 @@ function CandinatesList() {
                         style={{ minHeight: "500px" }}
                       >
                         <p className="text-muted">
-                          Sélectionnez un candidat pour voir les détails
+                          {t("header.Sélectionnez_un_candidat_pour_voir_les_détails")}
                         </p>
                       </div>
                     )}
@@ -2850,7 +2862,7 @@ function CandinatesList() {
             </div>
           </section>
 
-          <div className="copy-right-area bg-f0f4fc">
+           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-left-content">
@@ -2858,17 +2870,19 @@ function CandinatesList() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name">
+                      {t("header.Connect_Work")}
+                    </span>{" "}
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>
@@ -2881,7 +2895,7 @@ function CandinatesList() {
         <div className="custom-modal-overlay">
           <div className="custom-modal">
             <div className="modal-header">
-              <h5>Add Review</h5>
+              <h5> {t("header.Add_Review")}</h5>
               <span className="modal-close" onClick={() => setShowModal(false)}>
                 &times;
               </span>
@@ -2907,7 +2921,7 @@ function CandinatesList() {
             {/* Review Textarea */}
             <textarea
               className="form-control"
-              placeholder="Write Message"
+              placeholder={t("header.Write_Message")}
               rows={6}
               value={review}
               onChange={(e) => setReview(e.target.value)}
@@ -2917,7 +2931,7 @@ function CandinatesList() {
             <button
               className="default-btn btn w-100 mt-3"
               onClick={async () => {
-                if (!rating) return toast.error("Please select a rating!");
+                if (!rating) return toast.error(t("header.Please_select_a_rating"));
                 if (!review.trim())
                   return toast.error("Review cannot be empty!");
 
@@ -2938,7 +2952,7 @@ function CandinatesList() {
                     },
                   );
                   getReviewsByUser(selectedCandidateId);
-                  toast.success("Review submitted successfully!");
+                  toast.success(t("header.Review_submitted_successfully"));
                   setTimeout(() => {
                     reviewSectionRef.current?.scrollIntoView({
                       behavior: "smooth",
@@ -2950,11 +2964,11 @@ function CandinatesList() {
                   setRating(0);
                 } catch (error) {
                   console.error("Error submitting review:", error);
-                  toast.error("Failed to submit review");
+                  toast.error(t("header.Failed_to_submit_review"));
                 }
               }}
             >
-              Submit Review
+             {t("header.Submit_Review")}
             </button>
           </div>
         </div>
