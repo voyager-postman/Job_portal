@@ -130,15 +130,10 @@ function CandidateDashboard() {
       console.error("Error fetching companies:", error);
     }
   };
-
   const handleViewCompany = (company) => {
-    const slug = company?.brandName
-      ?.toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-");
-
-    navigate(`/${slug}-${company?._id}`);
+    navigate(`/${company.slug}`, {
+      state: { companyId: company._id },
+    });
   };
 
   const handleToggleVisibility = async (e) => {

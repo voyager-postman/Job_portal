@@ -10,7 +10,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
-
+import { Helmet } from "react-helmet-async";
 import AOS from "aos";
 const steps = [
   {
@@ -148,6 +148,55 @@ function AboutUs() {
 
   return (
     <>
+      <Helmet>
+        <title>About Us | Job Portal</title>
+
+        <meta
+          name="description"
+          content="Learn about our job portal, our mission, and how we help job seekers and employers connect."
+        />
+
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="About Us | Job Portal" />
+        <meta
+          property="og:description"
+          content="Discover our mission, vision, and team behind the job portal."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta
+          property="og:image"
+          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+        />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="About Us | Job Portal" />
+        <meta
+          name="twitter:description"
+          content="Learn more about our platform and how we connect talent with opportunity."
+        />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Job Portal",
+            url: window.location.href,
+            logo: "/jobPortal/assets/images/logo.png",
+            description:
+              "Job portal connecting job seekers with top companies worldwide.",
+            sameAs: [
+              "https://facebook.com/",
+              "https://linkedin.com/",
+              "https://twitter.com/",
+            ],
+          })}
+        </script>
+      </Helmet>
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
           <img

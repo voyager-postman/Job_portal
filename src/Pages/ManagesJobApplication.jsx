@@ -248,17 +248,11 @@ function ManagesJobApplication() {
     getCompanyList(selectedIndustryIds, pageNumber, pageSize);
   }, [pageNumber, pageSize, selected]);
 
-const handleViewCompany = (company, from) => {
-  const slug = company.brandName
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-");
-
-  navigate(`/${slug}-${company._id}`, {
-    state: { from },
-  });
-};
+  const handleViewCompany = (company, from) => {
+    navigate(`/${company.slug}`, {
+      state: { companyId: company._id, from },
+    });
+  };
 
   const totalPages = companies?.totalPages;
 

@@ -5,9 +5,9 @@ import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-
+import { Helmet } from "react-helmet-async";
 function ContactUs() {
-    const { t, i18n } = useTranslation("global");
+  const { t, i18n } = useTranslation("global");
   const [contactData, setContactData] = useState({});
   const [formData, setFormData] = useState({
     name: "",
@@ -89,6 +89,57 @@ function ContactUs() {
   };
   return (
     <>
+      <Helmet>
+        <title>Contact Us | Job Portal</title>
+
+        <meta
+          name="description"
+          content="Contact us for any job-related queries, support, or business inquiries."
+        />
+
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="Contact Us | Job Portal" />
+        <meta
+          property="og:description"
+          content="Get in touch with our team for support or inquiries."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta
+          property="og:image"
+          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+        />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact Us | Job Portal" />
+        <meta
+          name="twitter:description"
+          content="Reach out to us for help, queries, or support."
+        />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            name: "Contact Us - Job Portal",
+            url: window.location.href,
+            description:
+              "Contact Job Portal for support, inquiries, and assistance.",
+            contactPoint: {
+              "@type": "ContactPoint",
+              telephone: contactData.phones?.[0] || "",
+              contactType: "customer support",
+              email: contactData.emails?.[0] || "",
+              areaServed: "Worldwide",
+              availableLanguage: ["English"],
+            },
+          })}
+        </script>
+      </Helmet>
       <ToastContainer position="top-right" autoClose={3000} />
       <section class="inner-banners-info-area">
         <div class="inner-banners-img-area">
@@ -102,7 +153,7 @@ function ContactUs() {
             <div class="row">
               <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="inner-page-banner-title">
-                 <h2>{t("header.contactUs")}</h2> 
+                  <h2>{t("header.contactUs")}</h2>
                   <ul>
                     <li class="menu-divide-arrow">
                       <Link to="/">{t("header.home")}</Link>
@@ -252,8 +303,13 @@ function ContactUs() {
                     />
 
                     <label className="form-check-label" htmlFor="gridCheck">
-                    {t("header.I_agree_to_the")} <a href="terms-conditions.html"> {t("header.terms")}</a>{" "}
-                      {t("header.and")}<a href="privacy-policy.html"> {t("header.privacy_policy")}</a>
+                      {t("header.I_agree_to_the")}{" "}
+                      <a href="terms-conditions.html"> {t("header.terms")}</a>{" "}
+                      {t("header.and")}
+                      <a href="privacy-policy.html">
+                        {" "}
+                        {t("header.privacy_policy")}
+                      </a>
                     </label>
                     <div className="help-block with-errors gridCheck-error" />
                   </div>

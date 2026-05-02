@@ -24,7 +24,6 @@ function CompanyDetailsPage() {
   const [copied, setCopied] = useState(false);
   const { companySlug } = useParams();
 
-  const companyId = companySlug.split("-").pop();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
@@ -48,7 +47,7 @@ function CompanyDetailsPage() {
   const getCompanyDetails = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}GetCompanyDetails/${companyId}`,
+        `${API_BASE_URL}GetCompanyDetails/${companySlug}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -63,8 +62,8 @@ function CompanyDetailsPage() {
   };
 
   useEffect(() => {
-    if (companyId) getCompanyDetails();
-  }, [companyId]);
+    if (companySlug) getCompanyDetails();
+  }, [companySlug]);
 
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
@@ -190,7 +189,7 @@ function CompanyDetailsPage() {
         //   )
         // );
 
-        if (companyId) getCompanyDetails();
+        if (companySlug) getCompanyDetails();
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
         } else if (message.toLowerCase().includes("unsaved")) {
@@ -274,7 +273,7 @@ function CompanyDetailsPage() {
       });
 
       toast.success(res.data.message || "Applied successfully!");
-      if (companyId) getCompanyDetails();
+      if (companySlug) getCompanyDetails();
 
       const modal = document.getElementById("exampleModal");
       if (modal) {

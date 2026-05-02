@@ -1235,15 +1235,11 @@ const JobList = () => {
     // 🔥 Call job list API with URL filters
     getAllJobList(pageSize, pageNumber);
   }, [categories, pageNumber, pageSize]);
-  const handleViewCompany = (company) => {
-    const slug = company.brandName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-");
-
-    navigate(`/${slug}-${company._id}`);
-  };
+ const handleViewCompany = (company) => {
+  navigate(`/${company.slug}`, {
+    state: { companyId: company._id },
+  });
+};
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />

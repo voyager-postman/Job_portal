@@ -7,6 +7,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 const Employers = () => {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
@@ -58,11 +59,8 @@ const Employers = () => {
     getCompanyList();
   }, []);
   const handleViewCompany = (company, from) => {
-    console.log(company);
-    const slug = company.brandName.toLowerCase().replace(/\s+/g, "-");
-
-    navigate(`/${slug}-${company._id}`, {
-      state: { from },
+    navigate(`/${company.slug}`, {
+      state: { companyId: company._id, from }, // ✅ keep ID hidden
     });
   };
   const clearAll = () => {
@@ -120,6 +118,56 @@ const Employers = () => {
   console.log(selected);
   return (
     <>
+      <Helmet>
+        {/* Basic SEO */}
+        <title>Companies | Job Portal</title>
+        <meta
+          name="description"
+          content="Browse top companies, explore industries and find your dream employer."
+        />
+
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Open Graph (Facebook, LinkedIn) */}
+        <meta property="og:title" content="Companies | Job Portal" />
+        <meta
+          property="og:description"
+          content="Browse top companies and explore job opportunities."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta
+          property="og:image"
+          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+        />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Companies | Job Portal" />
+        <meta
+          name="twitter:description"
+          content="Find companies hiring near you."
+        />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "Company Listings",
+            description: "List of companies available on Job Portal",
+            url: window.location.href,
+            numberOfItems: companies?.companies?.length || 0,
+            itemListElement:
+              companies?.companies?.map((item, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: item?.companyId?.brandName,
+                url: `${window.location.origin}/jobPortal/${item?.companyId?.slug}`,
+              })) || [],
+          })}
+        </script>
+      </Helmet>
       <section className="inner-banners-info-area">
         <div className="inner-banners-img-area">
           <img

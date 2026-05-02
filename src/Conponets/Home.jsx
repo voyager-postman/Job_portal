@@ -260,10 +260,9 @@ function Home() {
 
   const handleViewCompany = (company, from) => {
     console.log(company);
-    const slug = company.brandName.toLowerCase().replace(/\s+/g, "-");
 
-    navigate(`/${slug}-${company._id}`, {
-      state: { from },
+    navigate(`/${company.slug}`, {
+      state: { companyId: company._id, from },
     });
   };
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
-
+import { Helmet } from "react-helmet-async";
 function Blog() {
   const { t, i18n } = useTranslation("global");
   const [pageNumber, setPageNumber] = useState(1);
@@ -61,6 +61,47 @@ function Blog() {
 
   return (
     <>
+      <Helmet>
+        <title>Blog | Job Portal</title>
+        <meta
+          name="description"
+          content="Read latest job tips, career advice and hiring insights."
+        />
+
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="Blog | Job Portal" />
+        <meta
+          property="og:description"
+          content="Read latest job tips, career advice and hiring insights."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta
+          property="og:image"
+          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+        />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Blog | Job Portal" />
+        <meta
+          name="twitter:description"
+          content="Read latest job tips and career insights."
+        />
+
+        {/* JSON-LD for Blog List */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            name: "Job Portal Blog",
+            url: window.location.href,
+            description: "Latest job tips and hiring insights",
+          })}
+        </script>
+      </Helmet>
       <div>
         {/*Start Page Banner Area*/}
         <section class="inner-banners-info-area">
@@ -74,7 +115,7 @@ function Blog() {
             <div class="container">
               <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
-                  <div class="inner-page-banner-title">
+                  <header class="inner-page-banner-title">
                     <h2>{t("header.blog")}</h2>
                     <ul>
                       <li class="menu-divide-arrow">
@@ -82,7 +123,7 @@ function Blog() {
                       </li>
                       <li>{t("header.blog_list")}</li>
                     </ul>
-                  </div>
+                  </header>
                 </div>
               </div>
             </div>
@@ -111,7 +152,7 @@ function Blog() {
                         />
                       </Link>
                     </div>
-                    <div className="blog-content">
+                    <article className="blog-content">
                       <div className="info-list">
                         <ul>
                           <li>
@@ -145,7 +186,7 @@ function Blog() {
                           {t("header.read_more")}
                         </Link>
                       </div>
-                    </div>
+                    </article>
                   </div>
                 </div>
               ))}

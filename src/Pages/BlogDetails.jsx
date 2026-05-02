@@ -3,8 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
+
 function BlogDetails() {
-    const { t, i18n } = useTranslation("global");
+  const { t, i18n } = useTranslation("global");
   const { id } = useParams();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,7 @@ function BlogDetails() {
             {error}
           </div>
           <Link to="/blog" className="default-btn btn">
-           {t("header.Back_to_Blog_List")}
+            {t("header.Back_to_Blog_List")}
           </Link>
         </div>
       </div>
@@ -100,6 +102,54 @@ function BlogDetails() {
 
   return (
     <>
+      <Helmet>
+        <title>{blog.title} | Job Portal</title>
+
+        <meta
+          name="description"
+          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
+        />
+
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Open Graph (Facebook, LinkedIn) */}
+        <meta property="og:title" content={blog.title} />
+        <meta
+          property="og:description"
+          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content={cleanImageUrl(blog.bannerImage)} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={blog.title} />
+        <meta
+          name="twitter:description"
+          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
+        />
+        <meta name="twitter:image" content={cleanImageUrl(blog.bannerImage)} />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: blog.title,
+            image: cleanImageUrl(blog.bannerImage),
+            author: {
+              "@type": "Person",
+              name: blog.authorName,
+            },
+            datePublished: blog.publishDate,
+            description: blog.content
+              ?.replace(/<[^>]+>/g, "")
+              .substring(0, 150),
+            mainEntityOfPage: window.location.href,
+          })}
+        </script>
+      </Helmet>
       <div>
         {/*Start Page Banner Area*/}
         <div className="page-banner-area bg-f0f4fc">
