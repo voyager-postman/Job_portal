@@ -1151,7 +1151,7 @@ function YourJobPosts() {
 
                                 <li>
                                   <i className="fa-solid fa-user-plus"></i>
-                                  {job.remote || "Not provided"}
+                                  {job?.remote?.name || "Not provided"}
                                 </li>
 
                                 {/* Status */}

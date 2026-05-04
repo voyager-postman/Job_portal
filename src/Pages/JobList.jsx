@@ -28,7 +28,8 @@ const JobList = () => {
   const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
   const [searchParams] = useSearchParams();
-
+  const [remoteOptions, setRemoteOptions] = useState([]);
+  const [selectedRemote, setSelectedRemote] = useState([]);
   console.log("Received Alert Data:", alert);
   const userRole = localStorage.getItem("user_role");
   const userId = localStorage.getItem("user_id");
@@ -47,11 +48,16 @@ const JobList = () => {
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
   const [appliedFilters, setAppliedFilters] = useState({});
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [copied, setCopied] = useState(false);
+
   // Stores the current input in the location search box
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [notifyEvery, setNotifyEvery] = useState("1 day");
   const [loading, setLoading] = useState(false);
   // Stores the list of suggested cities from API
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [alertCreated, setAlertCreated] = useState(false); // ✅ track alert creation
   // Stores the locations selected by the user (can support multiple)
@@ -139,6 +145,40 @@ const JobList = () => {
       updatedRanges, // ✅ salary filters
     );
   };
+  const handleCopy = async (e, url) => {
+    e.preventDefault();
+
+    if (!url) {
+      toast.error("Link not available yet");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Link copied!");
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+      toast.error("Copy failed");
+    }
+  };
+  const fetchRemoteOptions = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveRemote`);
+
+      if (res.data.success && Array.isArray(res.data.data)) {
+        setRemoteOptions(res.data.data); // ✅ FIXED
+      } else {
+        setRemoteOptions([]);
+      }
+    } catch (error) {
+      console.error("Error fetching remote options:", error);
+    }
+  };
+  useEffect(() => {
+    fetchRemoteOptions();
+  }, []);
   const fetchJobTypes = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
@@ -154,6 +194,32 @@ const JobList = () => {
   useEffect(() => {
     fetchJobTypes();
   }, []);
+  const handleRemoteChange = (e) => {
+    const { value, checked } = e.target;
+
+    const updatedRemote = checked
+      ? [...selectedRemote, value]
+      : selectedRemote.filter((r) => r !== value);
+
+    setSelectedRemote(updatedRemote);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      updatedRemote, // ✅ pass remote
+    );
+  };
   const fetchGlobalCurrency = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
@@ -243,7 +309,7 @@ const JobList = () => {
 
   // Clear all filters
   const handleClearSalaryFilters = () => {
-    setSelectedSalaryRanges([]);
+    setSelectedSalaryRanges([]); // ✅ only clear salary
 
     getAllJobList(
       pageSize,
@@ -257,8 +323,9 @@ const JobList = () => {
       filters.keywords,
       filters.location,
       filters.category,
-      selectedLocations.map((l) => l.name).join(","), // ✅ still keep locations
-      [], // ✅ cleared salary ranges
+      selectedLocations.map((l) => l.name).join(","),
+      [], // ✅ cleared salary
+      selectedRemote, // ✅ IMPORTANT (keep remote)
     );
   };
 
@@ -273,6 +340,7 @@ const JobList = () => {
         ],
 
         jobType: selectedJobTypes.filter(Boolean),
+        remote: selectedRemote.filter(Boolean), // ✅🔥 ADD THIS
         experience: selectedSeniority.filter(Boolean),
         location: [
           ...selectedLocations.map((l) => l.name),
@@ -532,12 +600,24 @@ const JobList = () => {
         },
       );
 
-      console.log("✅ API Response:", res.data);
-
       if (res.data.success) {
         const { message } = res.data;
 
-        getAllJobList();
+        // ✅ 1. Update Job List instantly
+        setJobList((prevJobs) =>
+          prevJobs.map((job) =>
+            job._id === jobId ? { ...job, isSaved: !job.isSaved } : job,
+          ),
+        );
+
+        // ✅ 2. ALSO update selectedJob (IMPORTANT FIX)
+        setSelectedJob((prev) =>
+          prev && prev._id === jobId
+            ? { ...prev, isSaved: !prev.isSaved }
+            : prev,
+        );
+
+        // ✅ Toast
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
         } else if (message.toLowerCase().includes("unsaved")) {
@@ -546,11 +626,11 @@ const JobList = () => {
           toast.success(message);
         }
       } else {
-        toast.error(res.data.message || t("header.something_wrong"));
+        toast.error(res.data.message || "Something went wrong.");
       }
     } catch (err) {
-      console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || t("header.server_error"));
+      console.error(err);
+      toast.error(err.response?.data?.message || "Server error");
     }
   };
   const handleLinkClick = (e) => {
@@ -726,6 +806,7 @@ const JobList = () => {
     category = filters.category,
     locationFilter = "",
     salaryRangesAPI = [],
+    remoteArr = selectedRemote, // ✅ NEW
   ) => {
     try {
       setIsLoadingJobs(true); // 🔵 START LOADER
@@ -740,12 +821,15 @@ const JobList = () => {
         Filtercategory: techStacks.join(","), // ✅ replaced allFilterCategories
         company: selectedCompaniesArr.map((c) => c.brandName).join(","),
         industry: selectedIndustries.map((i) => i._id).join(","),
+        FilterRemote: remoteArr.join(","), // ✅ ADD THIS
       };
 
       if (locationFilter) params.Filterlocation = locationFilter;
-      if (salaryRangesAPI.length > 0)
-        params.salary_range = salaryRangesAPI.join(",");
-
+      if (salaryRangesAPI.length > 0) {
+        params.salary_range = salaryRangesAPI
+          .map((item) => item.replace(/\s*dh$/i, "").trim()) // ✅ remove "dh"
+          .join(",");
+      }
       const res = await axios.get(`${API_BASE_URL}getAllJob`, {
         params,
         headers: { Authorization: `Bearer ${token}` },
@@ -956,7 +1040,8 @@ const JobList = () => {
 
   const clearAll = () => {
     const clearedIndustries = [];
-    setSelected(clearedIndustries);
+
+    setSelected(clearedIndustries); // ✅ clear only industries
 
     getAllJobList(
       pageSize,
@@ -966,15 +1051,15 @@ const JobList = () => {
       selectedTechStacks,
       selectedCategories,
       selectedCompanies,
-      clearedIndustries,
+      clearedIndustries, // ✅ only this cleared
       filters.keywords,
       filters.location,
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
       selectedSalaryRanges,
+      selectedRemote, // ✅ IMPORTANT (keep remote)
     );
   };
-
   const removeTag = (_id) => {
     const updatedIndustries = selected.filter((i) => i._id !== _id);
     setSelected(updatedIndustries);
@@ -1048,9 +1133,8 @@ const JobList = () => {
       selectedSalaryRanges,
     );
   };
-
   const handleClearFilters = () => {
-    setSelectedJobTypes([]);
+    setSelectedJobTypes([]); // ✅ only clear this
 
     getAllJobList(
       pageSize,
@@ -1066,6 +1150,28 @@ const JobList = () => {
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
       selectedSalaryRanges,
+      selectedRemote, // ✅ IMPORTANT (don’t lose remote filter)
+    );
+  };
+
+  const handleClearFilters1 = () => {
+    setSelectedRemote([]); // ✅ only remote reset
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes, // ✅ keep existing job types
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      [], // ✅ clear remote in API
     );
   };
   const handleSeniorityChange = (e) => {
@@ -1095,7 +1201,7 @@ const JobList = () => {
   };
 
   const handleClearSeniority = () => {
-    setSelectedSeniority([]);
+    setSelectedSeniority([]); // ✅ only clear this
 
     getAllJobList(
       pageSize,
@@ -1111,6 +1217,7 @@ const JobList = () => {
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
       selectedSalaryRanges,
+      selectedRemote, // ✅ IMPORTANT (keep remote filter)
     );
   };
 
@@ -1141,7 +1248,9 @@ const JobList = () => {
   };
 
   const handleClearTechStacks = () => {
-    setSelectedTechStacks([]);
+    const clearedTech = []; // explicit
+
+    setSelectedTechStacks(clearedTech);
     setSearchTech("");
 
     getAllJobList(
@@ -1149,7 +1258,7 @@ const JobList = () => {
       pageNumber,
       selectedJobTypes,
       selectedSeniority,
-      [], // cleared tech stacks
+      clearedTech, // ✅ ONLY this is cleared
       selectedCategories,
       selectedCompanies,
       selected,
@@ -1158,6 +1267,7 @@ const JobList = () => {
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
       selectedSalaryRanges,
+      selectedRemote, // ✅ IMPORTANT (don’t lose remote)
     );
   };
   useEffect(() => {
@@ -1235,19 +1345,22 @@ const JobList = () => {
     // 🔥 Call job list API with URL filters
     getAllJobList(pageSize, pageNumber);
   }, [categories, pageNumber, pageSize]);
- const handleViewCompany = (company) => {
-  navigate(`/${company.slug}`, {
-    state: { companyId: company._id },
-  });
-};
+  const handleViewCompany = (company) => {
+    navigate(`/${company.slug}`, {
+      state: { companyId: company._id },
+    });
+  };
   const JobListLoader = () => (
-    <div className="text-center py-5">
-      <div className="spinner-border text-primary mb-3" role="status" />
-      <p>{t("header.loading_jobs")}</p>
+    <div className="loader-overlay">
+      <div className="loader-box">
+        <div className="custom-spinner"></div>
+        <p className="brand-text">NADDI.MA</p>
+      </div>
     </div>
   );
   const hasAnyFilter =
     selectedJobTypes.length > 0 ||
+    selectedRemote.length > 0 || // ✅ ADD THIS
     selectedSeniority.length > 0 ||
     selectedCompanies.length > 0 ||
     selected.length > 0 ||
@@ -1426,7 +1539,7 @@ const JobList = () => {
                           <div className="job-filter-heading">
                             <h4>
                               <i className="fa-solid fa-briefcase" />
-                              {t("header.job_type")}
+                              {t("header.Employment_Type")}
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
@@ -1499,6 +1612,85 @@ const JobList = () => {
                                   className="fa fa-angle-up"
                                   aria-hidden="true"
                                 />
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="divder-line-info" />
+                      <div className="modern-filter-section">
+                        <div className="job-filter-heading-cancel">
+                          <div className="job-filter-heading">
+                            <h4>
+                              <i className="fa-solid fa-house-laptop" />
+                              Remote
+                            </h4>
+                          </div>
+
+                          <div className="job-filter-cancel-heading">
+                            <h4
+                              style={{ cursor: "pointer" }}
+                              onClick={handleClearFilters1} // separate clear for remote
+                            >
+                              {t("header.Clear")}
+                            </h4>
+                          </div>
+                        </div>
+
+                        <div className="job-filter-select-info">
+                          {/* ✅ First 4 items */}
+                          <ul>
+                            {remoteOptions.slice(0, 4).map((item) => (
+                              <li key={item._id}>
+                                <input
+                                  type="checkbox"
+                                  value={item._id}
+                                  checked={selectedRemote.includes(item._id)}
+                                  onChange={handleRemoteChange}
+                                />
+                                <label>{item.name}</label>
+                              </li>
+                            ))}
+                          </ul>
+
+                          {/* ✅ Remaining items (collapse) */}
+                          <div
+                            className="job-filter-tech-stack collapse"
+                            id="remoteCollapse"
+                          >
+                            <ul>
+                              {remoteOptions.slice(4).map((item) => (
+                                <li key={item._id}>
+                                  <input
+                                    type="checkbox"
+                                    value={item._id}
+                                    checked={selectedRemote.includes(item._id)}
+                                    onChange={handleRemoteChange}
+                                  />
+                                  <label>{item.name}</label>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* ✅ Show More / Less */}
+                          {remoteOptions.length > 4 && (
+                            <div
+                              className="show-more-less-btn collapsed"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#remoteCollapse"
+                              aria-expanded="false"
+                              aria-controls="remoteCollapse"
+                            >
+                              <span className="show-more">
+                                {t("header.show_more")}{" "}
+                                <i className="fa fa-angle-down" />
+                              </span>
+
+                              <span className="show-less">
+                                {t("header.show_less")}{" "}
+                                <i className="fa fa-angle-up" />
                               </span>
                             </div>
                           )}
@@ -1988,7 +2180,26 @@ const JobList = () => {
                               </span>
                             );
                           })}
+                          {selectedRemote.map((id) => {
+                            const remote = remoteOptions.find(
+                              (r) => r._id === id,
+                            );
 
+                            return (
+                              <span key={id} className="modern-filter-pill">
+                                {remote?.name}
+
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  onClick={() =>
+                                    handleRemoteChange({
+                                      target: { value: id, checked: false },
+                                    })
+                                  }
+                                ></i>
+                              </span>
+                            );
+                          })}
                           {/* Locations */}
                           {selectedLocations.map((loc) => (
                             <span key={loc._id} className="modern-filter-pill">
@@ -2106,11 +2317,13 @@ const JobList = () => {
                             <React.Fragment key={chunkIndex}>
                               {/* Render jobs */}
                               {chunk.map((job) => (
-                                <Link
+                                <div
                                   key={job._id}
-                                  to={`/job-details/${job._id}`}
-                                  state={{ from: "/jobs" }}
                                   className="job-link text-decoration-none"
+                                  onClick={() => {
+                                    setSelectedJob(job);
+                                    setIsPanelOpen(true);
+                                  }}
                                 >
                                   <div className="modern-job-card clickable mb-4">
                                     {/* Header */}
@@ -2279,6 +2492,14 @@ const JobList = () => {
                                           ? job.city.join(", ")
                                           : job?.company_city || "N/A"}
                                       </span>
+
+                                      <span className="modern-meta-tag">
+                                        <i
+                                          className="fa-solid fa-house-laptop"
+                                          style={{ "margin-right": "8px" }}
+                                        />
+                                        {job?.remote || "N/A"}
+                                      </span>
                                     </div>
 
                                     {/* Footer */}
@@ -2286,7 +2507,8 @@ const JobList = () => {
                                       <div className="modern-job-info-badges">
                                         <span className="modern-info-badge">
                                           <i className="fa-solid fa-briefcase me-1"></i>
-                                          {job?.availablePosts || 0} Position(s)
+                                          {job?.availablePosts || 0} position(s)
+                                          disponible(s)
                                         </span>
 
                                         <span className="modern-info-badge">
@@ -2358,7 +2580,7 @@ const JobList = () => {
                                       </div>
                                     </div>
                                   </div>
-                                </Link>
+                                </div>
                               ))}
                               <div
                                 className="modal fade"
@@ -2880,6 +3102,422 @@ const JobList = () => {
           </div>
         </div>
       </div>
+      {isPanelOpen && selectedJob && (
+        <div className="side-panel-overlay open">
+          <div className="side-panel-content">
+            <div className="side-panel-header">
+              <div className="header-company-info">
+                <img
+                  crossOrigin="anonymous"
+                  alt="logo"
+                  className="side-panel-logo"
+                  src={
+                    selectedJob?.logo
+                      ? `${API_IMAGE_URL}${selectedJob.logo}`
+                      : "assets/images/dashboard/images1.png"
+                  }
+                />
+                <div>
+                  <h2 className="side-panel-title">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.jobTitle}
+                      </font>
+                    </font>
+                  </h2>
+                  <p className="side-panel-company-name">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.brandName}
+                      </font>
+                    </font>
+                  </p>
+                </div>
+              </div>
+              <button className="close-btn">
+                <svg
+                  stroke="currentColor"
+                  onClick={() => setIsPanelOpen(false)}
+                  fill="currentColor"
+                  strokeWidth={0}
+                  viewBox="0 0 1024 1024"
+                  fillRule="evenodd"
+                  height="1em"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z" />
+                </svg>
+              </button>
+            </div>
+            <div className="side-panel-body">
+              <div className="side-panel-meta-grid">
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z" />
+                    <circle cx={12} cy={9} r="2.5" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.city?.length > 0
+                          ? selectedJob.city.join(", ")
+                          : selectedJob?.company_city || "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {Array.isArray(selectedJob?.jobCategory) &&
+                        selectedJob.jobCategory.length > 0
+                          ? selectedJob.jobCategory.join(", ")
+                          : "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path d="m16 6 2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.minimumLevel || "NA"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {Array.isArray(selectedJob?.employmentType) &&
+                        selectedJob.employmentType.length > 0
+                          ? selectedJob.employmentType.join(", ")
+                          : "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <i className="fa-solid fa-house-laptop" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.remote
+                          ? typeof selectedJob.remote === "string"
+                            ? selectedJob.remote
+                            : selectedJob.remote.name
+                          : "NA"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item highlight">
+                  <i className="fa-solid fa-wallet" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.privatJobDetails?.salaryNegotiable ===
+                        true ? (
+                          "Salaire à négocier"
+                        ) : selectedJob?.privatJobDetails?.minSalary ||
+                          selectedJob?.privatJobDetails?.maxSalary ? (
+                          <>
+                            {selectedJob?.privatJobDetails?.minSalary || 0} -{" "}
+                            {selectedJob?.privatJobDetails?.maxSalary || 0}{" "}
+                            {globalCurrency.code}
+                          </>
+                        ) : (
+                          "Salaire à négocier"
+                        )}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <i className="fa-solid fa-users" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {" "}
+                        {selectedJob?.availablePosts || 0} position(s)
+                        disponible(s)
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Published{" "}
+                      </font>
+                    </font>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {moment(selectedJob?.createdAt).fromNow()}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+              </div>
+              <div className="side-panel-description">
+                <div className="side-panel-tags mb-4">
+                  <h4 className="mb-2">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Tags
+                      </font>
+                    </font>
+                  </h4>
+                  <div className="modern-tag-list">
+                    {Array.isArray(selectedJob?.tags) &&
+                    selectedJob.tags.length > 0 ? (
+                      selectedJob.tags.map((tag, index) => (
+                        <span key={index} className="modern-job-tag">
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-muted">No tags available</span>
+                    )}
+                  </div>
+                </div>
+                <h4>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      Description of the offer
+                    </font>
+                  </font>
+                </h4>
+                <div>
+                  <p>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.shortDescription || "N/A"}
+                      </font>
+                    </font>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="side-panel-footer">
+              {selectedJob?.isApplied ? (
+                <button className="modern-apply-btn w-100" disabled>
+                  {selectedJob?.applicationStatus || "Applied"}
+                </button>
+              ) : (
+                <button
+                  className="modern-apply-btn w-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // ✅ CLOSE SIDE PANEL
+                    setIsPanelOpen(false);
+
+                    if (userRole !== "JobSeeker") {
+                      navigate("/login");
+                      return;
+                    }
+
+                    setJobId(selectedJob._id);
+                    handleJobClick(selectedJob._id);
+
+                    const modalEl = document.getElementById("exampleModal");
+                    if (modalEl) {
+                      const modal = new window.bootstrap.Modal(modalEl);
+                      modal.show();
+                    }
+                  }}
+                >
+                  {t("header.apply_now")}
+                </button>
+              )}
+
+              <Link
+                to={`/job-details/${selectedJob._id}`}
+                className="modern-orange-btn"
+                onClick={() => setIsPanelOpen(false)}
+              >
+                <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    View the offer
+                  </font>
+                </font>
+              </Link>
+              <ul className="side-panel-social-sharing">
+                {/* 🔗 COPY LINK */}
+                <li style={{ position: "relative" }}>
+                  <a
+                    href="#"
+                    className="side-panel-social-link"
+                    onClick={(e) => handleCopy(e, selectedJob?.linkUrl)}
+                    title={
+                      selectedJob?.jobLink ? "Copy link" : "Link not available"
+                    }
+                    style={{
+                      cursor: selectedJob?.jobLink ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    <i className="fa-solid fa-link" />
+                  </a>
+
+                  {copied && <span className="copy-tooltip">Copied!</span>}
+                </li>
+
+                {/* ❤️ SAVE JOB */}
+                <li>
+                  <a
+                    href="#"
+                    className="side-panel-social-link"
+                    title="Save"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      if (userRole !== "JobSeeker") {
+                        navigate("/login");
+                        return;
+                      }
+
+                      handleSaveJob(selectedJob._id);
+                    }}
+                  >
+                    <i
+                      className={`fa-${
+                        selectedJob?.isSaved ? "solid" : "regular"
+                      } fa-heart`}
+                      style={{
+                        color: selectedJob?.isSaved ? "#fb761a" : "#65758a",
+                      }}
+                    />
+                  </a>
+                </li>
+
+                {/* LINKEDIN */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.linkedin ||
+                      "https://www.linkedin.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link linkedin"
+                  >
+                    <i className="fa-brands fa-linkedin-in" />
+                  </a>
+                </li>
+
+                {/* FACEBOOK */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.facebook ||
+                      "https://www.facebook.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link facebook"
+                  >
+                    <i className="fa-brands fa-facebook-f" />
+                  </a>
+                </li>
+
+                {/* TWITTER */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.twitter ||
+                      "https://twitter.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link twitter"
+                  >
+                    <i className="fa-brands fa-x-twitter" />
+                  </a>
+                </li>
+
+                {/* INSTAGRAM */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.instagram ||
+                      "https://www.instagram.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link instagram"
+                  >
+                    <i className="fa-brands fa-instagram" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

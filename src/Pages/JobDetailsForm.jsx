@@ -19,6 +19,7 @@ function JobDetailsForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [remoteList, setRemoteList] = useState([]);
   const job = location.state?.job || {};
   // ===============================
   // State
@@ -67,7 +68,20 @@ function JobDetailsForm() {
     defaultExpiry.setDate(defaultExpiry.getDate() + 30);
     return defaultExpiry.toISOString().split("T")[0];
   };
+  const fetchRemoteList = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveRemote`);
+      if (res.data.success && Array.isArray(res.data.data)) {
+        setRemoteList(res.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching remote list:", error);
+    }
+  };
 
+  useEffect(() => {
+    fetchRemoteList();
+  }, []);
   const [expiresAt, setExpiresAt] = useState(getDefaultExpiryDate());
   const [aiLoading, setAiLoading] = useState(false);
   const Title = job?.jobTitle;
@@ -132,7 +146,7 @@ function JobDetailsForm() {
         }))
       : [],
     TJM: jobFromState.TJM?.amount || "",
-    remote: jobFromState.remote || "",
+    remote: jobFromState?.remote?._id || "",
     jobAddress: jobFromState.jobAddress || "",
     availablePosts: jobFromState.availablePosts || "",
     city: Array.isArray(jobFromState.city)
@@ -841,6 +855,14 @@ function JobDetailsForm() {
         toast.error("Please select Job Category");
         return;
       }
+      if (!data.remote) {
+        toast.error("Please select Remote type");
+        return;
+      }
+      if (!data.minimumLevel) {
+        toast.error("Please select Minimum level");
+        return;
+      }
       if (isFreelanceSelected && !data.TJM) {
         toast.error("Please enter TJM");
         return;
@@ -1086,7 +1108,7 @@ function JobDetailsForm() {
                       <div className="row">
                         <div className="col-lg-12 col-md-12">
                           <div className="form-group">
-                            <label>Job Title*</label>
+                            Job Title<span className="text-danger">*</span>{" "}
                             <input
                               className="form-control"
                               type="text"
@@ -1099,7 +1121,10 @@ function JobDetailsForm() {
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Minimum level </label>
+                            <label>
+                              Minimum level
+                              <span className="text-danger">*</span>{" "}
+                            </label>
                             <select
                               className="form-select form-control"
                               name="minimumLevel"
@@ -1143,7 +1168,10 @@ function JobDetailsForm() {
                         {isFreelanceSelected && (
                           <div className="col-lg-6 col-md-6 mt-3">
                             <div className="form-group">
-                              <label>TJM (Taux Journalier Moyen)</label>
+                              <label>
+                                TJM<span className="text-danger">*</span> (Taux
+                                Journalier Moyen)
+                              </label>
 
                               <input
                                 type="number"
@@ -1160,33 +1188,22 @@ function JobDetailsForm() {
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
-                              Remote
-                              {/* <span className="text-danger">*</span> */}
+                              Remote<span className="text-danger">*</span>
                             </label>
 
                             <select
                               className="form-select form-control"
-                              aria-label="Default select example"
                               name="remote"
                               value={formData.remote}
                               onChange={handleChange}
                             >
-                              <option value="" disabled>
-                                Select remote type
-                              </option>
+                              <option value="">Select remote type</option>
 
-                              {/* ✅ New Option Added */}
-                              <option value="Not remote (On-site only)">
-                                Not remote (On-site only)
-                              </option>
-
-                              <option value="Fully remote">Fully remote</option>
-                              <option value="Partialy-remote">
-                                Partialy-remote
-                              </option>
-                              <option value="Temporarily remote">
-                                Temporarily remote
-                              </option>
+                              {remoteList.map((item) => (
+                                <option key={item._id} value={item._id}>
+                                  {item.name}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         </div>

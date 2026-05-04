@@ -695,7 +695,7 @@ function EmployerShortListCandinate() {
             <div className="row g-3 mb-4">
               <div className="col-12 mb-3">
                 <h5 className="mb-0 fw-bold">
-                  All Candidates{t("header.All_Candidates")}{" "}
+                 {t("header.All_Candidates")}{" "}
                   <span className="text-muted fs-6 fw-normal">
                     ({totalCandidates || 0} {t("header.candidates")})
                   </span>
