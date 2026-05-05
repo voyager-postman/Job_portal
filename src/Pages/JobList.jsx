@@ -163,6 +163,29 @@ const JobList = () => {
       toast.error("Copy failed");
     }
   };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        companyContainerRef.current &&
+        !companyContainerRef.current.contains(event.target)
+      ) {
+        setShowCompanyDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const fetchRemoteOptions = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getActiveRemote`);
@@ -1696,71 +1719,6 @@ const JobList = () => {
                           )}
                         </div>
                       </div>
-                      <div className="divder-line-info" />
-                      <div className="modern-filter-section">
-                        <div className="job-filter-heading-cancel">
-                          <div className="job-filter-heading">
-                            <h4>
-                              <i className="fa-solid fa-location-dot" />{" "}
-                              {t("header.Location")}
-                            </h4>
-                          </div>
-                          <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
-                              onClick={handleClearLocations} // clear all selected locations
-                            >
-                              {t("header.Clear")}
-                            </h4>
-                          </div>
-                        </div>
-
-                        <div className="job-filter-select-info">
-                          <div className="job-filter-select-location">
-                            <input
-                              className="form-control"
-                              type="search"
-                              placeholder="Search Location"
-                              value={locationSearchTerm}
-                              onChange={handleLocationSearch}
-                            />
-
-                            {/* Suggestions dropdown */}
-                            {isLocationLoading && (
-                              <div className="suggestion-box">
-                                {" "}
-                                {t("header.searching")}...
-                              </div>
-                            )}
-
-                            {!isLocationLoading &&
-                              locationSuggestions.length > 0 && (
-                                <ul
-                                  className="list-group position-absolute w-100"
-                                  style={{
-                                    zIndex: 1000,
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                  }}
-                                >
-                                  {locationSuggestions.map((city) => (
-                                    <li
-                                      key={city._id}
-                                      className="list-group-item list-group-item-action"
-                                      style={{ cursor: "pointer" }}
-                                      onClick={() => handleSelectLocation(city)}
-                                    >
-                                      {city.name}, {city.state_name},{" "}
-                                      {city.country_name}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-
-                            {/* Selected locations */}
-                          </div>
-                        </div>
-                      </div>
 
                       <div className="divder-line-info" />
                       <div className="modern-filter-section">
@@ -1938,79 +1896,93 @@ const JobList = () => {
                         </div>
                       </div>
                       <div className="divder-line-info" />
-                      <div className="modern-filter-section" ref={wrapperRef}>
-                        <div className="job-filter-heading-cancel">
-                          <div className="job-filter-heading">
-                            <h4>
-                              <i className="fas fa-building" />
-                              {t("header.industry_sector")}
-                            </h4>
-                          </div>
-                          <div
-                            className="job-filter-cancel-heading"
-                            onClick={clearAll}
-                          >
-                            <h4>{t("header.Clear")}</h4>
-                          </div>
-                        </div>
-
-                        <div className="job-filter-select-info">
-                          <div className="multi-select-container">
-                            <div
-                              className="selected-items"
-                              onClick={() => setShowOptions(true)}
-                            >
-                              {/* Show first 2 selected industries and +X more if any */}
-                              {selected?.map((industry) => (
-                                <span key={industry._id} className="tag">
-                                  {industry.name}
-                                  <i
-                                    className="fa-solid fa-xmark"
-                                    style={{
-                                      cursor: "pointer",
-                                      marginLeft: "6px",
-                                    }}
-                                    onClick={() => removeTag(industry._id)}
-                                  />
-                                </span>
-                              ))}
-                              <input
-                                type="text"
-                                placeholder={t("header.Search_industries")}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onFocus={() => setShowOptions(true)}
-                              />
+                      <div>
+                        <div className="modern-filter-section" ref={wrapperRef}>
+                          {/* Header */}
+                          <div className="job-filter-heading-cancel">
+                            <div className="job-filter-heading">
+                              <h4>
+                                <i className="fas fa-industry" />{" "}
+                                {t("header.industry_sector")}
+                              </h4>
                             </div>
 
-                            {showOptions && (
-                              <ul className="options-list">
-                                {filteredOptions.length > 0 ? (
-                                  filteredOptions.map((industry) => (
-                                    <li
-                                      key={industry._id}
-                                      onClick={() => toggleOption(industry)}
-                                      className={
-                                        selected.some(
-                                          (i) => i._id === industry._id,
-                                        )
-                                          ? "selected"
-                                          : ""
-                                      }
-                                    >
-                                      {industry.name}
-                                      {selected.some(
+                            <div
+                              className="job-filter-cancel-heading"
+                              onClick={clearAll}
+                            >
+                              <h4>{t("header.Clear")}</h4>
+                            </div>
+                          </div>
+
+                          {/* Multi Select */}
+                          <div className="job-filter-select-info">
+                            <div className="modern-multi-select-container">
+                              {/* Selected Items */}
+                              <div
+                                className="modern-selected-items"
+                                onClick={() => setShowOptions(true)}
+                              >
+                                {selected?.map((industry) => (
+                                  <span
+                                    key={industry._id}
+                                    className="modern-multi-tag"
+                                  >
+                                    {industry.name}
+                                    <i
+                                      className="fa-solid fa-xmark remove-tag"
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // prevent dropdown open
+                                        removeTag(industry._id);
+                                      }}
+                                    />
+                                  </span>
+                                ))}
+
+                                <input
+                                  className="modern-multi-input"
+                                  type="text"
+                                  placeholder={t("header.Search_industries")}
+                                  value={searchTerm}
+                                  onChange={(e) =>
+                                    setSearchTerm(e.target.value)
+                                  }
+                                  onFocus={() => setShowOptions(true)}
+                                />
+                              </div>
+
+                              {/* Dropdown */}
+                              {showOptions && (
+                                <ul className="modern-dropdown-menu">
+                                  {filteredOptions.length > 0 ? (
+                                    filteredOptions.map((industry) => {
+                                      const isSelected = selected.some(
                                         (i) => i._id === industry._id,
-                                      ) && <span className="checkmark">✔</span>}
+                                      );
+
+                                      return (
+                                        <li
+                                          key={industry._id}
+                                          onClick={() => toggleOption(industry)}
+                                          className={`modern-dropdown-item ${
+                                            isSelected ? "selected" : ""
+                                          }`}
+                                        >
+                                          {industry.name}
+                                          {isSelected && (
+                                            <span className="checkmark">✔</span>
+                                          )}
+                                        </li>
+                                      );
+                                    })
+                                  ) : (
+                                    <li className="no-options">
+                                      {t("header.no_industries")}
                                     </li>
-                                  ))
-                                ) : (
-                                  <li className="no-options">
-                                    {t("header.no_industries")}
-                                  </li>
-                                )}
-                              </ul>
-                            )}
+                                  )}
+                                </ul>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -2019,6 +1991,7 @@ const JobList = () => {
                         className="modern-filter-section"
                         ref={companyContainerRef}
                       >
+                        {/* Header */}
                         <div className="job-filter-heading-cancel">
                           <div className="job-filter-heading">
                             <h4>
@@ -2026,6 +1999,7 @@ const JobList = () => {
                               {t("header.company")}
                             </h4>
                           </div>
+
                           <div
                             className="job-filter-cancel-heading"
                             onClick={handleClearCompanies}
@@ -2034,24 +2008,34 @@ const JobList = () => {
                           </div>
                         </div>
 
+                        {/* Select */}
                         <div className="job-filter-select-info">
-                          <div className="multi-select-container">
-                            <div className="selected-items">
+                          <div className="modern-multi-select-container">
+                            {/* Selected Companies */}
+                            <div
+                              className="modern-selected-items"
+                              onClick={() => setShowCompanyDropdown(true)}
+                            >
                               {selectedCompanies.map((company) => (
-                                <div key={company._id} className="tag">
+                                <div
+                                  key={company._id}
+                                  className="modern-multi-tag"
+                                >
                                   <span>{company.brandName}</span>
-                                  <span
-                                    className="remove-tag"
-                                    onClick={() =>
-                                      handleRemoveCompany(company._id)
-                                    }
-                                  >
-                                    ×
-                                  </span>
+
+                                  <i
+                                    className="fa-solid fa-xmark remove-tag"
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // prevent dropdown open
+                                      handleRemoveCompany(company._id);
+                                    }}
+                                  />
                                 </div>
                               ))}
 
+                              {/* Input */}
                               <input
+                                className="modern-multi-input"
                                 type="text"
                                 placeholder={t("header.Search_Company")}
                                 value={companySearchTerm}
@@ -2062,19 +2046,33 @@ const JobList = () => {
                               />
                             </div>
 
+                            {/* Dropdown */}
                             {showCompanyDropdown && (
-                              <ul className="options-list">
+                              <ul className="modern-dropdown-menu">
                                 {filteredCompanyOptions.length > 0 ? (
-                                  filteredCompanyOptions.map((company) => (
-                                    <li
-                                      key={company._id}
-                                      onClick={() =>
-                                        handleSelectCompany(company)
-                                      }
-                                    >
-                                      {company.brandName}
-                                    </li>
-                                  ))
+                                  filteredCompanyOptions.map((company) => {
+                                    const isSelected = selectedCompanies.some(
+                                      (c) => c._id === company._id,
+                                    );
+
+                                    return (
+                                      <li
+                                        key={company._id}
+                                        className={`modern-dropdown-item ${
+                                          isSelected ? "selected" : ""
+                                        }`}
+                                        onClick={() =>
+                                          handleSelectCompany(company)
+                                        }
+                                      >
+                                        {company.brandName}
+
+                                        {isSelected && (
+                                          <span className="checkmark">✔</span>
+                                        )}
+                                      </li>
+                                    );
+                                  })
                                 ) : (
                                   <li className="no-options">
                                     {t("header.No_companies_found")}
@@ -2470,7 +2468,9 @@ const JobList = () => {
                                     <div className="modern-job-meta">
                                       <span className="modern-meta-tag">
                                         <i className="fa-regular fa-file me-1"></i>
-                                        {job?.jobCategory || "N/A"}
+                                        {job?.jobCategory?.length > 0
+                                          ? job.jobCategory.join(", ")
+                                          : "N/A"}
                                       </span>
 
                                       <span className="modern-meta-tag">
@@ -3088,7 +3088,7 @@ const JobList = () => {
                 onClick={handleCreateAlert}
                 disabled={loading}
               >
-                {loading ? t("alert.header") : t("alert.header")}
+                {loading ? "Creating..." : "Create Alert"}
               </button>
               <button
                 type="button"
@@ -3216,7 +3216,7 @@ const JobList = () => {
                   <span>
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        {selectedJob?.minimumLevel || "NA"}
+                        {selectedJob?.minimumLevel || "N/A"}
                       </font>
                     </font>
                   </span>
@@ -3254,7 +3254,7 @@ const JobList = () => {
                           ? typeof selectedJob.remote === "string"
                             ? selectedJob.remote
                             : selectedJob.remote.name
-                          : "NA"}
+                          : "N/A"}
                       </font>
                     </font>
                   </span>

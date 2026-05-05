@@ -7,6 +7,7 @@ import Login from "./Pages/Login";
 import RecoveryPassword from "./Pages/RecoveryPassword";
 import MyProfile from "./Pages/MyProfile";
 import "./App.css";
+
 import ContactUs from "./Pages/ContactUs";
 import AboutUs from "./Pages/AboutUs";
 import Sidebar from "./Conponets/Sidebar";
@@ -180,7 +181,7 @@ function LayoutWrapper() {
         <Route
           path="/job-details-form/:id"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <JobDetailsForm />
             </PrivateRoute>
           }
@@ -188,7 +189,7 @@ function LayoutWrapper() {
         <Route
           path="/job-details-form"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <JobDetailsForm />
             </PrivateRoute>
           }
@@ -196,7 +197,7 @@ function LayoutWrapper() {
         <Route
           path="/profile-basic-info"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <MyProfile />
             </PrivateRoute>
           }
@@ -204,7 +205,7 @@ function LayoutWrapper() {
         <Route
           path="/candidate-profile"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <CandidateProfile />
             </PrivateRoute>
           }
@@ -212,7 +213,7 @@ function LayoutWrapper() {
         <Route
           path="/resume-builder"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <ResumeBuilder />
             </PrivateRoute>
           }
@@ -220,7 +221,7 @@ function LayoutWrapper() {
         <Route
           path="/employer-dashboard"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <EmployerDashboard />
             </PrivateRoute>
           }
@@ -268,7 +269,7 @@ function LayoutWrapper() {
         <Route
           path="/applied-jobs-list"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <AppliedJobList />
             </PrivateRoute>
           }
@@ -276,7 +277,7 @@ function LayoutWrapper() {
         <Route
           path="/chat-messaging-system"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <ChatMassageSystem />
             </PrivateRoute>
           }
@@ -294,7 +295,7 @@ function LayoutWrapper() {
         <Route
           path="/candidate-dashboard"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <CandidateDashboard />
             </PrivateRoute>
           }
@@ -302,7 +303,7 @@ function LayoutWrapper() {
         <Route
           path="/manage-job-application"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <ManagesJobApplication />
             </PrivateRoute>
           }
@@ -310,7 +311,7 @@ function LayoutWrapper() {
         <Route
           path="/your-job-posts"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <YourJobPosts />
             </PrivateRoute>
           }
@@ -318,7 +319,7 @@ function LayoutWrapper() {
         <Route
           path="/employer-wallet"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <EmployerWallet />
             </PrivateRoute>
           }
@@ -358,7 +359,7 @@ function LayoutWrapper() {
         <Route
           path="/bookmark-candidate"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <EmployerShortListCandinate />
             </PrivateRoute>
           }
@@ -366,7 +367,7 @@ function LayoutWrapper() {
         <Route
           path="/candidates-search"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <CandinatesList />
             </PrivateRoute>
           }
@@ -374,7 +375,7 @@ function LayoutWrapper() {
         <Route
           path="/all-applicants-list"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <ManagesApplicants />
             </PrivateRoute>
           }
@@ -406,7 +407,7 @@ function LayoutWrapper() {
         <Route
           path="/manage-recruiter"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <RecruiterLists />
             </PrivateRoute>
           }
@@ -414,7 +415,7 @@ function LayoutWrapper() {
         <Route
           path="/manage-assessment"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <ManagesAssement />
             </PrivateRoute>
           }
@@ -422,7 +423,7 @@ function LayoutWrapper() {
         <Route
           path="/messaging-system"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <MassagingSystem />
             </PrivateRoute>
           }
@@ -430,7 +431,7 @@ function LayoutWrapper() {
         <Route
           path="/company-profile"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <EmployerProfile />
             </PrivateRoute>
           }
@@ -462,7 +463,7 @@ function LayoutWrapper() {
         <Route
           path="/job-search"
           element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={["JobSeeker"]}>
               <JobSearch />
             </PrivateRoute>
           }
@@ -501,10 +502,12 @@ function LayoutWrapper() {
 
 function App() {
   return (
-    <BrowserRouter basename="/jobPortal">
-      <ScrollToTop />
-      <LayoutWrapper />
-    </BrowserRouter>
+    <>
+      <BrowserRouter basename="/jobPortal">
+        <ScrollToTop />
+        <LayoutWrapper />
+      </BrowserRouter>
+    </>
   );
 }
 
