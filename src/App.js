@@ -253,7 +253,7 @@ function LayoutWrapper() {
         <Route
           path="/activity-timeline"
           element={
-            <PrivateRoute>
+            <PrivateRoute  allowedRoles={["JobSeeker"]}>
               <ActivityTimeline />
             </PrivateRoute>
           }

@@ -448,33 +448,34 @@ function JobSearch() {
       console.error("Error fetching salary ranges:", error);
     }
   };
-
   const handleRemoveFilterJob = (key) => {
-    // 1️⃣ Remove from appliedFilters
     const updatedAppliedFilters = { ...appliedFilters };
     delete updatedAppliedFilters[key];
     setAppliedFilters(updatedAppliedFilters);
 
-    // 2️⃣ Clear the corresponding field in filters
     const updatedFilters = { ...filters, [key]: "" };
     setFilters(updatedFilters);
 
-    // 3️⃣ Call API with updated filters directly
+    // ✅ Call job list
     getAllJobList(
-      pageSize, // limit
-      pageNumber, // page
-      selectedJobTypes, // ✅ jobTypes
-      selectedSeniority, // ✅ experience / seniority
-      selectedTechStacks, // ✅ techStacks
-      selectedCategories, // ✅ categories
-      selectedCompanies, // ✅ companies
-      selected, // ✅ industries
-      updatedFilters.keywords, // ✅ keywords
-      updatedFilters.location, // ✅ location
-      updatedFilters.category, // ✅ category
-      selectedLocations.map((l) => l.name).join(","), // ✅ Filterlocation
-      selectedSalaryRanges, // ✅ salary_range
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      updatedFilters.keywords,
+      updatedFilters.location,
+      updatedFilters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      selectedRemote,
     );
+
+    // ✅ IMPORTANT: Reset categories based on updated filters
+    getCategories(updatedFilters);
   };
 
   // Clear all filters
@@ -865,12 +866,12 @@ function JobSearch() {
   //     console.error("Error fetching categories:", error);
   //   }
   // };
-  const getCategories = async () => {
+  const getCategories = async (customFilters = filters) => {
     try {
       const res = await axios.get(`${API_BASE_URL}getJobCategory`, {
         params: {
-          keywords: filters.keywords || undefined,
-          location: filters.location || undefined,
+          keywords: customFilters.keywords || undefined,
+          location: customFilters.location || undefined,
         },
       });
 
@@ -1887,10 +1888,9 @@ function JobSearch() {
                       {/* Header */}
                       <div className="job-filter-heading-cancel">
                         <div className="job-filter-heading">
-                      
                           <h4>
                             <i className="fas fa-industry" />{" "}
-                           {t("header.industry_sector")}
+                            {t("header.industry_sector")}
                           </h4>
                         </div>
 
@@ -2508,9 +2508,13 @@ function JobSearch() {
                                           {job?.applicationStatus}
                                         </button>
                                       ) : job?.isAssessmentRequired ? (
-                                        <button className="modern-apply-btn">
-                                          {t("header.View_Details")}
-                                        </button>
+                                        <Link
+                                          to={`/job-details/${job._id}`}
+                                          className="modern-apply-btn"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          View Details
+                                        </Link>
                                       ) : (
                                         <button
                                           className="modern-apply-btn"
@@ -3350,17 +3354,18 @@ function JobSearch() {
             </div>
             <div className="side-panel-footer">
               {selectedJob?.isApplied ? (
+                // 🔒 Already Applied
                 <button className="modern-apply-btn w-100" disabled>
                   {selectedJob?.applicationStatus || "Applied"}
                 </button>
-              ) : (
+              ) : !selectedJob?.isAssessmentRequired ? (
+                // ✅ Normal Apply (NO assessment)
                 <button
                   className="modern-apply-btn w-100"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // ✅ CLOSE SIDE PANEL
                     setIsPanelOpen(false);
 
                     if (userRole !== "JobSeeker") {
@@ -3380,7 +3385,7 @@ function JobSearch() {
                 >
                   {t("header.apply_now")}
                 </button>
-              )}
+              ) : null}
 
               <Link
                 to={`/job-details/${selectedJob._id}`}

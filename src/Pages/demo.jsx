@@ -1,184 +1,98 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
-import moment from "moment";
-import { useLocation } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { Link, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+// import axios from "../utils/axiosInstance"
 import axios from "axios";
-
+import moment from "moment";
+import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import {
+  Navigation,
+  Pagination as SwiperPagination,
+  Autoplay,
+} from "swiper/modules";
+import Pagination from "@mui/material/Pagination"; // MUI one
+import Stack from "@mui/material/Stack";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import "swiper/css/pagination";
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
-import companyLogo from "../../src/images/images1.png";
+import { useLocation } from "react-router-dom";
 
-function JobDetails() {
+function JobSearch() {
   const location = useLocation();
-  const userRole = localStorage.getItem("user_role");
-  const jobStatus = location.state?.status;
-  const [assessmentDetails, setAssessmentDetails] = useState(null);
-  const [loadingAssessment, setLoadingAssessment] = useState(false);
-  const [assessment, setAssessment] = useState(null);
-
-  const [categoryCount, setCategoryCount] = useState([]);
-  console.log("Job Status:", jobStatus);
-  const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
-  const { id } = useParams(); // ✅ Get job ID from URL
-  const navigate = useNavigate();
-  console.log(id);
+  const { alert } = location.state || {};
+  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
+  console.log("Received Alert Data:", alert);
+  const [resumeList, setResumeList] = useState([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [coverLetterList, setCoverLetterList] = useState([]);
+  const [showAlertOptions, setShowAlertOptions] = useState(false);
+  const [selectedType, setSelectedType] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
-  const [resumeList, setResumeList] = useState([]);
-  const [coverLetterList, setCoverLetterList] = useState([]);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
-  const [job, setJob] = useState(null);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [loading, setLoading] = useState(true);
-  console.log(id);
-  const from = location.state?.from;
-  console.log(from);
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
+  const [appliedFilters, setAppliedFilters] = useState({});
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
+  const [notifyEvery, setNotifyEvery] = useState("1 day");
+  const [loading, setLoading] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [alertCreated, setAlertCreated] = useState(false);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [companies, setCompanies] = useState([]);
 
-  const breadcrumbLabel = from?.includes("/manage-job-application")
-    ? "Manage Job Application"
-    : from?.includes("/job-search")
-      ? "Job Search"
-      : from?.includes("/applied-jobs-list")
-        ? "Application Management"
-        : from?.includes("/jobs")
-          ? "Jobs"
-          : "Candidate Dashboard";
-
-  // {
-  //   "/manage-job-application": "Manage Job Application",
-  //   "/job-search": "Job Search",
-  //   "/jobs": "Jobs",
-  //   "/applied-jobs-list": " Application Management",
-  //   "/candidate-dashboard": "",
-  // };
-
-  // const breadcrumbLabel = breadcrumbLabelMap[from];
-  const fetchJobDetails = async () => {
-    try {
-      setLoading(true);
-
-      const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      const responseData = res.data?.data;
-      const jobDetails = responseData?.jobDetails;
-
-      console.log(jobDetails?.confidentialJobPost);
-      console.log(userRole);
-
-      // ✅ Block JobSeeker for confidential jobs
-      if (
-        userRole === "JobSeeker" &&
-        jobDetails?.confidentialJobPost === true
-      ) {
-        toast.error(
-          "This confidential job is no longer available for candidate access.",
-        );
-
-        // ❌ Do not navigate anywhere
-        setJob(null);
-        setAssessmentDetails(null);
-        setLinkUrl("");
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
-
-        return;
-      }
-
-      // ✅ Recruiter / Admin / Others can access
-      setJob(responseData);
-      setLinkUrl(jobDetails?.jobLink || "");
-      setAssessmentDetails(responseData?.assessmentResult || null);
-    } catch (error) {
-      console.error("Error fetching job details:", error);
-
-      toast.error(
-        error?.response?.data?.message || "Unable to load job details.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-  // const fetchJobDetails = async () => {
-  //   try {
-  //     const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     setJob(res.data?.data || res.data); // Adjust according to your API response
-  //     console.log(res);
-  //     setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
-  //     setAssessmentDetails(res?.data?.data?.assessmentResult);
-  //   } catch (error) {
-  //     console.error("Error fetching job details:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // Loading state for city suggestions
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
   useEffect(() => {
-    if (id) {
-      fetchJobDetails();
-    }
-  }, [id]);
-  console.log(linkUrl);
+    if (!alert) return;
 
-  const handleSaveJob = async (jobId) => {
-    try {
-      // 🧠 Step 1: Check if user is logged in
-      if (!token) {
-        toast.warning("⚠️ Please login first to save jobs!");
-        // optionally redirect to login page:
-        // navigate("/login");
-        return;
-      }
-      // 🧠 Step 2: Call API
-      const res = await axios.post(
-        `${API_BASE_URL}savedJob`,
-        { job_id: jobId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      console.log("✅ API Response:", res.data);
-
-      // 🧠 Step 3: Handle response
-      if (res.data.success) {
-        const { message } = res.data;
-
-        // Optional: Optimistic UI update
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
-
-        fetchJobDetails();
-
-        if (message.toLowerCase().includes("saved")) {
-          toast.success(message + " ❤️");
-        } else if (message.toLowerCase().includes("unsaved")) {
-          toast.info(message + " 💔");
-        } else {
-          toast.success(message);
-        }
-      } else {
-        toast.error(res.data.message || "Something went wrong.");
-      }
-    } catch (err) {
-      console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || "Server error. Try again!");
-    }
-  };
+    console.log("🔵 Prefilling filters from alert:", alert);
+    // Job Types
+    setSelectedJobTypes(alert.jobType || []);
+    // Seniority Levels
+    setSelectedSeniority(alert.experience || []);
+    // Tech Stacks (filterCategory contains objects)
+    setSelectedTechStacks(alert.filterCategory?.map((item) => item._id) || []);
+    // Industries (contains objects with _id + name)
+    setSelected(alert.industry || []);
+    // Companies (convert string → object)
+    setSelectedCompanies(
+      alert.company?.map((name) => ({ _id: name, brandName: name })) || [],
+    );
+    // Locations (convert string → object)
+    setSelectedLocations(
+      alert.location?.map((name) => ({ _id: name, name })) || [],
+    );
+    // Salary Ranges
+    setSelectedSalaryRanges(alert.salaryRange || []);
+    // Mark alert as created
+    setAlertCreated(true);
+    // Immediately load job list using restored filters
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      alert.jobType,
+      alert.experience,
+      alert.filterCategory?.map((t) => t._id),
+      [], // category
+      alert.company?.map((c) => ({ brandName: c })),
+      alert.industry?.map((i) => ({ _id: i._id })),
+      "", // keywords
+      "",
+      "",
+      alert.location?.join(","),
+      alert.salaryRange,
+    );
+  }, [alert]);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -198,7 +112,6 @@ function JobDetails() {
     };
     fetchResume();
   }, []);
-
   const handleSelect = (type, id = null) => {
     setSelectedType(type);
     setSelectedId(id);
@@ -216,107 +129,80 @@ function JobDetails() {
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
+
   const handleLinkClick = (e) => {
     e.preventDefault(); // prevent navigation
     fileInputRef.current.click(); // open file dialog
   };
-  const handleSaveJob1 = async (jobId) => {
-    try {
-      // 🧠 Step 1: Check if user is logged in
-      if (!token) {
-        toast.warning("⚠️ Please login first to save jobs!");
-        // optionally redirect to login page:
-        // navigate("/login");
-        return;
-      }
 
-      // 🧠 Step 2: Call API
-      const res = await axios.post(
-        `${API_BASE_URL}savedJob`,
-        { job_id: jobId },
+  const handleSalaryChange = (e) => {
+    const { value, checked } = e.target;
+    const updatedRanges = checked
+      ? [...selectedSalaryRanges, value]
+      : selectedSalaryRanges.filter((r) => r !== value);
+
+    setSelectedSalaryRanges(updatedRanges);
+
+    // ✅ Always pass all filters to API
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","), // ✅ location
+      updatedRanges, // ✅ salary filters
+    );
+  };
+
+  const handleJobClick = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}jobs/${jobId}/click`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-
-      console.log("✅ API Response:", res.data);
-
-      // 🧠 Step 3: Handle response
-      if (res.data.success) {
-        const { message } = res.data;
-
-        // Optional: Optimistic UI update
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
-
-        fetchJobDetails();
-
-        if (message.toLowerCase().includes("saved")) {
-          toast.success(message + " ❤️");
-        } else if (message.toLowerCase().includes("unsaved")) {
-          toast.info(message + " 💔");
-        } else {
-          toast.success(message);
-        }
-      } else {
-        toast.error(res.data.message || "Something went wrong.");
-      }
-    } catch (err) {
-      console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || "Server error. Try again!");
+      console.log(response.data);
+    } catch (error) {
+      console.log(console.error);
     }
-  };
-  console.log(assessment);
-  const [copied, setCopied] = useState(false);
-  const handleCopy = async (e, url) => {
-    e.preventDefault();
-
-    if (!url) {
-      toast.error("Link not available yet");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast.success("Link copied!");
-    } catch (err) {
-      console.error("Failed to copy text:", err);
-      toast.error("Copy failed");
-    }
-  };
-  const isSelectionMade = () => {
-    return (
-      (selectedType === "resume" && selectedId) ||
-      (selectedType === "cover" && selectedId) ||
-      (selectedType === "custom" && selectedCustomFile)
-    );
   };
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-  const resetApplyModal = () => {
-    setSelectedType("");
-    setSelectedId(null);
-    setSelectedCustomFile(null);
-    setIsApplying(false);
-
-    // reset file input
-    if (fileInputRef?.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const handleApplyJob = async () => {
     if (!jobId) {
       console.error("❌ jobId is missing");
       return;
+    }
+
+    // ✅ VALIDATION: Ensure one of the three options is selected
+    if (
+      selectedType === "resume" &&
+      !selectedId &&
+      selectedType === "cover" &&
+      !selectedId &&
+      selectedType === "custom" &&
+      !selectedCustomFile
+    ) {
+      toast.error(
+        "Please select a resume, cover letter, or upload a custom file.",
+        {
+          autoClose: 2000,
+          theme: "colored",
+        },
+      );
+      return; // stop here
     }
 
     setIsApplying(true); // 🔥 Start loader
@@ -325,18 +211,13 @@ function JobDetails() {
 
     if (selectedType === "resume") {
       formData.append("cv", selectedId);
-    }
-
-    if (selectedType === "cover") {
+    } else if (selectedType === "cover") {
       formData.append("coverLetter", selectedId);
-    }
+    } else if (selectedType === "custom") {
+      const file = selectedCustomFile;
 
-    if (selectedType === "custom") {
-      const file = fileInputRef.current?.files?.[0];
-
-      // ✅ FILE REQUIRED
       if (!file) {
-        toast.error("Please select a resume file.", {
+        toast.error("Please select a custom file.", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -344,14 +225,13 @@ function JobDetails() {
         return;
       }
 
-      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
       if (file.size > MAX_FILE_SIZE) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
         });
         setIsApplying(false);
-        return; // ⛔ STOP — DO NOT HIT API
+        return;
       }
 
       formData.append("customResume", file);
@@ -367,9 +247,7 @@ function JobDetails() {
       });
 
       toast.success(res.data.message || "Applied successfully!");
-      if (id) {
-        fetchJobDetails();
-      }
+      getAllJobList(pageSize, pageNumber);
 
       const modal = document.getElementById("exampleModal");
       if (modal) {
@@ -378,8 +256,6 @@ function JobDetails() {
       }
     } catch (error) {
       console.error("Apply job error:", error);
-
-      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
       if (error?.response?.data?.message) {
         toast.error(error.response.data.message, {
           autoClose: 2000,
@@ -401,104 +277,314 @@ function JobDetails() {
     }
   };
 
-  // const handleApplyJob = async () => {
-  //   if (!jobId) {
-  //     console.error("❌ jobId is missing");
-  //     return;
-  //   }
+  const fetchJobTypes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      if (res.data.success && Array.isArray(res.data.jobTypes)) {
+        setJobTypes(res.data.jobTypes);
+      } else {
+        setJobTypes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
 
-  //   setIsApplying(true); // 🔥 Start loader
+  useEffect(() => {
+    fetchJobTypes();
+  }, []);
 
-  //   const formData = new FormData();
+  const fetchSeniorityLevels = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSeniorityLevelList`);
+      if (res.data.success && Array.isArray(res.data.levels)) {
+        setSeniorityLevels(res.data.levels);
+      } else {
+        setSeniorityLevels([]);
+      }
+    } catch (error) {
+      console.error("Error fetching seniority levels:", error);
+    }
+  };
 
-  //   if (selectedType === "resume") {
-  //     formData.append("cv", selectedId);
-  //   }
+  useEffect(() => {
+    fetchSeniorityLevels();
+  }, []);
 
-  //   if (selectedType === "cover") {
-  //     formData.append("coverLetter", selectedId);
-  //   }
+  useEffect(() => {
+    getSalaryRanges();
+  }, []);
 
-  //   if (selectedType === "custom") {
-  //     formData.append("customResume", fileInputRef.current.files[0]);
-  //   }
+  const getSalaryRanges = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSalaryRangeList`);
+      if (res.data.success) {
+        setSalaryRanges(res.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching salary ranges:", error);
+    }
+  };
 
-  //   formData.append("jobId", jobId);
+  const handleRemoveFilterJob = (key) => {
+    // 1️⃣ Remove from appliedFilters
+    const updatedAppliedFilters = { ...appliedFilters };
+    delete updatedAppliedFilters[key];
+    setAppliedFilters(updatedAppliedFilters);
 
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     fetchJobDetails();
-  //     toast.success(res.data.message || "Applied successfully!");
+    // 2️⃣ Clear the corresponding field in filters
+    const updatedFilters = { ...filters, [key]: "" };
+    setFilters(updatedFilters);
 
-  //     const modal = document.getElementById("exampleModal");
-  //     if (modal) {
-  //       const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-  //       bootstrapModal?.hide();
-  //     }
-  //   } catch (error) {
-  //     toast.error(error?.response?.data?.message || "Something went wrong!");
-  //   } finally {
-  //     setIsApplying(false); // 🔥 Stop loader
-  //   }
-  // };
-  // const fetchAssessmentDetails = async (assessmentId) => {
-  //   try {
-  //     setLoadingAssessment(true);
+    // 3️⃣ Call API with updated filters directly
+    getAllJobList(
+      pageSize, // limit
+      pageNumber, // page
+      selectedJobTypes, // ✅ jobTypes
+      selectedSeniority, // ✅ experience / seniority
+      selectedTechStacks, // ✅ techStacks
+      selectedCategories, // ✅ categories
+      selectedCompanies, // ✅ companies
+      selected, // ✅ industries
+      updatedFilters.keywords, // ✅ keywords
+      updatedFilters.location, // ✅ location
+      updatedFilters.category, // ✅ category
+      selectedLocations.map((l) => l.name).join(","), // ✅ Filterlocation
+      selectedSalaryRanges, // ✅ salary_range
+    );
+  };
 
-  //     const res = await axios.get(
-  //       `${API_BASE_URL}getSkillAssessmentFullDetails/${assessmentId}`,
-  //     );
+  // Clear all filters
+  const handleClearSalaryFilters = () => {
+    setSelectedSalaryRanges([]);
 
-  //     setAssessment(res.data.assessmentDetails);
-  //     setCategoryCount(res.data.categoryQuestionCount);
-  //   } catch (error) {
-  //     console.error("Failed to load assessment", error);
-  //   } finally {
-  //     setLoadingAssessment(false);
-  //   }
-  // };
-  const fetchAssessmentDetails = async (assessmentId) => {
-    if (!assessmentId) {
-      console.warn("Assessment ID not found");
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","), // ✅ still keep locations
+      [], // ✅ cleared salary ranges
+    );
+  };
+
+  const handleCreateAlert = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        jobCategory: selectedCategories.map((c) => c._id).filter(Boolean),
+        Filtercategory: [
+          ...selectedTechStacks,
+          ...(appliedFilters.category ? [appliedFilters.category.id] : []), // ✅ send only ID
+        ],
+
+        jobType: selectedJobTypes.filter(Boolean),
+        experience: selectedSeniority.filter(Boolean),
+        location: [
+          ...selectedLocations.map((l) => l.name),
+          ...(appliedFilters.location ? [appliedFilters.location] : []),
+        ].filter(Boolean),
+
+        company: selectedCompanies.map((c) => c.brandName).filter(Boolean),
+        industry: selected.map((i) => i._id).filter(Boolean),
+        salaryRange: selectedSalaryRanges.filter(Boolean),
+        notifyEvery: notifyEvery || "1 day",
+        // jobTitle: appliedFilters.keywords || "",
+      };
+      if (appliedFilters.keywords?.trim()) {
+        payload.jobTitle = appliedFilters.keywords.trim();
+      }
+      console.log("📤 Sending Job Alert payload:", payload);
+      const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("✅ Alert Created:", res.data);
+
+      // ✅ Close modal safely if open
+      const modal = document.getElementById("exampleModal1");
+      if (modal) {
+        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
+        bootstrapModal?.hide();
+      }
+
+      setAlertCreated(true);
+      // resetAlertForm();
+
+      toast.success("Job Alert created successfully!");
+    } catch (error) {
+      console.error("❌ Error creating job alert:", error.response || error);
+      toast.error(
+        error?.response?.data?.message || "Failed to create job alert.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLocationSearch = async (e) => {
+    const value = e.target.value;
+    setLocationSearchTerm(value);
+
+    if (!value.trim()) {
+      setLocationSuggestions([]);
       return;
     }
 
     try {
-      setLoadingAssessment(true);
+      setIsLocationLoading(true);
+      const res = await axios.get(`${API_BASE_URL}searchCities`, {
+        params: { key: value },
+      });
 
-      const res = await axios.get(
-        `${API_BASE_URL}getSkillAssessmentFullDetails/${assessmentId}`,
-      );
-
-      setAssessment(res.data.assessmentDetails);
-      setCategoryCount(res.data.categoryQuestionCount);
-    } catch (error) {
-      console.error("Failed to load assessment", error);
-
-      toast.error(
-        error?.response?.data?.message || "Unable to load assessment",
-      );
+      if (res.data?.success && Array.isArray(res.data.cities)) {
+        setLocationSuggestions(res.data.cities);
+      } else {
+        setLocationSuggestions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching cities:", err);
+      setLocationSuggestions([]);
     } finally {
-      setLoadingAssessment(false);
+      setIsLocationLoading(false);
     }
   };
 
-  const handleSaveJob2 = async (jobId) => {
-    try {
-      // 🧠 Step 1: Check if user is logged in
-      if (!token) {
-        toast.warning("⚠️ Please login first to save jobs!");
-        // optionally redirect to login page:
-        // navigate("/login");
-        return;
-      }
+  const handleSelectLocation = (city) => {
+    if (!selectedLocations.some((loc) => loc._id === city._id)) {
+      const updated = [...selectedLocations, city];
+      setSelectedLocations(updated);
 
-      // 🧠 Step 2: Call API
+      // 🔄 Call API with all filters
+      getAllJobList(
+        pageSize,
+        pageNumber,
+        selectedJobTypes,
+        selectedSeniority,
+        selectedTechStacks,
+        selectedCategories,
+        selectedCompanies,
+        selected,
+        filters.keywords,
+        filters.location,
+        filters.category,
+        updated.map((l) => l.name).join(","), // ✅ send all selected location names
+        selectedSalaryRanges,
+      );
+    }
+
+    setLocationSearchTerm("");
+    setLocationSuggestions([]);
+  };
+
+  const handleRemoveLocation = (id) => {
+    const updated = selectedLocations.filter((loc) => loc._id !== id);
+    setSelectedLocations(updated);
+
+    // 🔄 Refresh API call with remaining filters
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      updated.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const handleClearLocations = () => {
+    setSelectedLocations([]);
+    setLocationSearchTerm("");
+    setLocationSuggestions([]);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      "", // clear location search
+      filters.category,
+      "",
+      selectedSalaryRanges,
+    );
+  };
+
+  const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
+  const [selectedTechStacks, setSelectedTechStacks] = useState(
+    alert?.filterCategory?.map((item) => item._id) || [],
+  );
+
+  useEffect(() => {
+    if (alert?.filterCategory) {
+      const ids = alert.filterCategory.map((item) => item._id).join(",");
+      console.log("Filtercategory", ids);
+    }
+  }, [alert]);
+
+  const [searchTech, setSearchTech] = useState(""); // for search
+  const [searchCategories, setSearchCategories] = useState(""); // for category search
+  const [seniorityLevels, setSeniorityLevels] = useState([]);
+  const [selectedSeniority, setSelectedSeniority] = useState(
+    alert?.experience || [],
+  );
+
+  const wrapperRef = useRef(null);
+  const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
+  const [selectedJobTypes, setSelectedJobTypes] = useState(
+    alert?.jobType || [],
+  );
+
+  const [options, setOptions] = useState([]); // All industries from API
+  const [searchTerm, setSearchTerm] = useState(""); // For searching
+  const navigate = useNavigate();
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+  const [jobList, setJobList] = useState([]);
+  const [totalJobData, setTotalJobData] = useState({});
+  const [companyOptions, setCompanyOptions] = useState([]); // ✅ dynamic list
+  const [categories, setCategories] = useState([]);
+  const [filters, setFilters] = useState({
+    keywords: "",
+    location: "",
+    category: "",
+  });
+  const [selected, setSelected] = useState([]);
+  const [selectedCompanies, setSelectedCompanies] = useState([]);
+  const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const companyContainerRef = useRef(null);
+  const [showOptions, setShowOptions] = useState(false);
+
+  const filteredCompanyOptions = companyOptions.filter(
+    (company) =>
+      company.brandName
+        .toLowerCase()
+        .includes(companySearchTerm.toLowerCase()) &&
+      !selectedCompanies.some((c) => c._id === company._id),
+  );
+
+  const handleSaveJob = async (jobId) => {
+    try {
       const res = await axios.post(
         `${API_BASE_URL}savedJob`,
         { job_id: jobId },
@@ -510,20 +596,17 @@ function JobDetails() {
       );
 
       console.log("✅ API Response:", res.data);
-      // 🧠 Step 3: Handle response
+
       if (res.data.success) {
         const { message } = res.data;
 
-        // Optional: Optimistic UI update
+        // ✅ Toggle locally without refetch
         // setJobList((prevJobs) =>
         //   prevJobs.map((job) =>
         //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
         //   )
         // );
-
-        if (id) {
-          fetchJobDetails();
-        }
+        getAllJobList();
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
         } else if (message.toLowerCase().includes("unsaved")) {
@@ -539,1734 +622,2459 @@ function JobDetails() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
+  const handleSelectCompany = (company) => {
+    const updatedCompanies = [...selectedCompanies, company];
+    setSelectedCompanies(updatedCompanies);
+    setCompanySearchTerm("");
+    setShowCompanyDropdown(false);
 
-  function decodeHtml(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      updatedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+  const handleRemoveCompany = (companyId) => {
+    const updatedCompanies = selectedCompanies.filter(
+      (c) => c._id !== companyId,
+    );
+    setSelectedCompanies(updatedCompanies);
 
-  // Optionally decode twice if double-encoded
-  const decodedHtml = decodeHtml(
-    decodeHtml(job?.jobDetails?.jobDescription || ""),
-  );
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      updatedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
 
-  function decodeHtml1(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
+  const handleClearCompanies = () => {
+    const clearedCompanies = [];
+    setSelectedCompanies(clearedCompanies);
 
-  // Double decode for escaped HTML
-  const decodedHtml1 = decodeHtml1(
-    decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
-  );
-  console.log(job?.jobDetails);
-  // const handleStartTest = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      clearedCompanies, // ✅ now empty
+      selected, // ✅ industries
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","), // ✅ location
+      selectedSalaryRanges,
+    );
+  };
 
-  //     await axios.post(
-  //       `${API_BASE_URL}startAssessment/${assessment?.assessmentId}/${id}`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     // ✅ Start allowed
-  //     navigate("/start-test", {
-  //       state: {
-  //         assessmentId: assessment?.assessmentId,
-  //         jobId: id,
-  //       },
-  //     });
-  //   } catch (error) {
-  //     const apiResponse = error?.response?.data;
-
-  //     // 🔴 Retake blocked
-  //     if (apiResponse?.status === "FAILED_BLOCKED") {
-  //       toast.error("You cannot retake this assessment after failing");
-
-  //       // navigate("/skill-assessments-tests");
-  //       return;
-  //     }
-
-  //     // 🔴 Already submitted
-  //     if (apiResponse?.message === "Assessment already submitted") {
-  //       toast.warning("You have already submitted this assessment");
-
-  //       navigate("/skill-assessments-tests");
-  //       return;
-  //     }
-
-  //     // 🔴 Generic error
-  //     console.error("Failed to start assessment", error);
-  //     toast.error("Unable to start assessment. Please try again later");
-  //   }
-  // };
-  const handleStartTest = async () => {
+  const fetchIndustries = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}getIndustries`);
+      if (res.data.success && Array.isArray(res.data.industries)) {
+        setOptions(res.data.industries); // ✅ Replaces "allIndustries"
+      }
+    } catch (err) {
+      console.error("Error fetching industries:", err);
+    }
+  };
 
-      await axios.post(
-        `${API_BASE_URL}startAssessment/${assessment?.assessmentId}/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        companyContainerRef.current &&
+        !companyContainerRef.current.contains(event.target)
+      ) {
+        setShowCompanyDropdown(false);
+      }
+    }
 
-      // ✅ Assessment required → start test
-      navigate("/start-test", {
-        state: {
-          assessmentId: assessment?.assessmentId,
-          jobId: id,
-          from: from, // ✅ pass original source
-        },
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter((industry) =>
+    industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+  // ✅ Fetch categories
+  const getCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
+      console.log(res);
+      setCategories(res.data.jobCategories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const handleRemoveSalaryTag = (range) => {
+    const updated = selectedSalaryRanges.filter((r) => r !== range);
+    setSelectedSalaryRanges(updated);
+
+    // ✅ Re-fetch jobs with updated filters
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      updated,
+    );
+  };
+
+  const fetchCompanies = async (search = "") => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getCompanyList`, {
+        params: { search },
       });
+      console.log("Company API response:", res.data);
+
+      if (res.data.success && Array.isArray(res.data.companies)) {
+        setCompanyOptions(res.data.companies);
+      } else {
+        setCompanyOptions([]);
+      }
     } catch (error) {
-      const apiResponse = error?.response?.data;
-
-      // 🟡 Assessment NOT required
-      if (apiResponse?.message === "Assessment is not required for this job") {
-        toast.error("No assessment required. You can apply directly.");
-
-        // 👉 Redirect wherever your normal apply flow is
-
-        return;
-      }
-
-      // 🔴 Retake blocked
-      if (apiResponse?.status === "FAILED_BLOCKED") {
-        toast.error("You cannot retake this assessment after failing");
-        return;
-      }
-
-      // 🟠 Already submitted
-      if (apiResponse?.message === "Assessment already submitted") {
-        toast.error("You have already submitted this assessment");
-
-        return;
-      }
-
-      // 🔴 Fallback
-      console.error("Failed to start assessment", error);
-      toast.error("Unable to start assessment. Please try again later");
+      console.error("Error fetching company list:", error);
     }
   };
-  const handleJobClick = async (jobId) => {
+  useEffect(() => {
+    fetchCompanies(companySearchTerm); // call API with search term
+  }, [companySearchTerm]);
+  const formatSalaryRanges = (ranges = []) => {
+    return ranges.map(
+      (range) =>
+        range
+          .replace(/\$/g, "") // remove $
+          .replace(/\s+/g, "") // remove spaces
+          .replace("-", "-"), // keep dash
+    );
+  };
+
+  const getAllJobList = async (
+    limit = pageSize,
+    page = pageNumber,
+    jobTypesArr = selectedJobTypes,
+    experience = selectedSeniority,
+    techStacks = selectedTechStacks,
+    selectedCategoriesArr = [],
+    selectedCompaniesArr = selectedCompanies,
+    selectedIndustries = selected,
+    keywords = filters.keywords,
+    location = filters.location,
+    category = filters.category,
+    locationFilter = "",
+    salaryRangesAPI = [],
+  ) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${API_BASE_URL}jobs/${jobId}/click`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      console.log(response.data);
+      setIsLoadingJobs(true); // 🔵 START LOADER
+      const params = {
+        limit,
+        page,
+        keywords: keywords || undefined,
+        location: location || undefined,
+        category: category || undefined,
+        jobType: jobTypesArr.join(","),
+        experience: experience.join(","),
+        Filtercategory: techStacks.join(","), // ✅ replaced allFilterCategories
+        company: selectedCompaniesArr.map((c) => c.brandName).join(","),
+        industry: selectedIndustries.map((i) => i._id).join(","),
+      };
+
+      if (locationFilter) params.Filterlocation = locationFilter;
+      if (salaryRangesAPI.length > 0) {
+        const formattedSalaryRanges = formatSalaryRanges(salaryRangesAPI);
+        params.salary_range = formattedSalaryRanges.join(",");
+      }
+
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setJobList(res.data?.jobs || []);
+      setTotalJobData(res.data);
     } catch (error) {
-      console.log(console.error);
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
   };
-  const hasPassedAssessment = assessmentDetails?.status === "passed";
+  useEffect(() => {
+    fetchIndustries();
+    getCategories();
+    getAllJobList(pageSize, pageNumber);
+  }, [pageNumber, pageSize]);
 
-  // const canRetryLater =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.retry_period_days > 0;
-  // const canRetryLater =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.daysLeft > 0;
+  useEffect(() => {
+    fetchCompanies(companySearchTerm);
+  }, [companySearchTerm]);
 
-  // const canRetryNow =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.retry_period_days === 0;
+  const totalPages = totalJobData?.totalPages;
+  const jobChunks = [];
+  for (let i = 0; i < jobList.length; i += 10) {
+    jobChunks.push(jobList.slice(i, i + 10));
+  }
 
-  // const cannotRetry =
-  //   assessmentDetails?.validation_required === false &&
-  //   assessmentDetails?.status === "failed";
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  // const isRetryBlocked = canRetryLater || cannotRetry;
-  const canRetryLater =
-    assessmentDetails?.validation_required === true &&
-    assessmentDetails?.status === "failed" &&
-    assessmentDetails?.daysLeft > 0;
+    // build visible filter tags
+    const newFilters = {};
+    if (filters.keywords) newFilters.keywords = filters.keywords;
+    if (filters.location) newFilters.location = filters.location;
+    if (filters.category) {
+      const selectedCat = categories.find((c) => c._id === filters.category);
+      if (selectedCat) {
+        newFilters.category = {
+          id: selectedCat._id, // ✅ use this for API
+          name: selectedCat.name, // ✅ use this for UI
+        };
+      }
+    }
 
-  const canRetryNow =
-    assessmentDetails?.validation_required === true &&
-    assessmentDetails?.status === "failed" &&
-    assessmentDetails?.daysLeft === 0;
+    setAppliedFilters(newFilters);
 
-  const cannotRetry =
-    assessmentDetails?.validation_required === false &&
-    assessmentDetails?.status === "failed";
+    // ✅ now call the API with latest filters
+    getAllJobList();
+  };
+  useEffect(() => {
+    getCategories();
+    getAllJobList(pageSize, pageNumber);
+  }, [pageNumber, pageSize]);
+  const resetApplyModal = () => {
+    setSelectedType("");
+    setSelectedId(null);
+    setSelectedCustomFile(null);
+    setIsApplying(false);
 
-  const isRetryBlocked = canRetryLater || cannotRetry;
+    // reset file input
+    if (fileInputRef?.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const clearAll = () => {
+    const clearedIndustries = [];
+    setSelected(clearedIndustries);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      clearedIndustries,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const removeTag = (_id) => {
+    const updatedIndustries = selected.filter((i) => i._id !== _id);
+    setSelected(updatedIndustries);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      updatedIndustries,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const toggleOption = (industry) => {
+    let updatedIndustries;
+    if (selected.some((i) => i._id === industry._id)) {
+      updatedIndustries = selected.filter((i) => i._id !== industry._id);
+    } else {
+      updatedIndustries = [...selected, industry];
+    }
+
+    setSelected(updatedIndustries);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      updatedIndustries,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+  const handleJobTypeChange = (e) => {
+    const { value, checked } = e.target;
+    const updatedJobTypes = checked
+      ? [...selectedJobTypes, value]
+      : selectedJobTypes.filter((t) => t !== value);
+
+    setSelectedJobTypes(updatedJobTypes);
+
+    // ✅ Call API with all current filters every time
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      updatedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const handleClearFilters = () => {
+    setSelectedJobTypes([]);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      [], // cleared job types
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+  const handleSeniorityChange = (e) => {
+    const { value, checked } = e.target;
+    const updated = checked
+      ? [...selectedSeniority, value]
+      : selectedSeniority.filter((lvl) => lvl !== value);
+
+    setSelectedSeniority(updated);
+
+    // 🔄 Always pass all filters
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      updated, // updated seniority list
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const handleClearSeniority = () => {
+    setSelectedSeniority([]);
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      [], // cleared seniority
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+
+  const handleTechStackChange = (e) => {
+    const { value, checked } = e.target;
+    const updatedTechStacks = checked
+      ? [...selectedTechStacks, value]
+      : selectedTechStacks.filter((t) => t !== value);
+
+    setSelectedTechStacks(updatedTechStacks);
+
+    // ✅ Always call API with all filters
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      updatedTechStacks,
+      selectedCategories, // category filter
+      selectedCompanies, // company filter
+      selected, // industry filter
+      filters.keywords, // keyword search
+      filters.location, // location search
+      filters.category, // category name
+      selectedLocations.map((l) => l.name).join(","), // location filter
+      selectedSalaryRanges, // salary filter
+    );
+  };
+  const isSelectionMade = () => {
+    return (
+      (selectedType === "resume" && selectedId) ||
+      (selectedType === "cover" && selectedId) ||
+      (selectedType === "custom" && selectedCustomFile)
+    );
+  };
+
+  const handleClearTechStacks = () => {
+    setSelectedTechStacks([]);
+    setSearchTech("");
+
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      [], // cleared tech stacks
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords,
+      filters.location,
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+    );
+  };
+  useEffect(() => {
+    setAlertCreated(false);
+  }, [
+    selectedCategories,
+    selectedTechStacks,
+    selectedJobTypes,
+    selectedSeniority,
+    selectedLocations,
+    selectedCompanies,
+    selected,
+    selectedSalaryRanges,
+  ]);
+  console.log(alertCreated, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+  const resetAlertForm = () => {
+    setSelectedCategories([]);
+    setSelectedTechStacks([]);
+    setSelectedJobTypes([]);
+    setSelectedSeniority([]);
+    setSelectedLocations([]);
+    setSelectedCompanies([]);
+    setSelected([]);
+    setSelectedSalaryRanges([]);
+    setNotifyEvery("1 day");
+  };
+
+  useEffect(() => {
+    fetchCompaniesSlider();
+  }, []);
+
+  const fetchCompaniesSlider = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
+      if (res.data.success) {
+        setCompanies(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+    }
+  };
+
+  const handleViewCompany = (company) => {
+    navigate("/companies-details", {
+      state: { companyId: company }, // 👈 send ID as prop-like data
+    });
+  };
+  const JobListLoader = () => (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary mb-3" role="status" />
+      <p>Loading jobs, please wait...</p>
+    </div>
+  );
+  const hasAnyFilter =
+    selectedJobTypes.length > 0 ||
+    selectedSeniority.length > 0 ||
+    selectedCompanies.length > 0 ||
+    selected.length > 0 ||
+    selectedSalaryRanges.length > 0 ||
+    selectedLocations.length > 0 ||
+    selectedTechStacks.length > 0 ||
+    Object.keys(appliedFilters).length > 0; // 🔥 key line
 
   return (
     <>
       <ToastContainer />
-      {from !== "/" && (
-        <section className="inner-breadcrumb-main-area ">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-12 col-sm-12">
-                <div className="breadcrumb-main-list-area mt-4">
-                  <h4>Job Details</h4>
-                  <ul>
-                    <li>
-                      <Link to="/">Home</Link>
-                      <i className="fa-solid fa-angle-right"></i>
-                    </li>
-                    {from !== "/jobs" && (
-                      <li>
-                        <Link to="/candidate-dashboard">Dashboard</Link>
-                        <i className="fa-solid fa-angle-right"></i>
-                      </li>
-                    )}
-                    <li>
-                      <Link to={from}>{breadcrumbLabel}</Link>
-                      <i className="fa-solid fa-angle-right"></i>
-                    </li>
-                    <li>
-                      {loading
-                        ? "Loading..."
-                        : job?.jobDetails?.jobTitle ||
-                          job?.jobTitle ||
-                          "Job Details"}
-                    </li>
-                  </ul>
+      <div className="main-dashboard-content d-flex flex-column">
+        <div className="responsive-content">
+          {/* Breadcrumb Area */}
+          <div className="breadcrumb-area">
+            <h1>Job Search</h1>
+            <ol className="breadcrumb">
+              <li className="item">
+                <Link to="/">Home </Link>
+              </li>
+              <li className="item">
+                <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
+                  <i className="fa-solid fa-angle-right" /> Dashboard
+                </Link>{" "}
+              </li>
+              <li className="item">
+                <Link to="/job-search">
+                  <i className="fa-solid fa-angle-right" />
+                  Job Search
+                </Link>
+              </li>
+            </ol>
+          </div>
+
+          <div className="manage-jobs-box">
+            <div className="job-listing-search-form job-search-info-area">
+              <form onSubmit={handleSubmit}>
+                <div className="row g-0">
+                  <div className="col-lg-3 col-sm-6">
+                    <div className="form-group">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Keywords / Job Title"
+                        value={filters.keywords}
+                        onChange={(e) =>
+                          setFilters({ ...filters, keywords: e.target.value })
+                        }
+                      />
+                      <i className="flaticon-portfolio" />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-sm-6">
+                    <div className="form-group">
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="City Or Postcode"
+                        value={filters.location}
+                        onChange={(e) =>
+                          setFilters({ ...filters, location: e.target.value })
+                        }
+                      />
+                      <i className="flaticon-location" />
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-sm-6">
+                    <div className="form-group style">
+                      <select
+                        className="form-select form-control"
+                        value={filters.category}
+                        onChange={(e) =>
+                          setFilters({ ...filters, category: e.target.value })
+                        }
+                      >
+                        <option value="">Choose A Category</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                      <i className="flaticon-list" />
+                    </div>
+                  </div>
+                  <div className="col-lg-2 col-sm-6">
+                    <div className="search-btn">
+                      <button type="submit" className="default-btn btn">
+                        Find Jobs
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
-        </section>
-      )}
 
-      <section className="job-details-main-info-area">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-md-12">
-              <div className="job-details-top-info-area">
-                <div className="job-name-company-name">
-                  <div className="job-details-job-name">
-                    <h2>{job?.jobTitle}</h2>
-                    <p>
-                      <strong>Company Name: </strong>
-                      <Link
-                        to={`/${job?.jobDetails?.companyId?.slug}`}
-                        state={{ companyId: job?.jobDetails?.companyId?._id }}
-                      >
-                        {job?.jobDetails?.companyId?.brandName}
-                      </Link>
-                    </p>
-                    <p>
-                      <strong>Posted by: </strong>
-                    </p>
-                  </div>
-                  <div className="job-name-company-logo">
-                    <img
-                      crossOrigin="anonymous"
-                      src={
-                        job?.jobDetails?.companyId?.logo
-                          ? `${API_IMAGE_URL}${job.jobDetails.companyId.logo}`
-                          : companyLogo
-                      }
-                      alt={
-                        job?.jobDetails?.companyId?.brandName || "Company Logo"
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="job-apply-link-save-btn-info">
-                  <div className="job-save-btn">
-                    <ul>
-                      <li style={{ position: "relative" }}>
-                        <a
-                          href="#"
-                          onClick={(e) => handleCopy(e, linkUrl)}
-                          style={{
-                            cursor: linkUrl ? "pointer" : "not-allowed",
-                          }}
-                          title={linkUrl ? "Copy link" : "Link not available"}
-                        >
-                          <i className="fa-solid fa-link" />
-                        </a>
-
-                        {/* Small "Copied!" text that fades in/out */}
-                        {copied && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "-20px",
-                              left: "50%",
-                              transform: "translateX(-50%)",
-                              backgroundColor: "#333",
-                              color: "#fff",
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              opacity: 0.9,
-                            }}
-                          >
-                            Copied!
-                          </span>
-                        )}
-                      </li>
-
-                      <li>
-                        <i
-                          className={`fa-${
-                            job?.jobDetails?.isSaved ? "solid" : "regular"
-                          } fa-heart`}
-                          style={{
-                            cursor: "pointer",
-                            color: job?.jobDetails?.isSaved
-                              ? "#fb761a"
-                              : "#fff",
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleSaveJob2(job?.jobDetails?._id);
-                          }}
-                        />
-                      </li>
-                      <li>
-                        <a
-                          href={
-                            job?.jobDetails?.companyId?.links?.linkedin
-                              ? job?.jobDetails?.companyId?.links?.linkedin
-                              : "https://www.linkedin.com/login"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="fa-brands fa-linkedin-in"></i>
-                        </a>
-                      </li>
-
-                      {/* Facebook */}
-                      <li>
-                        <a
-                          href={
-                            job?.jobDetails?.companyId?.links?.facebook
-                              ? job?.jobDetails?.companyId?.links?.facebook
-                              : "https://www.facebook.com/"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="fa-brands fa-facebook-f"></i>
-                        </a>
-                      </li>
-
-                      {/* Twitter / X */}
-                      <li>
-                        <a
-                          href={
-                            job?.jobDetails?.companyId?.links?.twitter
-                              ? job?.jobDetails?.companyId?.links?.twitter
-                              : "https://twitter.com/"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="fa-brands fa-x-twitter"></i>
-                        </a>
-                      </li>
-
-                      {/* Instagram */}
-                      <li>
-                        <a
-                          href={
-                            job?.jobDetails?.companyId?.links?.instagram
-                              ? job?.jobDetails?.companyId?.links?.instagram
-                              : "https://www.instagram.com/"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="fa-brands fa-instagram"></i>
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                  {/* <div className="job-apply-btn edit-popup-modal">
-                    {job?.jobDetails?.isApplied ? (
-                      <div className="default-btn btn">
-                        {job?.jobDetails?.applicationStatus}
-                      </div>
-                    ) : (
-                      <a
-                        href="#"
-                        className="default-btn btn"
-                        onClick={(e) => {
-                          e.preventDefault();
-
-                          // 🔥 If not logged in, redirect to login page
-                          if (userRole !== "JobSeeker") {
-                            navigate("/login");
-                            return;
-                          }
-
-                          // 🔥 If logged in → set jobId
-                          setJobId(job?.jobDetails?._id);
-
-                          // 🔥 Open Apply Modal (correct way)
-                          const modalEl =
-                            document.getElementById("exampleModal");
-                          if (modalEl) {
-                            const modalInstance = new window.bootstrap.Modal(
-                              modalEl,
-                            );
-                            modalInstance.show();
-                          }
-                        }}
-                      >
-                        Apply Now
-                      </a>
-                    )}{" "}
-                    <a
-                      className="default-btn btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#skillAssessmentModal"
-                    >
-                      Apply (Test Required)
-                    </a>
-                  </div> */}
-                  <div className="job-apply-btn edit-popup-modal">
-                    {/* 🔒 Already Applied */}
-                    {job?.jobDetails?.isApplied ? (
-                      <div className="default-btn btn">
-                        {job?.jobDetails?.applicationStatus}
-                      </div>
-                    ) : (
-                      <>
-                        {/* 🧪 Assessment Flow */}
-                        {job?.jobDetails?.isAssessmentRequired &&
-                        !hasPassedAssessment ? (
-                          <>
-                            <a
-                              href="#"
-                              className={`default-btn btn ${isRetryBlocked ? "disabled-btn" : ""}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-
-                                // ⛔ Retry blocked
-                                if (isRetryBlocked) return;
-
-                                if (userRole !== "JobSeeker") {
-                                  navigate("/login");
-                                  return;
-                                }
-
-                                fetchAssessmentDetails(
-                                  job?.jobDetails?.assessment,
-                                );
-
-                                const modalEl = document.getElementById(
-                                  "skillAssessmentModal",
-                                );
-                                if (modalEl) {
-                                  const modal = new window.bootstrap.Modal(
-                                    modalEl,
-                                  );
-                                  modal.show();
-                                }
-                              }}
-                              aria-disabled={isRetryBlocked}
-                            >
-                              Apply (Test Required)
-                            </a>
-
-                            {/* ⏳ Retry message */}
-                            {canRetryLater && (
-                              <p className="reapply-info-tag">
-                                You can retry in {assessmentDetails.daysLeft}{" "}
-                                day
-                                {assessmentDetails.daysLeft > 1 ? "s" : ""}
-                              </p>
-                            )}
-
-                            {cannotRetry && (
-                              <p className="reapply-info-tag">
-                                This assessment cannot be retaken. Please
-                                contact the employer for further assistance.
-                              </p>
-                            )}
-                          </>
-                        ) : (
-                          /* ✅ Apply directly (passed or no assessment) */
-                          <a
-                            href="#"
-                            className="default-btn btn"
-                            onClick={(e) => {
-                              e.preventDefault();
-
-                              if (userRole !== "JobSeeker") {
-                                navigate("/login");
-                                return;
-                              }
-
-                              setJobId(job?.jobDetails?._id);
-                              handleJobClick(job?.jobDetails?._id);
-                              const modalEl =
-                                document.getElementById("exampleModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(
-                                  modalEl,
-                                );
-                                modal.show();
-                              }
-                            }}
-                          >
-                            Apply Now
-                          </a>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="skill-assessment-test-allModal-area">
-                  {/* <!-- Test Required Modal Start Here --> */}
-                  <div
-                    className="modal fade"
-                    id="skillAssessmentModal"
-                    tabindex="-1"
-                    aria-labelledby="skillAssessmentModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h1
-                            className="modal-title"
-                            id="skillAssessmentModalLabel"
-                          >
-                            <i className="fa-solid fa-file"></i>Test Required
-                          </h1>
-                          <button
-                            type="button"
-                            className="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          ></button>
-                        </div>
-                        <div className="modal-body">
-                          <div className="skill-assessment-test-modal-details">
-                            <p>
-                              To apply for {job?.jobDetails?.jobTitle} you must
-                              complete a skills assessment
-                            </p>
-                            <div className="skill-assessment-javaScript-fundamental">
-                              <h6>{assessment?.assessmentName}</h6>
-                              {/* <span>Java Questions:10</span> */}
-                              {categoryCount?.map((cat) => (
-                                <span key={cat.categoryName}>
-                                  {cat.categoryName} Questions:{" "}
-                                  {cat.numberOfQuestions} Questions
-                                </span>
-                              ))}
-
-                              <ul>
-                                <li>
-                                  <i className="fa-solid fa-file"></i>
-                                  {assessment?.totalQuestions}
-                                  {""} {""}
-                                  Questions
-                                </li>
-                                <li>
-                                  <i className="fa-solid fa-calendar"></i>
-                                  {assessment?.totalDuration}
-                                  {""} {""}
-                                  Minutes
-                                </li>
-
-                                <li>
-                                  <i className="fa-solid fa-percent"></i>Pass
-                                  threshold: {assessment?.passingPercentage}%
-                                </li>
-                              </ul>
-                            </div>
-                            <div className="skill-assessment-important-area">
-                              <h6>Important</h6>
-                              <p>
-                                once started, the timer cannot be paused. Make
-                                sure you have enough time to complete the test.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="modal-footer">
-                          <a
-                            href="#"
-                            className="default-btn btn"
-                            data-bs-dismiss="modal"
-                          >
-                            Cancel
-                          </a>
-                          <button
-                            className="default-btn btn"
-                            onClick={handleStartTest}
-                          >
-                            Start Test
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* <!-- Test Required Modal End Here --> */}
-
-                  {/* <!--Test Question Modal Start Here --> */}
-                  <div className="skill-assessment-test-question-list">
+          <div className="job-filter-job-list-info">
+            <div className="container">
+              <div className="row">
+                {/* <div className="col-lg-3 col-sm-3">
+                  <div className="job-filter-main-info">
                     <div
-                      className="modal fade"
-                      id="startTestModal"
-                      tabindex="-1"
-                      aria-labelledby="startTestModalLabel"
-                      aria-hidden="true"
+                      className="job-filter-heading-area job-filter-cancel-heading"
+                      onClick={() => navigate("/job-search")}
+                      style={{ cursor: "pointer" }}
                     >
-                      <div className="modal-dialog">
-                        <div className="modal-content">
-                          <div className="modal-header">
-                            <div className="skill-assessment-test-question-header">
-                              <div className="skill-assessment-test-name-timer">
-                                <span>JavaScript Fundamentals</span>
-                                <span className="test-start-timer-area">
-                                  <i className="fa-solid fa-calendar"></i>04:59
-                                </span>
-                              </div>
-                              <div className="skill-assessment-test-tq-close">
-                                <span>0/5 Answered</span>
-                                <span>
-                                  <i className="fa-solid fa-xmark"></i>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="modal-body">
-                            <div className="skill-assessment-test-question-area">
-                              <div className="skill-assessment-test-num-level">
-                                <span>Question 1 of 5</span>
-                                <span className="skill-assessment-test-level">
-                                  Level B
-                                </span>
-                              </div>
-                              <div className="skill-assessment-test-question-option active">
-                                <h6>
-                                  What is the output of typeof null in
-                                  javaScript?
-                                </h6>
-                                <label>
-                                  <input type="radio" name="q6" checked />
-                                  Class
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Array
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  List
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Type
-                                </label>
-                              </div>
-                              <div className="skill-assessment-test-question-option">
-                                <h6>
-                                  Are is the output of typeof null in
-                                  javaScript?
-                                </h6>
-                                <label>
-                                  <input type="radio" name="q6" checked />
-                                  Array
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Class
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  List
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Type
-                                </label>
-                              </div>
-                              <div className="skill-assessment-test-question-option">
-                                <h6>
-                                  Why is the output of typeof null in
-                                  javaScript?
-                                </h6>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  List
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Class
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" checked />
-                                  Array
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Type
-                                </label>
-                              </div>
-                              <div className="skill-assessment-test-question-option">
-                                <h6>
-                                  This is the output of typeof null in
-                                  javaScript?
-                                </h6>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  List
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Class
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Array
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" checked />
-                                  Type
-                                </label>
-                              </div>
-                              <div className="skill-assessment-test-question-option">
-                                <h6>
-                                  React.js is the output of typeof null in
-                                  javaScript?
-                                </h6>
-                                <label>
-                                  <input type="radio" name="q6" checked />
-                                  Class
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Array
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  List
-                                </label>
-                                <label>
-                                  <input type="radio" name="q6" />
-                                  Type
-                                </label>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="modal-footer">
-                            <span className="default-btn btn" id="prevBtn">
-                              Previous
-                            </span>
-                            <span className="default-btn btn" id="nextBtn">
-                              Next
-                            </span>
-                            <span
-                              className="default-btn btn"
-                              id="finishBtn"
-                              data-bs-toggle="modal"
-                              data-bs-target="#finishTestModal"
-                            >
-                              Finish Test
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* <!--Test Question Modal End Here --> */}
-
-                  {/* <!-- Finish Test Modal Start here --> */}
-                  <div class="skill-assessment-test-finish-area">
-                    {/* <!-- Modal --> */}
-                    <div
-                      class="modal fade"
-                      id="finishTestModal"
-                      tabindex="-1"
-                      aria-labelledby="finishTestModalLabel"
-                      aria-hidden="true"
-                    >
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-body">
-                            <h5>Finish Test?</h5>
-                            <p>You have answered 5 of 5 questions.</p>
-                          </div>
-                          <div class="modal-footer">
-                            <span class="default-btn btn" id="reviewBtn">
-                              Review Answers
-                            </span>
-                            <span
-                              class="default-btn btn"
-                              id="submitBtn"
-                              data-bs-toggle="modal"
-                              data-bs-target="#scoreCardModal"
-                            >
-                              Submit Test
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* <!-- Finish Test Modal End here --> */}
-
-                  {/* <!--Score Card Modal Start Here --> */}
-
-                  {/* <!--Score Card Modal End Here --> */}
-                </div>
-                <div
-                  className="modal fade"
-                  id="exampleModal"
-                  tabIndex={-1}
-                  aria-labelledby="exampleModalLabel"
-                  aria-hidden="true"
-                >
-                  <div className="modal-dialog">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="exampleModalLabel">
-                          Apply now
-                        </h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          data-bs-dismiss="modal"
-                          aria-label="Close"
-                          onClick={resetApplyModal}
-                        />
-                      </div>
-                      {/* NOTE: use className, not class */}
-                      <div className="modal-body">
-                        <div className="job-apply-defult-resume-custom-resume">
-                          {/* RESUME LIST - inline hide */}
-                          <div
-                            className="job-apply-custom-resume-info-area"
-                            style={{
-                              display:
-                                Array.isArray(resumeList) &&
-                                resumeList.length > 0
-                                  ? "block"
-                                  : "none",
-                            }}
-                          >
-                            {Array.isArray(resumeList) &&
-                              resumeList.map((resume) => {
-                                const fileName = getFileName(resume.url);
-                                return (
-                                  <div
-                                    key={resume._id}
-                                    className={
-                                      "job-apply-custom-resume-info " +
-                                      (selectedType === "resume" &&
-                                      selectedId === resume.url
-                                        ? "active"
-                                        : "")
-                                    }
-                                    onClick={() =>
-                                      handleSelect("resume", resume.url)
-                                    }
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <span className="file-name-text">
-                                      <i className="fa-solid fa-file" />{" "}
-                                      {fileName}
-                                    </span>
-
-                                    {selectedType === "resume" &&
-                                      selectedId === resume.url && (
-                                        <i className="fa-solid fa-circle-check selected-check-icon" />
-                                      )}
-                                  </div>
-                                );
-                              })}
-                          </div>
-
-                          {/* OR DIVIDER for resume - inline hide */}
-                          <div
-                            className="defult-resume-custom-resume-divder-line"
-                            style={{
-                              display:
-                                Array.isArray(resumeList) &&
-                                resumeList.length > 0
-                                  ? "block"
-                                  : "none",
-                            }}
-                          >
-                            <h4>or</h4>
-                          </div>
-
-                          {/* COVER LETTER LIST - inline hide */}
-                          <div
-                            className="job-apply-custom-resume-info-area"
-                            style={{
-                              display:
-                                Array.isArray(coverLetterList) &&
-                                coverLetterList.length > 0
-                                  ? "block"
-                                  : "none",
-                            }}
-                          >
-                            {Array.isArray(coverLetterList) &&
-                              coverLetterList.map((cover) => {
-                                const fileName = getFileName(cover.url);
-                                return (
-                                  <div
-                                    key={cover._id}
-                                    className={
-                                      "job-apply-custom-resume-info " +
-                                      (selectedType === "cover" &&
-                                      selectedId === cover.url
-                                        ? "active"
-                                        : "")
-                                    }
-                                    onClick={() =>
-                                      handleSelect("cover", cover.url)
-                                    }
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <span className="file-name-text">
-                                      <i className="fa-solid fa-file" />{" "}
-                                      {fileName}
-                                    </span>
-
-                                    {selectedType === "cover" &&
-                                      selectedId === cover.url && (
-                                        <i className="fa-solid fa-circle-check selected-check-icon" />
-                                      )}
-                                  </div>
-                                );
-                              })}
-                          </div>
-
-                          {/* OR DIVIDER for cover - inline hide */}
-                          <div
-                            className="defult-resume-custom-resume-divder-line"
-                            style={{
-                              display:
-                                Array.isArray(coverLetterList) &&
-                                coverLetterList.length > 0
-                                  ? "block"
-                                  : "none",
-                            }}
-                          >
-                            <h4>or</h4>
-                          </div>
-
-                          {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
-                          <div
-                            className="job-apply-custom-resume-info-area"
-                            style={{ display: "block" }}
-                          >
-                            {/* Show selected custom file if exists */}
-                            <div
-                              style={{
-                                display: selectedCustomFile ? "block" : "none",
-                              }}
-                            >
-                              <div
-                                className={
-                                  "job-apply-custom-resume-info " +
-                                  (selectedType === "custom" ? "active" : "")
-                                }
-                                onClick={() =>
-                                  selectedCustomFile && handleSelect("custom")
-                                }
-                                style={{
-                                  cursor: selectedCustomFile
-                                    ? "pointer"
-                                    : "default",
-                                }}
-                              >
-                                <span className="file-name-text">
-                                  <i className="fa-solid fa-file" />{" "}
-                                  {selectedCustomFile
-                                    ? selectedCustomFile.name
-                                    : ""}
-                                </span>
-
-                                {selectedType === "custom" && (
-                                  <i className="fa-solid fa-circle-check selected-check-icon" />
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Upload Button — prevent default and open file input */}
-                            <div
-                              className="job-apply-custom-resume-cover-letter-btn"
-                              style={{ marginTop: 12 }}
-                            >
-                              <a
-                                href="#"
-                                className="default-btn btn"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  // ensure fileInputRef.current exists
-                                  if (fileInputRef && fileInputRef.current)
-                                    fileInputRef.current.click();
-                                }}
-                              >
-                                Custom resume with cover letter
-                              </a>
-
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".pdf,.doc,.docx"
-                                onChange={handleFileUpload}
-                                style={{ display: "none" }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Divider before apply button (always keep in DOM) */}
-                          <div
-                            className="defult-resume-custom-resume-divder"
-                            style={{ marginTop: 16 }}
-                          />
-
-                          {/* APPLY BUTTON - always present */}
-                          <div
-                            className="job-apply-defult-resume-btn"
-                            style={{ marginTop: 12 }}
-                          >
-                            <button
-                              className="default-btn btn w-100"
-                              onClick={handleApplyJob}
-                              disabled={isApplying || !isSelectionMade()}
-                            >
-                              {isApplying ? (
-                                <>
-                                  <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                  ></span>
-                                  Applying...
-                                </>
-                              ) : (
-                                "Apply Now"
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>{" "}
-                      {/* .modal-body */}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {job?.jobDetails?.isAssessmentRequired && (
-                <div
-                  className={`skills-assessment-test-required-details ${
-                    assessmentDetails?.status === "failed"
-                      ? "assessment-failed"
-                      : assessmentDetails?.status === "passed"
-                        ? "assessment-passed"
-                        : ""
-                  }`}
-                >
-                  <div
-                    className={`skills-assessment-test-icon-content ${
-                      assessmentDetails?.status === "failed"
-                        ? "assessment-icon"
-                        : "assessment-icon"
-                    }`}
-                  >
-                    <div className="skills-assessment-icon">
-                      <i className="fa-solid fa-file"></i>
-                    </div>
-
-                    <div className="skills-assessment-test-passed-area">
-                      <div className="skills-assessment-content">
-                        <h5
-                          className={
-                            assessmentDetails?.status === "failed"
-                              ? "text-danger"
-                              : assessmentDetails?.status === "passed"
-                                ? "text-success"
-                                : "text-muted"
-                          }
-                        >
-                          Skills Assessment Required
-                        </h5>
-                        <p
-                          className={
-                            assessmentDetails?.status === "failed"
-                              ? "text-danger"
-                              : assessmentDetails?.status === "passed"
-                                ? "text-success"
-                                : "text-muted"
-                          }
-                        >
-                          <i className="fa-solid fa-file"></i> <></>
-                          {/* 🟡 NOT ATTEMPTED (assessmentResult is null OR status not present) */}
-                          {(!assessmentDetails ||
-                            assessmentDetails?.status === "not_attempted") && (
-                            <>
-                              You need to pass a skills assessment before
-                              applying for this position.
-                            </>
-                          )}
-                          {/* 🔴 FAILED */}
-                          {assessmentDetails?.status === "failed" && (
-                            <>
-                              You did not pass the test on your previous
-                              attempt.
-                              {/* {assessmentDetails?.retry_period_days > 0 && (
-                                <>
-                                  <br />
-                                  <strong>
-                                    You can retry in{" "}
-                                    {assessmentDetails?.retry_period_days} days.
-                                  </strong>
-                                </>
-                              )}
-                              {assessmentDetails?.retry_period_days === 0 && (
-                                <>
-                                  <br />
-                                  <strong>
-                                    This assessment cannot be retaken. Please
-                                    contact the employer for further assistance.
-                                  </strong>
-                                </>
-                              )} */}
-                              {canRetryNow && (
-                                <strong>
-                                  <br />
-                                  You can try the assessment again.
-                                </strong>
-                              )}
-                              {canRetryLater && (
-                                <strong>
-                                  <br />
-                                  You can retry in {
-                                    assessmentDetails.daysLeft
-                                  }{" "}
-                                  day
-                                  {assessmentDetails.daysLeft > 1 ? "s" : ""}
-                                </strong>
-                              )}
-                              {cannotRetry && (
-                                <strong>
-                                  <br />
-                                  This assessment cannot be retaken. Please
-                                  contact the employer for further assistance.
-                                </strong>
-                              )}
-                            </>
-                          )}
-                          {/* 🟢 PASSED */}
-                          {assessmentDetails?.status === "passed" && (
-                            <>
-                              You have already passed this test! You can apply
-                              directly.
-                            </>
-                          )}
-                        </p>
-                      </div>
-
-                      {/* ✅ Show score ONLY when PASSED */}
-                      {assessmentDetails?.status === "passed" && (
-                        <div className="test-passed-percentage">
-                          <p style={{ color: "#28a745" }}>
-                            <i
-                              className="fa-solid fa-file"
-                              style={{ color: "#28a745" }}
-                            ></i>{" "}
-                            Total Passed (
-                            {assessmentDetails?.scorePercentage ?? 0}%)
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* <!-- skill Assessment Test All Modal Start Area--> */}
-              <div className="job-details-tag-info-area">
-                <div className="job-details-tag-main-area">
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-location-dot" />
-                      Place
-                    </h4>
-
-                    <p className="active_link">
-                      {Array.isArray(job?.jobDetails?.city) &&
-                      job.jobDetails.city.length > 0
-                        ? job.jobDetails.city.join(", ")
-                        : job?.jobDetails?.companyId?.city || "N/A"}
-                    </p>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-calendar-days" />
-                      Publication date
-                    </h4>
-                    <p> {moment(job?.jobDetails?.createdAt).fromNow()}</p>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-signal" />
-                      Experience level
-                    </h4>
-                    <Link to="/jobs">
-                      <p className="active_link">
-                        {job?.jobDetails?.minimumLevel?.name || "N/A"}
-                      </p>
-                    </Link>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-user" />
-                      Type of contract
-                    </h4>
-                    <p className="active_link">
-                      {job?.jobDetails?.employmentType?.length > 0
-                        ? job.jobDetails.employmentType
-                            .map((item) => item.name)
-                            .join(", ")
-                        : "N/A"}
-                    </p>
-                  </div>
-                </div>
-                <div className="job-details-spaceline" />
-                <div className="job-details-tag-main-area">
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-gear" /> Job category
-                    </h4>
-                    <Link to="/jobs">
-                      <p className="active_link">
-                        {job?.jobDetails?.jobCategory?.length > 0
-                          ? job.jobDetails.jobCategory
-                              .map((item) => item.name)
-                              .join(", ")
-                          : "N/A"}
-                      </p>
-                    </Link>
-                  </div>
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-briefcase" />
-                      Openings
-                    </h4>
-                    <p>{job?.jobDetails?.availablePosts || "N/A"}</p>
-                  </div>
-
-                  {(userRole === "Recruiter" || userRole === "Company") && (
-                    <div className="job-details-tag-box">
                       <h4>
-                        <i className="fa-solid fa-file" />
-                        Applicants
+                        <i className="fa-regular fa-file" /> Job offers
                       </h4>
-                      <p>0</p>
                     </div>
-                  )}
-                  <div className="job-details-tag-box">
-                    <h4>
-                      <i className="fa-solid fa-money-bill" />
-                      Salary
-                    </h4>
-
-                    <p>
-                      ${job?.jobDetails?.privatJobDetails?.minSalary} - $
-                      {job?.jobDetails?.privatJobDetails?.maxSalary}
-                    </p>
-
-                    {job?.jobDetails?.TJM?.amount && (
-                      <p className="mt-2">
-                        <strong>TJM -</strong>
-                        {job.jobDetails.TJM.amount}{" "}
-                        {job.jobDetails.TJM.currency}/j
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="job-details-role-company-discription">
-                <h5>About the role</h5>
-                <p>{job?.jobDetails?.shortDescription}</p>
-
-                <h5>Company Description</h5>
-                <div dangerouslySetInnerHTML={{ __html: decodedHtml1 }} />
-              </div>
-              <div className="job-details-job-description">
-                <h5>Job Description</h5>
-                <div dangerouslySetInnerHTML={{ __html: decodedHtml }} />
-              </div>
-
-              <div className="job-details-related-tags">
-                <h5>Related Tags</h5>
-                {job?.jobDetails?.tags && job?.jobDetails?.tags.length > 0 ? (
-                  <ul>
-                    {job?.jobDetails?.tags.map((tag, index) => (
-                      <li key={index}>{tag}</li> // ✅ dynamically render tag
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No related tags found.</p> // ✅ fallback message
-                )}
-              </div>
-
-              <div className="summary-offer-info-area">
-                <div className="summary-offer-post-details">
-                  <div className="summary-offer-job-post">
-                    <h4>
-                      <img
-                        crossorigin="anonymous"
-                        src={
-                          job?.jobDetails?.companyId?.logo
-                            ? `${API_IMAGE_URL}${job?.jobDetails?.companyId?.logo}`
-                            : companyLogo
-                        }
-                        alt="logo"
-                      />
-                      {job?.jobDetails?.companyId?.brandName ||
-                        "Unknown Company"}
-                    </h4>
-                  </div>
-                  <div className="summary-offer-save-job">
-                    <i
-                      className={`fa-${
-                        job?.jobDetails?.isSaved ? "solid" : "regular"
-                      } fa-heart`}
-                      style={{
-                        cursor: "pointer",
-                        color: job?.jobDetails?.isSaved ? "red" : "#888",
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleSaveJob1(job?.jobDetails?._id);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="summary-offer-job-short-detail">
-                  <h4>
-                    {job?.jobDetails?.jobTitle || "Job Title Not Provided"}
-                  </h4>
-                  <p>
-                    {job?.jobDetails?.shortDescription ||
-                      "Location not specified"}
-                  </p>
-                  <ul>
-                    <li>
-                      <i className="fa-solid fa-location-dot" />{" "}
-                      {job?.jobDetails?.companyId?.city ||
-                        "Location not specified"}
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-calendar" />{" "}
-                      {job?.jobDetails?.createdAt
-                        ? moment(job?.jobDetails?.createdAt).fromNow()
-                        : "Recently posted"}
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-file" />{" "}
-                      {job?.jobDetails?.jobCategory?.length > 0
-                        ? job.jobDetails.jobCategory
-                            .map((item) => item.name)
-                            .join(", ")
-                        : "N/A"}
-                    </li>
-                    <li>
-                      <i className="fa-regular fa-user" />{" "}
-                      {/* {job?.jobDetails?.employmentType?.name || "Full time"} */}
-                      {job?.jobDetails?.employmentType?.length > 0
-                        ? job.jobDetails.employmentType
-                            .map((item) => item.name)
-                            .join(", ")
-                        : "N/A"}
-                    </li>
-                  </ul>
-
-                  <div className="summary-offer-apply-report-btn edit-popup-modal">
-                    {/* {job?.jobDetails?.isApplied ? (
-                      <div className="default-btn btn">
-                        {job?.jobDetails?.applicationStatus}
-                      </div>
-                    ) : (
-                      <a
-                        href="#"
-                        className="default-btn btn"
-                        onClick={(e) => {
-                          e.preventDefault();
-
-                          // 🔥 If not logged in, redirect to login page
-                          if (userRole !== "JobSeeker") {
-                            navigate("/login");
-                            return;
-                          }
-
-                          // 🔥 If logged in → set jobId
-                          setJobId(job?.jobDetails?._id);
-
-                          // 🔥 Open Apply Modal (correct way)
-                          const modalEl =
-                            document.getElementById("exampleModal");
-                          if (modalEl) {
-                            const modalInstance = new window.bootstrap.Modal(
-                              modalEl,
-                            );
-                            modalInstance.show();
-                          }
-                        }}
-                      >
-                        Apply Now
-                      </a>
-                    )} */}
-                    {/* 🔒 Already Applied */}
-                    {job?.jobDetails?.isApplied ? (
-                      <div className="default-btn btn">
-                        {job?.jobDetails?.applicationStatus}
-                      </div>
-                    ) : (
-                      <>
-                        {/* 🧪 Assessment Flow */}
-                        {job?.jobDetails?.isAssessmentRequired &&
-                        !hasPassedAssessment ? (
-                          <>
-                            <a
-                              href="#"
-                              className={`default-btn btn ${isRetryBlocked ? "disabled-btn" : ""}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-
-                                // ⛔ Retry blocked
-                                if (isRetryBlocked) return;
-
-                                if (userRole !== "JobSeeker") {
-                                  navigate("/login");
-                                  return;
-                                }
-
-                                fetchAssessmentDetails(
-                                  job?.jobDetails?.assessment,
-                                );
-
-                                const modalEl = document.getElementById(
-                                  "skillAssessmentModal",
-                                );
-                                if (modalEl) {
-                                  const modal = new window.bootstrap.Modal(
-                                    modalEl,
-                                  );
-                                  modal.show();
-                                }
-                              }}
-                              aria-disabled={isRetryBlocked}
-                            >
-                              Apply (Test Required)
-                            </a>
-
-                            {/* ⏳ Retry message */}
-                            {canRetryLater && (
-                              <p className="reapply-info-tag">
-                                You can retry in {assessmentDetails.daysLeft}{" "}
-                                day
-                                {assessmentDetails.daysLeft > 1 ? "s" : ""}
-                              </p>
-                            )}
-
-                            {cannotRetry && (
-                              <p className="reapply-info-tag">
-                                This assessment cannot be retaken. Please
-                                contact the employer for further assistance.
-                              </p>
-                            )}
-                          </>
-                        ) : (
-                          /* ✅ Apply directly (passed or no assessment) */
-                          <a
-                            href="#"
-                            className="default-btn btn"
-                            onClick={(e) => {
-                              e.preventDefault();
-
-                              if (userRole !== "JobSeeker") {
-                                navigate("/login");
-                                return;
-                              }
-
-                              setJobId(job?.jobDetails?._id);
-                              handleJobClick(job?.jobDetails?._id);
-                              const modalEl =
-                                document.getElementById("exampleModal");
-                              if (modalEl) {
-                                const modal = new window.bootstrap.Modal(
-                                  modalEl,
-                                );
-                                modal.show();
-                              }
-                            }}
-                          >
-                            Apply Now
-                          </a>
-                        )}
-                      </>
-                    )}
-                    <a href="#" className="report-btn-info">
-                      Report this job
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {job?.similarJobs?.length > 0 && (
-                <div className="similar-jobs-section mt-3">
-                  <h5>Other job posts you may be interested in</h5>
-                  {job.similarJobs.map((item) => (
-                    <Link
-                      key={item._id}
-                      to={`/job-details/${item._id}`} // Pass ID in URL
-                      state={{ from: "/job-search" }}
-                      className="job-link"
+                    <NavLink
+                      to="/companies-list"
+                      className={({ isActive }) =>
+                        `job-filter-heading-area ${isActive ? "active" : ""}`
+                      }
                     >
-                      <div className="available-job-posts-box">
-                        {/* Company Name & Logo */}
-                        <div className="available-job-company-name-save-job">
-                          <div className="available-job-company-name">
-                            <h4>
-                              <img
-                                crossOrigin="anonymous"
-                                src={
-                                  item?.companyId?.logo
-                                    ? `${API_IMAGE_URL}${item.companyId.logo}`
-                                    : companyLogo
-                                }
-                                alt={
-                                  item?.companyId?.brandName || "Company Logo"
-                                }
-                              />
+                      <h4>
+                        <i className="fa-regular fa-building" /> Companies
+                      </h4>
+                    </NavLink>
 
-                              {item.companyId?.brandName || "Unknown Company"}
-                            </h4>
-                          </div>
-
-                          {/* Save Job & Social Icons */}
-                          <div className="d-flex justify-space-between">
-                            <div>
-                              {item?.isAssessmentRequired && (
-                                <>
-                                  {/* 🟢 PASSED */}
-                                  {item?.assessmentResult?.status ===
-                                    "passed" && (
-                                    <span className="test-passed-tag-area">
-                                      <i className="fa-solid fa-circle-check"></i>
-                                      Test Passed
-                                    </span>
-                                  )}
-
-                                  {/* 🔴 FAILED */}
-                                  {item?.assessmentResult?.status ===
-                                    "failed" && (
-                                    <span className="test-failed-tag-area">
-                                      <i className="fa-solid fa-circle-xmark"></i>
-                                      Test Failed
-                                    </span>
-                                  )}
-
-                                  {/* 🟠 NOT ATTEMPTED */}
-                                  {(!item?.assessmentResult ||
-                                    item?.assessmentResult?.status ===
-                                      "not_attempted") && (
-                                    <span className="test-required-tag-area">
-                                      <i className="fa-solid fa-clipboard-check"></i>
-                                      Test Required
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </div>
-
-                            <div className="available-job-save-job">
-                              <i
-                                className={`fa-${
-                                  item.isSaved ? "solid" : "regular"
-                                } fa-heart`}
-                                style={{
-                                  cursor: "pointer",
-                                  color: item.isSaved ? "#fb761a" : "#fff",
-                                }}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleSaveJob(item._id);
-                                }}
-                              />
-                              <a
-                                href="https://www.linkedin.com/login"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <i className="fa-brands fa-linkedin-in" />
-                              </a>
-                              <a
-                                href="https://www.facebook.com/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <i className="fa-brands fa-facebook-f" />
-                              </a>
-                              <a
-                                href="https://web.whatsapp.com/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <i className="fa-brands fa-whatsapp" />
-                              </a>
-                            </div>
-                          </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-gear" /> Tech Stack
+                          </h4>
                         </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option selected>Select Tech Stack</option>
+                          <option value={1}>Java</option>
+                          <option value={2}>Python</option>
+                          <option value={3}>React</option>
+                          <option value={2}>Python</option>
+                          <option value={3}>React</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-gear" /> Job Type
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Full Time</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Part Time</label>
+                          </li>
 
-                        {/* Job Details */}
-                        <div className="available-job-type-details">
-                          <h5>{item.jobTitle || "Job Title Not Provided"}</h5>
-                          <p>
-                            {item.shortDescription ||
-                              "No description available"}
-                          </p>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Freelance</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Internship</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Remote</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> Hybrid Jobs</label>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-location-dot" /> Location
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option selected>Select Location</option>
+                          <option value={1}>India</option>
+                          <option value={2}>USA</option>
+                          <option value={3}>Paris</option>
+                          <option value={4}>Germany</option>
+                          <option value={2}>Spain</option>
+                          <option value={3}>Mau</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div class="job-filter-search-area">
+                      <div class="job-filter-heading-cancel">
+                        <div class="job-filter-heading">
+                          <h4>
+                            <i class="fas fa-signal"></i> Experience Level
+                          </h4>
+                        </div>
+                        <div class="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div class="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              value="Other Preferences"
+                            />
+                            <label for="vehicle1"> 0 - 2 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              value="Other Preferences"
+                            />
+                            <label for="vehicle1"> 2 - 4 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              value="Other Preferences"
+                            />
+                            <label for="vehicle1"> 5 - 7 Years</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              value="Other Preferences"
+                            />
+                            <label for="vehicle1"> 8 - 10 Years</label>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-money-bill-alt" /> Salary Range
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <ul>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> 0 to $100</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $ 101 to $ 150</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $ 151 to $ 200</label>
+                          </li>
+                          <li>
+                            <input
+                              type="checkbox"
+                              id="OtherPreferences"
+                              name="OtherPreferences"
+                              defaultValue="Other Preferences"
+                            />
+                            <label htmlFor="vehicle1"> $ 201 to $ 250</label>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Industry Sector
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option selected>Select Industry</option>
+                          <option value={1}>Agriculture</option>
+                          <option value={2}>Air Transport</option>
+                          <option value={3}>Automotive</option>
+                          <option value={4}>Biotechnology</option>
+                          <option value={2}>Chemicals</option>
+                          <option value={3}>Construction</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Company
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+                      <div className="job-filter-select-info">
+                        <select
+                          className="form-select form-control"
+                          aria-label="Default select example"
+                        >
+                          <option selected>Select Company</option>
+                          <option value={1}>Agriculture</option>
+                          <option value={2}>Air Transport</option>
+                          <option value={3}>Automotive</option>
+                          <option value={4}>Biotechnology</option>
+                          <option value={2}>Chemicals</option>
+                          <option value={3}>Construction</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div> */}
+                <div className="col-lg-4 col-md-4">
+                  <div className="job-filter-main-info sidebar-scroll-touch-footer">
+                    <div className="job-filter-heading-area">
+                      <h4>
+                        <Link to="/companies-list" className="active">
+                          <i className="fa-regular fa-file" /> Job offers
+                        </Link>
+                      </h4>
+                    </div>
+                    <div className="job-filter-heading-area">
+                      <h4>
+                        <Link to="/companies-list">
+                          <i className="fa-regular fa-building" /> Companies
+                        </Link>
+                      </h4>
+                    </div>
+                    <div className="divder-line-info" />
+
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-laptop-code" />
+                            Tech Stack
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4
+                            style={{ cursor: "pointer" }}
+                            onClick={handleClearTechStacks}
+                          >
+                            Clear
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <ul>
+                          {categories.slice(0, 3).map((cat, index) => (
+                            <li key={cat._id}>
+                              <input
+                                type="checkbox"
+                                id={`tech-${index}`}
+                                value={cat._id}
+                                checked={selectedTechStacks.includes(cat._id)}
+                                onChange={handleTechStackChange}
+                              />
+                              <label htmlFor={`tech-${index}`}>
+                                {cat.name} ({cat.jobCount})
+                              </label>
+                            </li>
+                          ))}
+                        </ul>
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="techStackCollapse"
+                        >
+                          <div className="job-filter-tech-stack-search-box mb-2">
+                            <input
+                              type="search"
+                              className="form-control"
+                              placeholder="Search..."
+                              value={searchTech}
+                              onChange={(e) => setSearchTech(e.target.value)}
+                            />
+                          </div>
+
                           <ul>
-                            <li>
-                              <i className="fa-regular fa-calendar" />{" "}
-                              {item.createdAt
-                                ? moment(item.createdAt).fromNow()
-                                : "Recently posted"}
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-file" />{" "}
-                              {item?.jobCategory?.length > 0
-                                ? item.jobCategory
-                                    .map((cat) => cat.name)
-                                    .join(", ")
-                                : "Category not specified"}
-                            </li>
-                            <li>
-                              <i className="fa-regular fa-user" />{" "}
-                              {Array.isArray(item?.employmentType) &&
-                              item.employmentType.length > 0
-                                ? item.employmentType
-                                    .map((type) => type.name)
-                                    .join(", ")
-                                : "Full Time"}
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-location-dot" />{" "}
-                              {item.companyId?.city || "Location not specified"}
-                            </li>
-                            <li>
-                              <i className="fa-solid fa-users" /> Available:{" "}
-                              {item?.availablePosts || 0}
-                            </li>
+                            {categories
+                              .slice(3)
+                              .filter((cat) =>
+                                cat.name
+                                  .toLowerCase()
+                                  .includes(searchTech.toLowerCase()),
+                              )
+                              .map((cat, index) => (
+                                <li key={cat._id}>
+                                  <input
+                                    type="checkbox"
+                                    id={`tech-${index + 3}`}
+                                    value={cat._id}
+                                    checked={selectedTechStacks.includes(
+                                      cat._id,
+                                    )}
+                                    onChange={handleTechStackChange}
+                                  />
+                                  <label htmlFor={`tech-${index + 3}`}>
+                                    {cat.name} ({cat.jobCount})
+                                  </label>
+                                </li>
+                              ))}
                           </ul>
                         </div>
 
-                        {/* Apply Button */}
-                        {/* <div className="available-job-type-apply-btn">
-                          {item?.isApplied ? (
-                            <button className="default-btn btn">
-                              {item?.applicationStatus}
-                            </button>
-                          ) : (
-                            <button
-                              className="default-btn btn"
-                              data-bs-toggle="modal"
-                              data-bs-target="#exampleModal"
-                              onClick={() => setJobId(item._id)}
-                            >
-                              Apply Now
-                            </button>
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#techStackCollapse"
+                          aria-expanded="false"
+                          aria-controls="techStackCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-briefcase" /> Job Type
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4
+                            style={{ cursor: "pointer" }}
+                            onClick={handleClearFilters}
+                          >
+                            Clear
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <ul>
+                          {jobTypes.slice(0, 4).map((type) => (
+                            <li key={type._id}>
+                              <input
+                                type="checkbox"
+                                value={type._id} // ✅ send ID instead of name
+                                checked={selectedJobTypes.includes(type._id)} // ✅ check by ID
+                                onChange={handleJobTypeChange}
+                              />
+                              <label>{type.name}</label>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* 🔽 Collapsible section for remaining job types */}
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="jobTypesCollapse"
+                        >
+                          <ul>
+                            {jobTypes.slice(4).map((type) => (
+                              <li key={type._id}>
+                                <input
+                                  type="checkbox"
+                                  value={type._id} // ✅ send ID
+                                  checked={selectedJobTypes.includes(type._id)} // ✅ check by ID
+                                  onChange={handleJobTypeChange}
+                                />
+                                <label>{type.name}</label>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* 🔽 Show More / Less button */}
+                        {jobTypes.length > 4 && (
+                          <div
+                            className="show-more-less-btn collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#jobTypesCollapse"
+                            aria-expanded="false"
+                            aria-controls="jobTypesCollapse"
+                          >
+                            <span className="show-more">
+                              Show More{" "}
+                              <i
+                                className="fa fa-angle-down"
+                                aria-hidden="true"
+                              />
+                            </span>
+                            <span className="show-less">
+                              Show Less{" "}
+                              <i
+                                className="fa fa-angle-up"
+                                aria-hidden="true"
+                              />
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fa-solid fa-location-dot" /> Location
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4
+                            style={{ cursor: "pointer" }}
+                            onClick={handleClearLocations} // clear all selected locations
+                          >
+                            Clear
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <div className="job-filter-select-location">
+                          <input
+                            className="form-control"
+                            type="search"
+                            placeholder="Search Location"
+                            value={locationSearchTerm}
+                            onChange={handleLocationSearch}
+                          />
+
+                          {/* Suggestions dropdown */}
+                          {isLocationLoading && (
+                            <div className="suggestion-box">Searching...</div>
                           )}
-                        </div> */}
-                        <div className="available-job-type-apply-btn">
-                          {/* 🔒 Already Applied */}
-                          {item?.isApplied ? (
-                            <button
-                              className="default-btn btn"
-                              disabled
-                              style={{ color: "#ff6600" }}
-                            >
-                              {item?.applicationStatus}
-                            </button>
-                          ) : item?.isAssessmentRequired ? (
-                            /* 🧪 Assessment Required → View Details */
-                            <Link
-                              to={`/job-details/${item._id}`}
-                              className="default-btn btn"
-                              state={{ from: "/job-search" }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View Details
-                            </Link>
-                          ) : (
-                            /* ✅ No Assessment → Direct Apply */
-                            <a
-                              href="#"
-                              className="default-btn btn"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
 
-                                if (userRole !== "JobSeeker") {
-                                  navigate("/login");
-                                  return;
-                                }
+                          {!isLocationLoading &&
+                            locationSuggestions.length > 0 && (
+                              <ul
+                                className="list-group position-absolute w-100"
+                                style={{
+                                  zIndex: 1000,
+                                  maxHeight: "200px",
+                                  overflowY: "auto",
+                                }}
+                              >
+                                {locationSuggestions.map((city) => (
+                                  <li
+                                    key={city._id}
+                                    className="list-group-item list-group-item-action"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => handleSelectLocation(city)}
+                                  >
+                                    {city.name}, {city.state_name},{" "}
+                                    {city.country_name}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
 
-                                setJobId(item._id);
+                          {/* Selected locations */}
+                        </div>
+                      </div>
+                    </div>
 
-                                const modalEl =
-                                  document.getElementById("exampleModal");
-                                if (modalEl) {
-                                  const modal = new window.bootstrap.Modal(
-                                    modalEl,
-                                  );
-                                  modal.show();
-                                }
-                              }}
-                            >
-                              Apply Now
-                            </a>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-signal" /> Seniority Level
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4
+                            style={{ cursor: "pointer" }}
+                            onClick={handleClearSeniority}
+                          >
+                            Clear
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        {/* First 3 items */}
+                        <ul>
+                          {seniorityLevels.slice(0, 3).map((level, index) => (
+                            <li key={level._id}>
+                              <input
+                                type="checkbox"
+                                id={`seniority-${index}`}
+                                value={level._id} // ✅ Use ID instead of name
+                                checked={selectedSeniority.includes(level._id)} // ✅ Compare by ID
+                                onChange={handleSeniorityChange}
+                              />
+                              <label htmlFor={`seniority-${index}`}>
+                                {level.name}
+                              </label>
+                            </li>
+                          ))}
+                        </ul>
+                        {/* Collapse Section for Remaining Levels */}
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="seniorityCollapse"
+                        >
+                          <ul>
+                            {seniorityLevels.slice(3).map((level, index) => (
+                              <li key={level._id}>
+                                <input
+                                  type="checkbox"
+                                  id={`seniority-${index + 3}`}
+                                  value={level._id} // ✅ Use ID
+                                  checked={selectedSeniority.includes(
+                                    level._id,
+                                  )} // ✅ Compare by ID
+                                  onChange={handleSeniorityChange}
+                                />
+                                <label htmlFor={`seniority-${index + 3}`}>
+                                  {level.name}
+                                </label>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Show More / Less Toggle */}
+                        {seniorityLevels.length > 3 && (
+                          <div
+                            className="show-more-less-btn collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#seniorityCollapse"
+                            aria-expanded="false"
+                            aria-controls="seniorityCollapse"
+                          >
+                            <span className="show-more">
+                              Show More{" "}
+                              <i
+                                className="fa fa-angle-down"
+                                aria-hidden="true"
+                              />
+                            </span>
+                            <span className="show-less">
+                              Show Less{" "}
+                              <i
+                                className="fa fa-angle-up"
+                                aria-hidden="true"
+                              />
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area">
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-money-bill-alt" /> Salary Range
+                          </h4>
+                        </div>
+                        <div className="job-filter-cancel-heading">
+                          <h4
+                            style={{ cursor: "pointer" }}
+                            onClick={handleClearSalaryFilters}
+                          >
+                            Clear
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <ul>
+                          {salaryRanges.slice(0, 4).map((range) => (
+                            <li key={range._id}>
+                              <input
+                                type="checkbox"
+                                value={range.range}
+                                checked={selectedSalaryRanges.includes(
+                                  range.range,
+                                )}
+                                onChange={handleSalaryChange}
+                              />
+                              <label>{range.range}</label>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <div
+                          className="job-filter-tech-stack collapse"
+                          id="salaryCollapse"
+                        >
+                          <ul>
+                            {salaryRanges.slice(4).map((range) => (
+                              <li key={range._id}>
+                                <input
+                                  type="checkbox"
+                                  value={range.range}
+                                  checked={selectedSalaryRanges.includes(
+                                    range.range,
+                                  )}
+                                  onChange={handleSalaryChange}
+                                />
+                                <label>{range.range}</label>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div
+                          className="show-more-less-btn collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#salaryCollapse"
+                          aria-expanded="false"
+                          aria-controls="salaryCollapse"
+                        >
+                          <span className="show-more">
+                            Show More{" "}
+                            <i
+                              className="fa fa-angle-down"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="show-less">
+                            Show Less{" "}
+                            <i className="fa fa-angle-up" aria-hidden="true" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="divder-line-info" />
+                    <div className="job-filter-search-area" ref={wrapperRef}>
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Industry Sector
+                          </h4>
+                        </div>
+                        <div
+                          className="job-filter-cancel-heading"
+                          onClick={clearAll}
+                        >
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <div className="multi-select-container">
+                          <div
+                            className="selected-items"
+                            onClick={() => setShowOptions(true)}
+                          >
+                            {/* Show first 2 selected industries and +X more if any */}
+                            {selected?.map((industry) => (
+                              <span key={industry._id} className="tag">
+                                {industry.name}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() => removeTag(industry._id)}
+                                />
+                              </span>
+                            ))}
+                            <input
+                              type="text"
+                              placeholder="Search industries..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              onFocus={() => setShowOptions(true)}
+                            />
+                          </div>
+
+                          {showOptions && (
+                            <ul className="options-list">
+                              {filteredOptions.length > 0 ? (
+                                filteredOptions.map((industry) => (
+                                  <li
+                                    key={industry._id}
+                                    onClick={() => toggleOption(industry)}
+                                    className={
+                                      selected.some(
+                                        (i) => i._id === industry._id,
+                                      )
+                                        ? "selected"
+                                        : ""
+                                    }
+                                  >
+                                    {industry.name}
+                                    {selected.some(
+                                      (i) => i._id === industry._id,
+                                    ) && <span className="checkmark">✔</span>}
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="no-options">
+                                  No industries found
+                                </li>
+                              )}
+                            </ul>
                           )}
                         </div>
                       </div>
-                    </Link>
-                  ))}
+                    </div>
+                    <div className="divder-line-info" />
+                    <div
+                      className="job-filter-search-area"
+                      ref={companyContainerRef}
+                    >
+                      <div className="job-filter-heading-cancel">
+                        <div className="job-filter-heading">
+                          <h4>
+                            <i className="fas fa-building" /> Company
+                          </h4>
+                        </div>
+                        <div
+                          className="job-filter-cancel-heading"
+                          onClick={handleClearCompanies}
+                        >
+                          <h4>Clear</h4>
+                        </div>
+                      </div>
+
+                      <div className="job-filter-select-info">
+                        <div className="multi-select-container">
+                          <div className="selected-items">
+                            {selectedCompanies.map((company) => (
+                              <div key={company._id} className="tag">
+                                <span>{company.brandName}</span>
+                                <span
+                                  className="remove-tag"
+                                  onClick={() =>
+                                    handleRemoveCompany(company._id)
+                                  }
+                                >
+                                  ×
+                                </span>
+                              </div>
+                            ))}
+
+                            <input
+                              type="text"
+                              placeholder="Search Company..."
+                              value={companySearchTerm}
+                              onChange={(e) =>
+                                setCompanySearchTerm(e.target.value)
+                              }
+                              onFocus={() => setShowCompanyDropdown(true)}
+                            />
+                          </div>
+
+                          {showCompanyDropdown && (
+                            <ul className="options-list">
+                              {filteredCompanyOptions.length > 0 ? (
+                                filteredCompanyOptions.map((company) => (
+                                  <li
+                                    key={company._id}
+                                    onClick={() => handleSelectCompany(company)}
+                                  >
+                                    {company.brandName}
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="no-options">
+                                  No companies found
+                                </li>
+                              )}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
+                <div className="col-lg-8 col-md-8">
+                  <div className="available-job-posts-info">
+                    <div className="available-job-posts-heading">
+                      <h4>
+                        <i className="fa-regular fa-file" />
+                        {totalJobData?.total} available job posts
+                      </h4>
+                      <div className="job-alert-tag-btn">
+                        <div className="filter-tag-info-area">
+                          {Object.entries(appliedFilters).map(
+                            ([key, value]) => (
+                              <span key={key} className="filter-tag">
+                                {typeof value === "object" ? value.name : value}{" "}
+                                {/* show name if object */}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() => handleRemoveFilterJob(key)}
+                                />
+                              </span>
+                            ),
+                          )}
+
+                          {/* ✅ Dynamic selected filters */}
+                          {selectedJobTypes.map((id) => {
+                            const jobType = jobTypes.find((j) => j._id === id);
+                            return (
+                              <span key={id} className="filter-tag">
+                                {jobType?.name || "Job Type"}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() =>
+                                    handleJobTypeChange({
+                                      target: { value: id, checked: false },
+                                    })
+                                  }
+                                />
+                              </span>
+                            );
+                          })}
+
+                          {selectedLocations.map((loc) => (
+                            <span key={loc._id} className="filter-tag">
+                              {loc.name}
+                              <i
+                                className="fa-solid fa-xmark"
+                                style={{ cursor: "pointer", marginLeft: "6px" }}
+                                onClick={() => handleRemoveLocation(loc._id)}
+                              />
+                            </span>
+                          ))}
+
+                          {selected.length > 0 &&
+                            selected.map((industry) => (
+                              <span key={industry._id} className="filter-tag">
+                                {industry.name}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() => removeTag(industry._id)}
+                                />
+                              </span>
+                            ))}
+
+                          {selectedSeniority.map((id) => {
+                            const level = seniorityLevels.find(
+                              (l) => l._id === id,
+                            );
+                            return (
+                              <span key={id} className="filter-tag">
+                                {level?.name || "Seniority Level"}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() =>
+                                    handleSeniorityChange({
+                                      target: { value: id, checked: false },
+                                    })
+                                  }
+                                />
+                              </span>
+                            );
+                          })}
+                          {selectedSalaryRanges.map((range) => {
+                            const label =
+                              salaryRanges.find((r) => r.range === range)
+                                ?.range || range;
+                            return (
+                              <span key={range} className="filter-tag">
+                                {label}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() => handleRemoveSalaryTag(range)}
+                                />
+                              </span>
+                            );
+                          })}
+
+                          {selectedTechStacks.map((id) => {
+                            const cat = categories.find((c) => c._id === id);
+                            return (
+                              <span key={id} className="filter-tag">
+                                {cat?.name} ({cat?.jobCount})
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() =>
+                                    handleTechStackChange({
+                                      target: { value: id, checked: false },
+                                    })
+                                  }
+                                />
+                              </span>
+                            );
+                          })}
+                          {selectedCompanies.length > 0 &&
+                            selectedCompanies.map((company) => (
+                              <span key={company._id} className="filter-tag">
+                                {company.brandName}
+                                <i
+                                  className="fa-solid fa-xmark"
+                                  style={{
+                                    cursor: "pointer",
+                                    marginLeft: "6px",
+                                  }}
+                                  onClick={() =>
+                                    handleRemoveCompany(company._id)
+                                  }
+                                />
+                              </span>
+                            ))}
+
+                          <div className="set-alart-and-notification">
+                            {hasAnyFilter && (
+                              <>
+                                {!alertCreated ? (
+                                  <button
+                                    className="default-btn btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal1"
+                                  >
+                                    <i className="fa-solid fa-bell"></i> Set
+                                    Alert
+                                  </button>
+                                ) : (
+                                  <button className="default-btn btn">
+                                    <i className="fa-solid fa-circle-check"></i>{" "}
+                                    Notification created
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {/* ✅ Show buttons only if any filter is selected */}
+                      </div>
+                    </div>
+                    {isLoadingJobs ? (
+                      <JobListLoader />
+                    ) : jobList.length > 0 ? (
+                      <>
+                        {jobChunks.map((chunk, chunkIndex) => (
+                          <React.Fragment key={chunkIndex}>
+                            {/* Render jobs */}
+                            {chunk.map((job) => (
+                              <Link
+                                key={job._id}
+                                to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                                state={{ from: "/job-search" }}
+                                className="job-link"
+                              >
+                                {" "}
+                                <div className="available-job-posts-box">
+                                  <div className="available-job-company-name-save-job">
+                                    <div className="available-job-company-name">
+                                      <a href="#">
+                                        <h4>
+                                          <img
+                                            crossorigin="anonymous"
+                                            src={
+                                              job?.logo
+                                                ? `${API_IMAGE_URL}${job.logo}`
+                                                : "assets/images/dashboard/images1.png"
+                                            }
+                                            alt="logo"
+                                          />
+                                          {job?.brandName}
+                                        </h4>
+                                      </a>
+                                    </div>
+                                    <div className="d-flex justify-space-between">
+                                      <div>
+                                        {job?.isAssessmentRequired && (
+                                          <>
+                                            {/* 🟢 PASSED */}
+                                            {job?.assessmentResult?.status ===
+                                              "passed" && (
+                                              <span className="test-passed-tag-area">
+                                                <i className="fa-solid fa-circle-check"></i>
+                                                Test Passed
+                                              </span>
+                                            )}
+
+                                            {/* 🔴 FAILED */}
+                                            {job?.assessmentResult?.status ===
+                                              "failed" && (
+                                              <span className="test-failed-tag-area">
+                                                <i className="fa-solid fa-circle-xmark"></i>
+                                                Test Failed
+                                              </span>
+                                            )}
+
+                                            {/* 🟠 NOT ATTEMPTED */}
+                                            {(!job?.assessmentResult ||
+                                              job?.assessmentResult?.status ===
+                                                "not_attempted") && (
+                                              <span className="test-required-tag-area">
+                                                <i className="fa-solid fa-clipboard-check"></i>
+                                                Test Required
+                                              </span>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+
+                                      <div className="available-job-save-job">
+                                        <i
+                                          className={`fa-${
+                                            job.isSaved ? "solid" : "regular"
+                                          } fa-heart`}
+                                          style={{
+                                            cursor: "pointer",
+                                            color: job.isSaved
+                                              ? "#fb761a"
+                                              : "#fff",
+                                          }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSaveJob(job._id);
+                                          }}
+                                        />
+                                        <i
+                                          className="fa-brands fa-linkedin-in"
+                                          style={{ cursor: "pointer" }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            const link =
+                                              job?.social_links?.linkedin ||
+                                              "https://www.linkedin.com/";
+                                            window.open(link, "_blank");
+                                          }}
+                                        />{" "}
+                                        <i
+                                          className="fa-brands fa-facebook-f"
+                                          style={{ cursor: "pointer" }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            const link =
+                                              job?.social_links?.facebook ||
+                                              "https://www.facebook.com/";
+                                            window.open(link, "_blank");
+                                          }}
+                                        />
+                                        <i
+                                          className="fa-brands fa-instagram"
+                                          style={{ cursor: "pointer" }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            const link =
+                                              job?.social_links?.instagram ||
+                                              "https://www.instagram.com/";
+                                            window.open(link, "_blank");
+                                          }}
+                                        />
+                                        <i
+                                          className="fa-brands fa-x-twitter"
+                                          style={{ cursor: "pointer" }}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            const link =
+                                              job?.social_links?.twitter ||
+                                              "https://twitter.com/";
+                                            window.open(link, "_blank");
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="available-job-type-details">
+                                    <h5>{job?.jobTitle || "N/A"}</h5>
+                                    <p>{job?.shortDescription || "N/A"}</p>
+                                    <ul>
+                                      <li>
+                                        <i className="fa-regular fa-calendar" />{" "}
+                                        {moment(job?.createdAt).fromNow()}
+                                      </li>
+                                      <li>
+                                        <i className="fa-regular fa-file" />{" "}
+                                        {job?.jobCategory || "N/A"}{" "}
+                                      </li>
+                                      <li>
+                                        <i className="fa-regular fa-user" />
+                                        &nbsp;{job?.employmentType || "N/A"}
+                                      </li>
+                                      <li>
+                                        <i className="fa-solid fa-location-dot" />{" "}
+                                        {job?.city && job?.city.length > 0
+                                          ? job.city.join(", ")
+                                          : job?.company_city || "N/A"}
+                                      </li>
+                                      <li>
+                                        <i className="fa-solid fa-users" />{" "}
+                                        Available:
+                                        {job?.availablePosts || 0}{" "}
+                                      </li>
+                                    </ul>
+                                  </div>
+
+                                  {/* <div className="available-job-type-apply-btn">
+                                    {job?.isApplied ? (
+                                      <button className="default-btn btn">
+                                        {job?.applicationStatus}
+                                      </button>
+                                    ) : (
+                                      <a
+                                        href="#"
+                                        className="default-btn btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#exampleModal"
+                                        onClick={() => {
+                                          setJobId(job._id);
+                                          handleJobClick(job._id);
+                                        }}
+                                      >
+                                        Apply Now
+                                      </a>
+                                    )}
+                                  </div> */}
+                                  <div className="available-job-type-apply-btn">
+                                    {/* 🔒 Already Applied */}
+                                    {job?.isApplied ? (
+                                      <button
+                                        className="default-btn btn"
+                                        disabled
+                                        style={{ color: "#ff6600" }}
+                                      >
+                                        {job?.applicationStatus}
+                                      </button>
+                                    ) : job?.isAssessmentRequired ? (
+                                      /* 🧪 Assessment Required → View Details */
+                                      <Link
+                                        to={`/job-details/${job._id}`}
+                                        className="default-btn btn"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        View Details
+                                      </Link>
+                                    ) : (
+                                      /* ✅ No Assessment → Direct Apply */
+                                      <a
+                                        href="#"
+                                        className="default-btn btn"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setJobId(job._id);
+                                          handleJobClick(job._id);
+                                        }}
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#exampleModal"
+                                      >
+                                        Apply Now
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                            {/* Modal (keep outer modal structure unchanged) */}
+                            <div
+                              className="modal fade"
+                              id="exampleModal"
+                              tabIndex={-1}
+                              aria-labelledby="exampleModalLabel"
+                              aria-hidden="true"
+                            >
+                              <div className="modal-dialog">
+                                <div className="modal-content">
+                                  <div className="modal-header">
+                                    <h1
+                                      className="modal-title fs-5"
+                                      id="exampleModalLabel"
+                                    >
+                                      Apply now
+                                    </h1>
+                                    <button
+                                      type="button"
+                                      className="btn-close"
+                                      data-bs-dismiss="modal"
+                                      aria-label="Close"
+                                      onClick={resetApplyModal}
+                                    />
+                                  </div>
+                                  {/* NOTE: use className, not class */}
+                                  <div className="modal-body">
+                                    <div className="job-apply-defult-resume-custom-resume">
+                                      {/* RESUME LIST - inline hide */}
+                                      <div
+                                        className="job-apply-custom-resume-info-area"
+                                        style={{
+                                          display:
+                                            Array.isArray(resumeList) &&
+                                            resumeList.length > 0
+                                              ? "block"
+                                              : "none",
+                                        }}
+                                      >
+                                        {Array.isArray(resumeList) &&
+                                          resumeList.map((resume) => {
+                                            const fileName = getFileName(
+                                              resume.url,
+                                            );
+                                            return (
+                                              <div
+                                                key={resume._id}
+                                                className={
+                                                  "job-apply-custom-resume-info " +
+                                                  (selectedType === "resume" &&
+                                                  selectedId === resume.url
+                                                    ? "active"
+                                                    : "")
+                                                }
+                                                onClick={() =>
+                                                  handleSelect(
+                                                    "resume",
+                                                    resume.url,
+                                                  )
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                              >
+                                                <span className="file-name-text">
+                                                  <i className="fa-solid fa-file" />{" "}
+                                                  {fileName}
+                                                </span>
+
+                                                {selectedType === "resume" &&
+                                                  selectedId === resume.url && (
+                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                  )}
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+
+                                      {/* OR DIVIDER for resume - inline hide */}
+                                      <div
+                                        className="defult-resume-custom-resume-divder-line"
+                                        style={{
+                                          display:
+                                            Array.isArray(resumeList) &&
+                                            resumeList.length > 0
+                                              ? "block"
+                                              : "none",
+                                        }}
+                                      >
+                                        <h4>or</h4>
+                                      </div>
+
+                                      {/* COVER LETTER LIST - inline hide */}
+                                      <div
+                                        className="job-apply-custom-resume-info-area"
+                                        style={{
+                                          display:
+                                            Array.isArray(coverLetterList) &&
+                                            coverLetterList.length > 0
+                                              ? "block"
+                                              : "none",
+                                        }}
+                                      >
+                                        {Array.isArray(coverLetterList) &&
+                                          coverLetterList.map((cover) => {
+                                            const fileName = getFileName(
+                                              cover.url,
+                                            );
+                                            return (
+                                              <div
+                                                key={cover._id}
+                                                className={
+                                                  "job-apply-custom-resume-info " +
+                                                  (selectedType === "cover" &&
+                                                  selectedId === cover.url
+                                                    ? "active"
+                                                    : "")
+                                                }
+                                                onClick={() =>
+                                                  handleSelect(
+                                                    "cover",
+                                                    cover.url,
+                                                  )
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                              >
+                                                <span className="file-name-text">
+                                                  <i className="fa-solid fa-file" />{" "}
+                                                  {fileName}
+                                                </span>
+
+                                                {selectedType === "cover" &&
+                                                  selectedId === cover.url && (
+                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                  )}
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+
+                                      {/* OR DIVIDER for cover - inline hide */}
+                                      <div
+                                        className="defult-resume-custom-resume-divder-line"
+                                        style={{
+                                          display:
+                                            Array.isArray(coverLetterList) &&
+                                            coverLetterList.length > 0
+                                              ? "block"
+                                              : "none",
+                                        }}
+                                      >
+                                        <h4>or</h4>
+                                      </div>
+
+                                      {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
+                                      <div
+                                        className="job-apply-custom-resume-info-area"
+                                        style={{ display: "block" }}
+                                      >
+                                        {/* Show selected custom file if exists */}
+                                        <div
+                                          style={{
+                                            display: selectedCustomFile
+                                              ? "block"
+                                              : "none",
+                                          }}
+                                        >
+                                          <div
+                                            className={
+                                              "job-apply-custom-resume-info " +
+                                              (selectedType === "custom"
+                                                ? "active"
+                                                : "")
+                                            }
+                                            onClick={() =>
+                                              selectedCustomFile &&
+                                              handleSelect("custom")
+                                            }
+                                            style={{
+                                              cursor: selectedCustomFile
+                                                ? "pointer"
+                                                : "default",
+                                            }}
+                                          >
+                                            <span className="file-name-text">
+                                              <i className="fa-solid fa-file" />{" "}
+                                              {selectedCustomFile
+                                                ? selectedCustomFile.name
+                                                : ""}
+                                            </span>
+
+                                            {selectedType === "custom" && (
+                                              <i className="fa-solid fa-circle-check selected-check-icon" />
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Upload Button — prevent default and open file input */}
+                                        <div
+                                          className="job-apply-custom-resume-cover-letter-btn"
+                                          style={{ marginTop: 12 }}
+                                        >
+                                          <a
+                                            href="#"
+                                            className="default-btn btn"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              // ensure fileInputRef.current exists
+                                              if (
+                                                fileInputRef &&
+                                                fileInputRef.current
+                                              )
+                                                fileInputRef.current.click();
+                                            }}
+                                          >
+                                            Custom resume with cover letter
+                                            Upload Your File (PDF/DOC/DOCX)
+                                          </a>
+                                          <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={handleFileUpload}
+                                            style={{ display: "none" }}
+                                          />
+                                        </div>
+                                      </div>
+
+                                      {/* Divider before apply button (always keep in DOM) */}
+                                      <div
+                                        className="defult-resume-custom-resume-divder"
+                                        style={{ marginTop: 16 }}
+                                      />
+
+                                      {/* APPLY BUTTON - always present */}
+                                      <div
+                                        className="job-apply-defult-resume-btn"
+                                        style={{ marginTop: 12 }}
+                                      >
+                                        <button
+                                          className="default-btn btn w-100"
+                                          onClick={handleApplyJob}
+                                          disabled={
+                                            isApplying || !isSelectionMade()
+                                          } // ✅ Disabled if nothing selected
+                                        >
+                                          {isApplying ? (
+                                            <>
+                                              <span
+                                                className="spinner-border spinner-border-sm me-2"
+                                                role="status"
+                                                aria-hidden="true"
+                                              ></span>
+                                              Applying...
+                                            </>
+                                          ) : (
+                                            "Apply Now"
+                                          )}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>{" "}
+                                  {/* .modal-body */}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Show Swiper only if this chunk has 10 jobs */}
+                            {chunk.length === 10 && (
+                              <section className="job-card-companies-inf-area">
+                                <div className="container">
+                                  <Swiper
+                                    modules={[
+                                      Navigation,
+                                      SwiperPagination,
+                                      Autoplay,
+                                    ]}
+                                    spaceBetween={20}
+                                    slidesPerView={3}
+                                    navigation
+                                    // pagination={{ clickable: true }}
+                                    autoplay={{ delay: 3000 }}
+                                    loop={true}
+                                    breakpoints={{
+                                      320: { slidesPerView: 1 },
+                                      768: { slidesPerView: 2 },
+                                      1024: { slidesPerView: 3 },
+                                    }}
+                                  >
+                                    {companies?.companies?.length > 0 ? (
+                                      companies.companies.map((item) => {
+                                        const company = item?.companyId;
+                                        const topThreeJobs =
+                                          item?.jobList?.slice(0, 3) || [];
+                                        return (
+                                          <SwiperSlide key={company?._id}>
+                                            <div className="job-card-companies-box">
+                                              <div className="job-card-companies-img">
+                                                <img
+                                                  alt={
+                                                    company?.brandName ||
+                                                    "Company Cover"
+                                                  }
+                                                  src={
+                                                    company?.coverPhoto
+                                                      ? `${API_IMAGE_URL}${company.coverPhoto}`
+                                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                                  }
+                                                  crossOrigin="anonymous"
+                                                />
+
+                                                <div className="job-card-companies-logo">
+                                                  <img
+                                                    alt="logo"
+                                                    src={
+                                                      company?.logo
+                                                        ? `${API_IMAGE_URL}${company.logo}`
+                                                        : "/jobPortal/assets/images/icon/icon-25.png"
+                                                    }
+                                                    crossOrigin="anonymous"
+                                                  />
+                                                </div>
+                                              </div>
+
+                                              <div className="job-card-companies-name">
+                                                <h4
+                                                  onClick={() =>
+                                                    handleViewCompany(
+                                                      company?._id,
+                                                    )
+                                                  }
+                                                  style={{
+                                                    cursor: "pointer",
+                                                  }}
+                                                >
+                                                  {company?.brandName ||
+                                                    "Unnamed Company"}
+                                                </h4>
+                                              </div>
+
+                                              {/* ✅ Latest Jobs */}
+                                              <div className="job-card-companies-name">
+                                                <h5>Latest Jobs</h5>
+
+                                                <ul>
+                                                  {topThreeJobs.length > 0 ? (
+                                                    topThreeJobs.map((job) => (
+                                                      <li key={job._id}>
+                                                        <Link
+                                                          to={`/job-details/${job._id}`} // ✅ Pass ID in URL
+                                                          className="job-link"
+                                                          style={{
+                                                            color: "#007bff",
+                                                            textDecoration:
+                                                              "none",
+                                                            fontWeight: "500",
+                                                          }}
+                                                        >
+                                                          {job.jobTitle}
+                                                        </Link>{" "}
+                                                      </li>
+                                                    ))
+                                                  ) : (
+                                                    <li>No jobs available</li>
+                                                  )}
+                                                </ul>
+                                              </div>
+
+                                              {/* ✅ View Jobs Button */}
+                                              <div className="view-job-count-btn">
+                                                <button
+                                                  className="default-btn btn"
+                                                  onClick={() =>
+                                                    handleViewCompany(
+                                                      company?._id,
+                                                    )
+                                                  }
+                                                >
+                                                  View {item?.jobCount || 0}{" "}
+                                                  Jobs
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </SwiperSlide>
+                                        );
+                                      })
+                                    ) : (
+                                      <p className="text-center mt-4">
+                                        No companies available.
+                                      </p>
+                                    )}
+                                  </Swiper>
+                                </div>
+                              </section>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-center mt-3">No jobs found</p>
+                    )}
+                  </div>
+
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ mt: 3 }}
+                  >
+                    <Pagination
+                      count={totalPages}
+                      page={pageNumber}
+                      onChange={(e, value) => setPageNumber(value)}
+                      variant="outlined"
+                      shape="rounded"
+                      color="secondary"
+                      siblingCount={2}
+                      boundaryCount={1}
+                    />
+
+                    <Select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(e.target.value);
+                        setPageNumber(1); // reset to page 1
+                      }}
+                      size="small"
+                    >
+                      <MenuItem value={15}>15 / page</MenuItem>
+                      <MenuItem value={25}>25 / page</MenuItem>
+                      <MenuItem value={50}>50 / page</MenuItem>
+                      <MenuItem value={100}>100 / page</MenuItem>
+                    </Select>
+                  </Stack>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="copy-right-area bg-f0f4fc">
+            <div className="row">
+              <div className="col-lg-6 col-md-6">
+                <div className="copyright-left-content">
+                  <p>
+                    {" "}
+                    <span className="copy">© </span>
+                    <span id="year" />
+                    <span className="template-name"> Connect Work.ma </span> All
+                    Rights Reserved
+                  </p>
+                </div>
+              </div>
+              <div className="col-lg-6 col-md-6">
+                <div className="copyright-right-content">
+                  <p>
+                    Designed By{" "}
+                    <a href="https://hibootstrap.com/" target="_blank">
+                      Webnmobapps Solution Pvt. Ltd
+                    </a>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </section>
+        {/* <Outlet /> */}
+      </div>
+      <div
+        className="modal fade"
+        id="exampleModal1"
+        tabIndex={-1}
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog ">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">
+                Notify me every
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                onClick={resetAlertForm} // ✅ Reset on modal close
+              />
+            </div>
+            <div className="modal-body">
+              <div className="job-alert-condittion-select">
+                {["1 day", "3 days", "week", "month", "Just save"].map(
+                  (freq) => {
+                    const labelText =
+                      freq.charAt(0).toUpperCase() + freq.slice(1);
+                    return (
+                      <span key={freq} style={{ marginRight: "10px" }}>
+                        <input
+                          type="radio"
+                          id={freq}
+                          name="notifyFrequency"
+                          value={freq} // API value stays same
+                          checked={notifyEvery === freq}
+                          onChange={(e) => setNotifyEvery(e.target.value)}
+                        />
+                        <label htmlFor={freq}>{labelText}</label>
+                      </span>
+                    );
+                  },
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="default-btn btn"
+                onClick={handleCreateAlert}
+                disabled={loading}
+              >
+                {loading ? "Creating..." : "Create Alert"}
+              </button>
+              <button
+                type="button"
+                className="default-btn btn"
+                data-bs-dismiss="modal"
+                onClick={resetAlertForm}
+              >
+                Cancel Alert
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
 
-export default JobDetails;
+export default JobSearch;

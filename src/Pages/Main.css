@@ -1254,8 +1254,8 @@
 
 .branding-title-row h1 {
   color: #000;
-  font-size: 3.5rem;
-  font-weight: 850;
+  font-size: 40px;
+  font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.1;
   margin-bottom: 0.75rem;
@@ -1694,79 +1694,81 @@
 }
 
 .modern-alert {
-    align-items: flex-start;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-    padding: 1.5rem
+  align-items: flex-start;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
 }
 
-.alert-icon,.modern-alert {
-    border-radius: 1rem;
-    display: flex
+.alert-icon,
+.modern-alert {
+  border-radius: 1rem;
+  display: flex;
 }
 
 .alert-icon {
-    align-items: center;
-    background: #007bff;
-    color: #fff;
-    font-size: 1.5rem;
-    height: 48px;
-    justify-content: center;
-    width: 48px
+  align-items: center;
+  background: #007bff;
+  color: #fff;
+  font-size: 1.5rem;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
 }
 
 .alert-content h4 {
-    color: #0369a1;
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: .4rem
+  color: #0369a1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
 }
 
 .alert-content p {
-    color: #0c4a6e;
-    font-size: .95rem;
-    margin-bottom: .75rem
+  color: #0c4a6e;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
 }
 
 .alert-stats {
-    color: #0369a1;
-    display: flex;
-    font-size: .85rem;
-    font-weight: 600;
-    gap: 1.5rem
+  color: #0369a1;
+  display: flex;
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 1.5rem;
 }
 
 .alert-stats span {
-    align-items: center;
-    display: flex;
-    gap: .4rem
+  align-items: center;
+  display: flex;
+  gap: 0.4rem;
 }
 
 .share-links {
-    gap: .75rem;
-    margin-top: 1rem
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
-.share-btn,.share-links {
-    display: flex;
-    justify-content: center
+.share-btn,
+.share-links {
+  display: flex;
+  justify-content: center;
 }
 
 .share-btn {
-    align-items: center;
-    background: #f1f5f9;
-    border-radius: 50%;
-    color: #475569;
-    height: 36px;
-    text-decoration: none;
-    transition: all .2s;
-    width: 36px
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 50%;
+  color: #475569;
+  height: 36px;
+  text-decoration: none;
+  transition: all 0.2s;
+  width: 36px;
 }
 
 .share-btn:hover {
-    background: #fb761a;
-    color: #fff;
-    transform: translateY(-2px)
+  background: #fb761a;
+  color: #fff;
+  transform: translateY(-2px);
 }

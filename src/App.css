@@ -4051,3 +4051,10 @@ margin: 80px 0px 80px 0px;
 .modal-backdrop {
   --bs-backdrop-bg: #00000038 !important;
 }
+.similar-jobs-slider .slick-list {
+  margin: 0 -8px; /* balance padding */
+}
+.similar-jobs-slider .slick-slide {
+  padding-right: 20px;
+
+}

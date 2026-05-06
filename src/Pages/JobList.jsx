@@ -303,31 +303,41 @@ const JobList = () => {
   };
 
   const handleRemoveFilterJob = (key) => {
-    // 1️⃣ Remove from appliedFilters
     const updatedAppliedFilters = { ...appliedFilters };
     delete updatedAppliedFilters[key];
     setAppliedFilters(updatedAppliedFilters);
 
-    // 2️⃣ Clear the corresponding field in filters
-    const updatedFilters = { ...filters, [key]: "" };
+    let updatedFilters = { ...filters };
+
+    if (key === "category") {
+      updatedFilters.category = "";
+      setSelectedCategories([]);
+    } else {
+      updatedFilters[key] = "";
+    }
+
     setFilters(updatedFilters);
 
-    // 3️⃣ Call API with updated filters directly
+    // ✅ USE updatedFilters (NOT old filters)
     getAllJobList(
-      pageSize, // limit
-      pageNumber, // page
-      selectedJobTypes, // ✅ jobTypes
-      selectedSeniority, // ✅ experience / seniority
-      selectedTechStacks, // ✅ techStacks
-      selectedCategories, // ✅ categories
-      selectedCompanies, // ✅ companies
-      selected, // ✅ industries
-      updatedFilters.keywords, // ✅ keywords
-      updatedFilters.location, // ✅ location
-      updatedFilters.category, // ✅ category
-      selectedLocations.map((l) => l.name).join(","), // ✅ Filterlocation
-      selectedSalaryRanges, // ✅ salary_range
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      key === "category" ? [] : selectedCategories,
+      selectedCompanies,
+      selected,
+      updatedFilters.keywords,
+      updatedFilters.location,
+      updatedFilters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      selectedRemote,
     );
+
+    // ✅ FIX: pass updated filters here
+    getCategories(updatedFilters);
   };
 
   // Clear all filters
@@ -764,10 +774,15 @@ const JobList = () => {
     industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
   // ✅ Fetch categories
-  const getCategories = async () => {
+  const getCategories = async (customFilters = filters) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
-      console.log(res);
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`, {
+        params: {
+          keywords: customFilters.keywords || undefined,
+          location: customFilters.location || undefined,
+        },
+      });
+
       setCategories(res.data.jobCategories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -885,23 +900,43 @@ const JobList = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // build visible filter tags
     const newFilters = {};
+
     if (filters.keywords) newFilters.keywords = filters.keywords;
     if (filters.location) newFilters.location = filters.location;
+
     if (filters.category) {
       const selectedCat = categories.find((c) => c._id === filters.category);
       if (selectedCat) {
         newFilters.category = {
-          id: selectedCat._id, // ✅ use this for API
-          name: selectedCat.name, // ✅ use this for UI
+          id: selectedCat._id,
+          name: selectedCat.name,
         };
       }
     }
+
     setAppliedFilters(newFilters);
 
-    // ✅ now call the API with latest filters
-    getAllJobList();
+    // ✅ CALL BOTH APIs WITH FILTERS
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      filters.keywords, // ✅ pass keyword
+      filters.location, // ✅ pass location
+      filters.category,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      selectedRemote,
+    );
+
+    // ✅ NEW: call category API with same filters
+    getCategories();
   };
 
   const isSelectionMade = () => {
@@ -2543,9 +2578,13 @@ const JobList = () => {
                                             {job?.applicationStatus}
                                           </button>
                                         ) : job?.isAssessmentRequired ? (
-                                          <button className="modern-apply-btn">
-                                            {t("header.View_Details")}
-                                          </button>
+                                          <Link
+                                            to={`/job-details/${job._id}`}
+                                            className="modern-apply-btn"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            View Details
+                                          </Link>
                                         ) : (
                                           <button
                                             className="modern-apply-btn"
@@ -3362,17 +3401,18 @@ const JobList = () => {
             </div>
             <div className="side-panel-footer">
               {selectedJob?.isApplied ? (
+                // 🔒 Already Applied
                 <button className="modern-apply-btn w-100" disabled>
                   {selectedJob?.applicationStatus || "Applied"}
                 </button>
-              ) : (
+              ) : !selectedJob?.isAssessmentRequired ? (
+                // ✅ Normal Apply (NO assessment)
                 <button
                   className="modern-apply-btn w-100"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    // ✅ CLOSE SIDE PANEL
                     setIsPanelOpen(false);
 
                     if (userRole !== "JobSeeker") {
@@ -3392,7 +3432,7 @@ const JobList = () => {
                 >
                   {t("header.apply_now")}
                 </button>
-              )}
+              ) : null}
 
               <Link
                 to={`/job-details/${selectedJob._id}`}
