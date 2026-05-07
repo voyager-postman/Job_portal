@@ -29,7 +29,12 @@ function JobDetails() {
   const [categoryCount, setCategoryCount] = useState([]);
   console.log("Job Status:", jobStatus);
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
-  const { id } = useParams(); // ✅ Get job ID from URL
+  const { jobSlug } = useParams();
+
+  const id = location.state?.JobId;
+
+  console.log("Slug:", jobSlug);
+  console.log("Job ID:", id);
   const navigate = useNavigate();
   console.log(id);
   const [selectedId, setSelectedId] = useState(null);
@@ -57,15 +62,6 @@ function JobDetails() {
           ? "Jobs"
           : "Candidate Dashboard";
 
-  // {
-  //   "/manage-job-application": "Manage Job Application",
-  //   "/job-search": "Job Search",
-  //   "/jobs": "Jobs",
-  //   "/applied-jobs-list": " Application Management",
-  //   "/candidate-dashboard": "",
-  // };
-
-  // const breadcrumbLabel = breadcrumbLabelMap[from];
   const fetchGlobalCurrency = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
@@ -80,11 +76,6 @@ function JobDetails() {
         });
 
         // update form state also
-        setCareerGoalsData((prev) => ({
-          ...prev,
-          salaryCurrency: currencyCode,
-          TJMCurrency: currencyCode,
-        }));
       }
     } catch (error) {
       console.log(error);
@@ -142,21 +133,6 @@ function JobDetails() {
     }
   };
 
-  // const fetchJobDetails = async () => {
-  //   try {
-  //     const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     setJob(res.data?.data || res.data); // Adjust according to your API response
-  //     console.log(res);
-  //     setLinkUrl(res?.data?.data?.jobDetails?.jobLink);
-  //     setAssessmentDetails(res?.data?.data?.assessmentResult);
-  //   } catch (error) {
-  //     console.error("Error fetching job details:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const settings = {
     dots: false,
     infinite: true,
@@ -204,13 +180,6 @@ function JobDetails() {
       // 🧠 Step 3: Handle response
       if (res.data.success) {
         const { message } = res.data;
-
-        // Optional: Optimistic UI update
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
 
         fetchJobDetails();
 
@@ -296,13 +265,6 @@ function JobDetails() {
       // 🧠 Step 3: Handle response
       if (res.data.success) {
         const { message } = res.data;
-
-        // Optional: Optimistic UI update
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
 
         fetchJobDetails();
 
@@ -451,67 +413,6 @@ function JobDetails() {
     }
   };
 
-  // const handleApplyJob = async () => {
-  //   if (!jobId) {
-  //     console.error("❌ jobId is missing");
-  //     return;
-  //   }
-
-  //   setIsApplying(true); // 🔥 Start loader
-
-  //   const formData = new FormData();
-
-  //   if (selectedType === "resume") {
-  //     formData.append("cv", selectedId);
-  //   }
-
-  //   if (selectedType === "cover") {
-  //     formData.append("coverLetter", selectedId);
-  //   }
-
-  //   if (selectedType === "custom") {
-  //     formData.append("customResume", fileInputRef.current.files[0]);
-  //   }
-
-  //   formData.append("jobId", jobId);
-
-  //   try {
-  //     const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     fetchJobDetails();
-  //     toast.success(res.data.message || "Applied successfully!");
-
-  //     const modal = document.getElementById("exampleModal");
-  //     if (modal) {
-  //       const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-  //       bootstrapModal?.hide();
-  //     }
-  //   } catch (error) {
-  //     toast.error(error?.response?.data?.message || "Something went wrong!");
-  //   } finally {
-  //     setIsApplying(false); // 🔥 Stop loader
-  //   }
-  // };
-  // const fetchAssessmentDetails = async (assessmentId) => {
-  //   try {
-  //     setLoadingAssessment(true);
-
-  //     const res = await axios.get(
-  //       `${API_BASE_URL}getSkillAssessmentFullDetails/${assessmentId}`,
-  //     );
-
-  //     setAssessment(res.data.assessmentDetails);
-  //     setCategoryCount(res.data.categoryQuestionCount);
-  //   } catch (error) {
-  //     console.error("Failed to load assessment", error);
-  //   } finally {
-  //     setLoadingAssessment(false);
-  //   }
-  // };
   const fetchAssessmentDetails = async (assessmentId) => {
     if (!assessmentId) {
       console.warn("Assessment ID not found");
@@ -612,51 +513,7 @@ function JobDetails() {
     decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
   );
   console.log(job?.jobDetails);
-  // const handleStartTest = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
 
-  //     await axios.post(
-  //       `${API_BASE_URL}startAssessment/${assessment?.assessmentId}/${id}`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     // ✅ Start allowed
-  //     navigate("/start-test", {
-  //       state: {
-  //         assessmentId: assessment?.assessmentId,
-  //         jobId: id,
-  //       },
-  //     });
-  //   } catch (error) {
-  //     const apiResponse = error?.response?.data;
-
-  //     // 🔴 Retake blocked
-  //     if (apiResponse?.status === "FAILED_BLOCKED") {
-  //       toast.error("You cannot retake this assessment after failing");
-
-  //       // navigate("/skill-assessments-tests");
-  //       return;
-  //     }
-
-  //     // 🔴 Already submitted
-  //     if (apiResponse?.message === "Assessment already submitted") {
-  //       toast.warning("You have already submitted this assessment");
-
-  //       navigate("/skill-assessments-tests");
-  //       return;
-  //     }
-
-  //     // 🔴 Generic error
-  //     console.error("Failed to start assessment", error);
-  //     toast.error("Unable to start assessment. Please try again later");
-  //   }
-  // };
   const handleStartTest = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -728,25 +585,6 @@ function JobDetails() {
   };
   const hasPassedAssessment = assessmentDetails?.status === "passed";
 
-  // const canRetryLater =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.retry_period_days > 0;
-  // const canRetryLater =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.daysLeft > 0;
-
-  // const canRetryNow =
-  //   assessmentDetails?.validation_required === true &&
-  //   assessmentDetails?.status === "failed" &&
-  //   assessmentDetails?.retry_period_days === 0;
-
-  // const cannotRetry =
-  //   assessmentDetails?.validation_required === false &&
-  //   assessmentDetails?.status === "failed";
-
-  // const isRetryBlocked = canRetryLater || cannotRetry;
   const canRetryLater =
     assessmentDetails?.validation_required === true &&
     assessmentDetails?.status === "failed" &&
@@ -766,7 +604,47 @@ function JobDetails() {
   return (
     <>
       <ToastContainer />
+      {from !== "/" && (
+        <section className="inner-breadcrumb-main-area ">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-sm-12">
+                <div className="breadcrumb-main-list-area ">
+                  <h4>Job Details</h4>
+                  <ul>
+                    <li>
+                      <Link to="/">Home</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    {from !== "/jobs" && (
+                      <li>
+                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
+                    )}
+                    {breadcrumbLabel ? (
+                      <li>
+                        <Link to={from}>{breadcrumbLabel}</Link>
+                        <i className="fa-solid fa-angle-right"></i>
+                      </li>
+                    ) : (
+                      ""
+                    )}
 
+                    <li>
+                      {loading
+                        ? "Loading..."
+                        : job?.jobDetails?.jobTitle ||
+                          job?.jobTitle ||
+                          "Job Details"}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       <div className="job-modern-container">
         <section
           className="Toastify"
@@ -1012,29 +890,30 @@ function JobDetails() {
                           {canRetryNow && (
                             <strong>
                               <br />
-                              You can try again.
+                              You can try the assessment again.
                             </strong>
                           )}
                           {canRetryLater && (
                             <strong>
                               <br />
-                              Retry in {assessmentDetails.daysLeft} day
+                              You can retry in {assessmentDetails.daysLeft} day
                               {assessmentDetails.daysLeft > 1 ? "s" : ""}
                             </strong>
                           )}
                           {cannotRetry && (
                             <strong>
                               <br />
-                              This assessment cannot be retaken.
+                              This assessment cannot be retaken. Please contact
+                              the employer for further assistance.
                             </strong>
                           )}
                         </>
                       )}
-
-                      {/* PASSED */}
+                      {/* 🟢 PASSED */}
                       {assessmentDetails?.status === "passed" && (
                         <>
-                          You already passed this test. You can apply directly.
+                          You have already passed this test! You can apply
+                          directly.
                         </>
                       )}
                     </p>
@@ -1108,7 +987,6 @@ function JobDetails() {
                         color: "rgb(15, 23, 42)",
                       }}
                     >
-                      
                       Processus de recrutement
                     </h2>
 
@@ -1214,17 +1092,23 @@ function JobDetails() {
                     className="similar-jobs-slider"
                   >
                     {job?.similarJobs?.map((item, index) => (
-                      <div
-                        key={item._id || index}
-                        className="mt-2"
-                        style={{ height: "300px", overflow: "auto" }}
-                      >
+                      <div key={item._id || index} className="mt-2">
                         <Link
-                          to={`/job-details/${item._id}`}
-                          state={{ from: "/job-search" }}
+                          to={`/job/${item.slug}`}
+                          state={{
+                            from: "/job-search",
+                            JobId: item._id,
+                          }}
                           className="job-link text-decoration-none"
                         >
-                          <div className="elegant-job-card modern-layout">
+                          <div
+                            className="elegant-job-card modern-layout d-flex flex-column"
+                            style={{
+                              height: "320px",
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "16px",
+                            }}
+                          >
                             <div className="card-header-row d-flex align-items-center gap-3 mb-3">
                               <div
                                 className="card-logo flex-shrink-0"
@@ -1306,7 +1190,6 @@ function JobDetails() {
                             </div>
                             <div className="card-tags-grid d-flex flex-wrap gap-2">
                               <span
-                                className="card-tag-pill"
                                 style={{
                                   background: "rgb(241, 245, 249)",
                                   padding: "4px 10px",
@@ -1484,14 +1367,19 @@ function JobDetails() {
                       )}
 
                       {/* ⏳ Retry Message */}
-                      {job?.jobDetails?.isAssessmentRequired &&
-                        isRetryBlocked &&
-                        !hasPassedAssessment && (
-                          <p className="reapply-info-tag mt-2">
-                            You can retry in{" "}
-                            {assessmentDetails?.retry_period_days} days
-                          </p>
-                        )}
+                      {canRetryLater && (
+                        <p className="reapply-info-tag">
+                          You can retry in {assessmentDetails.daysLeft} day
+                          {assessmentDetails.daysLeft > 1 ? "s" : ""}
+                        </p>
+                      )}
+
+                      {cannotRetry && (
+                        <p className="reapply-info-tag">
+                          This assessment cannot be retaken. Please contact the
+                          employer for further assistance.
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -1508,7 +1396,7 @@ function JobDetails() {
                         job?.jobDetails?.isSaved ? "solid" : "regular"
                       } fa-heart`}
                       style={{
-                        color: job?.jobDetails?.isSaved ? "#fb761a" : "",
+                        color: job?.jobDetails?.isSaved ? "#ff0000" : "",
                       }}
                     />
                     <span>Save</span>
@@ -1638,8 +1526,11 @@ function JobDetails() {
                       job.latestJobs.map((item, index) => (
                         <Link
                           key={item._id || index}
-                          to={`/job-details/${item._id}`}
-                          state={{ from: "/job-search" }}
+                          to={`/job/${item.slug}`}
+                          state={{
+                            from: "/job-search",
+                            JobId: item._id,
+                          }}
                           className="text-decoration-none"
                         >
                           <div

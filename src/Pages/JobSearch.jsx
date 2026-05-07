@@ -75,13 +75,6 @@ function JobSearch() {
           code: currencyCode,
           symbol: currencySymbol,
         });
-
-        // update form state also
-        setCareerGoalsData((prev) => ({
-          ...prev,
-          salaryCurrency: currencyCode,
-          TJMCurrency: currencyCode,
-        }));
       }
     } catch (error) {
       console.log(error);
@@ -371,7 +364,7 @@ function JobSearch() {
 
       toast.success(res.data.message || "Applied successfully!");
       getAllJobList(pageSize, pageNumber);
-
+      setIsPanelOpen(false);
       const modal = document.getElementById("exampleModal");
       if (modal) {
         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
@@ -2393,6 +2386,11 @@ function JobSearch() {
                                           className={`fa-${
                                             job.isSaved ? "solid" : "regular"
                                           } fa-heart`}
+                                          style={{
+                                            color: job?.isSaved
+                                              ? "#ff0000"
+                                              : "#65758a",
+                                          }}
                                         ></i>
                                       </button>
 
@@ -2509,7 +2507,11 @@ function JobSearch() {
                                         </button>
                                       ) : job?.isAssessmentRequired ? (
                                         <Link
-                                          to={`/job-details/${job._id}`}
+                                          to={`/job/${job.slug}`}
+                                          state={{
+                                            from: "/job-search",
+                                            JobId: job._id,
+                                          }}
                                           className="modern-apply-btn"
                                           onClick={(e) => e.stopPropagation()}
                                         >
@@ -2917,7 +2919,11 @@ function JobSearch() {
 
                                                   {latestJob ? (
                                                     <Link
-                                                      to={`/job-details/${latestJob._id}`}
+                                                     to={`/job/${latestJob.slug}`}
+                                                     state={{
+    from: "/job-search",
+    JobId: latestJob._id,
+  }}
                                                       className="modern-one-job-link"
                                                       onClick={(e) =>
                                                         e.stopPropagation()
@@ -3375,7 +3381,7 @@ function JobSearch() {
 
                     setJobId(selectedJob._id);
                     handleJobClick(selectedJob._id);
-
+                    setIsPanelOpen(true);
                     const modalEl = document.getElementById("exampleModal");
                     if (modalEl) {
                       const modal = new window.bootstrap.Modal(modalEl);
@@ -3388,7 +3394,11 @@ function JobSearch() {
               ) : null}
 
               <Link
-                to={`/job-details/${selectedJob._id}`}
+                to={`/job/${selectedJob.slug}`}
+                state={{
+                  from: "/job-search",
+                  JobId: selectedJob._id,
+                }}
                 className="modern-orange-btn"
                 onClick={() => setIsPanelOpen(false)}
               >
@@ -3441,7 +3451,7 @@ function JobSearch() {
                         selectedJob?.isSaved ? "solid" : "regular"
                       } fa-heart`}
                       style={{
-                        color: selectedJob?.isSaved ? "#fb761a" : "#65758a",
+                        color: selectedJob?.isSaved ? "#ff0000" : "#65758a",
                       }}
                     />
                   </a>

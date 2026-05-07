@@ -382,10 +382,11 @@ function AppliedJobList() {
                               <li>
                                 <Link
                                   className="dropdown-item"
-                                  to={`/job-details/${job._id}`}
+                                  to={`/job/${job.slug}`}
                                   state={{
                                     jobData: job,
                                     from: "/applied-jobs-list",
+                                    JobId: job._id,
                                   }}
                                 >
                                   <i className="fa-regular fa-eye me-2"></i>

@@ -5,7 +5,6 @@ import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-
 import moment from "moment";
 import { ToastContainer, toast } from "react-toastify";
 import {
@@ -13,6 +12,7 @@ import {
   Pagination as SwiperPagination,
   Autoplay,
 } from "swiper/modules";
+import "./CandidateDashboardModern.css";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import "swiper/css";
 import "swiper/css/navigation";
@@ -23,11 +23,22 @@ import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function CandidateDashboard() {
+  const { t, i18n } = useTranslation("global");
   const [count, setCount] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const userRole = localStorage.getItem("user_role");
+
   const [jobList, setJobList] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
+  const [globalCurrency, setGlobalCurrency] = useState({
+    code: "MAD",
+    symbol: "DH",
+  });
   const [pageSize, setPageSize] = useState(15);
   const [totalJobData, setTotalJobData] = useState({});
   const [resumeList, setResumeList] = useState([]);
@@ -46,7 +57,26 @@ function CandidateDashboard() {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const fetchGlobalCurrency = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
 
+      if (res.data.success) {
+        const currencyCode = res.data.data?.code || "MAD";
+        const currencySymbol = res.data.data?.symbol || "DH";
+
+        setGlobalCurrency({
+          code: currencyCode,
+          symbol: currencySymbol,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchGlobalCurrency();
+  }, []);
   const getAllJobList = async (limit, page) => {
     try {
       const res = await axios.get(`${API_BASE_URL}RecentAddedJobList`, {
@@ -65,7 +95,24 @@ function CandidateDashboard() {
       console.error("Error fetching jobs:", error);
     }
   };
+  const handleCopy = async (e, url) => {
+    e.preventDefault();
 
+    if (!url) {
+      toast.error("Link not available yet");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Link copied!");
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+      toast.error("Copy failed");
+    }
+  };
   const getUnreadChatList = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getJobseekerUnreadChatList`, {
@@ -259,24 +306,39 @@ function CandidateDashboard() {
       console.error("❌ jobId is missing");
       return;
     }
+
+    // ✅ VALIDATION: Ensure one of the three options is selected
+    if (
+      selectedType === "resume" &&
+      !selectedId &&
+      selectedType === "cover" &&
+      !selectedId &&
+      selectedType === "custom" &&
+      !selectedCustomFile
+    ) {
+      toast.error(
+        "Please select a resume, cover letter, or upload a custom file.",
+        {
+          autoClose: 2000,
+          theme: "colored",
+        },
+      );
+      return; // stop here
+    }
+
     setIsApplying(true); // 🔥 Start loader
 
     const formData = new FormData();
 
     if (selectedType === "resume") {
       formData.append("cv", selectedId);
-    }
-
-    if (selectedType === "cover") {
+    } else if (selectedType === "cover") {
       formData.append("coverLetter", selectedId);
-    }
+    } else if (selectedType === "custom") {
+      const file = selectedCustomFile;
 
-    if (selectedType === "custom") {
-      const file = fileInputRef.current?.files?.[0];
-
-      // ✅ FILE REQUIRED
       if (!file) {
-        toast.error("Please select a resume file.", {
+        toast.error("Please select a custom file.", {
           autoClose: 2000,
           theme: "colored",
         });
@@ -284,14 +346,13 @@ function CandidateDashboard() {
         return;
       }
 
-      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
       if (file.size > MAX_FILE_SIZE) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
         });
         setIsApplying(false);
-        return; // ⛔ STOP — DO NOT HIT API
+        return;
       }
 
       formData.append("customResume", file);
@@ -308,7 +369,7 @@ function CandidateDashboard() {
 
       toast.success(res.data.message || "Applied successfully!");
       getAllJobList(pageSize, pageNumber);
-
+      setIsPanelOpen(false);
       const modal = document.getElementById("exampleModal");
       if (modal) {
         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
@@ -325,7 +386,6 @@ function CandidateDashboard() {
         error?.response?.status === 413 ||
         error?.message?.includes("413")
       ) {
-        // 🔒 BACKUP SAFETY (in case proxy still throws 413)
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -405,18 +465,24 @@ function CandidateDashboard() {
         },
       );
 
-      console.log("✅ API Response:", res.data);
-
       if (res.data.success) {
         const { message } = res.data;
 
-        // ✅ Toggle locally without refetch
-        // setJobList((prevJobs) =>
-        //   prevJobs.map((job) =>
-        //     job._id === jobId ? { ...job, isSaved: !job.isSaved } : job
-        //   )
-        // );
-        getAllJobList();
+        // ✅ 1. Update Job List instantly
+        setJobList((prevJobs) =>
+          prevJobs.map((job) =>
+            job._id === jobId ? { ...job, isSaved: !job.isSaved } : job,
+          ),
+        );
+
+        // ✅ 2. ALSO update selectedJob (IMPORTANT FIX)
+        setSelectedJob((prev) =>
+          prev && prev._id === jobId
+            ? { ...prev, isSaved: !prev.isSaved }
+            : prev,
+        );
+
+        // ✅ Toast
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
         } else if (message.toLowerCase().includes("unsaved")) {
@@ -428,8 +494,8 @@ function CandidateDashboard() {
         toast.error(res.data.message || "Something went wrong.");
       }
     } catch (err) {
-      console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || "Server error. Try again!");
+      console.error(err);
+      toast.error(err.response?.data?.message || "Server error");
     }
   };
 
@@ -452,150 +518,137 @@ function CandidateDashboard() {
           </div>
           {/* End Breadcrumb Area */}
           {/* candidate mannage Job application section start here */}
-          <section className="candidate-dashboard-info-area">
-            <div className="candidate-dashboard-box-info">
-              <div className="candidate-dashboard-box">
-                <div className="row">
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application?tab=applications">
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i className="fa-solid fa-file" />
-                        </div>
-                        <div className="box-content">
-                          <h4>Applications</h4>
-                          <h5>{count.totalApplications || 0}</h5>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application?tab=saved-jobs">
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i className="fa-solid fa-heart" />
-                        </div>
-                        <div className="box-content">
-                          <h4>Saved Jobs</h4>
-                          <h5>{count.totalSavedJobs || 0}</h5>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/manage-job-application?tab=job-alerts">
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i className="fa-solid fa-bell" />
-                        </div>
-                        <div className="box-content">
-                          <h4>Job Alerts</h4>
-                          <h5>{count.totalJobAlerts || 0}</h5>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/chat-messaging-system">
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i class="fa-solid fa-comment-dots"></i>
-                        </div>
-                        <div className="box-content">
-                          <h4>Recruiter Messages </h4>
-                          <h5>{count.recruiterMessages || 0}</h5>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <a href="#">
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i class="fa-solid fa-clipboard-question"></i>
-                        </div>
-                        <div className="box-content">
-                          <h4>Upcoming interviews </h4>
-                          <h5>{count.upcomingInterviews || 0}</h5>
-                        </div>
-                      </div>
-                    </a>
-                  </div>
-                  <div className="col-lg-4 col-sm-6 mb-4">
-                    <Link to="/activity-timeline">
-                      {" "}
-                      <div className="dashboard-box-icon-content">
-                        <div className="box-icon">
-                          <i className="fa-solid fa-user"></i>
-                        </div>
-                        <div className="box-content">
-                          <h4>User Log</h4>
-                          <h5>{count.userLogs || 0}</h5>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
+          <div className="dashboard-stats-grid">
+            <Link
+              className="metric-card-modern"
+              to="/manage-job-application?tab=applications"
+            >
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-file" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Applications</h4>
+                <h5>{count.totalApplications || 0}</h5>
+              </div>
+            </Link>
+
+            <Link
+              className="metric-card-modern"
+              to="/manage-job-application?tab=saved-jobs"
+            >
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-heart" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Favorites</h4>
+                <h5>{count.totalSavedJobs || 0}</h5>
+              </div>
+            </Link>
+
+            <Link
+              className="metric-card-modern"
+              to="/manage-job-application?tab=job-alerts"
+            >
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-bell" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Job Alerts</h4>
+                <h5>{count.totalJobAlerts || 0}</h5>
+              </div>
+            </Link>
+
+            <Link className="metric-card-modern" to="/chat-messaging-system">
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-comment-dots" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Messages</h4>
+                <h5>{count.recruiterMessages || 0}</h5>
+              </div>
+            </Link>
+
+            <div className="metric-card-modern">
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-clipboard-question" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Interviews</h4>
+                <h5>{count.upcomingInterviews || 0}</h5>
               </div>
             </div>
-          </section>
+
+            <Link className="metric-card-modern" to="/activity-timeline">
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-clock-rotate-left" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Historical</h4>
+                <h5>{count.userLogs || 0}</h5>
+              </div>
+            </Link>
+
+            <Link
+              className="metric-card-modern"
+              to="/manage-job-application?tab=profile-views"
+            >
+              <div className="metric-icon-box">
+                <i className="fa-solid fa-eye" />
+              </div>
+              <div className="metric-content-box">
+                <h4>Profile Views</h4>
+                <h5>{count.profileViews || 0}</h5>
+              </div>
+            </Link>
+          </div>
           {/* candidate mannage Job application end here*/}
           {/* candidate Complete profile section start here */}
-          <section className="candidate-complete-info-area">
-            <div className="candidate-complete-info-box single-line">
-              {/* LEFT SIDE */}
-              <div className="left-area">
-                <h4>Complete your profile and get better matches</h4>
+          <div className="profile-strength-card-modern">
+            <div className="strength-info-left">
+              <h4>Complete your profile to get better opportunities</h4>
 
-                <div className="steps-wrapper2">
-                  {[...Array(profileData?.totalSections || 0)].map(
-                    (_, index) => {
-                      const isCompleted = index < profileData.completedSections;
+              <div className="modern-progress-wrapper">
+                <div className="modern-progress-bar">
+                  <div
+                    className="modern-progress-fill"
+                    style={{
+                      "--target-width": `${profileData?.strength ?? 0}%`,
+                    }}
+                  >
+                    <div className="modern-progress-cursor" />
+                  </div>
+                </div>
 
-                      return (
-                        <div className="profile-step-item" key={index}>
-                          <div
-                            className={`profile-step-circle ${
-                              isCompleted ? "completed" : "pending"
-                            }`}
-                          >
-                            {isCompleted && <i className="fa-solid fa-check" />}
-                          </div>
-
-                          {index !== profileData.totalSections - 1 && (
-                            <div
-                              className={`profile-step-line ${
-                                index < profileData.completedSections - 1
-                                  ? "line-completed"
-                                  : "line-pending"
-                              }`}
-                            />
-                          )}
-                        </div>
-                      );
-                    },
-                  )}
+                <div className="modern-progress-labels">
+                  <span>Initial</span>
+                  <span>Qualified</span>
+                  <span>Optimized</span>
                 </div>
               </div>
-
-              {/* RIGHT SIDE */}
-              <div className="right-area">
-                <h4>Profile strength: {profileData?.strength ?? 0}%</h4>
-                <Link to="/candidate-profile" className="default-btn btn">
-                  Complete Profile
-                </Link>
-              </div>
             </div>
-          </section>
+
+            <div className="strength-info-right">
+              <h4>Profile strength: {profileData?.strength ?? 0}%</h4>
+
+              <Link className="btn-complete-profile" to="/candidate-profile">
+                Complete my Profile
+                <i className="fa-solid fa-arrow-right ms-2" />
+              </Link>
+            </div>
+          </div>
 
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
-          <section className="dashboard-heading-job-profile-info">
-            <div className="dashboard-heading-info-area">
-              <h2>Job Hiring Now</h2>
-              <h4>Recently added jobs compatible with your profile</h4>
+          <section className="main-content-area">
+            <div className="dashboard-section-title">
+              <h2 _msttexthash={390039} _msthash={233}>
+                Current job openings
+              </h2>
+              <h4 _msttexthash={1303328} _msthash={234}>
+                Recent offers compatible with your profile
+              </h4>
             </div>
-            <div className="dashboard-job-post-profile-area">
+            <div className="dashboard-recent-job-post-info">
               <div className="container">
                 <div className="row">
                   <div className="col-lg-8 col-md-6">
@@ -606,222 +659,269 @@ function CandidateDashboard() {
                             <React.Fragment key={chunkIndex}>
                               {/* Render jobs */}
                               {chunk.map((job) => (
-                                <Link
+                                <div
                                   key={job._id}
-                                  to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                  state={{ from: "/candidate-dashboard" }}
-                                  className="job-link"
+                                  className="job-link text-decoration-none"
+                                  onClick={() => {
+                                    setSelectedJob(job);
+                                    setIsPanelOpen(true);
+                                  }}
                                 >
-                                  <div className="available-job-posts-box">
-                                    <div className="available-job-company-name-save-job">
-                                      <div className="available-job-company-name">
-                                        <a href="job-details.html">
-                                          <h4>
-                                            <img
-                                              crossorigin="anonymous"
-                                              src={
-                                                job?.companyId?.logo
-                                                  ? `${API_IMAGE_URL}${job.companyId.logo}`
-                                                  : "/jobPortal/assets/images/dashboard/images1.png"
-                                              }
-                                              alt="logo"
-                                            />
+                                  <div className="modern-job-card clickable mb-4">
+                                    {/* Header */}
+                                    <div className="modern-job-header">
+                                      <div className="modern-company-info">
+                                        <div className="modern-logo-container">
+                                          <img
+                                            crossOrigin="anonymous"
+                                            alt="logo"
+                                            className="modern-company-logo"
+                                            src={
+                                              job?.logo
+                                                ? `${API_IMAGE_URL}${job.logo}`
+                                                : "assets/images/dashboard/images1.png"
+                                            }
+                                          />
+                                        </div>
+
+                                        <div className="modern-company-details">
+                                          <h4 className="modern-company-name">
                                             {job?.brandName}
                                           </h4>
-                                        </a>
-                                      </div>
-                                      <div className="d-flex justify-space-between">
-                                        <div>
-                                          {job?.isAssessmentRequired && (
-                                            <>
-                                              {/* 🟢 PASSED */}
-                                              {job?.assessmentResult?.status ===
-                                                "passed" && (
-                                                <span className="test-passed-tag-area">
-                                                  <i className="fa-solid fa-circle-check"></i>
-                                                  Test Passed
-                                                </span>
-                                              )}
 
-                                              {/* 🔴 FAILED */}
-                                              {job?.assessmentResult?.status ===
-                                                "failed" && (
-                                                <span className="test-failed-tag-area">
-                                                  <i className="fa-solid fa-circle-xmark"></i>
-                                                  Test Failed
-                                                </span>
-                                              )}
-
-                                              {/* 🟠 NOT ATTEMPTED */}
-                                              {(!job?.assessmentResult ||
-                                                job?.assessmentResult
-                                                  ?.status ===
-                                                  "not_attempted") && (
-                                                <span className="test-required-tag-area">
-                                                  <i className="fa-solid fa-clipboard-check"></i>
-                                                  Test Required
-                                                </span>
-                                              )}
-                                            </>
-                                          )}
+                                          <span className="modern-post-date">
+                                            <i className="fa-regular fa-clock me-1"></i>
+                                            {moment(job?.createdAt).fromNow()}
+                                          </span>
                                         </div>
-                                        <div className="available-job-save-job">
+                                      </div>
+
+                                      {/* Right Actions */}
+                                      <div className="modern-job-actions">
+                                        {/* Featured */}
+                                        {job?.isFeatured && (
+                                          <span
+                                            className="modern-status-badge featured"
+                                            style={{
+                                              padding: "6px 12px",
+                                              fontSize: "11px",
+                                              borderRadius: "8px",
+                                              marginRight: "8px",
+                                            }}
+                                          >
+                                            <i className="fa-solid fa-star me-1"></i>
+                                            {t("header.Featured")}
+                                          </span>
+                                        )}
+
+                                        {/* Assessment */}
+                                        {job?.isAssessmentRequired && (
+                                          <span
+                                            className="modern-status-badge assessment"
+                                            style={{
+                                              padding: "6px 12px",
+                                              fontSize: "11px",
+                                              borderRadius: "8px",
+                                              marginRight: "8px",
+                                            }}
+                                          >
+                                            {job?.assessmentResult?.status ===
+                                            "passed"
+                                              ? "Test Passed"
+                                              : job?.assessmentResult
+                                                    ?.status === "failed"
+                                                ? "Test Failed"
+                                                : t("header.Test_Required")}
+                                          </span>
+                                        )}
+
+                                        {/* Save */}
+                                        <button
+                                          className="modern-action-icon"
+                                          title="Save Job"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+
+                                            if (userRole !== "JobSeeker") {
+                                              navigate("/login");
+                                              return;
+                                            }
+
+                                            handleSaveJob(job._id);
+                                          }}
+                                        >
                                           <i
                                             className={`fa-${
                                               job.isSaved ? "solid" : "regular"
                                             } fa-heart`}
                                             style={{
-                                              cursor: "pointer",
-                                              color: job.isSaved
-                                                ? "#fb761a"
-                                                : "#fff",
+                                              color: job?.isSaved
+                                                ? "#ff0000"
+                                                : "#65758a",
                                             }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              handleSaveJob(job._id);
-                                            }}
-                                          />
-                                          <i
-                                            className="fa-brands fa-linkedin-in"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              const link =
-                                                job?.companyId?.links
-                                                  ?.linkedin ||
-                                                "https://www.linkedin.com/";
-                                              window.open(link, "_blank");
-                                            }}
-                                          />
-
-                                          {/* Facebook */}
-                                          <i
-                                            className="fa-brands fa-facebook-f"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              const link =
-                                                job?.companyId?.links
-                                                  ?.facebook ||
-                                                "https://www.facebook.com/";
-                                              window.open(link, "_blank");
-                                            }}
-                                          />
-
-                                          {/* Instagram */}
-                                          <i
-                                            className="fa-brands fa-instagram"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              const link =
-                                                job?.companyId?.links
-                                                  ?.instagram ||
-                                                "https://www.instagram.com/";
-                                              window.open(link, "_blank");
-                                            }}
-                                          />
-
-                                          {/* Twitter (X) */}
-                                          <i
-                                            className="fa-brands fa-x-twitter"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              const link =
-                                                job?.companyId?.links
-                                                  ?.twitter ||
-                                                "https://twitter.com/";
-                                              window.open(link, "_blank");
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <a href="job-details.html">
-                                      <div className="available-job-type-details">
-                                        <h5>{job?.jobTitle || "N/A"}</h5>
-                                        <p>{job?.shortDescription || "N/A"}</p>
-                                        <ul>
-                                          <li>
-                                            <i className="fa-regular fa-calendar" />{" "}
-                                            {moment(job?.createdAt).fromNow()}
-                                          </li>
-                                          <li>
-                                            <i className="fa-regular fa-file" />{" "}
-                                            {job?.jobCategory?.length > 0
-                                              ? job.jobCategory
-                                                  .map((item) => item.name)
-                                                  .join(", ")
-                                              : "N/A"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-regular fa-user" />
-                                            &nbsp;
-                                            {Array.isArray(
-                                              job?.employmentType,
-                                            ) && job.employmentType.length > 0
-                                              ? job.employmentType.join(", ")
-                                              : "N/A"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-location-dot" />{" "}
-                                            {job?.city && job?.city.length > 0
-                                              ? job.city
-                                              : job?.companyId?.city || "N/A"}
-                                          </li>
-                                          <li>
-                                            <i className="fa-solid fa-users" />{" "}
-                                            Available:{" "}
-                                            {job?.availablePosts || 0}{" "}
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    </a>
-                                    <div className="available-job-type-apply-btn">
-                                      {/* 🔒 Already Applied */}
-                                      {job?.isApplied ? (
-                                        <button
-                                          className="default-btn btn"
-                                          disabled
-                                          style={{ color: "#ff6600" }}
-                                        >
-                                          {job?.applicationStatus}
+                                          ></i>
                                         </button>
-                                      ) : job?.isAssessmentRequired ? (
-                                        /* 🧪 Assessment Required → View Details */
-                                        <Link
-                                          to={`/job-details/${job._id}`}
-                                          className="default-btn btn"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          View Details
-                                        </Link>
-                                      ) : (
-                                        /* ✅ No Assessment → Direct Apply */
-                                        <a
-                                          href="#"
-                                          className="default-btn btn"
+
+                                        {/* Linkedin */}
+                                        <button
+                                          className="modern-action-icon"
+                                          title="LinkedIn"
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            setJobId(job._id);
-                                            handleJobClick(job._id);
+                                            window.open(
+                                              job?.social_links?.linkedin ||
+                                                "https://linkedin.com",
+                                              "_blank",
+                                            );
                                           }}
-                                          data-bs-toggle="modal"
-                                          data-bs-target="#exampleModal"
                                         >
-                                          Apply Now
-                                        </a>
-                                      )}
+                                          <i className="fa-brands fa-linkedin-in"></i>
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Body */}
+                                    <div className="modern-job-body">
+                                      <div className="modern-title-badge-area">
+                                        <h3
+                                          className="modern-job-title"
+                                          style={{ cursor: "pointer" }}
+                                        >
+                                          {job?.jobTitle}
+                                        </h3>
+                                      </div>
+
+                                      <p className="modern-job-description">
+                                        {job?.shortDescription || "N/A"}
+                                      </p>
+                                    </div>
+
+                                    {/* Meta */}
+                                    <div className="modern-job-meta">
+                                      <span className="modern-meta-tag">
+                                        <i className="fa-regular fa-file me-1"></i>
+                                        {job?.jobCategory?.length > 0
+                                          ? job.jobCategory.join(", ")
+                                          : "N/A"}
+                                      </span>
+
+                                      <span className="modern-meta-tag">
+                                        <i className="fa-solid fa-signal me-1"></i>
+                                        {job?.experienceLevel || "All Levels"}
+                                      </span>
+
+                                      <span className="modern-meta-tag">
+                                        <i className="fa-regular fa-user me-1"></i>
+                                        {Array.isArray(job?.employmentType) &&
+                                        job.employmentType.length > 0
+                                          ? job.employmentType.join(", ")
+                                          : "N/A"}
+                                      </span>
+
+                                      <span className="modern-meta-tag">
+                                        <i className="fa-solid fa-location-dot me-1"></i>
+                                        {job?.city?.length > 0
+                                          ? job.city.join(", ")
+                                          : job?.company_city || "N/A"}
+                                      </span>
+                                      <span className="modern-meta-tag">
+                                        <i
+                                          className="fa-solid fa-house-laptop"
+                                          style={{ "margin-right": "8px" }}
+                                        />
+                                        {job?.remote || "N/A"}
+                                      </span>
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="modern-job-footer">
+                                      <div className="modern-job-info-badges">
+                                        <span className="modern-info-badge">
+                                          <i className="fa-solid fa-briefcase me-1"></i>
+                                          {job?.availablePosts || 0} position(s)
+                                          disponible(s)
+                                        </span>
+
+                                        <span className="modern-info-badge">
+                                          <i className="fa-solid fa-wallet me-1"></i>
+
+                                          {job?.privatJobDetails
+                                            ?.salaryNegotiable === true ? (
+                                            "Salaire à négocier"
+                                          ) : job?.privatJobDetails
+                                              ?.minSalary ||
+                                            job?.privatJobDetails?.maxSalary ? (
+                                            <>
+                                              {job?.privatJobDetails
+                                                ?.minSalary || 0}{" "}
+                                              -{" "}
+                                              {job?.privatJobDetails
+                                                ?.maxSalary || 0}{" "}
+                                              {globalCurrency.code}
+                                            </>
+                                          ) : (
+                                            "Salaire à négocier"
+                                          )}
+                                        </span>
+                                      </div>
+
+                                      <div className="modern-job-footer-actions">
+                                        {job?.isApplied ? (
+                                          <button
+                                            className="modern-apply-btn"
+                                            disabled
+                                          >
+                                            {job?.applicationStatus}
+                                          </button>
+                                        ) : job?.isAssessmentRequired ? (
+                                          <Link
+                                            to={`/job/${job.slug}`}
+                                            state={{
+                                              from: "/candidate-dashboard",
+                                              JobId: job._id,
+                                            }}
+                                            className="modern-apply-btn"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            View Details
+                                          </Link>
+                                        ) : (
+                                          <button
+                                            className="modern-apply-btn"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+
+                                              if (userRole !== "JobSeeker") {
+                                                navigate("/login");
+                                                return;
+                                              }
+
+                                              setJobId(job._id);
+                                              handleJobClick(job._id);
+
+                                              const modalEl =
+                                                document.getElementById(
+                                                  "exampleModal",
+                                                );
+                                              if (modalEl) {
+                                                const modal =
+                                                  new window.bootstrap.Modal(
+                                                    modalEl,
+                                                  );
+                                                modal.show();
+                                              }
+                                            }}
+                                          >
+                                            {t("header.apply_now")}
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </Link>
+                                </div>
                               ))}
                               <div
                                 className="modal fade"
@@ -837,7 +937,7 @@ function CandidateDashboard() {
                                         className="modal-title fs-5"
                                         id="exampleModalLabel"
                                       >
-                                        Apply now
+                                        {t("header.apply_now")}
                                       </h1>
                                       <button
                                         type="button"
@@ -974,7 +1074,7 @@ function CandidateDashboard() {
                                                 : "none",
                                           }}
                                         >
-                                          <h4>or</h4>
+                                          <h4>{t("header.or")}</h4>
                                         </div>
 
                                         {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
@@ -1038,7 +1138,9 @@ function CandidateDashboard() {
                                                   fileInputRef.current.click();
                                               }}
                                             >
-                                              Custom resume with cover letter
+                                              {t(
+                                                "header.Custom_resume_with_cover_letter",
+                                              )}
                                             </a>
 
                                             <input
@@ -1076,10 +1178,10 @@ function CandidateDashboard() {
                                                   role="status"
                                                   aria-hidden="true"
                                                 ></span>
-                                                Applying...
+                                                {t("header.applying")}
                                               </>
                                             ) : (
-                                              "Apply Now"
+                                              t("header.apply_now")
                                             )}
                                           </button>
                                         </div>
@@ -1091,24 +1193,33 @@ function CandidateDashboard() {
                               </div>
                               {/* Show Swiper only if this chunk has 10 jobs */}
                               {chunk.length === 10 && (
-                                <section className="job-card-companies-inf-area">
-                                  <div className="container">
+                                <section className="modern-company-carousel-section">
+                                  <div className="modern-carousel-content-wrapper">
+                                    <h3 className="modern-carousel-title">
+                                      Entreprises qui Recrutent
+                                    </h3>
                                     <Swiper
                                       modules={[
                                         Navigation,
                                         SwiperPagination,
                                         Autoplay,
                                       ]}
-                                      spaceBetween={20}
-                                      slidesPerView={3}
+                                      spaceBetween={24}
+                                      slidesPerView={3} // ✅ default desktop 3 cards
                                       navigation
-                                      // pagination={{ clickable: true }}
                                       autoplay={{ delay: 3000 }}
                                       loop={true}
+                                      pagination={{
+                                        clickable: true,
+                                        dynamicBullets: true,
+                                        dynamicMainBullets: 4, // controls how many dots are visible
+                                      }}
                                       breakpoints={{
                                         320: { slidesPerView: 1 },
+                                        576: { slidesPerView: 1.2 },
                                         768: { slidesPerView: 2 },
-                                        1024: { slidesPerView: 3 },
+                                        992: { slidesPerView: 3 },
+                                        1200: { slidesPerView: 3 }, // ✅ keep 3 on large screen
                                       }}
                                     >
                                       {companies?.companies?.length > 0 ? (
@@ -1116,93 +1227,98 @@ function CandidateDashboard() {
                                           const company = item?.companyId;
                                           const topThreeJobs =
                                             item?.jobList?.slice(0, 3) || [];
+                                          const latestJob = topThreeJobs[0];
+
                                           return (
                                             <SwiperSlide key={company?._id}>
-                                              <div className="job-card-companies-box">
-                                                <div className="job-card-companies-img">
+                                              <div
+                                                className="modern-company-card"
+                                                onClick={() =>
+                                                  handleViewCompany(company)
+                                                }
+                                                style={{ cursor: "pointer" }}
+                                              >
+                                                {/* Cover */}
+                                                <div className="modern-company-cover-container">
                                                   <img
                                                     alt={
                                                       company?.brandName ||
-                                                      "Company Cover"
+                                                      "Company"
                                                     }
+                                                    className="modern-company-cover-img"
+                                                    crossOrigin="anonymous"
                                                     src={
                                                       company?.coverPhoto
                                                         ? `${API_IMAGE_URL}${company.coverPhoto}`
                                                         : "/jobPortal/assets/images/company/company-img-1.jpg"
                                                     }
-                                                    crossOrigin="anonymous"
                                                   />
 
-                                                  <div className="job-card-companies-logo">
+                                                  <div className="modern-company-cover-overlay"></div>
+
+                                                  {/* Logo */}
+                                                  <div className="modern-company-logo-badge">
                                                     <img
                                                       alt="logo"
+                                                      crossOrigin="anonymous"
                                                       src={
                                                         company?.logo
                                                           ? `${API_IMAGE_URL}${company.logo}`
                                                           : "/jobPortal/assets/images/icon/icon-25.png"
                                                       }
-                                                      crossOrigin="anonymous"
                                                     />
                                                   </div>
                                                 </div>
 
-                                                <div className="job-card-companies-name">
-                                                  <h4
-                                                    onClick={() =>
-                                                      handleViewCompany(company)
-                                                    }
-                                                    style={{
-                                                      cursor: "pointer",
-                                                    }}
-                                                  >
-                                                    {company?.brandName ||
-                                                      "Unnamed Company"}
-                                                  </h4>
-                                                </div>
+                                                {/* Content */}
+                                                <div className="modern-company-content">
+                                                  <div className="modern-company-header-row">
+                                                    <h4 className="modern-company-card-name">
+                                                      {company?.brandName ||
+                                                        "Unnamed Company"}
+                                                    </h4>
 
-                                                {/* ✅ Latest Jobs */}
-                                                <div className="job-card-companies-name">
-                                                  <h5>Latest Jobs</h5>
+                                                    <span className="modern-job-count-badge">
+                                                      {item?.jobCount || 0}{" "}
+                                                      {t("header.Jobs")}
+                                                    </span>
+                                                  </div>
 
-                                                  <ul>
-                                                    {topThreeJobs.length > 0 ? (
-                                                      topThreeJobs.map(
-                                                        (job) => (
-                                                          <li key={job._id}>
-                                                            <Link
-                                                              to={`/job-details/${job._id}`} // ✅ Pass ID in URL
-                                                              className="job-link"
-                                                              style={{
-                                                                color:
-                                                                  "#007bff",
-                                                                textDecoration:
-                                                                  "none",
-                                                                fontWeight:
-                                                                  "500",
-                                                              }}
-                                                            >
-                                                              {job.jobTitle}
-                                                            </Link>{" "}
-                                                          </li>
-                                                        ),
-                                                      )
+                                                  {/* Latest Job */}
+                                                  <div className="modern-latest-job-info">
+                                                    <span className="modern-latest-job-label">
+                                                      {t("header.Latest_Job")}
+                                                    </span>
+
+                                                    {latestJob ? (
+                                                      <Link
+                                                        to={`/job/${latestJob.slug}`}
+                                                        state={{
+                                                          from: "/candidate-dashboard",
+                                                          JobId: latestJob._id,
+                                                        }}
+                                                        className="modern-one-job-link"
+                                                        onClick={(e) =>
+                                                          e.stopPropagation()
+                                                        }
+                                                      >
+                                                        {latestJob.jobTitle}
+                                                      </Link>
                                                     ) : (
-                                                      <li>No jobs available</li>
+                                                      <div
+                                                        className="modern-one-job-link"
+                                                        style={{
+                                                          opacity: "0.6",
+                                                        }}
+                                                      >
+                                                        <span>
+                                                          {t(
+                                                            "header.noJobsAvailable",
+                                                          )}
+                                                        </span>
+                                                      </div>
                                                     )}
-                                                  </ul>
-                                                </div>
-
-                                                {/* ✅ View Jobs Button */}
-                                                <div className="view-job-count-btn">
-                                                  <button
-                                                    className="default-btn btn"
-                                                    onClick={() =>
-                                                      handleViewCompany(company)
-                                                    }
-                                                  >
-                                                    View {item?.jobCount || 0}{" "}
-                                                    Jobs
-                                                  </button>
+                                                  </div>
                                                 </div>
                                               </div>
                                             </SwiperSlide>
@@ -1210,7 +1326,7 @@ function CandidateDashboard() {
                                         })
                                       ) : (
                                         <p className="text-center mt-4">
-                                          No companies available.
+                                          {t("header.no_companies")}
                                         </p>
                                       )}
                                     </Swiper>
@@ -1394,6 +1510,427 @@ function CandidateDashboard() {
           </div>
         </div>
       </div>
+      {isPanelOpen && selectedJob && (
+        <div className="side-panel-overlay open">
+          <div className="side-panel-content">
+            <div className="side-panel-header">
+              <div className="header-company-info">
+                <img
+                  crossOrigin="anonymous"
+                  alt="logo"
+                  className="side-panel-logo"
+                  src={
+                    selectedJob?.logo
+                      ? `${API_IMAGE_URL}${selectedJob.logo}`
+                      : "assets/images/dashboard/images1.png"
+                  }
+                />
+                <div>
+                  <h2 className="side-panel-title">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.jobTitle}
+                      </font>
+                    </font>
+                  </h2>
+                  <p className="side-panel-company-name">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.brandName}
+                      </font>
+                    </font>
+                  </p>
+                </div>
+              </div>
+              <button className="close-btn">
+                <svg
+                  stroke="currentColor"
+                  onClick={() => setIsPanelOpen(false)}
+                  fill="currentColor"
+                  strokeWidth={0}
+                  viewBox="0 0 1024 1024"
+                  fillRule="evenodd"
+                  height="1em"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z" />
+                </svg>
+              </button>
+            </div>
+            <div className="side-panel-body">
+              <div className="side-panel-meta-grid">
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z" />
+                    <circle cx={12} cy={9} r="2.5" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.city?.length > 0
+                          ? selectedJob.city.join(", ")
+                          : selectedJob?.company_city || "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {Array.isArray(selectedJob?.jobCategory) &&
+                        selectedJob.jobCategory.length > 0
+                          ? selectedJob.jobCategory.join(", ")
+                          : "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path d="m16 6 2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.minimumLevel || "NA"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {Array.isArray(selectedJob?.employmentType) &&
+                        selectedJob.employmentType.length > 0
+                          ? selectedJob.employmentType.join(", ")
+                          : "N/A"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <i className="fa-solid fa-house-laptop" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.remote
+                          ? typeof selectedJob.remote === "string"
+                            ? selectedJob.remote
+                            : selectedJob.remote.name
+                          : "NA"}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item highlight">
+                  <i className="fa-solid fa-wallet" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.privatJobDetails?.salaryNegotiable ===
+                        true ? (
+                          "Salaire à négocier"
+                        ) : selectedJob?.privatJobDetails?.minSalary ||
+                          selectedJob?.privatJobDetails?.maxSalary ? (
+                          <>
+                            {selectedJob?.privatJobDetails?.minSalary || 0} -{" "}
+                            {selectedJob?.privatJobDetails?.maxSalary || 0}{" "}
+                            {globalCurrency.code}
+                          </>
+                        ) : (
+                          "Salaire à négocier"
+                        )}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <i className="fa-solid fa-users" />
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {" "}
+                        {selectedJob?.availablePosts || 0} position(s)
+                        disponible(s)
+                      </font>
+                    </font>
+                  </span>
+                </div>
+                <div className="meta-item">
+                  <svg
+                    stroke="currentColor"
+                    fill="currentColor"
+                    strokeWidth={0}
+                    viewBox="0 0 24 24"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path fill="none" d="M0 0h24v24H0V0z" />
+                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                  </svg>
+                  <span>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Published{" "}
+                      </font>
+                    </font>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {moment(selectedJob?.createdAt).fromNow()}
+                      </font>
+                    </font>
+                  </span>
+                </div>
+              </div>
+              <div className="side-panel-description">
+                <div className="side-panel-tags mb-4">
+                  <h4 className="mb-2">
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Tags
+                      </font>
+                    </font>
+                  </h4>
+                  <div className="modern-tag-list">
+                    {Array.isArray(selectedJob?.tags) &&
+                    selectedJob.tags.length > 0 ? (
+                      selectedJob.tags.map((tag, index) => (
+                        <span key={index} className="modern-job-tag">
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-muted">No tags available</span>
+                    )}
+                  </div>
+                </div>
+                <h4>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      Description of the offer
+                    </font>
+                  </font>
+                </h4>
+                <div>
+                  <p>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        {selectedJob?.shortDescription || "N/A"}
+                      </font>
+                    </font>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="side-panel-footer">
+              {selectedJob?.isApplied ? (
+                // 🔒 Already Applied
+                <button className="modern-apply-btn w-100" disabled>
+                  {selectedJob?.applicationStatus || "Applied"}
+                </button>
+              ) : !selectedJob?.isAssessmentRequired ? (
+                // ✅ Normal Apply (NO assessment)
+                <button
+                  className="modern-apply-btn w-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    setIsPanelOpen(false);
+
+                    if (userRole !== "JobSeeker") {
+                      navigate("/login");
+                      return;
+                    }
+
+                    setJobId(selectedJob._id);
+                    handleJobClick(selectedJob._id);
+                    setIsPanelOpen(true);
+                    const modalEl = document.getElementById("exampleModal");
+                    if (modalEl) {
+                      const modal = new window.bootstrap.Modal(modalEl);
+                      modal.show();
+                    }
+                  }}
+                >
+                  {t("header.apply_now")}
+                </button>
+              ) : null}
+
+              <Link
+                to={`/job/${selectedJob.slug}`}
+                state={{
+                  from: "/candidate-dashboard",
+                  JobId: selectedJob._id,
+                }}
+                className="modern-orange-btn"
+                onClick={() => setIsPanelOpen(false)}
+              >
+                <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    View the offer
+                  </font>
+                </font>
+              </Link>
+              <ul className="side-panel-social-sharing">
+                {/* 🔗 COPY LINK */}
+                <li style={{ position: "relative" }}>
+                  <a
+                    href="#"
+                    className="side-panel-social-link"
+                    onClick={(e) => handleCopy(e, selectedJob?.linkUrl)}
+                    title={
+                      selectedJob?.jobLink ? "Copy link" : "Link not available"
+                    }
+                    style={{
+                      cursor: selectedJob?.jobLink ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    <i className="fa-solid fa-link" />
+                  </a>
+
+                  {copied && <span className="copy-tooltip">Copied!</span>}
+                </li>
+
+                {/* ❤️ SAVE JOB */}
+                <li>
+                  <a
+                    href="#"
+                    className="side-panel-social-link"
+                    title="Save"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      if (userRole !== "JobSeeker") {
+                        navigate("/login");
+                        return;
+                      }
+
+                      handleSaveJob(selectedJob._id);
+                    }}
+                  >
+                    <i
+                      className={`fa-${
+                        selectedJob?.isSaved ? "solid" : "regular"
+                      } fa-heart`}
+                      style={{
+                        color: selectedJob?.isSaved ? "#ff0000" : "#65758a",
+                      }}
+                    />
+                  </a>
+                </li>
+
+                {/* LINKEDIN */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.linkedin ||
+                      "https://www.linkedin.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link linkedin"
+                  >
+                    <i className="fa-brands fa-linkedin-in" />
+                  </a>
+                </li>
+
+                {/* FACEBOOK */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.facebook ||
+                      "https://www.facebook.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link facebook"
+                  >
+                    <i className="fa-brands fa-facebook-f" />
+                  </a>
+                </li>
+
+                {/* TWITTER */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.twitter ||
+                      "https://twitter.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link twitter"
+                  >
+                    <i className="fa-brands fa-x-twitter" />
+                  </a>
+                </li>
+
+                {/* INSTAGRAM */}
+                <li>
+                  <a
+                    href={
+                      selectedJob?.social_links?.instagram ||
+                      "https://www.instagram.com/"
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="side-panel-social-link instagram"
+                  >
+                    <i className="fa-brands fa-instagram" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

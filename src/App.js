@@ -283,7 +283,7 @@ function LayoutWrapper() {
           }
         />
         <Route path="/:companySlug" element={<CompanyDetailsPage />} />
-        <Route path="/job-details/:id" element={<JobDetails />} />
+       <Route path="/job/:jobSlug" element={<JobDetails />} />
         <Route
           path="/job-details-list"
           element={

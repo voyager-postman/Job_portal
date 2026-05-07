@@ -764,9 +764,10 @@ function Home() {
                     )}
                     <div className="job-image">
                       <Link
-                        to={`/job-details/${job._id}`}
+                        to={`/job/${job.slug}`}
                         state={{
                           from: "/",
+                          JobId: job._id,
                         }}
                       >
                         <img
@@ -787,7 +788,13 @@ function Home() {
                         {job.employmentType || "N/A"}
                       </span>
                       <h2>
-                        <Link to={`/job-details/${job._id}`}>
+                        <Link
+                          to={`/job/${job.slug}`}
+                          state={{
+                            JobId: job._id,
+                            from: "/",
+                          }}
+                        >
                           {job.jobTitle}
                         </Link>
                       </h2>

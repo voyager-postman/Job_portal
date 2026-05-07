@@ -255,13 +255,6 @@ const JobList = () => {
           code: currencyCode,
           symbol: currencySymbol,
         });
-
-        // update form state also
-        setCareerGoalsData((prev) => ({
-          ...prev,
-          salaryCurrency: currencyCode,
-          TJMCurrency: currencyCode,
-        }));
       }
     } catch (error) {
       console.log(error);
@@ -1015,7 +1008,7 @@ const JobList = () => {
 
       toast.success(res.data.message || "Applied successfully!");
       getAllJobList(pageSize, pageNumber);
-
+      setIsPanelOpen(false);
       const modal = document.getElementById("exampleModal");
       if (modal) {
         const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
@@ -2461,6 +2454,11 @@ const JobList = () => {
                                             className={`fa-${
                                               job.isSaved ? "solid" : "regular"
                                             } fa-heart`}
+                                            style={{
+                                              color: job?.isSaved
+                                                ? "#ff0000"
+                                                : "#65758a",
+                                            }}
                                           ></i>
                                         </button>
 
@@ -2579,7 +2577,11 @@ const JobList = () => {
                                           </button>
                                         ) : job?.isAssessmentRequired ? (
                                           <Link
-                                            to={`/job-details/${job._id}`}
+                                            to={`/job/${job.slug}`}
+                                            state={{
+                                              from: "/jobs",
+                                              JobId: job._id,
+                                            }}
                                             className="modern-apply-btn"
                                             onClick={(e) => e.stopPropagation()}
                                           >
@@ -2990,7 +2992,11 @@ const JobList = () => {
 
                                                     {latestJob ? (
                                                       <Link
-                                                        to={`/job-details/${latestJob._id}`}
+                                                        to={`/job/${latestJob.slug}`}
+                                                        state={{
+                                                          from: "/jobs-search",
+                                                          JobId: latestJob._id,
+                                                        }}
                                                         className="modern-one-job-link"
                                                         onClick={(e) =>
                                                           e.stopPropagation()
@@ -3422,7 +3428,7 @@ const JobList = () => {
 
                     setJobId(selectedJob._id);
                     handleJobClick(selectedJob._id);
-
+                    setIsPanelOpen(true);
                     const modalEl = document.getElementById("exampleModal");
                     if (modalEl) {
                       const modal = new window.bootstrap.Modal(modalEl);
@@ -3435,7 +3441,11 @@ const JobList = () => {
               ) : null}
 
               <Link
-                to={`/job-details/${selectedJob._id}`}
+                to={`/job/${selectedJob.slug}`}
+                state={{
+                  from: "/jobs",
+                  JobId: selectedJob._id,
+                }}
                 className="modern-orange-btn"
                 onClick={() => setIsPanelOpen(false)}
               >
@@ -3488,7 +3498,7 @@ const JobList = () => {
                         selectedJob?.isSaved ? "solid" : "regular"
                       } fa-heart`}
                       style={{
-                        color: selectedJob?.isSaved ? "#fb761a" : "#65758a",
+                        color: selectedJob?.isSaved ? "#ff0000" : "#65758a",
                       }}
                     />
                   </a>
