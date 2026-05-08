@@ -17,6 +17,7 @@ const TestResult = () => {
     testName,
     from,
     jobId,
+    jobSlug,
     message,
     scorePercentage,
     passingPercentage,
@@ -77,8 +78,11 @@ const TestResult = () => {
                 className="default-btn btn"
                 onClick={() => {
                   closeAnyOpenModal();
-                  navigate(`/job-details/${jobId}`, {
-                    state: { from: "/job-search" },
+                  navigate(`/job/${jobSlug}`, {
+                    state: {
+                      from: "/job-search",
+                      JobId: jobId,
+                    },
                   });
                 }}
               >
@@ -120,8 +124,11 @@ const TestResult = () => {
                 className="default-btn btn"
                 onClick={() => {
                   closeAnyOpenModal();
-                  navigate(`/job-details/${jobId}`, {
-                    state: { from: from || "/job-search" },
+                  navigate(`/job/${jobSlug}`, {
+                    state: {
+                      from: from || "/job-search",
+                      JobId: jobId,
+                    },
                   });
                 }}
               >

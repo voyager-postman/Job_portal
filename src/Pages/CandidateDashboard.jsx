@@ -32,7 +32,11 @@ function CandidateDashboard() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const userRole = localStorage.getItem("user_role");
-
+  const [chatStats, setChatStats] = useState({
+    totalChats: 0,
+    totalUnread: 0,
+    responseRate: "0%",
+  });
   const [jobList, setJobList] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
   const [globalCurrency, setGlobalCurrency] = useState({
@@ -113,6 +117,7 @@ function CandidateDashboard() {
       toast.error("Copy failed");
     }
   };
+
   const getUnreadChatList = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getJobseekerUnreadChatList`, {
@@ -120,8 +125,16 @@ function CandidateDashboard() {
           Authorization: `Bearer ${token}`,
         },
       });
+
       console.log(res.data);
-      setUnreadChat(res.data?.chats);
+
+      setUnreadChat(res.data?.chats || []);
+
+      setChatStats({
+        totalChats: res.data?.totalChats || 0,
+        totalUnread: res.data?.totalUnread || 0,
+        responseRate: res.data?.responseRate || "0%",
+      });
     } catch (error) {
       console.error("Error Fetching Unread Chat:", error);
     }
@@ -639,849 +652,777 @@ function CandidateDashboard() {
 
           {/* candidate Complete profile section end here */}
           {/* dashboard recent job posts  section start here */}
-          <section className="main-content-area">
-            <div className="dashboard-section-title">
-              <h2 _msttexthash={390039} _msthash={233}>
-                Current job openings
-              </h2>
-              <h4 _msttexthash={1303328} _msthash={234}>
-                Recent offers compatible with your profile
-              </h4>
-            </div>
-            <div className="dashboard-recent-job-post-info">
-              <div className="container">
-                <div className="row">
-                  <div className="col-lg-8 col-md-6">
-                    <div className="dashboard-recent-job-post-info">
-                      {!isJobEmpty ? (
-                        <>
-                          {jobChunks.map((chunk, chunkIndex) => (
-                            <React.Fragment key={chunkIndex}>
-                              {/* Render jobs */}
-                              {chunk.map((job) => (
-                                <div
-                                  key={job._id}
-                                  className="job-link text-decoration-none"
-                                  onClick={() => {
-                                    setSelectedJob(job);
-                                    setIsPanelOpen(true);
-                                  }}
-                                >
-                                  <div className="modern-job-card clickable mb-4">
-                                    {/* Header */}
-                                    <div className="modern-job-header">
-                                      <div className="modern-company-info">
-                                        <div className="modern-logo-container">
-                                          <img
-                                            crossOrigin="anonymous"
-                                            alt="logo"
-                                            className="modern-company-logo"
-                                            src={
-                                              job?.logo
-                                                ? `${API_IMAGE_URL}${job.logo}`
-                                                : "assets/images/dashboard/images1.png"
-                                            }
-                                          />
-                                        </div>
+          <div className="dashboard-main-grid">
+            <div className="main-content-area">
+              <div className="dashboard-section-title">
+                <h2>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      Current job openings
+                    </font>
+                  </font>
+                </h2>
+                <h4>
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      Recent offers compatible with your profile
+                    </font>
+                  </font>
+                </h4>
+              </div>
+              <div className="dashboard-recent-job-post-info">
+                {!isJobEmpty ? (
+                  <>
+                    {jobChunks.map((chunk, chunkIndex) => (
+                      <React.Fragment key={chunkIndex}>
+                        {/* Render jobs */}
+                        {chunk.map((job) => (
+                          <div
+                            key={job._id}
+                            className="job-link-wrapper"
+                            onClick={() => {
+                              setSelectedJob(job);
+                              setIsPanelOpen(true);
+                            }}
+                          >
+                            <div className="modern-job-card clickable">
+                              {/* Header */}
+                              <div className="modern-job-header">
+                                <div className="modern-company-info">
+                                  <div className="modern-logo-container">
+                                    <img
+                                      crossOrigin="anonymous"
+                                      alt="logo"
+                                      className="modern-company-logo"
+                                      src={
+                                        job?.logo
+                                          ? `${API_IMAGE_URL}${job.logo}`
+                                          : "assets/images/dashboard/images1.png"
+                                      }
+                                    />
+                                  </div>
 
-                                        <div className="modern-company-details">
-                                          <h4 className="modern-company-name">
-                                            {job?.brandName}
-                                          </h4>
+                                  <div className="modern-company-details">
+                                    <p className="modern-company-name">
+                                      {job?.brandName}
+                                    </p>
 
-                                          <span className="modern-post-date">
-                                            <i className="fa-regular fa-clock me-1"></i>
-                                            {moment(job?.createdAt).fromNow()}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {/* Right Actions */}
-                                      <div className="modern-job-actions">
-                                        {/* Featured */}
-                                        {job?.isFeatured && (
-                                          <span
-                                            className="modern-status-badge featured"
-                                            style={{
-                                              padding: "6px 12px",
-                                              fontSize: "11px",
-                                              borderRadius: "8px",
-                                              marginRight: "8px",
-                                            }}
-                                          >
-                                            <i className="fa-solid fa-star me-1"></i>
-                                            {t("header.Featured")}
-                                          </span>
-                                        )}
-
-                                        {/* Assessment */}
-                                        {job?.isAssessmentRequired && (
-                                          <span
-                                            className="modern-status-badge assessment"
-                                            style={{
-                                              padding: "6px 12px",
-                                              fontSize: "11px",
-                                              borderRadius: "8px",
-                                              marginRight: "8px",
-                                            }}
-                                          >
-                                            {job?.assessmentResult?.status ===
-                                            "passed"
-                                              ? "Test Passed"
-                                              : job?.assessmentResult
-                                                    ?.status === "failed"
-                                                ? "Test Failed"
-                                                : t("header.Test_Required")}
-                                          </span>
-                                        )}
-
-                                        {/* Save */}
-                                        <button
-                                          className="modern-action-icon"
-                                          title="Save Job"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-
-                                            if (userRole !== "JobSeeker") {
-                                              navigate("/login");
-                                              return;
-                                            }
-
-                                            handleSaveJob(job._id);
-                                          }}
-                                        >
-                                          <i
-                                            className={`fa-${
-                                              job.isSaved ? "solid" : "regular"
-                                            } fa-heart`}
-                                            style={{
-                                              color: job?.isSaved
-                                                ? "#ff0000"
-                                                : "#65758a",
-                                            }}
-                                          ></i>
-                                        </button>
-
-                                        {/* Linkedin */}
-                                        <button
-                                          className="modern-action-icon"
-                                          title="LinkedIn"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            window.open(
-                                              job?.social_links?.linkedin ||
-                                                "https://linkedin.com",
-                                              "_blank",
-                                            );
-                                          }}
-                                        >
-                                          <i className="fa-brands fa-linkedin-in"></i>
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    {/* Body */}
-                                    <div className="modern-job-body">
-                                      <div className="modern-title-badge-area">
-                                        <h3
-                                          className="modern-job-title"
-                                          style={{ cursor: "pointer" }}
-                                        >
-                                          {job?.jobTitle}
-                                        </h3>
-                                      </div>
-
-                                      <p className="modern-job-description">
-                                        {job?.shortDescription || "N/A"}
-                                      </p>
-                                    </div>
-
-                                    {/* Meta */}
-                                    <div className="modern-job-meta">
-                                      <span className="modern-meta-tag">
-                                        <i className="fa-regular fa-file me-1"></i>
-                                        {job?.jobCategory?.length > 0
-                                          ? job.jobCategory.join(", ")
-                                          : "N/A"}
-                                      </span>
-
-                                      <span className="modern-meta-tag">
-                                        <i className="fa-solid fa-signal me-1"></i>
-                                        {job?.experienceLevel || "All Levels"}
-                                      </span>
-
-                                      <span className="modern-meta-tag">
-                                        <i className="fa-regular fa-user me-1"></i>
-                                        {Array.isArray(job?.employmentType) &&
-                                        job.employmentType.length > 0
-                                          ? job.employmentType.join(", ")
-                                          : "N/A"}
-                                      </span>
-
-                                      <span className="modern-meta-tag">
-                                        <i className="fa-solid fa-location-dot me-1"></i>
-                                        {job?.city?.length > 0
-                                          ? job.city.join(", ")
-                                          : job?.company_city || "N/A"}
-                                      </span>
-                                      <span className="modern-meta-tag">
-                                        <i
-                                          className="fa-solid fa-house-laptop"
-                                          style={{ "margin-right": "8px" }}
-                                        />
-                                        {job?.remote || "N/A"}
-                                      </span>
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="modern-job-footer">
-                                      <div className="modern-job-info-badges">
-                                        <span className="modern-info-badge">
-                                          <i className="fa-solid fa-briefcase me-1"></i>
-                                          {job?.availablePosts || 0} position(s)
-                                          disponible(s)
-                                        </span>
-
-                                        <span className="modern-info-badge">
-                                          <i className="fa-solid fa-wallet me-1"></i>
-
-                                          {job?.privatJobDetails
-                                            ?.salaryNegotiable === true ? (
-                                            "Salaire à négocier"
-                                          ) : job?.privatJobDetails
-                                              ?.minSalary ||
-                                            job?.privatJobDetails?.maxSalary ? (
-                                            <>
-                                              {job?.privatJobDetails
-                                                ?.minSalary || 0}{" "}
-                                              -{" "}
-                                              {job?.privatJobDetails
-                                                ?.maxSalary || 0}{" "}
-                                              {globalCurrency.code}
-                                            </>
-                                          ) : (
-                                            "Salaire à négocier"
-                                          )}
-                                        </span>
-                                      </div>
-
-                                      <div className="modern-job-footer-actions">
-                                        {job?.isApplied ? (
-                                          <button
-                                            className="modern-apply-btn"
-                                            disabled
-                                          >
-                                            {job?.applicationStatus}
-                                          </button>
-                                        ) : job?.isAssessmentRequired ? (
-                                          <Link
-                                            to={`/job/${job.slug}`}
-                                            state={{
-                                              from: "/candidate-dashboard",
-                                              JobId: job._id,
-                                            }}
-                                            className="modern-apply-btn"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            View Details
-                                          </Link>
-                                        ) : (
-                                          <button
-                                            className="modern-apply-btn"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-
-                                              if (userRole !== "JobSeeker") {
-                                                navigate("/login");
-                                                return;
-                                              }
-
-                                              setJobId(job._id);
-                                              handleJobClick(job._id);
-
-                                              const modalEl =
-                                                document.getElementById(
-                                                  "exampleModal",
-                                                );
-                                              if (modalEl) {
-                                                const modal =
-                                                  new window.bootstrap.Modal(
-                                                    modalEl,
-                                                  );
-                                                modal.show();
-                                              }
-                                            }}
-                                          >
-                                            {t("header.apply_now")}
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
+                                    <span className="modern-post-date">
+                                      <i className="fa-regular fa-calendar" />
+                                      {moment(job?.createdAt).fromNow()}
+                                    </span>
                                   </div>
                                 </div>
-                              ))}
-                              <div
-                                className="modal fade"
-                                id="exampleModal"
-                                tabIndex={-1}
-                                aria-labelledby="exampleModalLabel"
-                                aria-hidden="true"
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h1
-                                        className="modal-title fs-5"
-                                        id="exampleModalLabel"
-                                      >
-                                        {t("header.apply_now")}
-                                      </h1>
-                                      <button
-                                        type="button"
-                                        className="btn-close"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close"
-                                        onClick={resetApplyModal}
-                                      />
-                                    </div>
-                                    {/* NOTE: use className, not class */}
-                                    <div className="modal-body">
-                                      <div className="job-apply-defult-resume-custom-resume">
-                                        {/* RESUME LIST - inline hide */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(resumeList) &&
-                                            resumeList.map((resume) => {
-                                              const fileName = getFileName(
-                                                resume.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={resume._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedType ===
-                                                      "resume" &&
-                                                    selectedId === resume.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "resume",
-                                                      resume.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
 
-                                                  {selectedType === "resume" &&
-                                                    selectedId ===
-                                                      resume.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
+                                <div className="modern-job-actions">
+                                  {/* Featured */}
+                                  {job?.isFeatured && (
+                                    <span className="modern-status-badge featured me-2">
+                                      <i className="fa-solid fa-star me-1"></i>
+                                      {t("header.Featured")}
+                                    </span>
+                                  )}
 
-                                        {/* OR DIVIDER for resume - inline hide */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>or</h4>
-                                        </div>
+                                  {/* Assessment */}
+                                  {job?.isAssessmentRequired && (
+                                    <span className="modern-status-badge assessment me-2">
+                                      {job?.assessmentResult?.status ===
+                                      "passed"
+                                        ? "Test Passed"
+                                        : job?.assessmentResult?.status ===
+                                            "failed"
+                                          ? "Test Failed"
+                                          : t("header.Test_Required")}
+                                    </span>
+                                  )}
 
-                                        {/* COVER LETTER LIST - inline hide */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(coverLetterList) &&
-                                            coverLetterList.map((cover) => {
-                                              const fileName = getFileName(
-                                                cover.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={cover._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedType === "cover" &&
-                                                    selectedId === cover.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "cover",
-                                                      cover.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
+                                  {/* Save */}
+                                  <button
+                                    className="modern-action-icon"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
 
-                                                  {selectedType === "cover" &&
-                                                    selectedId ===
-                                                      cover.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
+                                      if (userRole !== "JobSeeker") {
+                                        navigate("/login");
+                                        return;
+                                      }
 
-                                        {/* OR DIVIDER for cover - inline hide */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>{t("header.or")}</h4>
-                                        </div>
+                                      handleSaveJob(job._id);
+                                    }}
+                                  >
+                                    <i
+                                      className={`fa-${
+                                        job.isSaved ? "solid" : "regular"
+                                      } fa-heart`}
+                                      style={{
+                                        color: job?.isSaved
+                                          ? "#ff0000"
+                                          : "#65758a",
+                                      }}
+                                    />
+                                  </button>
 
-                                        {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{ display: "block" }}
-                                        >
-                                          {/* Show selected custom file if exists */}
-                                          <div
-                                            style={{
-                                              display: selectedCustomFile
-                                                ? "block"
-                                                : "none",
-                                            }}
-                                          >
-                                            <div
-                                              className={
-                                                "job-apply-custom-resume-info " +
-                                                (selectedType === "custom"
-                                                  ? "active"
-                                                  : "")
-                                              }
-                                              onClick={() =>
-                                                selectedCustomFile &&
-                                                handleSelect("custom")
-                                              }
-                                              style={{
-                                                cursor: selectedCustomFile
-                                                  ? "pointer"
-                                                  : "default",
-                                              }}
-                                            >
-                                              <span className="file-name-text">
-                                                <i className="fa-solid fa-file" />{" "}
-                                                {selectedCustomFile
-                                                  ? selectedCustomFile.name
-                                                  : ""}
-                                              </span>
+                                  {/* Linkedin */}
+                                  <button
+                                    className="modern-action-icon"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
 
-                                              {selectedType === "custom" && (
-                                                <i className="fa-solid fa-circle-check selected-check-icon" />
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          {/* Upload Button — prevent default and open file input */}
-                                          <div
-                                            className="job-apply-custom-resume-cover-letter-btn"
-                                            style={{ marginTop: 12 }}
-                                          >
-                                            <a
-                                              href="#"
-                                              className="default-btn btn"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                // ensure fileInputRef.current exists
-                                                if (
-                                                  fileInputRef &&
-                                                  fileInputRef.current
-                                                )
-                                                  fileInputRef.current.click();
-                                              }}
-                                            >
-                                              {t(
-                                                "header.Custom_resume_with_cover_letter",
-                                              )}
-                                            </a>
-
-                                            <input
-                                              ref={fileInputRef}
-                                              type="file"
-                                              accept=".pdf,.doc,.docx"
-                                              onChange={handleFileUpload}
-                                              style={{ display: "none" }}
-                                            />
-                                          </div>
-                                        </div>
-
-                                        {/* Divider before apply button (always keep in DOM) */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder"
-                                          style={{ marginTop: 16 }}
-                                        />
-
-                                        {/* APPLY BUTTON - always present */}
-                                        <div
-                                          className="job-apply-defult-resume-btn"
-                                          style={{ marginTop: 12 }}
-                                        >
-                                          <button
-                                            className="default-btn btn w-100"
-                                            onClick={handleApplyJob}
-                                            disabled={
-                                              isApplying || !isSelectionMade()
-                                            }
-                                          >
-                                            {isApplying ? (
-                                              <>
-                                                <span
-                                                  className="spinner-border spinner-border-sm me-2"
-                                                  role="status"
-                                                  aria-hidden="true"
-                                                ></span>
-                                                {t("header.applying")}
-                                              </>
-                                            ) : (
-                                              t("header.apply_now")
-                                            )}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>{" "}
-                                    {/* .modal-body */}
-                                  </div>
+                                      window.open(
+                                        job?.social_links?.linkedin ||
+                                          "https://linkedin.com",
+                                        "_blank",
+                                      );
+                                    }}
+                                  >
+                                    <i className="fa-brands fa-linkedin-in" />
+                                  </button>
                                 </div>
                               </div>
-                              {/* Show Swiper only if this chunk has 10 jobs */}
-                              {chunk.length === 10 && (
-                                <section className="modern-company-carousel-section">
-                                  <div className="modern-carousel-content-wrapper">
-                                    <h3 className="modern-carousel-title">
-                                      Entreprises qui Recrutent
-                                    </h3>
-                                    <Swiper
-                                      modules={[
-                                        Navigation,
-                                        SwiperPagination,
-                                        Autoplay,
-                                      ]}
-                                      spaceBetween={24}
-                                      slidesPerView={3} // ✅ default desktop 3 cards
-                                      navigation
-                                      autoplay={{ delay: 3000 }}
-                                      loop={true}
-                                      pagination={{
-                                        clickable: true,
-                                        dynamicBullets: true,
-                                        dynamicMainBullets: 4, // controls how many dots are visible
+
+                              {/* Body */}
+                              <div className="modern-job-body">
+                                <h5 className="modern-job-title">
+                                  {job?.jobTitle}
+                                </h5>
+
+                                <p className="modern-job-description">
+                                  {job?.shortDescription || "N/A"}
+                                </p>
+
+                                {/* Meta */}
+                                <div className="modern-job-meta">
+                                  <span className="modern-meta-tag">
+                                    <i className="fa-regular fa-file me-1"></i>
+                                    {job?.jobCategory?.length > 0
+                                      ? job.jobCategory
+                                          .map((item) => item.name)
+                                          .join(", ")
+                                      : "N/A"}
+                                  </span>
+
+                                  <span className="modern-meta-tag">
+                                    <i className="fa-solid fa-signal me-1"></i>
+                                    {job?.experienceLevel || "All Levels"}
+                                  </span>
+
+                                  <span className="modern-meta-tag">
+                                    <i className="fa-regular fa-user me-1"></i>
+                                    {Array.isArray(job?.employmentType) &&
+                                    job.employmentType.length > 0
+                                      ? job.employmentType.join(", ")
+                                      : "N/A"}
+                                  </span>
+
+                                  <span className="modern-meta-tag">
+                                    <i className="fa-solid fa-location-dot me-1"></i>
+                                    {job?.city?.length > 0
+                                      ? job.city.join(", ")
+                                      : job?.company_city || "N/A"}
+                                  </span>
+
+                                  <span className="modern-meta-tag">
+                                    <i
+                                      className="fa-solid fa-house-laptop"
+                                      style={{ marginRight: "4px" }}
+                                    />
+                                    {job?.remote?.name || "N/A"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Footer */}
+                              <div className="modern-job-footer">
+                                <div className="modern-job-info-badges">
+                                  <div className="modern-info-badge">
+                                    <i className="fa-solid fa-users" />
+                                    {job?.availablePosts || 0} Post(s) available
+                                  </div>
+
+                                  <div className="modern-info-badge">
+                                    <i className="fa-solid fa-wallet" />
+
+                                    {job?.privatJobDetails?.salaryNegotiable ===
+                                    true ? (
+                                      "Salary Negotiable"
+                                    ) : job?.privatJobDetails?.minSalary ||
+                                      job?.privatJobDetails?.maxSalary ? (
+                                      <>
+                                        {job?.privatJobDetails?.minSalary || 0}{" "}
+                                        -{" "}
+                                        {job?.privatJobDetails?.maxSalary || 0}{" "}
+                                        {globalCurrency.code}
+                                      </>
+                                    ) : (
+                                      "Salary Negotiable"
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="modern-apply-btn-wrapper">
+                                  {job?.isApplied ? (
+                                    <button
+                                      className="modern-apply-btn"
+                                      disabled
+                                    >
+                                      {job?.applicationStatus}
+                                    </button>
+                                  ) : job?.isAssessmentRequired ? (
+                                    <Link
+                                      to={`/job/${job.slug}`}
+                                      state={{
+                                        from: "/candidate-dashboard",
+                                        JobId: job._id,
                                       }}
-                                      breakpoints={{
-                                        320: { slidesPerView: 1 },
-                                        576: { slidesPerView: 1.2 },
-                                        768: { slidesPerView: 2 },
-                                        992: { slidesPerView: 3 },
-                                        1200: { slidesPerView: 3 }, // ✅ keep 3 on large screen
+                                      className="modern-apply-btn"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      View Details
+                                      <i className="fa-solid fa-arrow-right ms-2" />
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      className="modern-apply-btn"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+
+                                        if (userRole !== "JobSeeker") {
+                                          navigate("/login");
+                                          return;
+                                        }
+
+                                        setJobId(job._id);
+                                        handleJobClick(job._id);
+
+                                        const modalEl =
+                                          document.getElementById(
+                                            "exampleModal",
+                                          );
+
+                                        if (modalEl) {
+                                          const modal =
+                                            new window.bootstrap.Modal(modalEl);
+                                          modal.show();
+                                        }
                                       }}
                                     >
-                                      {companies?.companies?.length > 0 ? (
-                                        companies.companies.map((item) => {
-                                          const company = item?.companyId;
-                                          const topThreeJobs =
-                                            item?.jobList?.slice(0, 3) || [];
-                                          const latestJob = topThreeJobs[0];
-
-                                          return (
-                                            <SwiperSlide key={company?._id}>
-                                              <div
-                                                className="modern-company-card"
-                                                onClick={() =>
-                                                  handleViewCompany(company)
-                                                }
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                {/* Cover */}
-                                                <div className="modern-company-cover-container">
-                                                  <img
-                                                    alt={
-                                                      company?.brandName ||
-                                                      "Company"
-                                                    }
-                                                    className="modern-company-cover-img"
-                                                    crossOrigin="anonymous"
-                                                    src={
-                                                      company?.coverPhoto
-                                                        ? `${API_IMAGE_URL}${company.coverPhoto}`
-                                                        : "/jobPortal/assets/images/company/company-img-1.jpg"
-                                                    }
-                                                  />
-
-                                                  <div className="modern-company-cover-overlay"></div>
-
-                                                  {/* Logo */}
-                                                  <div className="modern-company-logo-badge">
-                                                    <img
-                                                      alt="logo"
-                                                      crossOrigin="anonymous"
-                                                      src={
-                                                        company?.logo
-                                                          ? `${API_IMAGE_URL}${company.logo}`
-                                                          : "/jobPortal/assets/images/icon/icon-25.png"
-                                                      }
-                                                    />
-                                                  </div>
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="modern-company-content">
-                                                  <div className="modern-company-header-row">
-                                                    <h4 className="modern-company-card-name">
-                                                      {company?.brandName ||
-                                                        "Unnamed Company"}
-                                                    </h4>
-
-                                                    <span className="modern-job-count-badge">
-                                                      {item?.jobCount || 0}{" "}
-                                                      {t("header.Jobs")}
-                                                    </span>
-                                                  </div>
-
-                                                  {/* Latest Job */}
-                                                  <div className="modern-latest-job-info">
-                                                    <span className="modern-latest-job-label">
-                                                      {t("header.Latest_Job")}
-                                                    </span>
-
-                                                    {latestJob ? (
-                                                      <Link
-                                                        to={`/job/${latestJob.slug}`}
-                                                        state={{
-                                                          from: "/candidate-dashboard",
-                                                          JobId: latestJob._id,
-                                                        }}
-                                                        className="modern-one-job-link"
-                                                        onClick={(e) =>
-                                                          e.stopPropagation()
-                                                        }
-                                                      >
-                                                        {latestJob.jobTitle}
-                                                      </Link>
-                                                    ) : (
-                                                      <div
-                                                        className="modern-one-job-link"
-                                                        style={{
-                                                          opacity: "0.6",
-                                                        }}
-                                                      >
-                                                        <span>
-                                                          {t(
-                                                            "header.noJobsAvailable",
-                                                          )}
-                                                        </span>
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </SwiperSlide>
-                                          );
-                                        })
-                                      ) : (
-                                        <p className="text-center mt-4">
-                                          {t("header.no_companies")}
-                                        </p>
-                                      )}
-                                    </Swiper>
-                                  </div>
-                                </section>
-                              )}
-                            </React.Fragment>
-                          ))}
-                        </>
-                      ) : (
-                        <div className="text-center py-2">
-                          <img
-                            crossOrigin="anonymous"
-                            src="/jobPortal/assets/images/recent_job.png"
-                            alt="No jobs found"
-                            className="mb-4"
-                            style={{ maxWidth: "100%", opacity: 0.8 }}
-                          />
-
-                          <h4>No jobs found</h4>
-
-                          <p className="text-muted mb-4">
-                            Try adjusting your search or filters to find more
-                            opportunities.
-                          </p>
-
-                          <button
-                            className="default-btn btn"
-                            // className="btn btn-primary px-4"
-                            onClick={() => navigate("/job-search")}
-                          >
-                            🔍 Search Jobs
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    {!isJobEmpty && (
-                      <Stack
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                        justifyContent="center"
-                        sx={{ mt: 3 }}
-                      >
-                        <Pagination
-                          count={totalPages}
-                          page={pageNumber}
-                          onChange={(e, value) => setPageNumber(value)}
-                          variant="outlined"
-                          shape="rounded"
-                          color="secondary"
-                          siblingCount={2}
-                          boundaryCount={1}
-                        />
-
-                        <Select
-                          value={pageSize}
-                          onChange={(e) => {
-                            setPageSize(e.target.value);
-                            setPageNumber(1); // reset to page 1
-                          }}
-                          size="small"
-                        >
-                          <MenuItem value={15}>15 / page</MenuItem>
-                          <MenuItem value={25}>25 / page</MenuItem>
-                          <MenuItem value={50}>50 / page</MenuItem>
-                          <MenuItem value={100}>100 / page</MenuItem>
-                        </Select>
-                      </Stack>
-                    )}
-                  </div>
-                  <div className="col-lg-4 col-md-6">
-                    <div className="dashboard-profile-visibility-other-info">
-                      <div className="dashboard-profile-visibility-hide">
-                        <div className="dashboard-profile-visibility">
-                          <h4>Profile Visibility</h4>
-                          <span>
-                            <label className="switch">
-                              <input
-                                type="checkbox"
-                                checked={profileVisible}
-                                onChange={handleToggleVisibility}
-                              />
-                              <span className="slider round" />
-                            </label>
-                            <span>Visible</span>
-                          </span>
-                        </div>
-                        <div className="dashboard-profile-visibility-content">
-                          <p>
-                            {profileVisible
-                              ? "Your profile is visible to employers and recruiters!"
-                              : "Make your profile information visible to employers and recruiters and get more job offers!"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="dashboard-other-detail-info">
-                        <ul>
-                          <li>
-                            <i className="fa-solid fa-calendar-days" /> Browse
-                            fresh job listings daily
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-heart" /> Save and
-                            organize your top picks
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-bell" /> Get instant email
-                            alerts for new opportunities
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-building" /> Follow your
-                            dream companies for updates
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-file" /> Apply quickly
-                            with your saved resume
-                          </li>
-                          <li>
-                            <i className="fa-solid fa-signal" /> Stay on top of
-                            your job search with ease
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="recent-notifications-box">
-                        <h3>Recruiter Messages</h3>
-
-                        <ul>
-                          {unreadChat && unreadChat.length > 0 ? (
-                            unreadChat.map((chat, index) => (
-                              <li key={index}>
-                                <div className="icon">
-                                  <i className="flaticon-portfolio" />
+                                      {t("header.apply_now")}
+                                      <i className="fa-solid fa-arrow-right ms-2" />
+                                    </button>
+                                  )}
                                 </div>
-                                <span>{chat?.otherUser?.brandName}</span>{" "}
-                                Applied For A Job{" "}
-                                <strong>{chat.jobTitle}</strong>
-                              </li>
-                            ))
-                          ) : (
-                            <li className="no-messages">
-                              <div className="text-center">
-                                <h5>No messages yet</h5>
-                                <p>Recruiters haven’t contacted you.</p>
                               </div>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
+                            </div>
+                          </div>
+                        ))}
+                        <div
+                          className="modal fade"
+                          id="exampleModal"
+                          tabIndex={-1}
+                          aria-labelledby="exampleModalLabel"
+                          aria-hidden="true"
+                        >
+                          <div className="modal-dialog">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h1
+                                  className="modal-title fs-5"
+                                  id="exampleModalLabel"
+                                >
+                                  {t("header.apply_now")}
+                                </h1>
+                                <button
+                                  type="button"
+                                  className="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                  onClick={resetApplyModal}
+                                />
+                              </div>
+                              {/* NOTE: use className, not class */}
+                              <div className="modal-body">
+                                <div className="job-apply-defult-resume-custom-resume">
+                                  {/* RESUME LIST - inline hide */}
+                                  <div
+                                    className="job-apply-custom-resume-info-area"
+                                    style={{
+                                      display:
+                                        Array.isArray(resumeList) &&
+                                        resumeList.length > 0
+                                          ? "block"
+                                          : "none",
+                                    }}
+                                  >
+                                    {Array.isArray(resumeList) &&
+                                      resumeList.map((resume) => {
+                                        const fileName = getFileName(
+                                          resume.url,
+                                        );
+                                        return (
+                                          <div
+                                            key={resume._id}
+                                            className={
+                                              "job-apply-custom-resume-info " +
+                                              (selectedType === "resume" &&
+                                              selectedId === resume.url
+                                                ? "active"
+                                                : "")
+                                            }
+                                            onClick={() =>
+                                              handleSelect("resume", resume.url)
+                                            }
+                                            style={{ cursor: "pointer" }}
+                                          >
+                                            <span className="file-name-text">
+                                              <i className="fa-solid fa-file" />{" "}
+                                              {fileName}
+                                            </span>
+
+                                            {selectedType === "resume" &&
+                                              selectedId === resume.url && (
+                                                <i className="fa-solid fa-circle-check selected-check-icon" />
+                                              )}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+
+                                  {/* OR DIVIDER for resume - inline hide */}
+                                  <div
+                                    className="defult-resume-custom-resume-divder-line"
+                                    style={{
+                                      display:
+                                        Array.isArray(resumeList) &&
+                                        resumeList.length > 0
+                                          ? "block"
+                                          : "none",
+                                    }}
+                                  >
+                                    <h4>or</h4>
+                                  </div>
+
+                                  {/* COVER LETTER LIST - inline hide */}
+                                  <div
+                                    className="job-apply-custom-resume-info-area"
+                                    style={{
+                                      display:
+                                        Array.isArray(coverLetterList) &&
+                                        coverLetterList.length > 0
+                                          ? "block"
+                                          : "none",
+                                    }}
+                                  >
+                                    {Array.isArray(coverLetterList) &&
+                                      coverLetterList.map((cover) => {
+                                        const fileName = getFileName(cover.url);
+                                        return (
+                                          <div
+                                            key={cover._id}
+                                            className={
+                                              "job-apply-custom-resume-info " +
+                                              (selectedType === "cover" &&
+                                              selectedId === cover.url
+                                                ? "active"
+                                                : "")
+                                            }
+                                            onClick={() =>
+                                              handleSelect("cover", cover.url)
+                                            }
+                                            style={{ cursor: "pointer" }}
+                                          >
+                                            <span className="file-name-text">
+                                              <i className="fa-solid fa-file" />{" "}
+                                              {fileName}
+                                            </span>
+
+                                            {selectedType === "cover" &&
+                                              selectedId === cover.url && (
+                                                <i className="fa-solid fa-circle-check selected-check-icon" />
+                                              )}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+
+                                  {/* OR DIVIDER for cover - inline hide */}
+                                  <div
+                                    className="defult-resume-custom-resume-divder-line"
+                                    style={{
+                                      display:
+                                        Array.isArray(coverLetterList) &&
+                                        coverLetterList.length > 0
+                                          ? "block"
+                                          : "none",
+                                    }}
+                                  >
+                                    <h4>{t("header.or")}</h4>
+                                  </div>
+
+                                  {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
+                                  <div
+                                    className="job-apply-custom-resume-info-area"
+                                    style={{ display: "block" }}
+                                  >
+                                    {/* Show selected custom file if exists */}
+                                    <div
+                                      style={{
+                                        display: selectedCustomFile
+                                          ? "block"
+                                          : "none",
+                                      }}
+                                    >
+                                      <div
+                                        className={
+                                          "job-apply-custom-resume-info " +
+                                          (selectedType === "custom"
+                                            ? "active"
+                                            : "")
+                                        }
+                                        onClick={() =>
+                                          selectedCustomFile &&
+                                          handleSelect("custom")
+                                        }
+                                        style={{
+                                          cursor: selectedCustomFile
+                                            ? "pointer"
+                                            : "default",
+                                        }}
+                                      >
+                                        <span className="file-name-text">
+                                          <i className="fa-solid fa-file" />{" "}
+                                          {selectedCustomFile
+                                            ? selectedCustomFile.name
+                                            : ""}
+                                        </span>
+
+                                        {selectedType === "custom" && (
+                                          <i className="fa-solid fa-circle-check selected-check-icon" />
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Upload Button — prevent default and open file input */}
+                                    <div
+                                      className="job-apply-custom-resume-cover-letter-btn"
+                                      style={{ marginTop: 12 }}
+                                    >
+                                      <a
+                                        href="#"
+                                        className="default-btn btn"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          // ensure fileInputRef.current exists
+                                          if (
+                                            fileInputRef &&
+                                            fileInputRef.current
+                                          )
+                                            fileInputRef.current.click();
+                                        }}
+                                      >
+                                        {t(
+                                          "header.Custom_resume_with_cover_letter",
+                                        )}
+                                      </a>
+
+                                      <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={handleFileUpload}
+                                        style={{ display: "none" }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Divider before apply button (always keep in DOM) */}
+                                  <div
+                                    className="defult-resume-custom-resume-divder"
+                                    style={{ marginTop: 16 }}
+                                  />
+
+                                  {/* APPLY BUTTON - always present */}
+                                  <div
+                                    className="job-apply-defult-resume-btn"
+                                    style={{ marginTop: 12 }}
+                                  >
+                                    <button
+                                      className="default-btn btn w-100"
+                                      onClick={handleApplyJob}
+                                      disabled={
+                                        isApplying || !isSelectionMade()
+                                      }
+                                    >
+                                      {isApplying ? (
+                                        <>
+                                          <span
+                                            className="spinner-border spinner-border-sm me-2"
+                                            role="status"
+                                            aria-hidden="true"
+                                          ></span>
+                                          {t("header.applying")}
+                                        </>
+                                      ) : (
+                                        t("header.apply_now")
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>{" "}
+                              {/* .modal-body */}
+                            </div>
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center py-2">
+                    <img
+                      crossOrigin="anonymous"
+                      src="/jobPortal/assets/images/recent_job.png"
+                      alt="No jobs found"
+                      className="mb-4"
+                      style={{ maxWidth: "100%", opacity: 0.8 }}
+                    />
+
+                    <h4>No jobs found</h4>
+
+                    <p className="text-muted mb-4">
+                      Try adjusting your search or filters to find more
+                      opportunities.
+                    </p>
+
+                    <button
+                      className="default-btn btn"
+                      // className="btn btn-primary px-4"
+                      onClick={() => navigate("/job-search")}
+                    >
+                      🔍 Search Jobs
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!isJobEmpty && (
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  justifyContent="center"
+                  sx={{ mt: 3 }}
+                >
+                  <Pagination
+                    count={totalPages}
+                    page={pageNumber}
+                    onChange={(e, value) => setPageNumber(value)}
+                    variant="outlined"
+                    shape="rounded"
+                    color="secondary"
+                    siblingCount={2}
+                    boundaryCount={1}
+                  />
+
+                  <Select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(e.target.value);
+                      setPageNumber(1); // reset to page 1
+                    }}
+                    size="small"
+                  >
+                    <MenuItem value={15}>15 / page</MenuItem>
+                    <MenuItem value={25}>25 / page</MenuItem>
+                    <MenuItem value={50}>50 / page</MenuItem>
+                    <MenuItem value={100}>100 / page</MenuItem>
+                  </Select>
+                </Stack>
+              )}
+            </div>
+            <div className="dashboard-sidebar-modern">
+              <div className="sidebar-card-modern">
+                <h4 className="sidebar-card-title">
+                  <i className="fa-solid fa-eye" />
+                  Profile Visibility
+                </h4>
+
+                <div className="visibility-toggle-area">
+                  <span className="visibility-status">
+                    {profileVisible ? "Visible" : "Mask"}
+                  </span>
+
+                  <label className="modern-switch">
+                    <input
+                      type="checkbox"
+                      checked={profileVisible}
+                      onChange={handleToggleVisibility}
+                    />
+                    <span className="modern-slider" />
+                  </label>
+                </div>
+
+                <p className="visibility-desc">
+                  {profileVisible
+                    ? "Your profile is visible to employers and recruiters!"
+                    : "Make your profile visible to receive more job offers!"}
+                </p>
+              </div>
+              <div className="sidebar-card-modern">
+                <h4 className="sidebar-card-title">
+                  <i className="fa-solid fa-bolt" />
+                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      Search tips
+                    </font>
+                  </font>
+                </h4>
+                <ul className="sidebar-perks-list">
+                  <li>
+                    <i className="fa-solid fa-circle-check" />
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Check out the new offers every day
+                      </font>
+                    </font>
+                  </li>
+                  <li>
+                    <i className="fa-solid fa-circle-check" />
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Save and organize your favorites
+                      </font>
+                    </font>
+                  </li>
+                  <li>
+                    <i className="fa-solid fa-circle-check" />
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Receive alerts for opportunities
+                      </font>
+                    </font>
+                  </li>
+                  <li>
+                    <i className="fa-solid fa-circle-check" />
+                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
+                        Apply quickly with your CV
+                      </font>
+                    </font>
+                  </li>
+                </ul>
+              </div>
+              <div className="sidebar-card-modern">
+                <h4 className="sidebar-card-title">
+                  <i className="fa-solid fa-comment-dots" />
+                  Messages from recruiters
+                </h4>
+
+                {/* Stats */}
+                <div className="modern-msg-stats">
+                  <div className="msg-stat-item">
+                    <span className="msg-stat-value">
+                      {chatStats?.totalChats}
+                    </span>
+                    <span className="msg-stat-label">Total</span>
+                  </div>
+
+                  <div className="msg-stat-item unread">
+                    <span className="msg-stat-value">
+                      {chatStats?.totalUnread}
+                    </span>
+                    <span className="msg-stat-label">Unread</span>
+                  </div>
+
+                  <div className="msg-stat-item rate">
+                    <span className="msg-stat-value">
+                      {chatStats?.responseRate}
+                    </span>
+                    <span className="msg-stat-label">Response</span>
                   </div>
                 </div>
+
+                {/* Message List */}
+                <ul className="modern-messages-list">
+                  {unreadChat && unreadChat.length > 0 ? (
+                    unreadChat.map((chat, index) => (
+                      <li
+                        key={index}
+                        className={`modern-message-item ${
+                          chat?.unreadCount > 0 ? "today" : ""
+                        }`}
+                      >
+                        <Link
+                          className="message-link-wrapper"
+                          to="/chat-messaging-system"
+                        >
+                          <div className="message-icon">
+                            {chat?.otherUser?.logo ? (
+                              <img
+                                crossOrigin="anonymous"
+                                src={`${API_IMAGE_URL}${chat.otherUser.logo}`}
+                                alt={chat?.otherUser?.brandName}
+                                style={{
+                                  width: "45px",
+                                  height: "45px",
+                                  borderRadius: "50%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <i className="fa-solid fa-building" />
+                            )}
+                          </div>
+
+                          <div className="message-content">
+                            <div className="message-header">
+                              <span className="message-sender">
+                                {chat?.otherUser?.brandName || "Company"}
+                              </span>
+
+                              <span className="message-time">
+                                {moment(chat?.lastMessageAt).fromNow()}
+                              </span>
+                            </div>
+
+                            <p className="message-text">
+                              {chat?.jobTitle ? (
+                                <>
+                                  New message regarding{" "}
+                                  <span className="message-job-title">
+                                    {chat?.jobTitle}
+                                  </span>
+                                </>
+                              ) : (
+                                chat?.lastMessage || "No messages"
+                              )}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="modern-message-item empty">
+                      <div className="message-content text-center w-100">
+                        <h5>No messages yet</h5>
+                        <p>Recruiters haven’t contacted you.</p>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+
+                {/* View All */}
+                <Link
+                  className="modern-view-all-link"
+                  to="/chat-messaging-system"
+                >
+                  View all messages
+                  <i className="fa-solid fa-arrow-right" />
+                </Link>
               </div>
             </div>
-          </section>
+          </div>
           {/* dashboard recent job posts  section end here */}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">

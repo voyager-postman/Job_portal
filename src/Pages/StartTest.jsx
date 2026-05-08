@@ -170,10 +170,11 @@ const StartTest = () => {
         toast.success(message); // "Assessment quit successfully"
 
         setTimeout(() => {
-          navigate(`/job-details/${state?.jobId}`, {
+          navigate(`/job/${state?.jobSlug}`, {
             state: {
               quitMessage: message,
               canReattempt,
+              JobId: state?.jobId,
             },
           });
         }, 1500);
@@ -186,6 +187,7 @@ const StartTest = () => {
         state: {
           jobId: state?.jobId,
           from: state?.from, // 👈 ADD THIS
+          jobSlug: state?.jobSlug,
           testName: assessment?.assessmentName,
           submitMode,
           message,

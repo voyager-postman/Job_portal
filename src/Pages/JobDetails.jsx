@@ -534,6 +534,7 @@ function JobDetails() {
           assessmentId: assessment?.assessmentId,
           jobId: id,
           from: from, // ✅ pass original source
+          jobSlug: jobSlug,
         },
       });
     } catch (error) {

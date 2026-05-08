@@ -25,7 +25,7 @@ function MassagingSystem() {
 
   useEffect(() => {
     const ws = new WebSocket(
-      `wss://thunderingslap.com/chatusingsocket/ws/chat/`,
+      `wss://mobappssolutions.in/chatusingsocket/ws/chat/`,
     );
     socketRef.current = ws;
     ws.onopen = () => console.log("Websocket Connected");
@@ -408,10 +408,7 @@ function MassagingSystem() {
                             </div>
                           </div>
                           {/* ---------------- CHAT MESSAGES ---------------- */}
-                          <div
-                            className="tab-content"
-                            ref={chatContainerRef}
-                          >
+                          <div className="tab-content" ref={chatContainerRef}>
                             <div className="tab-pane fade show active">
                               {(chatStore[activeUser?.id] || []).map(
                                 (msg, index) =>

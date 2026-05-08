@@ -21,7 +21,7 @@ function ChatMassageSystem() {
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket(
-      "wss://thunderingslap.com/chatusingsocket/ws/chat/",
+      "wss://mobappssolutions.in/chatusingsocket/ws/chat/",
     );
     socketRef.current = ws;
     ws.onopen = () => console.log("WebSocket Connected");

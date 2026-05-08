@@ -981,9 +981,12 @@ function CompanyDetailsPage() {
                     {company?.jobs?.length > 0 ? (
                       company.jobs.map((job) => (
                         <div className="elegant-job-card-wrapper position-relative">
-                          <a
+                          <Link
+                            to={`/job/${job.slug}`}
+                            state={{
+                              JobId: job._id,
+                            }}
                             className="elegant-job-card"
-                            href="/jobPortal/job-details/job1"
                           >
                             <div className="job-card-main">
                               <h5>
@@ -1037,7 +1040,10 @@ function CompanyDetailsPage() {
                                 </button>
                               ) : (
                                 <Link
-                                  to={`/job-details/${job._id}`}
+                                  to={`/job/${job.slug}`}
+                                  state={{
+                                    JobId: job._id,
+                                  }}
                                   className="btn btn-outline-primary rounded-pill px-4"
                                   style={{
                                     color: "rgb(251, 118, 26)",
@@ -1330,7 +1336,7 @@ function CompanyDetailsPage() {
                                 }}
                               />
                             </div>
-                          </a>
+                          </Link>
                         </div>
                       ))
                     ) : (
