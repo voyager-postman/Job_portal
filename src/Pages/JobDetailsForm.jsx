@@ -2280,7 +2280,7 @@ function JobDetailsForm() {
 
                   <div className="d-flex justify-content-between mb-2">
                     <span>Used Featured Jobs</span>
-                    <strong>{creditInfo.featuredJobsUsed || 0}</strong>
+                    <strong>{creditInfo?.featuredJobsUsed?.length ?? 0}</strong>
                   </div>
 
                   <div className="d-flex justify-content-between mb-2">

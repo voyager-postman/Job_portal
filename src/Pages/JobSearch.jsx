@@ -2919,11 +2919,11 @@ function JobSearch() {
 
                                                   {latestJob ? (
                                                     <Link
-                                                     to={`/job/${latestJob.slug}`}
-                                                     state={{
-    from: "/job-search",
-    JobId: latestJob._id,
-  }}
+                                                      to={`/job/${latestJob.slug}`}
+                                                      state={{
+                                                        from: "/job-search",
+                                                        JobId: latestJob._id,
+                                                      }}
                                                       className="modern-one-job-link"
                                                       onClick={(e) =>
                                                         e.stopPropagation()

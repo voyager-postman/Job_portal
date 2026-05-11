@@ -10,12 +10,25 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import "./ManagesJobApplicationModern.css";
+import Swal from "sweetalert2";
 function ManagesJobApplication() {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedNotify, setSelectedNotify] = useState({});
   const [selected, setSelected] = useState([]);
+  const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
+  const [filter, setFilter] = useState("all");
+  const [salaryRanges, setSalaryRanges] = useState([]);
+  const [selectedRemote, setSelectedRemote] = useState([]);
+  const [remoteOptions, setRemoteOptions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
+  const [selectedJobTypes, setSelectedJobTypes] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [applications, setApplications] = useState([]);
+  const [seniorityLevels, setSeniorityLevels] = useState([]);
+  const [selectedSeniority, setSelectedSeniority] = useState([]);
   const [statusFilter, setStatusFilter] = useState(""); // 🔹 new state for filter
   const [companies, setCompanies] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
@@ -27,19 +40,183 @@ function ManagesJobApplication() {
   const [showAlertModal, setShowAlertModal] = useState(false);
   // const queryParams = new URLSearchParams(location.search);
   // const defaultTab = queryParams.get("tab") || "applications";
+  const handleSalaryChange = (e) => {
+    const { value, checked } = e.target;
+
+    setSelectedSalaryRanges((prev) =>
+      checked ? [...prev, value] : prev.filter((item) => item !== value),
+    );
+  };
+  useEffect(() => {
+    getSalaryRanges();
+  }, []);
+  const fetchRemoteOptions = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveRemote`);
+
+      if (res.data.success && Array.isArray(res.data.data)) {
+        setRemoteOptions(res.data.data); // ✅ FIXED
+      } else {
+        setRemoteOptions([]);
+      }
+    } catch (error) {
+      console.error("Error fetching remote options:", error);
+    }
+  };
+  const fetchJobTypes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      if (res.data.success && Array.isArray(res.data.jobTypes)) {
+        setJobTypes(res.data.jobTypes);
+      } else {
+        setJobTypes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobTypes();
+  }, []);
+  useEffect(() => {
+    fetchRemoteOptions();
+    getCategories();
+  }, []);
+
+  const fetchSeniorityLevels = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSeniorityLevelList`);
+      if (res.data.success && Array.isArray(res.data.levels)) {
+        setSeniorityLevels(res.data.levels);
+      } else {
+        setSeniorityLevels([]);
+      }
+    } catch (error) {
+      console.error("Error fetching seniority levels:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSeniorityLevels();
+  }, []);
+
+  const getSalaryRanges = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getActiveSalaryRangeList`);
+      if (res.data.success) {
+        setSalaryRanges(res.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching salary ranges:", error);
+    }
+  };
+  const getCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getJobCategory`);
+
+      setCategories(res.data.jobCategories || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
   const statusOptions = [
-    { label: "All statuses", value: "" },
-    { label: "Applied", value: "Applied" },
-    { label: "Reviewed", value: "Reviewed" },
-    { label: "Shortlisted", value: "Shortlisted" },
-    { label: "Contacted", value: "Contacted" },
-    { label: "HR Interview", value: "HR Interview" },
-    { label: "Technical maintenance", value: "Technical maintenance" },
-    { label: "Offer sent", value: "Offer sent" },
-    { label: "Recruited", value: "Recruited" },
-    { label: "Rejected", value: "Rejected" },
-    { label: "Application withdrawn", value: "Withdrawn" },
+    {
+      label: "All statuses",
+      value: "",
+    },
+    {
+      label: "Application received",
+      value: "Applied",
+    },
+    {
+      label: "Shortlisted",
+      value: "Shortlisted",
+    },
+    {
+      label: "Contacted",
+      value: "Contacted",
+    },
+    {
+      label: "HR Interview",
+      value: "HR Interview",
+    },
+    {
+      label: "Technical maintenance",
+      value: "Technical maintenance",
+    },
+    {
+      label: "Offer sent",
+      value: "Offer sent",
+    },
+    {
+      label: "Recruited",
+      value: "Recruited",
+    },
+    {
+      label: "Rejected",
+      value: "Rejected",
+    },
+    {
+      label: "Application withdrawn",
+      value: "Withdrawn",
+    },
   ];
+  const statusConfig = {
+    Applied: {
+      label: "Application received",
+      background: "#dbeafe",
+      color: "#2563eb",
+    },
+
+    Shortlisted: {
+      label: "Shortlisted",
+      background: "#ede9fe",
+      color: "#7c3aed",
+    },
+
+    Contacted: {
+      label: "Contacted",
+      background: "#fef3c7",
+      color: "#d97706",
+    },
+
+    "HR Interview": {
+      label: "HR Interview",
+      background: "#cffafe",
+      color: "#0891b2",
+    },
+
+    "Technical maintenance": {
+      label: "Technical maintenance",
+      background: "#fde68a",
+      color: "#b45309",
+    },
+
+    "Offer sent": {
+      label: "Offer sent",
+      background: "#dcfce7",
+      color: "#16a34a",
+    },
+
+    Recruited: {
+      label: "Recruited",
+      background: "#bbf7d0",
+      color: "#15803d",
+    },
+
+    Rejected: {
+      label: "Rejected",
+      background: "#fee2e2",
+      color: "#dc2626",
+    },
+
+    Withdrawn: {
+      label: "Application withdrawn",
+      background: "#e5e7eb",
+      color: "#4b5563",
+    },
+  };
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [reason, setReason] = useState("");
@@ -127,7 +304,58 @@ function ManagesJobApplication() {
     setActiveTab(tab);
     navigate(`/manage-job-application?tab=${tab}`);
   };
+  // ================= FETCH API =================
+  const fetchInterestedCompanies = async (
+    selectedFilter = filter,
+    start = startDate,
+    end = endDate,
+  ) => {
+    try {
+      setLoading(true);
 
+      const token = localStorage.getItem("token");
+
+      let url = `${API_BASE_URL}getInterestedCompanies?filter=${selectedFilter}`;
+
+      if (selectedFilter === "custom" && start && end) {
+        url += `&startDate=${start}&endDate=${end}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setCompanies(response?.data?.views || []);
+    } catch (error) {
+      console.log(error);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= INITIAL LOAD =================
+  useEffect(() => {
+    fetchInterestedCompanies("all");
+  }, []);
+
+  // ================= FILTER CLICK =================
+  const handleFilter = (type) => {
+    setFilter(type);
+
+    if (type !== "custom") {
+      fetchInterestedCompanies(type);
+    }
+  };
+
+  // ================= CUSTOM SEARCH =================
+  const handleCustomFilter = () => {
+    if (!startDate || !endDate) return;
+
+    fetchInterestedCompanies("custom", startDate, endDate);
+  };
   useEffect(() => {
     if (activeTab === "saved-jobs") {
       fetchSavedJobs();
@@ -231,36 +459,8 @@ function ManagesJobApplication() {
     }
   };
 
-  const getCompanyList = async (
-    industryIds = [],
-    page = 1,
-    limit = pageSize,
-  ) => {
-    try {
-      const params = {
-        page,
-        limit,
-      };
-
-      if (industryIds.length > 0) {
-        params.industry = industryIds.join(",");
-      }
-
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
-        params,
-      });
-
-      if (res.data.success) {
-        setCompanies(res.data);
-      }
-    } catch (error) {
-      console.error("Error fetching company list:", error);
-    }
-  };
-
   useEffect(() => {
     const selectedIndustryIds = selected.map((i) => i._id);
-    getCompanyList(selectedIndustryIds, pageNumber, pageSize);
   }, [pageNumber, pageSize, selected]);
 
   const handleViewCompany = (company, from) => {
@@ -270,10 +470,6 @@ function ManagesJobApplication() {
   };
 
   const totalPages = companies?.totalPages;
-
-  useEffect(() => {
-    getCompanyList();
-  }, []);
 
   useEffect(() => {
     if (activeTab === "job-alerts") {
@@ -304,13 +500,29 @@ function ManagesJobApplication() {
 
   // ✅ Toggle status (for switch)
   const handleToggleStatus = async (alertId, newStatus) => {
+    const isDisabling = newStatus === "Inactive";
+
+    // Show confirmation only when disabling
+    if (isDisabling) {
+      const result = await Swal.fire({
+        title: "Disable the alert?",
+        text: "You will no longer receive notifications for this alert.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, disable",
+        cancelButtonText: "Cancel",
+        reverseButtons: true,
+      });
+
+      if (!result.isConfirmed) return;
+    }
+
     try {
       const res = await axios.post(
         `${API_BASE_URL}updateJobAlert`,
         {
           alertId,
           status: newStatus,
-          // notifyEvery: selectedNotify[alertId] || "", // keep existing if needed
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -319,7 +531,7 @@ function ManagesJobApplication() {
 
       if (res.data.success) {
         toast.success("Alert status updated successfully!");
-        // ✅ Update UI
+
         setJobAlerts((prev) =>
           prev.map((a) =>
             a._id === alertId ? { ...a, status: newStatus } : a,
@@ -369,6 +581,19 @@ function ManagesJobApplication() {
 
   // Delete alert
   const handleDeleteAlert = async (alertId) => {
+    const result = await Swal.fire({
+      title: "Delete the alert?",
+      text: "This action is irreversible.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await axios.post(
         `${API_BASE_URL}deleteJobAlert`,
@@ -377,14 +602,8 @@ function ManagesJobApplication() {
       );
 
       if (res.data.success) {
-        const modal = document.getElementById(`editAlertModal-${alertId}`);
-        if (modal) {
-          const bsModal = window.bootstrap.Modal.getInstance(modal);
-          if (bsModal) {
-            bsModal.hide();
-          }
-        }
         toast.success("Alert deleted successfully!");
+
         setJobAlerts((prev) => prev.filter((a) => a._id !== alertId));
       } else {
         toast.error(res.data.message || "Failed to delete alert");
@@ -513,9 +732,82 @@ function ManagesJobApplication() {
                         </div>
                       </div>
                       {applications.length === 0 ? (
-                        <p className="text-center py-5 text-gray-500">
-                          No applications found.
-                        </p>
+                        <div
+                          className="text-center py-5"
+                          style={{
+                            background: "#fff",
+                            borderRadius: "20px",
+                            padding: "60px 20px",
+                            border: "1px solid #f1f5f9",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "90px",
+                              height: "90px",
+                              margin: "0 auto 20px",
+                              borderRadius: "50%",
+                              background: "rgba(249, 115, 22, 0.1)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <i
+                              className="fa-regular fa-folder-open"
+                              style={{
+                                fontSize: "40px",
+                                color: "var(--primary-orange)",
+                              }}
+                            />
+                          </div>
+
+                          <h3
+                            style={{
+                              fontSize: "24px",
+                              fontWeight: "700",
+                              color: "#0f172a",
+                              marginBottom: "10px",
+                            }}
+                          >
+                            No Applications Found
+                          </h3>
+
+                          <p
+                            style={{
+                              color: "#64748b",
+                              fontSize: "15px",
+                              maxWidth: "500px",
+                              margin: "0 auto 25px",
+                              lineHeight: "1.7",
+                            }}
+                          >
+                            You haven’t applied to any jobs yet. Start exploring
+                            opportunities and submit your applications to track
+                            them here.
+                          </p>
+
+                          <Link
+                            to="/job-search"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              background: "var(--primary-orange)",
+                              color: "#fff",
+                              padding: "12px 24px",
+                              borderRadius: "12px",
+                              textDecoration: "none",
+                              fontWeight: "600",
+                              fontSize: "15px",
+                              transition: "0.3s",
+                            }}
+                          >
+                            <i className="fa-solid fa-magnifying-glass" />
+                            Browse Jobs
+                          </Link>
+                        </div>
                       ) : (
                         applications.map((app) => {
                           const job = app?.jobId;
@@ -526,6 +818,7 @@ function ManagesJobApplication() {
                               className="modern-job-card clickable mb-4"
                               key={app._id}
                             >
+                              {/* HEADER */}
                               <div className="modern-job-header">
                                 <div className="modern-company-info">
                                   <div className="modern-logo-container">
@@ -540,11 +833,12 @@ function ManagesJobApplication() {
                                       }
                                     />
                                   </div>
+
                                   <div className="modern-company-details">
                                     <h4 className="modern-company-name">
-                                      {" "}
-                                      Devstringx Technologies Pvt Ltd
+                                      {company?.brandName || "N/A"}
                                     </h4>
+
                                     <span className="modern-post-date">
                                       <svg
                                         stroke="currentColor"
@@ -557,49 +851,54 @@ function ManagesJobApplication() {
                                       >
                                         <path fill="none" d="M0 0h24v24H0V0z" />
                                         <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                                      </svg>{" "}
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        <font
-                                          dir="auto"
-                                          style={{
-                                            "vertical-align": "inherit",
-                                          }}
-                                        >
-                                          21 minutes ago
-                                        </font>
-                                      </font>
+                                      </svg>
+
+                                      {moment(app?.createdAt).fromNow()}
                                     </span>
                                   </div>
                                 </div>
+
+                                {/* STATUS */}
                                 <div className="modern-job-actions">
-                                  <span className="modern-status-badge status-applied">
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        Application received
-                                      </font>
-                                    </font>
+                                  <span
+                                    className="modern-status-badge"
+                                    style={{
+                                      background:
+                                        statusConfig[app?.status]?.background ||
+                                        "#f3f4f6",
+                                      color:
+                                        statusConfig[app?.status]?.color ||
+                                        "#374151",
+                                      padding: "6px 14px",
+                                      borderRadius: "30px",
+                                      fontSize: "13px",
+                                      fontWeight: "600",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                    }}
+                                  >
+                                    {statusConfig[app?.status]?.label ||
+                                      app?.status}
                                   </span>
                                 </div>
                               </div>
+
+                              {/* BODY */}
                               <div className="modern-job-body">
                                 <h3 className="modern-job-title">
-                                  Node js Developer
+                                  {job?.jobTitle || "N/A"}
                                 </h3>
+
                                 <p className="modern-job-description">
                                   You applied for this position. View details to
                                   see full job information.
                                 </p>
                               </div>
+
+                              {/* META */}
                               <div className="modern-job-meta">
+                                {/* CATEGORY */}
                                 <span className="modern-meta-tag">
                                   <svg
                                     stroke="currentColor"
@@ -613,8 +912,13 @@ function ManagesJobApplication() {
                                     <path fill="none" d="M0 0h24v24H0V0z" />
                                     <path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
                                   </svg>
-                                  Cyber security / IT Security
+
+                                  {job?.jobCategory
+                                    ?.map((cat) => cat?.name)
+                                    .join(", ") || "N/A"}
                                 </span>
+
+                                {/* LOCATION */}
                                 <span className="modern-meta-tag">
                                   <svg
                                     stroke="currentColor"
@@ -629,18 +933,13 @@ function ManagesJobApplication() {
                                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z" />
                                     <circle cx={12} cy={9} r="2.5" />
                                   </svg>
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      The Surgents
-                                    </font>
-                                  </font>
+
+                                  {job?.city?.join(", ") ||
+                                    company?.city ||
+                                    "N/A"}
                                 </span>
+
+                                {/* EMPLOYMENT TYPE */}
                                 <span className="modern-meta-tag">
                                   <svg
                                     stroke="currentColor"
@@ -652,10 +951,15 @@ function ManagesJobApplication() {
                                     xmlns="http://www.w3.org/2000/svg"
                                   >
                                     <path fill="none" d="M0 0h24v24H0V0z" />
-                                    <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
+                                    <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
                                   </svg>
-                                  CDI
+
+                                  {job?.employmentType
+                                    ?.map((type) => type?.name)
+                                    .join(", ") || "N/A"}
                                 </span>
+
+                                {/* EXPERIENCE */}
                                 <span className="modern-meta-tag">
                                   <svg
                                     stroke="currentColor"
@@ -669,110 +973,74 @@ function ManagesJobApplication() {
                                     <path fill="none" d="M0 0h24v24H0z" />
                                     <path d="m16 6 2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
                                   </svg>
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      69144c786321f6c78b7e0942
-                                    </font>
-                                  </font>
+
+                                  {job?.minimumLevel?.name || "N/A"}
                                 </span>
                               </div>
+
+                              {/* FOOTER */}
                               <div className="modern-job-footer">
                                 <div className="modern-job-info-badges">
                                   <span className="modern-info-badge">
                                     <i className="fa-solid fa-calendar-check" />
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        Apply on{" "}
-                                      </font>
-                                    </font>
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        May 8, 2026
-                                      </font>
-                                    </font>
+                                    Apply on{" "}
+                                    {moment(app?.createdAt).format(
+                                      "MMM DD, YYYY",
+                                    )}
                                   </span>
                                 </div>
+
                                 <div
                                   className="modern-job-footer-actions"
-                                  style={{ display: "flex", gap: "12px" }}
+                                  style={{
+                                    display: "flex",
+                                    gap: "12px",
+                                    alignItems: "center",
+                                    flexWrap: "wrap",
+                                  }}
                                 >
-                                  <a
+                                  <Link
                                     className="view-details-link"
-                                    href="/jobPortal/job-details/69fd7d5d05687d325ec06b33"
+                                    to={`/job/${job?.slug}`}
+                                    state={{
+                                      from: `/manage-job-application?tab=${activeTab}`,
+                                      JobId: job?._id,
+                                    }}
                                     style={{
-                                      "-webkit-text-decoration": "none",
-                                      "text-decoration": "none",
-                                      "font-weight": "700",
-                                      "font-size": "14px",
+                                      textDecoration: "none",
+                                      fontWeight: "700",
+                                      fontSize: "14px",
                                       color: "var(--primary-color)",
-                                      display: "flex",
-                                      "-webkit-align-items": "center",
-                                      "-webkit-box-align": "center",
-                                      "-ms-flex-align": "center",
-                                      "align-items": "center",
                                     }}
                                   >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
+                                    See details
+                                  </Link>
+
+                                  {/* WITHDRAW BUTTON */}
+                                  {app?.status === "Applied" && (
+                                    <button
+                                      type="button"
+                                      className="modern-apply-btn"
+                                      data-bs-toggle="modal"
+                                      data-bs-target="#exampleModal"
+                                      onClick={() =>
+                                        handleWithdrawClick(app._id)
+                                      }
+                                      style={{
+                                        background: "rgb(254, 242, 242)",
+                                        color: "rgb(239, 68, 68)",
+                                        padding: "8px 20px",
+                                        border: "none",
+                                        borderRadius: "10px",
+                                        fontWeight: "600",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                      }}
                                     >
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        <Link
-                                          to={`/job/${job?.slug}`}
-                                          state={{
-                                            from: `/manage-job-application?tab=${activeTab}`,
-                                            JobId: job?._id,
-                                          }}
-                                        >
-                                          {" "}
-                                          See details
-                                        </Link>
-                                      </font>
-                                    </font>
-                                  </a>
-                                  <button
-                                    className="modern-apply-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#withdrawModal"
-                                    style={{
-                                      background: "rgb(254, 242, 242)",
-                                      color: "rgb(239, 68, 68)",
-                                      padding: "8px 20px",
-                                    }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      <font
-                                        dir="auto"
-                                        style={{ "vertical-align": "inherit" }}
-                                      >
-                                        Cancel my application
-                                      </font>
-                                    </font>
-                                  </button>
+                                      Cancel my application
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -797,7 +1065,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>124</h2>
+                        <h2>{companies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -813,63 +1081,20 @@ function ManagesJobApplication() {
                         </p>
                       </div>
                       <ul className="viewers-list">
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">T</div>
-                          <div className="viewer-info">
-                            <h5>Tech Corp</h5>
-                            <p>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  2h ago
-                                </font>
-                              </font>
-                            </p>
-                          </div>
-                        </li>
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">G</div>
-                          <div className="viewer-info">
-                            <h5>Global Solutions</h5>
-                            <p>1d ago</p>
-                          </div>
-                        </li>
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">I</div>
-                          <div className="viewer-info">
-                            <h5>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  Innovate AI
-                                </font>
-                              </font>
-                            </h5>
-                            <p>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  August 6th
-                                </font>
-                              </font>
-                            </p>
-                          </div>
-                        </li>
+                        {Array.isArray(companies) &&
+                          companies.slice(0, 5).map((item, index) => (
+                            <li className="viewer-item" key={index}>
+                              <div className="viewer-avatar">
+                                {item?.companyName?.charAt(0)}
+                              </div>
+
+                              <div className="viewer-info">
+                                <h5>{item?.companyName}</h5>
+
+                                <p>{moment(item?.viewedAt).fromNow()}</p>
+                              </div>
+                            </li>
+                          ))}
                       </ul>
                       <button className="view-all-btn">
                         <font
@@ -945,169 +1170,249 @@ function ManagesJobApplication() {
                 <div className="manage-main-grid">
                   <div className="manage-content-area">
                     <div className="saved-jobs-tab-view">
-                      <h2>
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          <font
-                            dir="auto"
-                            style={{ "vertical-align": "inherit" }}
-                          >
-                            Saved Offers
-                          </font>
-                        </font>
-                      </h2>
-                      <div className="modern-job-card mb-4">
-                        <div className="modern-job-header">
-                          <div className="modern-company-info">
-                            <div className="modern-logo-container">
-                              <img
-                                crossOrigin="anonymous"
-                                alt="logo"
-                                className="modern-company-logo"
-                                src="assets/images/dashboard/images1.png"
-                              />
-                            </div>
-                            <div className="modern-company-details">
-                              <h4 className="modern-company-name">
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
+                      <h2>Saved Offers</h2>
+
+                      {loading ? (
+                        <div className="text-center py-5">
+                          <div
+                            className="spinner-border text-primary mb-3"
+                            role="status"
+                          />
+                          <p className="fw-semibold text-muted mb-0">
+                            Loading saved jobs...
+                          </p>
+                        </div>
+                      ) : savedJobs?.length > 0 ? (
+                        savedJobs?.map((job) => {
+                          const jobData = job?.jobId || job;
+
+                          return (
+                            <div
+                              className="modern-job-card mb-4"
+                              key={jobData?._id}
+                            >
+                              {/* HEADER */}
+                              <div className="modern-job-header">
+                                <div className="modern-company-info">
+                                  <div className="modern-logo-container">
+                                    <img
+                                      crossOrigin="anonymous"
+                                      alt="logo"
+                                      className="modern-company-logo"
+                                      src={
+                                        jobData?.companyId?.logo
+                                          ? `${API_IMAGE_URL}${jobData?.companyId?.logo}`
+                                          : "assets/images/dashboard/images1.png"
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="modern-company-details">
+                                    <h4 className="modern-company-name">
+                                      {jobData?.companyId?.brandName ||
+                                        "Unknown Company"}
+                                    </h4>
+
+                                    <span className="modern-post-date">
+                                      <svg
+                                        stroke="currentColor"
+                                        fill="currentColor"
+                                        strokeWidth={0}
+                                        viewBox="0 0 24 24"
+                                        height="1em"
+                                        width="1em"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path fill="none" d="M0 0h24v24H0V0z" />
+                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                                      </svg>
+
+                                      {moment(jobData?.createdAt).fromNow()}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="modern-job-actions">
+                                  <button
+                                    className="modern-action-icon saved"
+                                    title="Unsave"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleSaveJob(jobData?._id);
+                                    }}
                                   >
-                                    Company Name
-                                  </font>
-                                </font>
-                              </h4>
+                                    <i className="fa-solid fa-heart" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* BODY */}
+                              <div className="modern-job-body">
+                                <h3 className="modern-job-title">
+                                  {jobData?.jobTitle || "Untitled Position"}
+                                </h3>
+
+                                <p className="modern-job-description">
+                                  {jobData?.shortDescription ||
+                                    "No description available."}
+                                </p>
+                              </div>
+
+                              {/* META */}
+                              <div className="modern-job-meta">
+                                <span className="modern-meta-tag">
+                                  <svg
+                                    stroke="currentColor"
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                    viewBox="0 0 24 24"
+                                    height="1em"
+                                    width="1em"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path fill="none" d="M0 0h24v24H0V0z" />
+                                    <path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
+                                  </svg>
+
+                                  {jobData?.jobCategory
+                                    ?.map((cat) => cat?.name)
+                                    ?.join(", ") || "N/A"}
+                                </span>
+
+                                <span className="modern-meta-tag">
+                                  <svg
+                                    stroke="currentColor"
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                    viewBox="0 0 24 24"
+                                    height="1em"
+                                    width="1em"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path fill="none" d="M0 0h24v24H0V0z" />
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z" />
+                                    <circle cx={12} cy={9} r="2.5" />
+                                  </svg>
+
+                                  {jobData?.city?.join(", ") ||
+                                    jobData?.companyId?.city?.split(",")[0] ||
+                                    "N/A"}
+                                </span>
+
+                                <span className="modern-meta-tag">
+                                  <svg
+                                    stroke="currentColor"
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                    viewBox="0 0 24 24"
+                                    height="1em"
+                                    width="1em"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path fill="none" d="M0 0h24v24H0V0z" />
+                                    <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
+                                  </svg>
+
+                                  {jobData?.employmentType
+                                    ?.map((type) => type?.name)
+                                    ?.join(", ") || "N/A"}
+                                </span>
+
+                                <span className="modern-meta-tag">
+                                  <svg
+                                    stroke="currentColor"
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                    viewBox="0 0 24 24"
+                                    height="1em"
+                                    width="1em"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path fill="none" d="M0 0h24v24H0z" />
+                                    <path d="m16 6 2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+                                  </svg>
+
+                                  {jobData?.minimumLevel?.name || "N/A"}
+                                </span>
+                              </div>
+
+                              {/* FOOTER */}
+                              <div className="modern-job-footer">
+                                <div className="modern-job-info-badges">
+                                  <span className="modern-info-badge">
+                                    <i className="fa-solid fa-bookmark" /> Saved{" "}
+                                    {moment(job?.savedAt).fromNow()}
+                                  </span>
+                                </div>
+
+                                <div className="modern-job-footer-actions">
+                                  <Link
+                                    className="modern-apply-btn"
+                                    to={`/job/${jobData?.slug}`}
+                                    state={{
+                                      from: `/manage-job-application?tab=${activeTab}`,
+                                      JobId: jobData?._id,
+                                    }}
+                                    style={{
+                                      textDecoration: "none",
+                                    }}
+                                  >
+                                    View Details
+                                  </Link>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="modern-job-actions">
-                            <button
-                              className="modern-action-icon saved"
-                              title="Unsave"
-                            >
-                              <i className="fa-solid fa-heart" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="modern-job-body">
-                          <h3 className="modern-job-title">
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Untitled Position
-                              </font>
-                            </font>
-                          </h3>
-                        </div>
-                        <div className="modern-job-meta">
-                          <span className="modern-meta-tag">
-                            <svg
-                              stroke="currentColor"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              viewBox="0 0 24 24"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path fill="none" d="M0 0h24v24H0V0z" />
-                              <path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
-                            </svg>
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Job Category
-                              </font>
-                            </font>
-                          </span>
-                          <span className="modern-meta-tag">
-                            <svg
-                              stroke="currentColor"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              viewBox="0 0 24 24"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path fill="none" d="M0 0h24v24H0V0z" />
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 2.88-2.88 7.19-5 9.88C9.92 16.21 7 11.85 7 9z" />
-                              <circle cx={12} cy={9} r="2.5" />
-                            </svg>
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Morocco
-                              </font>
-                            </font>
-                          </span>
-                          <span className="modern-meta-tag">
-                            <svg
-                              stroke="currentColor"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              viewBox="0 0 24 24"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path fill="none" d="M0 0h24v24H0V0z" />
-                              <path d="M9 13.75c-2.34 0-7 1.17-7 3.5V19h14v-1.75c0-2.33-4.66-3.5-7-3.5zM4.34 17c.84-.58 2.87-1.25 4.66-1.25s3.82.67 4.66 1.25H4.34zM9 12c1.93 0 3.5-1.57 3.5-3.5S10.93 5 9 5 5.5 6.57 5.5 8.5 7.07 12 9 12zm0-5c.83 0 1.5.67 1.5 1.5S9.83 10 9 10s-1.5-.67-1.5-1.5S8.17 7 9 7zm7.04 6.81c1.16.84 1.96 1.96 1.96 3.44V19h4v-1.75c0-2.02-3.5-3.17-5.96-3.44zM15 12c1.93 0 3.5-1.57 3.5-3.5S16.93 5 15 5c-.54 0-1.04.13-1.5.35.63.89 1 1.98 1 3.15s-.37 2.26-1 3.15c.46.22.96.35 1.5.35z" />
-                            </svg>
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                CDI
-                              </font>
-                            </font>
-                          </span>
-                        </div>
-                        <div className="modern-job-footer">
-                          <div className="modern-job-info-badges">
-                            <span className="modern-info-badge">
-                              <i className="fa-solid fa-bookmark" /> Saved to
-                              your list
-                            </span>
-                          </div>
-                          <div className="modern-job-footer-actions">
-                            <a
-                              className="modern-apply-btn"
-                              href="/jobPortal/job-details/undefined"
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-5">
+                          <div
+                            style={{
+                              background: "#fff",
+                              borderRadius: "20px",
+                              padding: "50px 20px",
+                              border: "1px solid #eee",
+                            }}
+                          >
+                            <i
+                              className="fa-regular fa-bookmark mb-3"
                               style={{
-                                "-webkit-text-decoration": "none",
-                                "text-decoration": "none",
+                                fontSize: "60px",
+                                color: "#cbd5e1",
+                              }}
+                            />
+
+                            <h4
+                              style={{
+                                fontWeight: "700",
+                                marginBottom: "10px",
                               }}
                             >
-                              View Details
-                            </a>
+                              No Saved Jobs Found
+                            </h4>
+
+                            <p
+                              style={{
+                                color: "#64748b",
+                                marginBottom: "20px",
+                              }}
+                            >
+                              Start saving jobs to view them later.
+                            </p>
+
+                            <Link
+                              to="/jobs"
+                              className="modern-apply-btn"
+                              style={{
+                                textDecoration: "none",
+                              }}
+                            >
+                              Browse Jobs
+                            </Link>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                   <div className="insights-sidebar">
@@ -1126,7 +1431,19 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>124</h2>
+                        <h2>
+                          <font
+                            dir="auto"
+                            style={{ "vertical-align": "inherit" }}
+                          >
+                            <font
+                              dir="auto"
+                              style={{ "vertical-align": "inherit" }}
+                            >
+                              124
+                            </font>
+                          </font>
+                        </h2>
                         <p>
                           <font
                             dir="auto"
@@ -1143,9 +1460,33 @@ function ManagesJobApplication() {
                       </div>
                       <ul className="viewers-list">
                         <li className="viewer-item">
-                          <div className="viewer-avatar">T</div>
+                          <div className="viewer-avatar">
+                            <font
+                              dir="auto"
+                              style={{ "vertical-align": "inherit" }}
+                            >
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                T
+                              </font>
+                            </font>
+                          </div>
                           <div className="viewer-info">
-                            <h5>Tech Corp</h5>
+                            <h5>
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                <font
+                                  dir="auto"
+                                  style={{ "vertical-align": "inherit" }}
+                                >
+                                  Tech Corp
+                                </font>
+                              </font>
+                            </h5>
                             <p>
                               <font
                                 dir="auto"
@@ -1162,14 +1503,62 @@ function ManagesJobApplication() {
                           </div>
                         </li>
                         <li className="viewer-item">
-                          <div className="viewer-avatar">G</div>
+                          <div className="viewer-avatar">
+                            <font
+                              dir="auto"
+                              style={{ "vertical-align": "inherit" }}
+                            >
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                G
+                              </font>
+                            </font>
+                          </div>
                           <div className="viewer-info">
-                            <h5>Global Solutions</h5>
-                            <p>1d ago</p>
+                            <h5>
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                <font
+                                  dir="auto"
+                                  style={{ "vertical-align": "inherit" }}
+                                >
+                                  Global Solutions
+                                </font>
+                              </font>
+                            </h5>
+                            <p>
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                <font
+                                  dir="auto"
+                                  style={{ "vertical-align": "inherit" }}
+                                >
+                                  1d ago
+                                </font>
+                              </font>
+                            </p>
                           </div>
                         </li>
                         <li className="viewer-item">
-                          <div className="viewer-avatar">I</div>
+                          <div className="viewer-avatar">
+                            <font
+                              dir="auto"
+                              style={{ "vertical-align": "inherit" }}
+                            >
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                I
+                              </font>
+                            </font>
+                          </div>
                           <div className="viewer-info">
                             <h5>
                               <font
@@ -1443,7 +1832,7 @@ function ManagesJobApplication() {
                                                   "vertical-align": "inherit",
                                                 }}
                                               >
-                                                Alert name (Optional)
+                                              Business
                                               </font>
                                             </font>
                                           </label>
@@ -1486,73 +1875,86 @@ function ManagesJobApplication() {
                                             <font
                                               dir="auto"
                                               style={{
-                                                "vertical-align": "inherit",
+                                                verticalAlign: "inherit",
                                               }}
                                             >
                                               <font
                                                 dir="auto"
                                                 style={{
-                                                  "vertical-align": "inherit",
+                                                  verticalAlign: "inherit",
                                                 }}
                                               >
                                                 Contract type
                                               </font>
                                             </font>
                                           </label>
+
                                           <div className="tag-cloud">
-                                            <span className="selectable-tag ">
-                                              CDI
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              CDD
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              Freelance
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              Stage
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              volontaire
-                                            </span>
+                                            {jobTypes.map((type) => (
+                                              <span
+                                                key={type._id}
+                                                className={`selectable-tag ${
+                                                  selectedJobTypes.includes(
+                                                    type._id,
+                                                  )
+                                                    ? "active"
+                                                    : ""
+                                                }`}
+                                                onClick={() => {
+                                                  setSelectedJobTypes(
+                                                    (prev) =>
+                                                      prev.includes(type._id)
+                                                        ? prev.filter(
+                                                            (id) =>
+                                                              id !== type._id,
+                                                          ) // remove
+                                                        : [...prev, type._id], // add
+                                                  );
+                                                }}
+                                              >
+                                                {type.name}
+                                              </span>
+                                            ))}
                                           </div>
                                         </div>
                                       </div>
                                       <div className="col-md-12">
                                         <div className="modal-form-group">
-                                          <label>
-                                            <font
-                                              dir="auto"
-                                              style={{
-                                                "vertical-align": "inherit",
-                                              }}
-                                            >
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                Experience level
-                                              </font>
-                                            </font>
-                                          </label>
+                                          <label>Experience level</label>
+
                                           <div className="tag-cloud">
-                                            <span className="selectable-tag ">
-                                              &lt;1 ans
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              1 - 3 ans
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              3 - 5 ans
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              5 - 10 ans
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              &gt;10 ans
-                                            </span>
+                                            {seniorityLevels.map((level) => {
+                                              const isSelected =
+                                                selectedSeniority.includes(
+                                                  level._id,
+                                                );
+
+                                              return (
+                                                <span
+                                                  key={level._id}
+                                                  className={`selectable-tag ${
+                                                    isSelected ? "active" : ""
+                                                  }`}
+                                                  onClick={() => {
+                                                    setSelectedSeniority(
+                                                      (prev) =>
+                                                        isSelected
+                                                          ? prev.filter(
+                                                              (id) =>
+                                                                id !==
+                                                                level._id,
+                                                            )
+                                                          : [
+                                                              ...prev,
+                                                              level._id,
+                                                            ],
+                                                    );
+                                                  }}
+                                                >
+                                                  {level.name}
+                                                </span>
+                                              );
+                                            })}
                                           </div>
                                         </div>
                                       </div>
@@ -1630,113 +2032,71 @@ function ManagesJobApplication() {
                                       </div>
                                       <div className="col-md-12">
                                         <div className="modal-form-group">
-                                          <label>
-                                            <font
-                                              dir="auto"
-                                              style={{
-                                                "vertical-align": "inherit",
-                                              }}
-                                            >
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                Salary range
-                                              </font>
-                                            </font>
-                                          </label>
+                                          <label>Salary range</label>
+
                                           <div className="tag-cloud">
-                                            <span className="selectable-tag ">
-                                              0 - 5000 dh
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              10000 - 15000 dh
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              15000 - 20000 dh
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              20000+ dh
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              5000 - 10000 dh
-                                            </span>
+                                            {salaryRanges.map((range) => {
+                                              const isSelected =
+                                                selectedSalaryRanges.includes(
+                                                  range.range,
+                                                );
+
+                                              return (
+                                                <span
+                                                  key={range._id}
+                                                  className={`selectable-tag ${
+                                                    isSelected
+                                                      ? "active-tag"
+                                                      : ""
+                                                  }`}
+                                                  onClick={() =>
+                                                    handleSalaryChange({
+                                                      target: {
+                                                        value: range.range,
+                                                        checked: !isSelected,
+                                                      },
+                                                    })
+                                                  }
+                                                >
+                                                  {range.range}
+                                                </span>
+                                              );
+                                            })}
                                           </div>
                                         </div>
                                       </div>
                                       <div className="col-md-12">
                                         <div className="modal-form-group">
-                                          <label>
-                                            <font
-                                              dir="auto"
-                                              style={{
-                                                "vertical-align": "inherit",
-                                              }}
-                                            >
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                Working method
-                                              </font>
-                                            </font>
-                                          </label>
+                                          <label>Working method</label>
+
                                           <div className="tag-cloud">
-                                            <span className="selectable-tag ">
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                <font
-                                                  dir="auto"
-                                                  style={{
-                                                    "vertical-align": "inherit",
+                                            {remoteOptions.map((item) => {
+                                              const isSelected =
+                                                selectedRemote.includes(
+                                                  item._id,
+                                                );
+
+                                              return (
+                                                <span
+                                                  key={item._id}
+                                                  className={`selectable-tag ${
+                                                    isSelected ? "active" : ""
+                                                  }`}
+                                                  onClick={() => {
+                                                    setSelectedRemote((prev) =>
+                                                      isSelected
+                                                        ? prev.filter(
+                                                            (id) =>
+                                                              id !== item._id,
+                                                          )
+                                                        : [...prev, item._id],
+                                                    );
                                                   }}
                                                 >
-                                                  Telework
-                                                </font>
-                                              </font>
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                <font
-                                                  dir="auto"
-                                                  style={{
-                                                    "vertical-align": "inherit",
-                                                  }}
-                                                >
-                                                  On site
-                                                </font>
-                                              </font>
-                                            </span>
-                                            <span className="selectable-tag ">
-                                              <font
-                                                dir="auto"
-                                                style={{
-                                                  "vertical-align": "inherit",
-                                                }}
-                                              >
-                                                <font
-                                                  dir="auto"
-                                                  style={{
-                                                    "vertical-align": "inherit",
-                                                  }}
-                                                >
-                                                  Hybrid
-                                                </font>
-                                              </font>
-                                            </span>
+                                                  {item.name}
+                                                </span>
+                                              );
+                                            })}
                                           </div>
                                         </div>
                                       </div>
@@ -1888,262 +2248,374 @@ function ManagesJobApplication() {
                           </>
                         )}
                       </div>
-                      <div className="modern-job-card mb-4">
-                        <div className="modern-job-header">
-                          <div className="modern-company-info">
+                      <div className="mannage-job-application-notification">
+                        {loading ? (
+                          <div className="text-center py-5">
                             <div
-                              className="modern-logo-container"
-                              style={{
-                                background: "rgb(255, 247, 237)",
-                                color: "rgb(251, 146, 60)",
-                              }}
+                              className="spinner-border text-primary mb-3"
+                              role="status"
                             >
+                              <span className="visually-hidden">
+                                Loading...
+                              </span>
+                            </div>
+                            <p className="text-muted">Loading job alerts...</p>
+                          </div>
+                        ) : jobAlerts.length === 0 ? (
+                          <div className="text-center py-5 empty-state-box">
+                            <div className="empty-state-icon mb-3">
                               <i
-                                className="fa-solid fa-bell"
-                                style={{ "font-size": "24px" }}
+                                className="fa-solid fa-bell-slash"
+                                style={{
+                                  fontSize: "60px",
+                                  color: "#d1d5db",
+                                }}
                               />
                             </div>
-                            <div className="modern-company-details">
-                              <h4 className="modern-company-name">
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    Job alert
-                                  </font>
-                                </font>
-                              </h4>
-                              <span className="modern-post-date">
-                                <svg
-                                  stroke="currentColor"
-                                  fill="currentColor"
-                                  strokeWidth={0}
-                                  viewBox="0 0 24 24"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path fill="none" d="M0 0h24v24H0V0z" />
-                                  <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                                </svg>
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    Notifying every:{" "}
-                                  </font>
-                                </font>
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    week
-                                  </font>
-                                </font>
-                              </span>
-                            </div>
+
+                            <h4
+                              style={{
+                                fontWeight: "700",
+                                color: "#111827",
+                                marginBottom: "10px",
+                              }}
+                            >
+                              No Job Alerts Found
+                            </h4>
+
+                            <p
+                              style={{
+                                color: "#6b7280",
+                                maxWidth: "500px",
+                                margin: "0 auto",
+                              }}
+                            >
+                              You haven’t created any job alerts yet. Create
+                              alerts to receive notifications about matching job
+                              opportunities.
+                            </p>
                           </div>
-                          <div
-                            className="modern-job-actions"
-                            style={{
-                              "-webkit-align-items": "center",
-                              "-webkit-box-align": "center",
-                              "-ms-flex-align": "center",
-                              "align-items": "center",
-                            }}
-                          >
+                        ) : (
+                          jobAlerts.map((alert) => (
                             <div
-                              className="modern-switch-box"
-                              style={{ "margin-right": "8px" }}
+                              className="modern-job-card mb-4"
+                              key={alert._id}
                             >
-                              <label className="modern-switch">
-                                <input type="checkbox" defaultChecked />
-                                <span className="modern-slider" />
-                              </label>
-                            </div>
-                            <button
-                              className="modern-action-icon"
-                              title="DELETE"
-                              style={{
-                                color: "rgb(239, 68, 68)",
-                                background: "rgb(254, 242, 242)",
-                              }}
-                            >
-                              <i className="fa-solid fa-trash-can" />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="modern-job-body">
-                          <h3 className="modern-job-title">
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Permanent contract / Casablanca / 3-5 years / AI
-                                &amp; Machine Learning / Engineer
-                              </font>
-                            </font>
-                          </h3>
-                          <div className="alert-filters-container">
-                            <div className="alert-filter-group">
-                              <span className="filter-group-label">
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
+                              <div className="modern-job-header">
+                                <div className="modern-company-info">
+                                  <div
+                                    className="modern-logo-container"
+                                    style={{
+                                      background: "rgb(255, 247, 237)",
+                                      color: "rgb(251, 146, 60)",
+                                    }}
+                                  >
+                                    <i
+                                      className="fa-solid fa-bell"
+                                      style={{ fontSize: "24px" }}
+                                    />
+                                  </div>
+
+                                  <div className="modern-company-details">
+                                    <span className="modern-post-date">
+                                      <svg
+                                        stroke="currentColor"
+                                        fill="currentColor"
+                                        strokeWidth={0}
+                                        viewBox="0 0 24 24"
+                                        height="1em"
+                                        width="1em"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path fill="none" d="M0 0h24v24H0V0z" />
+                                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                                      </svg>
+                                      Notifying every:{" "}
+                                      <strong>
+                                        {alert?.notifyEvery
+                                          ? alert.notifyEvery
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                            alert.notifyEvery.slice(1)
+                                          : "Not specified"}
+                                      </strong>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="modern-job-actions"
+                                  style={{
+                                    alignItems: "center",
+                                  }}
                                 >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
+                                  {/* Status Toggle */}
+                                  <div
+                                    className="modern-switch-box"
+                                    style={{ marginRight: "8px" }}
                                   >
-                                    Positions:
-                                  </font>
-                                </font>
-                              </span>
-                              <div className="filter-tags">
-                                <span className="modern-meta-tag">
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
+                                    <label className="modern-switch">
+                                      <input
+                                        type="checkbox"
+                                        checked={alert.status === "Active"}
+                                        onChange={() =>
+                                          handleToggleStatus(
+                                            alert._id,
+                                            alert.status === "Active"
+                                              ? "Inactive"
+                                              : "Active",
+                                          )
+                                        }
+                                      />
+                                      <span className="modern-slider" />
+                                    </label>
+                                  </div>
+
+                                  {/* Edit Button */}
+
+                                  {/* Delete Button */}
+                                  <button
+                                    className="modern-action-icon"
+                                    title="Delete"
+                                    onClick={() => handleDeleteAlert(alert._id)}
+                                    style={{
+                                      color: "rgb(239, 68, 68)",
+                                      background: "rgb(254, 242, 242)",
+                                    }}
                                   >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      engineer
-                                    </font>
-                                  </font>
-                                </span>
+                                    <i className="fa-solid fa-trash-can" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="modern-job-body">
+                                <h3 className="modern-job-title">
+                                  {alert?.alertName || "All Industries"}
+                                </h3>
+
+                                <div className="alert-filters-container">
+                                  {/* Positions */}
+                                  <div className="alert-filter-group">
+                                    <span className="filter-group-label">
+                                      Positions:
+                                    </span>
+
+                                    <div className="filter-tags">
+                                      {alert?.jobTitle?.length > 0 ? (
+                                        alert.jobTitle.map((title, index) => (
+                                          <span
+                                            className="modern-meta-tag"
+                                            key={index}
+                                          >
+                                            {title}
+                                          </span>
+                                        ))
+                                      ) : (
+                                        <span className="modern-meta-tag">
+                                          All Positions
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Criteria */}
+                                  <div className="alert-filter-group">
+                                    <span className="filter-group-label">
+                                      Criteria:
+                                    </span>
+
+                                    <div className="filter-tags">
+                                      {[
+                                        ...(alert?.filterCategory || []).map(
+                                          (item) => ({
+                                            icon: "fa-solid fa-layer-group",
+                                            value: item?.name,
+                                          }),
+                                        ),
+
+                                        ...(alert?.experience || []).map(
+                                          (item) => ({
+                                            icon: "fa-solid fa-signal",
+                                            value: item?.name,
+                                          }),
+                                        ),
+
+                                        ...(alert?.jobType || []).map(
+                                          (item) => ({
+                                            icon: "fa-regular fa-user",
+                                            value: item?.name,
+                                          }),
+                                        ),
+
+                                        ...(alert?.location || []).map(
+                                          (item) => ({
+                                            icon: "fa-solid fa-location-dot",
+                                            value: item?.name || item,
+                                          }),
+                                        ),
+
+                                        ...(alert?.remote || []).map(
+                                          (item) => ({
+                                            icon: "fa-solid fa-house-laptop",
+                                            value: item?.name,
+                                          }),
+                                        ),
+                                      ]
+                                        .filter((item) => item.value)
+                                        .map((item, index) => (
+                                          <span
+                                            className="modern-meta-tag"
+                                            key={index}
+                                          >
+                                            <i className={item.icon} />{" "}
+                                            {item.value}
+                                          </span>
+                                        ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="modern-job-footer">
+                                <div className="modern-job-info-badges">
+                                  <span
+                                    className="modern-status-badge assessment"
+                                    style={{
+                                      fontSize: "11px",
+                                      padding: "4px 12px",
+                                      background:
+                                        alert.status === "Active"
+                                          ? "#dcfce7"
+                                          : "#fee2e2",
+                                      color:
+                                        alert.status === "Active"
+                                          ? "#166534"
+                                          : "#991b1b",
+                                    }}
+                                  >
+                                    {alert.status}
+                                  </span>
+                                </div>
+
+                                <div className="modern-job-footer-actions">
+                                  <Link
+                                    to="/job-search"
+                                    state={{ alert }}
+                                    className="modern-apply-btn"
+                                    style={{
+                                      textDecoration: "none",
+                                    }}
+                                  >
+                                    View Offers
+                                  </Link>
+                                </div>
+                              </div>
+
+                              {/* Modal */}
+                              <div
+                                className="modal fade"
+                                id={`editAlertModal-${alert._id}`}
+                                data-bs-backdrop="static"
+                                data-bs-keyboard="false"
+                                tabIndex={-1}
+                                aria-labelledby={`editAlertLabel-${alert._id}`}
+                                aria-hidden="true"
+                              >
+                                <div className="modal-dialog">
+                                  <div className="modal-content">
+                                    <div className="modal-header">
+                                      <h1
+                                        className="modal-title fs-5"
+                                        id={`editAlertLabel-${alert._id}`}
+                                      >
+                                        Set job alerts notification
+                                      </h1>
+
+                                      <button
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                      />
+                                    </div>
+
+                                    <div className="modal-body">
+                                      <div className="mannage-job-notification-info">
+                                        {[
+                                          "1 day",
+                                          "3 days",
+                                          "week",
+                                          "month",
+                                          "Just save",
+                                        ].map((freq) => {
+                                          const labelText =
+                                            freq.charAt(0).toUpperCase() +
+                                            freq.slice(1);
+
+                                          return (
+                                            <span
+                                              key={freq}
+                                              style={{
+                                                marginRight: "10px",
+                                              }}
+                                            >
+                                              <input
+                                                type="radio"
+                                                id={`${freq}-${alert._id}`}
+                                                name={`notify-${alert._id}`}
+                                                value={freq}
+                                                checked={
+                                                  selectedNotify[alert._id] ===
+                                                  freq
+                                                }
+                                                onChange={(e) =>
+                                                  setSelectedNotify((prev) => ({
+                                                    ...prev,
+                                                    [alert._id]: e.target.value,
+                                                  }))
+                                                }
+                                              />
+
+                                              <label
+                                                htmlFor={`${freq}-${alert._id}`}
+                                              >
+                                                {labelText}
+                                              </label>
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+
+                                    <div className="modal-footer">
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                        onClick={() =>
+                                          handleUpdateAlert(
+                                            alert._id,
+                                            selectedNotify[alert._id],
+                                            alert.status,
+                                          )
+                                        }
+                                      >
+                                        Save
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="default-btn btn"
+                                        data-bs-dismiss="modal"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div className="alert-filter-group">
-                              <span className="filter-group-label">
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    Criteria:
-                                  </font>
-                                </font>
-                              </span>
-                              <div className="filter-tags">
-                                <span className="modern-meta-tag">
-                                  <i className="fa-solid fa-location-dot" />{" "}
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      casablanca
-                                    </font>
-                                  </font>
-                                </span>
-                                <span className="modern-meta-tag">
-                                  <i className="fa-solid fa-briefcase" />{" "}
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      CDI
-                                    </font>
-                                  </font>
-                                </span>
-                                <span className="modern-meta-tag">
-                                  <i className="fa-solid fa-graduation-cap" />{" "}
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      3-5 years
-                                    </font>
-                                  </font>
-                                </span>
-                                <span className="modern-meta-tag">
-                                  <i className="fa-solid fa-layer-group" />{" "}
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      AI &amp; Machine Learning
-                                    </font>
-                                  </font>
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="modern-job-footer">
-                          <div className="modern-job-info-badges">
-                            <span
-                              className="modern-status-badge assessment"
-                              style={{
-                                "font-size": "11px",
-                                padding: "4px 12px",
-                              }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  Active
-                                </font>
-                              </font>
-                            </span>
-                          </div>
-                          <div className="modern-job-footer-actions">
-                            <button className="modern-apply-btn">
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  View offers
-                                </font>
-                              </font>
-                            </button>
-                          </div>
-                        </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2439,21 +2911,13 @@ function ManagesJobApplication() {
                         className="modern-filter-bar mb-4"
                         style={{
                           display: "flex",
-                          "-webkit-box-pack": "space-between",
-                          "-webkit-justify-content": "space-between",
-                          "-ms-flex-pack": "space-between",
-                          "justify-content": "space-between",
-                          "-webkit-align-items": "center",
-                          "-webkit-box-align": "center",
-                          "-ms-flex-align": "center",
-                          "align-items": "center",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                           background: "rgb(255, 255, 255)",
                           padding: "1rem",
-                          "border-radius": "1rem",
+                          borderRadius: "1rem",
                           border: "1px solid var(--border-color)",
-                          "-webkit-flex-wrap": "wrap",
-                          "-ms-flex-wrap": "wrap",
-                          "flex-wrap": "wrap",
+                          flexWrap: "wrap",
                           gap: "1rem",
                         }}
                       >
@@ -2462,392 +2926,411 @@ function ManagesJobApplication() {
                           style={{ display: "flex", gap: "0.5rem" }}
                         >
                           <button
-                            className="filter-pill "
+                            className={`filter-pill ${
+                              filter === "all" ? "active" : ""
+                            }`}
+                            onClick={() => handleFilter("all")}
                             style={{
                               padding: "0.6rem 1.2rem",
-                              "border-radius": "0.75rem",
-                              "border-width": "medium",
-                              "border-style": "none",
-                              "border-color": "currentcolor",
-                              "border-image": "initial",
-                              background: "rgb(248, 250, 252)",
-                              color: "var(--text-muted)",
-                              "font-weight": "600",
-                              "font-size": "0.85rem",
-                              "-webkit-transition": "0.2s",
-                              transition: "0.2s",
+                              borderRadius: "0.75rem",
+                              border: "none",
+                              background:
+                                filter === "all"
+                                  ? "var(--primary-orange)"
+                                  : "rgb(248, 250, 252)",
+                              color:
+                                filter === "all" ? "#fff" : "var(--text-muted)",
+                              fontWeight: "600",
+                              fontSize: "0.85rem",
                               cursor: "pointer",
                             }}
                           >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                All
-                              </font>
-                            </font>
+                            All
                           </button>
+
                           <button
-                            className="filter-pill "
+                            className={`filter-pill ${
+                              filter === "today" ? "active" : ""
+                            }`}
+                            onClick={() => handleFilter("today")}
                             style={{
                               padding: "0.6rem 1.2rem",
-                              "border-radius": "0.75rem",
-                              "border-width": "medium",
-                              "border-style": "none",
-                              "border-color": "currentcolor",
-                              "border-image": "initial",
-                              background: "rgb(248, 250, 252)",
-                              color: "var(--text-muted)",
-                              "font-weight": "600",
-                              "font-size": "0.85rem",
-                              "-webkit-transition": "0.2s",
-                              transition: "0.2s",
+                              borderRadius: "0.75rem",
+                              border: "none",
+                              background:
+                                filter === "today"
+                                  ? "var(--primary-orange)"
+                                  : "rgb(248, 250, 252)",
+                              color:
+                                filter === "today"
+                                  ? "#fff"
+                                  : "var(--text-muted)",
+                              fontWeight: "600",
+                              fontSize: "0.85rem",
                               cursor: "pointer",
                             }}
                           >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Today
-                              </font>
-                            </font>
+                            Today
                           </button>
+
                           <button
-                            className="filter-pill "
+                            className={`filter-pill ${
+                              filter === "last7days" ? "active" : ""
+                            }`}
+                            onClick={() => handleFilter("last7days")}
                             style={{
                               padding: "0.6rem 1.2rem",
-                              "border-radius": "0.75rem",
-                              "border-width": "medium",
-                              "border-style": "none",
-                              "border-color": "currentcolor",
-                              "border-image": "initial",
-                              background: "rgb(248, 250, 252)",
-                              color: "var(--text-muted)",
-                              "font-weight": "600",
-                              "font-size": "0.85rem",
-                              "-webkit-transition": "0.2s",
-                              transition: "0.2s",
+                              borderRadius: "0.75rem",
+                              border: "none",
+                              background:
+                                filter === "last7days"
+                                  ? "var(--primary-orange)"
+                                  : "rgb(248, 250, 252)",
+                              color:
+                                filter === "last7days"
+                                  ? "#fff"
+                                  : "var(--text-muted)",
+                              fontWeight: "600",
+                              fontSize: "0.85rem",
                               cursor: "pointer",
                             }}
                           >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                last 7 days
-                              </font>
-                            </font>
+                            Last 7 Days
                           </button>
+
                           <button
-                            className="filter-pill active"
+                            className={`filter-pill ${
+                              filter === "custom" ? "active" : ""
+                            }`}
+                            onClick={() => handleFilter("custom")}
                             style={{
                               padding: "0.6rem 1.2rem",
-                              "border-radius": "0.75rem",
-                              "border-width": "medium",
-                              "border-style": "none",
-                              "border-color": "currentcolor",
-                              "border-image": "initial",
-                              background: "var(--primary-orange)",
-                              color: "rgb(255, 255, 255)",
-                              "font-weight": "600",
-                              "font-size": "0.85rem",
-                              "-webkit-transition": "0.2s",
-                              transition: "0.2s",
+                              borderRadius: "0.75rem",
+                              border: "none",
+                              background:
+                                filter === "custom"
+                                  ? "var(--primary-orange)"
+                                  : "rgb(248, 250, 252)",
+                              color:
+                                filter === "custom"
+                                  ? "#fff"
+                                  : "var(--text-muted)",
+                              fontWeight: "600",
+                              fontSize: "0.85rem",
                               cursor: "pointer",
                             }}
                           >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Custom
-                              </font>
-                            </font>
+                            Custom
                           </button>
                         </div>
-                        <div
-                          className="custom-date-range"
-                          style={{
-                            display: "flex",
-                            "-webkit-align-items": "center",
-                            "-webkit-box-align": "center",
-                            "-ms-flex-align": "center",
-                            "align-items": "center",
-                            gap: "0.5rem",
-                          }}
-                        >
-                          <input
-                            type="date"
-                            defaultValue
-                            style={{
-                              padding: "0.5rem",
-                              "border-radius": "0.5rem",
-                              border: "1px solid var(--border-color)",
-                              "font-size": "0.85rem",
-                            }}
-                          />
-                          <span
-                            style={{
-                              color: "var(--text-muted)",
-                              "font-size": "0.85rem",
-                            }}
-                          >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                At
-                              </font>
-                            </font>
-                          </span>
-                          <input
-                            type="date"
-                            defaultValue
-                            style={{
-                              padding: "0.5rem",
-                              "border-radius": "0.5rem",
-                              border: "1px solid var(--border-color)",
-                              "font-size": "0.85rem",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="profile-viewers-grid">
-                        <div
-                          className="modern-viewer-card mb-3"
-                          style={{
-                            background: "rgb(255, 255, 255)",
-                            "border-radius": "1.25rem",
-                            border: "1px solid var(--border-color)",
-                            padding: "1.25rem",
-                            "-webkit-transition": "0.3s",
-                            transition: "0.3s",
-                            cursor: "pointer",
-                            display: "flex",
-                            "-webkit-flex-direction": "column",
-                            "-ms-flex-direction": "column",
-                            "flex-direction": "column",
-                            gap: "1rem",
-                          }}
-                        >
+
+                        {filter === "custom" && (
                           <div
-                            className="viewer-card-body"
+                            className="custom-date-range"
                             style={{
                               display: "flex",
-                              "-webkit-box-pack": "space-between",
-                              "-webkit-justify-content": "space-between",
-                              "-ms-flex-pack": "space-between",
-                              "justify-content": "space-between",
-                              "-webkit-align-items": "center",
-                              "-webkit-box-align": "center",
-                              "-ms-flex-align": "center",
-                              "align-items": "center",
-                              "-webkit-flex-wrap": "wrap",
-                              "-ms-flex-wrap": "wrap",
-                              "flex-wrap": "wrap",
-                              gap: "1rem",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              flexWrap: "wrap",
                             }}
                           >
-                            <div
-                              className="viewer-brand"
+                            <input
+                              type="date"
+                              value={startDate}
+                              onChange={(e) => setStartDate(e.target.value)}
                               style={{
+                                padding: "0.5rem",
+                                borderRadius: "0.5rem",
+                                border: "1px solid var(--border-color)",
+                                fontSize: "0.85rem",
+                              }}
+                            />
+
+                            <span
+                              style={{
+                                color: "var(--text-muted)",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              To
+                            </span>
+
+                            <input
+                              type="date"
+                              value={endDate}
+                              onChange={(e) => setEndDate(e.target.value)}
+                              style={{
+                                padding: "0.5rem",
+                                borderRadius: "0.5rem",
+                                border: "1px solid var(--border-color)",
+                                fontSize: "0.85rem",
+                              }}
+                            />
+
+                            <button
+                              onClick={handleCustomFilter}
+                              style={{
+                                padding: "0.5rem 1rem",
+                                borderRadius: "0.5rem",
+                                border: "none",
+                                background: "var(--primary-orange)",
+                                color: "#fff",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Search
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="profile-viewers-grid">
+                        {loading ? (
+                          <div className="text-center py-5">
+                            <h5>Loading...</h5>
+                          </div>
+                        ) : companies?.length > 0 ? (
+                          companies?.map((item, index) => (
+                            <div
+                              className="modern-viewer-card mb-3"
+                              key={index}
+                              style={{
+                                background: "rgb(255, 255, 255)",
+                                borderRadius: "1.25rem",
+                                border: "1px solid var(--border-color)",
+                                padding: "1.25rem",
+                                transition: "0.3s",
+                                cursor: "pointer",
                                 display: "flex",
-                                "-webkit-align-items": "center",
-                                "-webkit-box-align": "center",
-                                "-ms-flex-align": "center",
-                                "align-items": "center",
+                                flexDirection: "column",
                                 gap: "1rem",
                               }}
                             >
                               <div
-                                className="brand-logo-modern"
+                                className="viewer-card-body"
                                 style={{
-                                  width: "50px",
-                                  height: "50px",
-                                  background: "rgb(248, 250, 252)",
-                                  "border-radius": "0.75rem",
                                   display: "flex",
-                                  "-webkit-align-items": "center",
-                                  "-webkit-box-align": "center",
-                                  "-ms-flex-align": "center",
-                                  "align-items": "center",
-                                  "-webkit-box-pack": "center",
-                                  "-webkit-justify-content": "center",
-                                  "-ms-flex-pack": "center",
-                                  "justify-content": "center",
-                                  overflow: "hidden",
-                                  border: "1px solid rgb(241, 245, 249)",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  flexWrap: "nowrap", // changed
+                                  gap: "1rem",
                                 }}
                               >
-                                <span
-                                  className="brand-initial"
+                                {/* LEFT */}
+                                <div
+                                  className="viewer-brand"
                                   style={{
-                                    color: "var(--primary-orange)",
-                                    "font-weight": "700",
-                                    "font-size": "1.1rem",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "1rem",
                                   }}
                                 >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
+                                  <div
+                                    className="brand-logo-modern"
+                                    style={{
+                                      width: "50px",
+                                      height: "50px",
+                                      background: "rgb(248, 250, 252)",
+                                      borderRadius: "0.75rem",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      overflow: "hidden",
+                                      border: "1px solid rgb(241, 245, 249)",
+                                    }}
                                   >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
+                                    <span
+                                      className="brand-initial"
+                                      style={{
+                                        color: "var(--primary-orange)",
+                                        fontWeight: "700",
+                                        fontSize: "1.1rem",
+                                      }}
                                     >
-                                      G
-                                    </font>
-                                  </font>
-                                </span>
-                              </div>
-                              <div className="brand-info-modern">
-                                <h4
+                                      {item?.company?.brandName?.charAt(0)}
+                                    </span>
+                                  </div>
+
+                                  <div className="brand-info-modern">
+                                    <h4
+                                      style={{
+                                        margin: "0px",
+                                        fontSize: "1.05rem",
+                                        fontWeight: "700",
+                                        color: "var(--text-dark)",
+                                      }}
+                                    >
+                                      {item?.company?.brandName || "N/A"}
+                                    </h4>
+                                  </div>
+                                </div>
+
+                                {/* CENTER */}
+                                <div
+                                  className="viewer-meta-modern"
                                   style={{
-                                    margin: "0px",
-                                    "font-size": "1.05rem",
-                                    "font-weight": "700",
-                                    color: "var(--text-dark)",
+                                    display: "flex",
+                                    gap: "1.5rem",
+                                    flexWrap: "nowrap", // changed
+                                    alignItems: "center",
                                   }}
                                 >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
+                                  <div
+                                    className="meta-item-modern"
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "0.5rem",
+                                      color: "var(--text-muted)",
+                                      fontSize: "0.85rem",
+                                    }}
                                   >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      Global Solutions
-                                    </font>
-                                  </font>
-                                </h4>
+                                    <i
+                                      className="fa-solid fa-location-dot"
+                                      style={{
+                                        color: "var(--primary-orange)",
+                                      }}
+                                    />
+
+                                    {/* <span>{item?.company?.city || "N/A"}</span> */}
+                                    <span>
+                                      {item?.company?.city
+                                        ? item.company.city.split(",")[0]
+                                        : "N/A"}
+                                    </span>
+                                  </div>
+
+                                  <div
+                                    className="meta-item-modern"
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "0.5rem",
+                                      color: "var(--text-muted)",
+                                      fontSize: "0.85rem",
+                                    }}
+                                  >
+                                    <i
+                                      className="fa-solid fa-calendar-days"
+                                      style={{
+                                        color: "var(--primary-orange)",
+                                      }}
+                                    />
+
+                                    <span>
+                                      {moment(item?.unlockedAt).format(
+                                        "MMMM DD, YYYY [at] hh:mm A",
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* RIGHT */}
+                                <div
+                                  className="viewer-action-modern"
+                                  style={{
+                                    marginLeft: "auto",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <Link
+                                    to={`/${item?.company?.slug}`}
+                                    className="btn-view-company"
+                                    style={{
+                                      padding: "0.6rem 1.25rem",
+                                      borderRadius: "0.75rem",
+                                      border: "1px solid var(--primary-orange)",
+                                      background: "transparent",
+                                      color: "var(--primary-orange)",
+                                      fontWeight: "600",
+                                      fontSize: "0.85rem",
+                                      textDecoration: "none",
+                                    }}
+                                  >
+                                    View Company
+                                  </Link>
+                                </div>
                               </div>
                             </div>
+                          ))
+                        ) : (
+                          <div
+                            className="text-center py-5"
+                            style={{
+                              background: "#fff",
+                              borderRadius: "20px",
+                              padding: "60px 20px",
+                              border: "1px solid #f1f5f9",
+                              boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+                            }}
+                          >
                             <div
-                              className="viewer-meta-modern"
                               style={{
+                                width: "90px",
+                                height: "90px",
+                                margin: "0 auto 20px",
+                                borderRadius: "50%",
+                                background: "rgba(249, 115, 22, 0.1)",
                                 display: "flex",
-                                gap: "1.5rem",
-                                "-webkit-flex-wrap": "wrap",
-                                "-ms-flex-wrap": "wrap",
-                                "flex-wrap": "wrap",
+                                alignItems: "center",
+                                justifyContent: "center",
                               }}
                             >
-                              <div
-                                className="meta-item-modern"
+                              <i
+                                className="fa-regular fa-building"
                                 style={{
-                                  display: "flex",
-                                  "-webkit-align-items": "center",
-                                  "-webkit-box-align": "center",
-                                  "-ms-flex-align": "center",
-                                  "align-items": "center",
-                                  gap: "0.5rem",
-                                  color: "var(--text-muted)",
-                                  "font-size": "0.85rem",
-                                }}
-                              >
-                                <i
-                                  className="fa-solid fa-location-dot"
-                                  style={{ color: "var(--primary-orange)" }}
-                                />
-                                <span>
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      Rabat
-                                    </font>
-                                  </font>
-                                </span>
-                              </div>
-                              <div
-                                className="meta-item-modern"
-                                style={{
-                                  display: "flex",
-                                  "-webkit-align-items": "center",
-                                  "-webkit-box-align": "center",
-                                  "-ms-flex-align": "center",
-                                  "align-items": "center",
-                                  gap: "0.5rem",
-                                  color: "var(--text-muted)",
-                                  "font-size": "0.85rem",
-                                }}
-                              >
-                                <i
-                                  className="fa-solid fa-calendar-days"
-                                  style={{ color: "var(--primary-orange)" }}
-                                />
-                                <span>
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    <font
-                                      dir="auto"
-                                      style={{ "vertical-align": "inherit" }}
-                                    >
-                                      April 30, 2026 at 8:00 PM
-                                    </font>
-                                  </font>
-                                </span>
-                              </div>
-                            </div>
-                            <div className="viewer-action-modern">
-                              <button
-                                className="btn-view-company"
-                                style={{
-                                  padding: "0.6rem 1.25rem",
-                                  "border-radius": "0.75rem",
-                                  border: "1px solid var(--primary-orange)",
-                                  background: "transparent",
+                                  fontSize: "40px",
                                   color: "var(--primary-orange)",
-                                  "font-weight": "600",
-                                  "font-size": "0.85rem",
-                                  "-webkit-transition": "0.2s",
-                                  transition: "0.2s",
-                                  cursor: "pointer",
                                 }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  <font
-                                    dir="auto"
-                                    style={{ "vertical-align": "inherit" }}
-                                  >
-                                    View the company
-                                  </font>
-                                </font>
-                              </button>
+                              />
                             </div>
+
+                            <h3
+                              style={{
+                                fontSize: "24px",
+                                fontWeight: "700",
+                                color: "#0f172a",
+                                marginBottom: "10px",
+                              }}
+                            >
+                              No Interested Companies Found
+                            </h3>
+
+                            <p
+                              style={{
+                                color: "#64748b",
+                                fontSize: "15px",
+                                maxWidth: "500px",
+                                margin: "0 auto 25px",
+                                lineHeight: "1.7",
+                              }}
+                            >
+                              No companies have viewed or unlocked your profile
+                              yet. Complete your profile and apply to more jobs
+                              to increase visibility.
+                            </p>
+
+                            <Link
+                              to="/candidate-profile"
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                background: "var(--primary-orange)",
+                                color: "#fff",
+                                padding: "12px 24px",
+                                borderRadius: "12px",
+                                textDecoration: "none",
+                                fontWeight: "600",
+                                fontSize: "15px",
+                                transition: "0.3s",
+                              }}
+                            >
+                              <i className="fa-solid fa-user-pen" />
+                              Complete Profile
+                            </Link>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2867,7 +3350,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>124</h2>
+                        <h2>{companies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -2882,64 +3365,22 @@ function ManagesJobApplication() {
                           </font>
                         </p>
                       </div>
+
                       <ul className="viewers-list">
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">T</div>
-                          <div className="viewer-info">
-                            <h5>Tech Corp</h5>
-                            <p>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  2h ago
-                                </font>
-                              </font>
-                            </p>
-                          </div>
-                        </li>
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">G</div>
-                          <div className="viewer-info">
-                            <h5>Global Solutions</h5>
-                            <p>1d ago</p>
-                          </div>
-                        </li>
-                        <li className="viewer-item">
-                          <div className="viewer-avatar">I</div>
-                          <div className="viewer-info">
-                            <h5>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  Innovate AI
-                                </font>
-                              </font>
-                            </h5>
-                            <p>
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                <font
-                                  dir="auto"
-                                  style={{ "vertical-align": "inherit" }}
-                                >
-                                  August 6th
-                                </font>
-                              </font>
-                            </p>
-                          </div>
-                        </li>
+                        {Array.isArray(companies) &&
+                          companies.slice(0, 5).map((item, index) => (
+                            <li className="viewer-item" key={index}>
+                              <div className="viewer-avatar">
+                                {item?.company?.brandName?.charAt(0)}
+                              </div>
+
+                              <div className="viewer-info">
+                                <h5>{item?.company?.brandName || "N/A"}</h5>
+
+                                <p>{moment(item?.unlockedAt).fromNow()}</p>
+                              </div>
+                            </li>
+                          ))}
                       </ul>
                       <button className="view-all-btn">
                         <font
@@ -2990,22 +3431,12 @@ function ManagesJobApplication() {
                           </font>
                         </p>
                       </div>
-                      <a
+                      <Link
+                        to="/candidate-profile"
                         className="view-all-btn text-center d-block text-decoration-none"
-                        href="/jobPortal/candidate-profile"
                       >
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          <font
-                            dir="auto"
-                            style={{ "vertical-align": "inherit" }}
-                          >
-                            Complete my Profile
-                          </font>
-                        </font>
-                      </a>
+                        Complete my Profile
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -3037,6 +3468,177 @@ function ManagesJobApplication() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="modal fade"
+        id="exampleModal"
+        tabIndex={-1}
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content modern-modal">
+            {/* HEADER */}
+            <div className="modal-header border-0 pb-0">
+              <div className="modal-icon-box text-danger">
+                <i className="fa-solid fa-circle-exclamation" />
+              </div>
+
+              <button
+                type="button"
+                className="btn-close custom-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              />
+            </div>
+
+            {/* BODY */}
+            <div className="modal-body text-center pt-0">
+              <h5 className="modal-title-modern">Cancel my application</h5>
+
+              <p className="modal-subtitle-modern">
+                Please tell us the reason for your cancellation. This helps us
+                improve our service.
+              </p>
+
+              {/* REASONS */}
+              <div className="withdraw-options-modern mb-4">
+                <label
+                  className={`withdraw-option ${
+                    reason === "I found another offer" ? "active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reason"
+                    value="I found another offer"
+                    checked={reason === "I found another offer"}
+                    onChange={(e) => setReason(e.target.value)}
+                    hidden
+                  />
+
+                  <div className="option-circle" />
+
+                  <span>I found another offer</span>
+                </label>
+
+                <label
+                  className={`withdraw-option ${
+                    reason === "Applied by mistake" ? "active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reason"
+                    value="Applied by mistake"
+                    checked={reason === "Applied by mistake"}
+                    onChange={(e) => setReason(e.target.value)}
+                    hidden
+                  />
+
+                  <div className="option-circle" />
+
+                  <span>Applied by mistake</span>
+                </label>
+
+                <label
+                  className={`withdraw-option ${
+                    reason === "Unsatisfactory conditions" ? "active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reason"
+                    value="Unsatisfactory conditions"
+                    checked={reason === "Unsatisfactory conditions"}
+                    onChange={(e) => setReason(e.target.value)}
+                    hidden
+                  />
+
+                  <div className="option-circle" />
+
+                  <span>Unsatisfactory conditions</span>
+                </label>
+
+                <label
+                  className={`withdraw-option ${
+                    reason === "Other reason" ? "active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="reason"
+                    value="Other reason"
+                    checked={reason === "Other reason"}
+                    onChange={(e) => setReason(e.target.value)}
+                    hidden
+                  />
+
+                  <div className="option-circle" />
+
+                  <span>Other reason</span>
+                </label>
+              </div>
+
+              {/* COMMENTS */}
+              <textarea
+                className="form-control modern-textarea mb-4"
+                placeholder="Additional comments (optional)"
+                rows={3}
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+              />
+
+              {/* CONSENT */}
+              <div
+                className="understand-info-area mb-4"
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  textAlign: "left",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="consent"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  style={{ marginTop: "5px" }}
+                />
+
+                <label
+                  htmlFor="consent"
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748b",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  I understand that my personal data might have already been
+                  processed by the Employer of this job post.
+                </label>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="modal-actions-modern">
+                <button
+                  className="confirm-withdraw-btn"
+                  onClick={handleWithdrawSubmit}
+                  disabled={loading}
+                >
+                  {loading ? "Withdrawing..." : "Confirm the cancellation"}
+                </button>
+
+                <button className="cancel-withdraw-btn" data-bs-dismiss="modal">
+                  Keep my application
+                </button>
+              </div>
+            </div>
+
+            {/* FOOTER */}
           </div>
         </div>
       </div>
