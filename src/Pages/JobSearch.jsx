@@ -63,6 +63,7 @@ function JobSearch() {
   const [companies, setCompanies] = useState([]);
   const [remoteOptions, setRemoteOptions] = useState([]);
   const [selectedRemote, setSelectedRemote] = useState([]);
+  
   const fetchGlobalCurrency = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);

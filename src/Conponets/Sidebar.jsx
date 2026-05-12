@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
 import {
   FaToolbox,
+  FaClipboardList,
   FaListCheck,
   FaUsersGear,
   FaUsers,
@@ -62,21 +63,21 @@ function Sidebar() {
                 <span className="menu-title">Job Search</span>
               </NavLink>
             </li>
-            {/* <li className="nav-item">
+            <li className="nav-item">
               <NavLink
-                to="/skill-assessments-tests"
+                to="/manage-job-application"
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
               >
                 <span className="icon">
                   <i>
-                    <FaToolbox />
+                    <FaClipboardList  />
                   </i>
                 </span>
-                <span className="menu-title">Skill Assessments & Tests</span>
+                <span className="menu-title">Application Tracking</span>
               </NavLink>
-            </li> */}
+            </li>
             <li className="nav-item">
               <NavLink
                 to="/chat-messaging-system"

@@ -32,6 +32,7 @@ function CandidateDashboard() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const userRole = localStorage.getItem("user_role");
+  const [searchQuotes, setSearchQuotes] = useState([]);
   const [chatStats, setChatStats] = useState({
     totalChats: 0,
     totalUnread: 0,
@@ -80,6 +81,25 @@ function CandidateDashboard() {
   };
   useEffect(() => {
     fetchGlobalCurrency();
+  }, []);
+  // ================= FETCH SEARCH QUOTES =================
+  const fetchSearchQuotes = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/getSearchQuotes`);
+
+      if (response.data?.success) {
+        // only active quotes
+        const activeQuotes = response.data.data.filter((item) => item.isActive);
+
+        setSearchQuotes(activeQuotes || []);
+      }
+    } catch (error) {
+      console.error("Error fetching search quotes:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSearchQuotes();
   }, []);
   const getAllJobList = async (limit, page) => {
     try {
@@ -1272,45 +1292,20 @@ function CandidateDashboard() {
               <div className="sidebar-card-modern">
                 <h4 className="sidebar-card-title">
                   <i className="fa-solid fa-bolt" />
-                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      Search tips
-                    </font>
-                  </font>
+                  Search tips
                 </h4>
+
                 <ul className="sidebar-perks-list">
-                  <li>
-                    <i className="fa-solid fa-circle-check" />
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Check out the new offers every day
-                      </font>
-                    </font>
-                  </li>
-                  <li>
-                    <i className="fa-solid fa-circle-check" />
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Save and organize your favorites
-                      </font>
-                    </font>
-                  </li>
-                  <li>
-                    <i className="fa-solid fa-circle-check" />
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Receive alerts for opportunities
-                      </font>
-                    </font>
-                  </li>
-                  <li>
-                    <i className="fa-solid fa-circle-check" />
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Apply quickly with your CV
-                      </font>
-                    </font>
-                  </li>
+                  {searchQuotes?.length > 0 ? (
+                    searchQuotes.map((item, index) => (
+                      <li key={item._id || index}>
+                        <i className="fa-solid fa-circle-check" />
+                        {item.quote}
+                      </li>
+                    ))
+                  ) : (
+                    <li>No search tips found</li>
+                  )}
                 </ul>
               </div>
               <div className="sidebar-card-modern">
