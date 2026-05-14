@@ -193,6 +193,20 @@
   transition: all 0.2s;
 }
 
+.search-box-modern.search-by-input input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 1rem;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.search-box-modern.search-by-input input:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow:none
+}
 .search-box-modern input:focus {
   outline: none;
   border-color: var(--primary-orange);

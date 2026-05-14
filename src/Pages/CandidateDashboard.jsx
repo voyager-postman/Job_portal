@@ -685,7 +685,7 @@ function CandidateDashboard() {
                 <h4>
                   <font dir="auto" style={{ "vertical-align": "inherit" }}>
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      Recent offers compatible with your profile
+                      Job offers that Match the profile
                     </font>
                   </font>
                 </h4>
@@ -1381,7 +1381,14 @@ function CandidateDashboard() {
                               </span>
                             </div>
 
-                            <p className="message-text">
+                            <p
+                              className="message-text"
+                              style={{
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                                whiteSpace: "pre-wrap",
+                              }}
+                            >
                               {chat?.jobTitle ? (
                                 <>
                                   New message regarding{" "}

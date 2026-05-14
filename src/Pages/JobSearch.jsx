@@ -63,7 +63,7 @@ function JobSearch() {
   const [companies, setCompanies] = useState([]);
   const [remoteOptions, setRemoteOptions] = useState([]);
   const [selectedRemote, setSelectedRemote] = useState([]);
-  
+
   const fetchGlobalCurrency = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
@@ -173,44 +173,72 @@ function JobSearch() {
     if (!alert) return;
 
     console.log("🔵 Prefilling filters from alert:", alert);
-    // Job Types
-    setSelectedJobTypes(alert.jobType || []);
-    // Seniority Levels
-    setSelectedSeniority(alert.experience || []);
-    // Tech Stacks (filterCategory contains objects)
-    setSelectedTechStacks(alert.filterCategory?.map((item) => item._id) || []);
-    // Industries (contains objects with _id + name)
-    setSelected(alert.industry || []);
-    // Companies (convert string → object)
-    setSelectedCompanies(
-      alert.company?.map((name) => ({ _id: name, brandName: name })) || [],
+
+    const jobTitle = alert.jobTitle?.[0] || "";
+
+    const jobTypes = (alert.jobType || []).map((item) => item?._id || item);
+
+    const seniority = (alert.experience || []).map((item) => item?._id || item);
+
+    const techStacks = (alert.Filtercategory || alert.filterCategory || []).map(
+      (item) => item?._id || item,
     );
-    // Locations (convert string → object)
-    setSelectedLocations(
-      alert.location?.map((name) => ({ _id: name, name })) || [],
-    );
-    // Salary Ranges
-    setSelectedSalaryRanges(alert.salaryRange || []);
-    // Mark alert as created
-    setAlertCreated(true);
-    // Immediately load job list using restored filters
+
+    const companies = (alert.company || []).map((name) => ({
+      _id: name,
+      brandName: name,
+    }));
+
+    const locations = (alert.location || []).map((name) => ({
+      _id: name,
+      name,
+    }));
+
+    const remote = (alert.remote || []).map((item) => item?._id || item);
+
+    const salary = alert.salaryRange || [];
+    const industries = alert.industry || [];
+
+    // ✅ Set states
+    setFilters((prev) => ({
+      ...prev,
+      keywords: jobTitle,
+    }));
+
+    setAppliedFilters((prev) => ({
+      ...prev,
+      keywords: jobTitle,
+    }));
+
+    setSelectedJobTypes(jobTypes);
+    setSelectedSeniority(seniority);
+    setSelectedTechStacks(techStacks);
+    setSelected(industries);
+    setSelectedCompanies(companies);
+    setSelectedLocations(locations);
+    setSelectedSalaryRanges(salary);
+    setSelectedRemote(remote);
+
+    // ✅ IMPORTANT: call API directly with fresh values
     getAllJobList(
       pageSize,
-      pageNumber,
-      alert.jobType,
-      alert.experience,
-      alert.filterCategory?.map((t) => t._id),
-      [], // category
-      alert.company?.map((c) => ({ brandName: c })),
-      alert.industry?.map((i) => ({ _id: i._id })),
-      "", // keywords
+      1,
+      jobTypes,
+      seniority,
+      techStacks,
+      [],
+      companies,
+      industries,
+      jobTitle,
       "",
       "",
-      alert.location?.join(","),
-      alert.salaryRange,
+      locations.map((l) => l.name).join(","),
+      salary,
+      remote,
     );
-  }, [alert]);
 
+    setAlertCreated(true);
+  }, [alert]);
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -648,10 +676,7 @@ function JobSearch() {
   };
 
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
-  const [selectedTechStacks, setSelectedTechStacks] = useState(
-    alert?.filterCategory?.map((item) => item._id) || [],
-  );
-
+  const [selectedTechStacks, setSelectedTechStacks] = useState([]);
   useEffect(() => {
     if (alert?.filterCategory) {
       const ids = alert.filterCategory.map((item) => item._id).join(",");
@@ -662,15 +687,11 @@ function JobSearch() {
   const [searchTech, setSearchTech] = useState(""); // for search
   const [searchCategories, setSearchCategories] = useState(""); // for category search
   const [seniorityLevels, setSeniorityLevels] = useState([]);
-  const [selectedSeniority, setSelectedSeniority] = useState(
-    alert?.experience || [],
-  );
+  const [selectedSeniority, setSelectedSeniority] = useState([]);
 
   const wrapperRef = useRef(null);
   const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
-  const [selectedJobTypes, setSelectedJobTypes] = useState(
-    alert?.jobType || [],
-  );
+  const [selectedJobTypes, setSelectedJobTypes] = useState([]);
 
   const [options, setOptions] = useState([]); // All industries from API
   const [searchTerm, setSearchTerm] = useState(""); // For searching
@@ -977,11 +998,6 @@ function JobSearch() {
       setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
   };
-  useEffect(() => {
-    fetchIndustries();
-    getCategories();
-    getAllJobList(pageSize, pageNumber);
-  }, [pageNumber, pageSize]);
 
   useEffect(() => {
     fetchCompanies(companySearchTerm);
@@ -1056,9 +1072,14 @@ function JobSearch() {
   //   getAllJobList();
   // };
   useEffect(() => {
+    fetchIndustries();
     getCategories();
-    getAllJobList(pageSize, pageNumber);
-  }, [pageNumber, pageSize]);
+
+    // ✅ Only call default API when NO alert exists
+    if (!alert) {
+      getAllJobList(pageSize, pageNumber);
+    }
+  }, [pageNumber, pageSize, alert]);
   const resetApplyModal = () => {
     setSelectedType("");
     setSelectedId(null);
@@ -2121,16 +2142,30 @@ function JobSearch() {
                       {/* Filter Pills */}
                       <div className="modern-filter-pill-area">
                         {/* appliedFilters */}
-                        {Object.entries(appliedFilters).map(([key, value]) => (
-                          <span key={key} className="modern-filter-pill">
-                            {typeof value === "object" ? value.name : value}
+                        {/* appliedFilters */}
+                        {Object.entries(appliedFilters).map(([key, value]) => {
+                          let displayValue = "";
 
-                            <i
-                              className="fa-solid fa-xmark"
-                              onClick={() => handleRemoveFilterJob(key)}
-                            ></i>
-                          </span>
-                        ))}
+                          if (typeof value === "object" && value !== null) {
+                            displayValue = value.name || value.label || "";
+                          } else {
+                            displayValue = value;
+                          }
+
+                          // ❌ skip empty values
+                          if (!displayValue || displayValue === "") return null;
+
+                          return (
+                            <span key={key} className="modern-filter-pill">
+                              {displayValue}
+
+                              <i
+                                className="fa-solid fa-xmark"
+                                onClick={() => handleRemoveFilterJob(key)}
+                              ></i>
+                            </span>
+                          );
+                        })}
 
                         {/* Job Types */}
                         {selectedJobTypes.map((id) => {

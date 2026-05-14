@@ -4588,3 +4588,9 @@ margin: 80px 0px 80px 0px;
   transition: all 0.3s ease;
   display: inline-block;
 }
+.message-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}

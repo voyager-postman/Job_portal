@@ -22,6 +22,7 @@ function ManagesJobApplication() {
   const [remoteOptions, setRemoteOptions] = useState([]);
   const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
   const [selectedJobTypes, setSelectedJobTypes] = useState([]);
+  const [sidebarCompanies, setSidebarCompanies] = useState([]); // permanent sidebar
   const [startDate, setStartDate] = useState("");
   const [alertName, setAlertName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -30,7 +31,7 @@ function ManagesJobApplication() {
   const [endDate, setEndDate] = useState("");
   const [applications, setApplications] = useState([]);
   const [seniorityLevels, setSeniorityLevels] = useState([]);
-    const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [selectedSeniority, setSelectedSeniority] = useState([]);
   const [statusFilter, setStatusFilter] = useState(""); // 🔹 new state for filter
   const [companies, setCompanies] = useState([]);
@@ -394,7 +395,6 @@ function ManagesJobApplication() {
           applicationId: selectedApplicationId,
           reason,
           comments,
-          consent,
         },
         {
           headers: {
@@ -477,21 +477,47 @@ function ManagesJobApplication() {
       setLoading(false);
     }
   };
+  const fetchSidebarCompanies = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const response = await axios.get(
+        `${API_BASE_URL}getInterestedCompanies?filter=all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setSidebarCompanies(response?.data?.views || []);
+    } catch (error) {
+      console.log(error);
+      setSidebarCompanies([]);
+    }
+  };
   // ================= INITIAL LOAD =================
   useEffect(() => {
     fetchInterestedCompanies("all");
+    fetchSidebarCompanies(); // sidebar permanent
   }, []);
 
   // ================= FILTER CLICK =================
   const handleFilter = (type) => {
     setFilter(type);
 
+    // reset custom dates
     if (type !== "custom") {
+      setStartDate("");
+      setEndDate("");
+
+      // normal filters
       fetchInterestedCompanies(type);
+    } else {
+      // when custom clicked first show all data
+      fetchInterestedCompanies("all");
     }
   };
-
   // ================= CUSTOM SEARCH =================
   const handleCustomFilter = () => {
     if (!startDate || !endDate) return;
@@ -931,7 +957,7 @@ function ManagesJobApplication() {
                   <div className="manage-content-area">
                     <div className="applications-tab-view">
                       <div className="modern-search-filter-container mb-4">
-                        <div className="search-box-modern">
+                        <div className="search-box-modern search-by-input">
                           <i className="fa-solid fa-magnifying-glass search-icon" />
                           <input
                             placeholder="Search by job title or company..."
@@ -1286,7 +1312,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>{companies?.length ?? 0}</h2>
+                        <h2>{sidebarCompanies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -1303,11 +1329,27 @@ function ManagesJobApplication() {
                       </div>
 
                       <ul className="viewers-list">
-                        {Array.isArray(companies) &&
-                          companies.slice(0, 5).map((item, index) => (
+                        {Array.isArray(sidebarCompanies) &&
+                          sidebarCompanies.slice(0, 5).map((item, index) => (
                             <li className="viewer-item" key={index}>
                               <div className="viewer-avatar">
-                                {item?.company?.brandName?.charAt(0)}
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={
+                                    item?.company?.logo
+                                      ? `${API_IMAGE_URL}${item.company.logo}`
+                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                  }
+                                  alt={
+                                    item?.company?.brandName || "Company Logo"
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                  }}
+                                />
                               </div>
 
                               <div className="viewer-info">
@@ -1365,7 +1407,7 @@ function ManagesJobApplication() {
                               dir="auto"
                               style={{ "vertical-align": "inherit" }}
                             >
-                            {profileData?.strength ?? 0}% Completed
+                              {profileData?.strength ?? 0}% Completed
                             </font>
                           </font>
                         </p>
@@ -1646,7 +1688,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>{companies?.length ?? 0}</h2>
+                        <h2>{sidebarCompanies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -1663,11 +1705,27 @@ function ManagesJobApplication() {
                       </div>
 
                       <ul className="viewers-list">
-                        {Array.isArray(companies) &&
-                          companies.slice(0, 5).map((item, index) => (
+                        {Array.isArray(sidebarCompanies) &&
+                          sidebarCompanies.slice(0, 5).map((item, index) => (
                             <li className="viewer-item" key={index}>
                               <div className="viewer-avatar">
-                                {item?.company?.brandName?.charAt(0)}
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={
+                                    item?.company?.logo
+                                      ? `${API_IMAGE_URL}${item.company.logo}`
+                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                  }
+                                  alt={
+                                    item?.company?.brandName || "Company Logo"
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                  }}
+                                />
                               </div>
 
                               <div className="viewer-info">
@@ -1678,7 +1736,10 @@ function ManagesJobApplication() {
                             </li>
                           ))}
                       </ul>
-                      <button className="view-all-btn">
+                      <button
+                        className="view-all-btn"
+                        onClick={() => handleTabChange("profile-views")}
+                      >
                         <font
                           dir="auto"
                           style={{ "vertical-align": "inherit" }}
@@ -1722,7 +1783,7 @@ function ManagesJobApplication() {
                               dir="auto"
                               style={{ "vertical-align": "inherit" }}
                             >
-                              70% Completed
+                              {profileData?.strength ?? 0}% Completed
                             </font>
                           </font>
                         </p>
@@ -2540,6 +2601,10 @@ function ManagesJobApplication() {
                                   </div>
 
                                   <div className="modern-company-details">
+                                    <h4 class="modern-company-name">
+                                      {alert.alertName || "Alerte Emploi"}
+                                    </h4>
+
                                     <span className="modern-post-date">
                                       <svg
                                         stroke="currentColor"
@@ -2723,11 +2788,8 @@ function ManagesJobApplication() {
                                 <div className="modern-job-footer-actions">
                                   <Link
                                     to="/job-search"
-                                    // state={{ alert }}
+                                    state={{ alert }}
                                     className="modern-apply-btn"
-                                    style={{
-                                      textDecoration: "none",
-                                    }}
                                   >
                                     View Offers
                                   </Link>
@@ -2858,7 +2920,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>{companies?.length ?? 0}</h2>
+                        <h2>{sidebarCompanies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -2875,11 +2937,27 @@ function ManagesJobApplication() {
                       </div>
 
                       <ul className="viewers-list">
-                        {Array.isArray(companies) &&
-                          companies.slice(0, 5).map((item, index) => (
+                        {Array.isArray(sidebarCompanies) &&
+                          sidebarCompanies.slice(0, 5).map((item, index) => (
                             <li className="viewer-item" key={index}>
                               <div className="viewer-avatar">
-                                {item?.company?.brandName?.charAt(0)}
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={
+                                    item?.company?.logo
+                                      ? `${API_IMAGE_URL}${item.company.logo}`
+                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                  }
+                                  alt={
+                                    item?.company?.brandName || "Company Logo"
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                  }}
+                                />
                               </div>
 
                               <div className="viewer-info">
@@ -2890,7 +2968,10 @@ function ManagesJobApplication() {
                             </li>
                           ))}
                       </ul>
-                      <button className="view-all-btn">
+                      <button
+                        className="view-all-btn"
+                        onClick={() => handleTabChange("profile-views")}
+                      >
                         <font
                           dir="auto"
                           style={{ "vertical-align": "inherit" }}
@@ -2934,7 +3015,7 @@ function ManagesJobApplication() {
                               dir="auto"
                               style={{ "vertical-align": "inherit" }}
                             >
-                              70% Completed
+                              {profileData?.strength ?? 0}% Completed
                             </font>
                           </font>
                         </p>
@@ -3121,9 +3202,14 @@ function ManagesJobApplication() {
                               flexWrap: "wrap",
                             }}
                           >
+                            {/* Start Date */}
                             <input
                               type="date"
                               value={startDate}
+                              max={
+                                endDate ||
+                                new Date().toISOString().split("T")[0]
+                              }
                               onChange={(e) => setStartDate(e.target.value)}
                               style={{
                                 padding: "0.5rem",
@@ -3142,9 +3228,12 @@ function ManagesJobApplication() {
                               To
                             </span>
 
+                            {/* End Date */}
                             <input
                               type="date"
                               value={endDate}
+                              min={startDate}
+                              max={new Date().toISOString().split("T")[0]}
                               onChange={(e) => setEndDate(e.target.value)}
                               style={{
                                 padding: "0.5rem",
@@ -3156,14 +3245,21 @@ function ManagesJobApplication() {
 
                             <button
                               onClick={handleCustomFilter}
+                              disabled={!startDate || !endDate}
                               style={{
                                 padding: "0.5rem 1rem",
                                 borderRadius: "0.5rem",
                                 border: "none",
-                                background: "var(--primary-orange)",
+                                background:
+                                  !startDate || !endDate
+                                    ? "#ccc"
+                                    : "var(--primary-orange)",
                                 color: "#fff",
                                 fontWeight: "600",
-                                cursor: "pointer",
+                                cursor:
+                                  !startDate || !endDate
+                                    ? "not-allowed"
+                                    : "pointer",
                               }}
                             >
                               Search
@@ -3228,16 +3324,26 @@ function ManagesJobApplication() {
                                       border: "1px solid rgb(241, 245, 249)",
                                     }}
                                   >
-                                    <span
-                                      className="brand-initial"
-                                      style={{
-                                        color: "var(--primary-orange)",
-                                        fontWeight: "700",
-                                        fontSize: "1.1rem",
-                                      }}
-                                    >
-                                      {item?.company?.brandName?.charAt(0)}
-                                    </span>
+                                    <div className="viewer-avatar">
+                                      <img
+                                        crossOrigin="anonymous"
+                                        src={
+                                          item?.company?.logo
+                                            ? `${API_IMAGE_URL}${item.company.logo}`
+                                            : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                        }
+                                        alt={
+                                          item?.company?.brandName ||
+                                          "Company Logo"
+                                        }
+                                        style={{
+                                          width: "100%",
+                                          height: "100%",
+                                          borderRadius: "50%",
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                    </div>
                                   </div>
 
                                   <div className="brand-info-modern">
@@ -3442,7 +3548,7 @@ function ManagesJobApplication() {
                         </font>
                       </h4>
                       <div className="view-count-box">
-                        <h2>{companies?.length ?? 0}</h2>
+                        <h2>{sidebarCompanies?.length ?? 0}</h2>
                         <p>
                           <font
                             dir="auto"
@@ -3459,11 +3565,27 @@ function ManagesJobApplication() {
                       </div>
 
                       <ul className="viewers-list">
-                        {Array.isArray(companies) &&
-                          companies.slice(0, 5).map((item, index) => (
+                        {Array.isArray(sidebarCompanies) &&
+                          sidebarCompanies.slice(0, 5).map((item, index) => (
                             <li className="viewer-item" key={index}>
                               <div className="viewer-avatar">
-                                {item?.company?.brandName?.charAt(0)}
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={
+                                    item?.company?.logo
+                                      ? `${API_IMAGE_URL}${item.company.logo}`
+                                      : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                  }
+                                  alt={
+                                    item?.company?.brandName || "Company Logo"
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                  }}
+                                />
                               </div>
 
                               <div className="viewer-info">
@@ -3474,7 +3596,10 @@ function ManagesJobApplication() {
                             </li>
                           ))}
                       </ul>
-                      <button className="view-all-btn">
+                      <button
+                        className="view-all-btn"
+                        onClick={() => handleTabChange("profile-views")}
+                      >
                         <font
                           dir="auto"
                           style={{ "vertical-align": "inherit" }}
@@ -3518,7 +3643,7 @@ function ManagesJobApplication() {
                               dir="auto"
                               style={{ "vertical-align": "inherit" }}
                             >
-                              70% Completed
+                              {profileData?.strength ?? 0}% Completed
                             </font>
                           </font>
                         </p>

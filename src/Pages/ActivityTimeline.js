@@ -5,13 +5,12 @@ import { API_BASE_URL } from "../Url/Url";
 import { Link, useNavigate } from "react-router-dom";
 
 function ActivityTimeline() {
+  const navigate = useNavigate();
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-
   const [counts, setCounts] = useState({
     all: 0,
     today: 0,
@@ -21,13 +20,11 @@ function ActivityTimeline() {
 
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-
   // ✅ CUSTOM DATE
   const [customFromDate, setCustomFromDate] = useState("");
   const [customToDate, setCustomToDate] = useState("");
 
   // ================= FETCH API =================
-
   const fetchActivity = async () => {
     try {
       setLoading(true);
@@ -43,8 +40,8 @@ function ActivityTimeline() {
 
       // ✅ SEND CUSTOM DATE
       if (filter === "custom") {
-        params.fromDate = customFromDate;
-        params.toDate = customToDate;
+        params.startDate = customFromDate;
+        params.endDate = customToDate;
       }
 
       const res = await axios.get(`${API_BASE_URL}jobseeker/activity`, {
@@ -113,7 +110,16 @@ function ActivityTimeline() {
         return "type-job-alert";
     }
   };
+  const getDaysAgo = (date) => {
+    const createdDate = new Date(date);
+    const now = new Date();
+    const diffTime = now - createdDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 day ago";
 
+    return `${diffDays} days ago`;
+  };
   return (
     <div className="main-dashboard-content d-flex flex-column">
       <div className="container-fluid">
@@ -301,10 +307,7 @@ function ActivityTimeline() {
                       <span className="activity-time-modern">
                         <i className="fa-regular fa-clock me-1" />
 
-                        {new Date(item?.createdAt).toLocaleString("en-IN", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
+                        {getDaysAgo(item?.createdAt)}
                       </span>
                     </div>
 
@@ -348,7 +351,7 @@ function ActivityTimeline() {
                       )}
 
                       {/* PROVIDER */}
-                      {item?.details?.provider && (
+                      {/* {item?.details?.provider && (
                         <div className="detail-item mt-1">
                           <i
                             className="fa-solid fa-globe mt-1"
@@ -363,7 +366,7 @@ function ActivityTimeline() {
                             {item?.details?.provider}
                           </span>
                         </div>
-                      )}
+                      )} */}
 
                       {/* JOB ID */}
                       {/* {item?.details?.jobId && (
@@ -388,7 +391,82 @@ function ActivityTimeline() {
               ))
             ) : (
               <div className="text-center py-5">
-                <h5>No activity found</h5>
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: "20px",
+                    padding: "60px 20px",
+                    border: "1px solid #eee",
+                    maxWidth: "420px",
+                    margin: "0 auto",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {/* ICON */}
+                  <div
+                    style={{
+                      width: "90px",
+                      height: "90px",
+                      margin: "0 auto 20px",
+                      borderRadius: "50%",
+                      background: "rgba(249, 115, 22, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <i
+                      className="fa-solid fa-wave-square"
+                      style={{
+                        fontSize: "40px",
+                        color: "var(--primary-orange)",
+                      }}
+                    />
+                  </div>
+
+                  {/* TITLE */}
+                  <h4
+                    style={{
+                      fontWeight: "700",
+                      marginBottom: "10px",
+                      color: "#0f172a",
+                    }}
+                  >
+                    No Activity Yet
+                  </h4>
+
+                  {/* DESCRIPTION */}
+                  <p
+                    style={{
+                      color: "#64748b",
+                      fontSize: "14px",
+                      marginBottom: "20px",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    Your recent actions and updates will appear here once you
+                    start interacting with jobs, applications, or profile
+                    updates.
+                  </p>
+
+                  {/* OPTIONAL BUTTON */}
+                  <button
+                    className="modern-apply-btn"
+                    style={{
+                      background: "var(--primary-orange)",
+                      border: "none",
+                      padding: "10px 20px",
+                      borderRadius: "10px",
+                      color: "#fff",
+                      fontWeight: "600",
+                      display: "block",
+                      margin: "0 auto",
+                    }}
+                    onClick={() => navigate("/job-search")}
+                  >
+                    Explore Jobs
+                  </button>
+                </div>
               </div>
             )}
           </div>
