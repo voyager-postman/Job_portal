@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
+import EmojiPicker from "emoji-picker-react";
 function ChatMassageSystem() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ function ChatMassageSystem() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [chatSearchTerm, setChatSearchTerm] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const fileInputRef = useRef(null);
   // ---------------- CONNECT SOCKET ----------------
   useEffect(() => {
     const ws = new WebSocket(
@@ -56,7 +61,78 @@ function ChatMassageSystem() {
     ws.onclose = () => console.log("WebSocket Closed");
     return () => ws.close();
   }, []);
+  const handleEmojiClick = (emojiData) => {
+    setText((prev) => prev + emojiData.emoji);
+  };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
 
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    // Preview only
+    if (file.type.startsWith("image")) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl("");
+    }
+  };
+  const sendMessage = async () => {
+    if ((!text.trim() && !selectedFile) || !activeUser) return;
+
+    let uploadedFileUrl = "";
+    let uploadedFileType = "";
+
+    try {
+      // FILE UPLOAD
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const res = await axios.post(
+          `${API_BASE_URL}upload-chat-file`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        uploadedFileUrl = res.data.fileUrl;
+        uploadedFileType = selectedFile.type;
+      }
+
+      const payload = {
+        type: "chat",
+        from: CURRENT_USER_ID,
+        to: activeUser.id,
+        message: text || "",
+        file: uploadedFileUrl || "",
+        fileType: uploadedFileType || "",
+        fileName: selectedFile?.name || "",
+        created_at: new Date().toISOString(),
+      };
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        socketRef.current.send(JSON.stringify(payload));
+      } else {
+        console.log("Socket not connected");
+      }
+
+      socketRef.current.send(JSON.stringify(payload));
+
+      setMessages((prev) => [...prev, payload]);
+
+      setText("");
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setShowEmojiPicker(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatStore, activeUser]);
@@ -190,20 +266,7 @@ function ChatMassageSystem() {
   };
 
   // ---------------- SEND MESSAGE ----------------
-  const sendMessage = () => {
-    if (!text.trim() || !activeUser) return;
 
-    const payload = {
-      type: "chat",
-      from: CURRENT_USER_ID,
-      to: activeUser.id,
-      message: text,
-      created_at: new Date().toISOString(),
-    };
-    socketRef.current.send(JSON.stringify(payload));
-    setMessages((prev) => [...prev, payload]); // instantly show in UI
-    setText("");
-  };
   const handleViewCompany = (company, from) => {
     console.log(company);
 
@@ -215,12 +278,13 @@ function ChatMassageSystem() {
     });
   };
   const getImageUrl = (url) => {
-    if (!url) return "assets/images/userIcon.png";
+    if (!url) return "";
 
-    if (url.includes("http") && url.includes("uploads/http")) {
-      return url.replace(`${API_IMAGE_URL}`, "");
+    if (url.startsWith("http")) {
+      return url;
     }
-    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
+
+    return `${API_IMAGE_URL}${url}`;
   };
 
   return (
@@ -565,7 +629,47 @@ function ChatMassageSystem() {
 
                                 <div className="msg-content-wrapper">
                                   <div className="msg-bubble-modern">
-                                    {msg.message}
+                                    {msg.message && <p>{msg.message}</p>}
+
+                                    {msg.file && (
+                                      <>
+                                        {msg.fileType?.startsWith("image") ? (
+                                          <img
+                                            src={getImageUrl(msg.file)}
+                                            alt="chat-file"
+                                            style={{
+                                              maxWidth: "250px",
+                                              borderRadius: "12px",
+                                              marginTop: "8px",
+                                            }}
+                                          />
+                                        ) : msg.fileType?.startsWith(
+                                            "video",
+                                          ) ? (
+                                          <video
+                                            controls
+                                            style={{
+                                              maxWidth: "250px",
+                                              borderRadius: "12px",
+                                              marginTop: "8px",
+                                            }}
+                                          >
+                                            <source
+                                              src={getImageUrl(msg.file)}
+                                            />
+                                          </video>
+                                        ) : (
+                                          <a
+                                            href={getImageUrl(msg.file)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="chat-file-link"
+                                          >
+                                            📄 Download File
+                                          </a>
+                                        )}
+                                      </>
+                                    )}
                                   </div>
 
                                   <span className="msg-timestamp">
@@ -590,10 +694,50 @@ function ChatMassageSystem() {
               {activeUser && (
                 <div className="chat-footer-modern">
                   <div className="chat-input-container-modern">
-                    <button className="input-tool-btn">
-                      <i className="fa-solid fa-paperclip" />
-                    </button>
+                    <>
+                      <button
+                        className="input-tool-btn"
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        <i className="fa-solid fa-paperclip" />
+                      </button>
 
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        accept="image/*,video/*,.pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                      />
+                    </>
+                    {selectedFile && (
+                      <div className="chat-file-preview">
+                        <img
+                          src={
+                            previewUrl ||
+                            "https://cdn-icons-png.flaticon.com/512/337/337946.png"
+                          }
+                          alt="file"
+                        />
+
+                        <div className="file-preview-info">
+                          <div className="file-preview-name">
+                            {selectedFile.name}
+                          </div>
+
+                          <div className="file-preview-size">
+                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
+                        </div>
+
+                        <button
+                          className="remove-file-btn"
+                          onClick={() => setSelectedFile(null)}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                    )}
                     <textarea
                       className="chat-input-textarea"
                       placeholder="Write your message..."
@@ -609,9 +753,21 @@ function ChatMassageSystem() {
                     />
 
                     <div className="chat-input-tools">
-                      <button className="input-tool-btn">
-                        <i className="fa-regular fa-face-smile" />
-                      </button>
+                      <div style={{ position: "relative" }}>
+                        <button
+                          type="button"
+                          className="input-tool-btn"
+                          onClick={() => setShowEmojiPicker((prev) => !prev)}
+                        >
+                          <i className="fa-regular fa-face-smile" />
+                        </button>
+
+                        {showEmojiPicker && (
+                          <div className="emoji-picker-wrapper">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                          </div>
+                        )}
+                      </div>
 
                       <button className="send-btn-modern" onClick={sendMessage}>
                         <i className="fa-solid fa-paper-plane" />
