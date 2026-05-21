@@ -1343,7 +1343,7 @@ function CandidateDashboard() {
                   {unreadChat && unreadChat.length > 0 ? (
                     unreadChat.map((chat, index) => (
                       <li
-                        key={index}
+                        key={chat.groupId}
                         className={`modern-message-item ${
                           chat?.unreadCount > 0 ? "today" : ""
                         }`}
@@ -1351,12 +1351,22 @@ function CandidateDashboard() {
                         <Link
                           className="message-link-wrapper"
                           to="/chat-messaging-system"
+                          state={{
+                            groupId: chat.groupId,
+                            companyId:
+                              chat?.otherUser?.companyId ||
+                              chat?.otherUser?._id,
+                          }}
                         >
                           <div className="message-icon">
                             {chat?.otherUser?.logo ? (
                               <img
                                 crossOrigin="anonymous"
-                                src={`${API_IMAGE_URL}${chat.otherUser.logo}`}
+                                src={
+                                  chat?.otherUser?.logo?.startsWith("http")
+                                    ? chat.otherUser.logo
+                                    : `${API_IMAGE_URL}${chat.otherUser.logo}`
+                                }
                                 alt={chat?.otherUser?.brandName}
                                 style={{
                                   width: "45px",
@@ -1373,7 +1383,8 @@ function CandidateDashboard() {
                           <div className="message-content">
                             <div className="message-header">
                               <span className="message-sender">
-                                {chat?.otherUser?.brandName || "Company"}
+                                {chat?.otherUser?.brandName?.trim() ||
+                                  "Company"}
                               </span>
 
                               <span className="message-time">

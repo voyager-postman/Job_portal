@@ -159,7 +159,7 @@ function ActivityTimeline() {
           {/* ================= SEARCH + STATS ================= */}
 
           <div className="activity-page-header">
-            <div className="search-box-modern">
+            <div className="search-box-modern search-by-input">
               <i className="fa-solid fa-magnifying-glass" />
 
               <input

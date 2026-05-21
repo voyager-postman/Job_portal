@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import Swal from "sweetalert2";
 function ManagesApplicants() {
   const { t, i18n } = useTranslation("global");
-
   const navigate = useNavigate();
   const location = useLocation();
   const experienceRef = useRef(null);
@@ -27,7 +26,9 @@ function ManagesApplicants() {
   const [companyJobs, setCompanyJobs] = useState([]);
   const [folders, setFolders] = useState([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const [selectedCandidateId, setSelectedCandidateId] = useState(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState(
+    location.state?.applicationId || null,
+  );
   const [activeFolder, setActiveFolder] = useState("all");
   const [country, setCountry] = useState([]);
   const [isFreelancer, setIsFreelancer] = useState(false);
@@ -60,7 +61,9 @@ function ManagesApplicants() {
   const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedJob, setSelectedJob] = useState(location.state?.jobId || "");
+  const [selectedJob, setSelectedJob] = useState(
+    location.state?.jobId?._id || location.state?.jobId || "",
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(10000); // default
@@ -441,12 +444,25 @@ function ManagesApplicants() {
           );
 
           if (found) {
-            selected = found; // ✅ keep previously selected
+            selected = found;
+          }
+        } else if (location.state?.candidateId) {
+          const foundByUser = applicants.find(
+            (item) =>
+              String(item?.userId?._id) === String(location.state.candidateId),
+          );
+
+          if (foundByUser) {
+            selected = foundByUser;
           }
         }
 
         setSelectedCandidate(selected);
-        setSelectedCandidateId(selected._id); // keep sync
+        setSelectedCandidateId(selected._id);
+
+        if (!selectedJob && selected?.jobId) {
+          setSelectedJob(selected.jobId?._id || selected.jobId);
+        }
       } else {
         setSelectedCandidate(null);
       }
@@ -2521,6 +2537,11 @@ function ManagesApplicants() {
                                         candidateId:
                                           selectedCandidate?.userId?._id,
                                         candidate: selectedCandidate,
+                                        from: "/all-applicants-list",
+                                        jobId:
+                                          selectedCandidate?.jobId?._id ||
+                                          selectedCandidate?.jobId,
+                                        applicationId: selectedCandidate?._id,
                                       }}
                                       className="btn btn-warning text-white btn-sm shadow-sm gap-2 fw-bold "
                                     >
@@ -3859,6 +3880,10 @@ function ManagesApplicants() {
                                             state={{
                                               candidateId: item.userId?._id,
                                               candidate: item,
+                                              from: "/all-applicants-list",
+                                              jobId:
+                                                item?.jobId?._id || item?.jobId,
+                                              applicationId: item?._id,
                                             }}
                                             className="dropdown-item"
                                           >

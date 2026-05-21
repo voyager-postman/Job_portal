@@ -1107,7 +1107,12 @@ function EmployerCandinateList() {
                           to="/messaging-system"
                           // className="default-btn btn"
                           state={{
-                            jobId: selectedCandidate.jobId,
+                            from: "/all-applicants-list",
+                            jobId:
+                              selectedCandidate?.jobId?._id ||
+                              selectedCandidate?.jobId ||
+                              jobId,
+                            applicationId: selectedCandidate?._id,
                             candidateId: selectedCandidate?.userInfo?._id,
                             candidate: selectedCandidate,
                           }}

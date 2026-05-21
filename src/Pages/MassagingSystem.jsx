@@ -1,541 +1,1447 @@
-import { Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+// src/pages/MassagingSystem.jsx
+
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import image1 from "../../src/images/whatImg.png";
+import "./ChatMassageSystemModern.css";
+import EmojiPicker from "emoji-picker-react";
+import { io } from "socket.io-client";
 
 function MassagingSystem() {
-  const location = useLocation();
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const candidateId = location.state?.candidateId;
+  const candidateData = location.state?.candidate;
+  const candidateName = location.state?.candidateName;
+  const candidateImage = location.state?.candidateImage;
+  const profileFrom = location.state?.from || "";
+  const navJobId = location.state?.jobId?._id || location.state?.jobId || null;
+  const navApplicationId = location.state?.applicationId || null;
+  console.log(candidateData);
+  const resolveJobId = (data) => {
+    const job = data?.jobId;
+    return job?._id || job || navJobId || null;
+  };
+
+  const resolveApplicationId = (data) => {
+    return data?._id || navApplicationId || null;
+  };
+
+  const getProfileContext = (userId, data = candidateData) => {
+    if (!userId || !candidateId || String(userId) !== String(candidateId)) {
+      return {};
+    }
+
+    const jobId = resolveJobId(data);
+    const applicationId = resolveApplicationId(data);
+
+    return {
+      jobId,
+      applicationId,
+      fromPage: profileFrom,
+      hasApplication: Boolean(jobId && applicationId),
+    };
+  };
+  const chatContainerRef = useRef(null);
+  const [chatSearchTerm, setChatSearchTerm] = useState("");
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
-  const chatContainerRef = useRef(null);
-  const [users, setUsers] = useState([]);
-  const CURRENT_USER_ID = localStorage.getItem("companyId");
-  console.log("Current Employer ID:-", CURRENT_USER_ID);
+  const fileInputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const emojiToggleRef = useRef(null);
+  const CURRENT_USER_ID = localStorage.getItem("companyId")?.trim();
   const profileImage = localStorage.getItem("profileImage");
+  const [users, setUsers] = useState([]);
   const [activeUser, setActiveUser] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
   const [chatStore, setChatStore] = useState({});
-  const stateHandledRef = useRef(false);
+  const [text, setText] = useState("");
+  const [search, setSearch] = useState("");
+  const [showCompanyInfo, setShowCompanyInfo] = useState(true);
+  const [showChatSearch, setShowChatSearch] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [filter, setFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const typingTimer = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [overview, setOverview] = useState({
+    total: 0,
+    notRead: 0,
+    answerRate: 0,
+  });
+  const [conversationsLoaded, setConversationsLoaded] = useState(false);
 
-  // ---------------- CONNECT SOCKET ----------------
+  // ================= SOCKET =================
+  const calculateAnswerRate = (total, unread) => {
+    if (!total || total <= 0) return 0;
 
+    const safeUnread = Math.min(unread, total);
+
+    const rate = ((total - safeUnread) / total) * 100;
+
+    return Math.max(0, Math.min(100, Math.round(rate)));
+  };
   useEffect(() => {
-    const ws = new WebSocket(
-      `wss://mobappssolutions.in/chatusingsocket/ws/chat/`,
-    );
-    socketRef.current = ws;
-    ws.onopen = () => console.log("Websocket Connected");
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      const normalized = {
-        ...data,
-        sender: data.from,
-        receiver: data.to,
+    const socket = io("https://sisccltd.com", {
+      path: "/job_portal/socket.io",
+      auth: {
+        token,
+      },
+      transports: ["websocket"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Socket Connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.log("Socket Error:", err.message);
+    });
+
+    // ================= NEW MESSAGE =================
+
+    const handleNewMessage = (payload) => {
+      console.log("📩 New message:", payload);
+
+      // ================= CHAT STORE =================
+
+      setChatStore((prev) => {
+        const oldMessages = prev[payload.groupId] || [];
+
+        const alreadyExists = oldMessages.some(
+          (m) =>
+            m._id === payload.message._id ||
+            m.clientMessageId === payload.message.clientMessageId,
+        );
+
+        if (alreadyExists) return prev;
+
+        return {
+          ...prev,
+          [payload.groupId]: [...oldMessages, payload.message],
+        };
+      });
+
+      // ================= USERS =================
+
+      setUsers((prevUsers) => {
+        let chatFound = false;
+
+        const updatedUsers = prevUsers.map((user) => {
+          if (user.groupId === payload.groupId) {
+            chatFound = true;
+
+            const isMine =
+              String(payload.message.sender) === String(CURRENT_USER_ID);
+
+            return {
+              ...user,
+
+              lastMessage: payload.message.message || "📎 Attachment",
+
+              lastMessageAt: payload.message.created_at || new Date(),
+
+              unreadCount: isMine
+                ? user.unreadCount || 0
+                : (user.unreadCount || 0) + 1,
+            };
+          }
+
+          return user;
+        });
+
+        // latest chat top
+        updatedUsers.sort(
+          (a, b) =>
+            new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0),
+        );
+
+        return [...updatedUsers];
+      });
+
+      // ================= OVERVIEW REALTIME =================
+
+      setOverview((prev) => {
+        const isMine =
+          String(payload.message.sender) === String(CURRENT_USER_ID);
+
+        const totalChats = prev.total || 0;
+
+        const unread = isMine ? prev.notRead || 0 : (prev.notRead || 0) + 1;
+
+        return {
+          ...prev,
+
+          total: totalChats,
+
+          notRead: unread,
+
+          answerRate: calculateAnswerRate(totalChats, unread),
+        };
+      });
+    };
+
+    socket.on("message:new", handleNewMessage);
+
+    // ================= MESSAGE READ =================
+
+    socket.on("message:read", ({ groupId, readerId }) => {
+      console.log("✔ Message Read:", groupId);
+
+      // reset unread for opened chat
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.groupId === groupId
+            ? {
+                ...u,
+                unreadCount: 0,
+              }
+            : u,
+        ),
+      );
+
+      // update overview
+      setOverview((prev) => {
+        const newUnread = Math.max((prev.notRead || 0) - 1, 0);
+
+        return {
+          ...prev,
+          notRead: newUnread,
+          answerRate: calculateAnswerRate(prev.total || 0, newUnread),
+        };
+      });
+    });
+
+    // ================= UNREAD UPDATE =================
+
+    socket.on("unread:update", ({ groupId, unreadCount }) => {
+      console.log("Unread Update:", groupId, unreadCount);
+
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((u) =>
+          u.groupId === groupId
+            ? {
+                ...u,
+                unreadCount,
+              }
+            : u,
+        );
+
+        // realtime total unread
+        const totalUnread = updatedUsers.reduce(
+          (sum, item) => sum + (item.unreadCount || 0),
+          0,
+        );
+
+        // realtime overview sync
+        setOverview((prev) => ({
+          ...prev,
+          notRead: totalUnread,
+          answerRate: calculateAnswerRate(prev.total || 0, totalUnread),
+        }));
+
+        return updatedUsers;
+      });
+    });
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+      socket.off("message:read");
+      socket.off("unread:update");
+
+      socket.disconnect();
+    };
+  }, []);
+  // ================= GET IMAGE =================
+
+  const isValidImageUrl = (url) => {
+    if (url == null) return false;
+
+    const trimmed = String(url).trim();
+
+    if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+      return false;
+    }
+
+    return true;
+  };
+
+  const getImageUrl = (url) => {
+    if (!isValidImageUrl(url)) return image1;
+
+    const trimmed = String(url).trim();
+
+    if (trimmed.startsWith("http")) {
+      return trimmed;
+    }
+
+    return `${API_IMAGE_URL}${trimmed}`;
+  };
+
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = image1;
+  };
+
+  // ================= FETCH CONVERSATIONS =================
+
+  // ================= FETCH CONVERSATIONS =================
+  const fetchConversations = async () => {
+    try {
+      let params = {
+        search,
       };
 
-      const otherUserId =
-        String(normalized.sender) === String(CURRENT_USER_ID)
-          ? normalized.receiver
-          : normalized.sender;
+      // ================= FILTER =================
+
+      // unread filter
+      if (activeFilter === "non-verbal") {
+        params.filter = "unread";
+      }
+
+      // date filters
+      else if (filter === "today") {
+        params.filter = "today";
+      } else if (filter === "custom" && startDate) {
+        params.filter = "custom";
+        params.date = startDate;
+      }
+
+      // default
+      else {
+        params.filter = "all";
+      }
+
+      console.log("FINAL PARAMS:", params);
+
+      const res = await axios.get(`${API_BASE_URL}chat/conversations`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      });
+
+      setUsers(res.data?.chats || []);
+      setOverview(res.data?.overview || {});
+    } catch (error) {
+      console.log("Conversation Fetch Error:", error);
+    } finally {
+      setConversationsLoaded(true);
+    }
+  };
+  useEffect(() => {
+    fetchConversations();
+  }, [filter, activeFilter, startDate, search]);
+  // ================= AUTO OPEN CHAT =================
+
+  // ================= FETCH CHAT =================
+
+  // ================= AUTO OPEN CHAT =================
+  const hasAutoOpened = useRef(false);
+
+  useEffect(() => {
+    hasAutoOpened.current = false;
+  }, [candidateId]);
+
+  const getNavCandidateProfile = () => {
+    const user =
+      candidateData?.userId || candidateData?.userInfo || candidateData;
+
+    const fullName =
+      `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
+      candidateData?.name ||
+      candidateName ||
+      "Candidate";
+
+    return {
+      fullName,
+      profileImage:
+        user?.profileImage || candidateData?.image || candidateImage,
+      email: user?.email || candidateData?.email,
+      phone: user?.phone || candidateData?.phone,
+      city: user?.city || candidateData?.city,
+      nationality: user?.Nationality,
+      professionParagraph: candidateData.professionalSummary,
+    };
+  };
+
+  useEffect(() => {
+    if (!candidateId) return;
+    if (hasAutoOpened.current) return;
+    if (!conversationsLoaded) return;
+
+    const existingChat = users.find(
+      (u) =>
+        String(u?.otherUser?._id) === String(candidateId) ||
+        String(u?.otherUser?.userId) === String(candidateId),
+    );
+
+    // ================= EXISTING CHAT =================
+    if (existingChat) {
+      hasAutoOpened.current = true;
+
+      setUsers((prevUsers) => {
+        const updated = [...prevUsers];
+
+        const index = updated.findIndex(
+          (u) => u.groupId === existingChat.groupId,
+        );
+
+        if (index > -1) {
+          const [selectedChat] = updated.splice(index, 1);
+          updated.unshift(selectedChat);
+        }
+
+        return updated;
+      });
+
+      loadChat(existingChat);
+      return;
+    }
+
+    // ================= NEW TEMP CHAT =================
+    hasAutoOpened.current = true;
+
+    const profile = getNavCandidateProfile();
+
+    const tempChat = {
+      groupId: `temp-${candidateId}`,
+      otherUser: {
+        _id: candidateId,
+        fullName: profile.fullName,
+        profileImage: profile.profileImage,
+        email: profile.email,
+        phone: profile.phone,
+        city: profile.city,
+        nationality: profile.nationality,
+        professionParagraph: profile.professionParagraph,
+        isOnline: false,
+      },
+      lastMessage: "",
+      unreadCount: 0,
+    };
+
+    setUsers((prev) => {
+      const alreadyAdded = prev.some(
+        (u) => String(u?.otherUser?._id) === String(candidateId),
+      );
+
+      if (alreadyAdded) return prev;
+
+      return [tempChat, ...prev];
+    });
+
+    setActiveUser({
+      ...tempChat,
+      id: candidateId,
+      groupId: tempChat.groupId,
+      name: profile.fullName,
+      image: profile.profileImage,
+      online: "Offline",
+      isOnline: false,
+      email: profile.email,
+      phone: profile.phone,
+      city: profile.city,
+      nationality: profile.nationality,
+      professionParagraph: profile.professionParagraph,
+      ...getProfileContext(candidateId),
+    });
+
+    setChatStore((prev) => ({
+      ...prev,
+      [tempChat.groupId]: [],
+    }));
+  }, [candidateId, users, conversationsLoaded]);
+  const fetchHistory = async (groupId) => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}chat/history/group/${groupId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const history = res.data?.data || [];
 
       setChatStore((prev) => ({
         ...prev,
-        [otherUserId]: [...(prev[otherUserId] || []), normalized],
+        [groupId]: history,
       }));
-
-      if (activeUser && otherUserId === activeUser.id) {
-        setMessages((prev) => [...prev, normalized]);
-      }
-    };
-    ws.onclose = () => console.log("Websocket Closed");
-    return () => ws.close();
-  }, []);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatStore, activeUser]);
-
-  const fetchCandidates = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}getChatUserList`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      let chatUsers = res.data.data || [];
-
-      // If we're coming from "Send Message" button, ensure that specific person is in the list
-      if (location.state?.candidateId && location.state?.candidate) {
-        const targetId = location.state.candidateId;
-        const exists = chatUsers.find(
-          (u) => String(u.user?._id) === String(targetId),
-        );
-
-        if (!exists) {
-          const app = location.state.candidate;
-          // Create a mock chat user object from the applicant data
-          const newChatUser = {
-            user: {
-              _id: app.userId?._id,
-              name: `${app.userId?.first_name} ${app.userId?.last_name}`,
-              profileImage: app.userId?.profileImage,
-            },
-            lastMessage: "",
-            unreadCount: 0,
-            lastMessageAt: null,
-            groupId: null,
-          };
-          chatUsers = [newChatUser, ...chatUsers];
-        }
-      }
-
-      setUsers(chatUsers);
     } catch (error) {
-      console.error("Error While fetching the candidate data", error);
+      console.log(error);
     }
   };
 
-  useEffect(() => {
-    fetchCandidates();
-  }, []);
+  // ================= LOAD CHAT =================
 
-  // Handle incoming candidate selection from state (e.g., from Manage Applicants page)
-  useEffect(() => {
-    if (
-      !stateHandledRef.current &&
-      location.state?.candidateId &&
-      users.length > 0
-    ) {
-      const targetUser = users.find(
-        (u) => String(u.user?._id) === String(location.state.candidateId),
-      );
-      if (targetUser) {
-        loadChat(targetUser);
-        stateHandledRef.current = true;
-      }
+  const handleViewFullProfile = async () => {
+    const candidateUserId = activeUser?.id;
+    if (!candidateUserId) return;
+
+    let jobId = activeUser?.jobId;
+    let applicationId = activeUser?.applicationId;
+    const fromPage = activeUser?.fromPage || profileFrom;
+
+    if (!jobId || !applicationId) {
+      jobId = jobId || resolveJobId(candidateData);
+      applicationId = applicationId || resolveApplicationId(candidateData);
     }
-  }, [users, location.state]);
 
-  const checkUnreadCount = async (groupId) => {
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}chat/mark-read/${groupId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      console.log(res.data);
-      fetchCandidates();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // ---------------- LOAD CHAT HISTORY ----------------
-  const loadChat = async (chatItem) => {
-    const userId = chatItem?.user?._id;
-    const groupId = chatItem?.groupId;
-
-    const getLastSeenText = (lastMessageAt) => {
-      if (!lastMessageAt) return "";
-
-      const lastActive = new Date(lastMessageAt);
-      const now = new Date();
-
-      const isToday =
-        lastActive.getDate() === now.getDate() &&
-        lastActive.getMonth() === now.getMonth() &&
-        lastActive.getFullYear() === now.getFullYear();
-
-      if (isToday) {
-        const time = lastActive.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        });
-        return `last seen today at ${time}`;
-      }
-
-      const date = lastActive.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
+    if (jobId && applicationId) {
+      navigate("/all-applicants-list", {
+        state: {
+          jobId,
+          applicationId,
+          candidateId: candidateUserId,
+        },
       });
-      return `last seen ${date}`;
-    };
+      return;
+    }
 
-    setActiveUser({
-      id: userId,
-      name: chatItem?.user?.name?.trim(),
-      image: chatItem?.user?.profileImage,
-      // jobId: chatItem?.jobId,
-      online: getLastSeenText(chatItem?.lastMessageAt),
-      groupId: groupId,
-      unreadCount: chatItem?.unreadCount || 0,
-    });
-
-    // If already cached
-    if (chatStore[userId]) {
-      setMessages(chatStore[userId]);
+    if (fromPage === "/candidates-search") {
+      navigate("/candidates-search", {
+        state: { userId: candidateUserId },
+      });
       return;
     }
 
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}getChatHistory/${userId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
+      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page: 1, limit: 200 },
+      });
+
+      const applicants = res.data?.applicants || [];
+      const match = applicants.find(
+        (item) => String(item?.userId?._id) === String(candidateUserId),
       );
 
-      setChatStore((prev) => ({
-        ...prev,
-        [userId]: res.data.data,
-      }));
+      if (match) {
+        navigate("/all-applicants-list", {
+          state: {
+            jobId: match?.jobId?._id || match?.jobId,
+            applicationId: match._id,
+            candidateId: candidateUserId,
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.log("Applicant lookup error:", error);
+    }
 
-      setMessages(res.data.data);
-    } catch (err) {
-      console.log("History Load Failed", err);
+    navigate("/candidates-search", {
+      state: { userId: candidateUserId },
+    });
+  };
+
+  const loadChat = async (user) => {
+    const groupId = user.groupId;
+    const otherUserId =
+      user?.otherUser?._id ||
+      user?.otherUser?.userId ||
+      user?.otherUser?.companyId;
+
+    setActiveUser({
+      ...user,
+
+      id: otherUserId,
+
+      name: user?.otherUser?.fullName || user?.otherUser?.name,
+
+      image: user?.otherUser?.profileImage || user?.otherUser?.image,
+
+      online: user?.otherUser?.isOnline ? "Online" : "Offline",
+
+      isOnline: user?.otherUser?.isOnline,
+
+      email: user?.otherUser?.email,
+
+      phone: user?.otherUser?.phone,
+
+      city: user?.otherUser?.city,
+
+      nationality: user?.otherUser?.Nationality,
+
+      professionParagraph: user?.otherUser?.professionParagraph,
+
+      gender: user?.otherUser?.gender,
+
+      location: user?.otherUser?.location || user?.otherUser?.city,
+
+      about:
+        user?.otherUser?.professionParagraph ||
+        user?.otherUser?.about ||
+        user?.otherUser?.bio,
+
+      slug: user?.otherUser?.slug,
+
+      ...getProfileContext(otherUserId),
+    });
+
+    socketRef.current?.emit("join_group", { groupId });
+
+    socketRef.current?.emit("mark_read", { groupId });
+
+    // only fetch real chat history
+    if (!groupId?.startsWith("temp-") && !chatStore[groupId]) {
+      fetchHistory(groupId);
+    }
+    try {
+      if (!groupId?.startsWith("temp-")) {
+        await axios.post(
+          `${API_BASE_URL}chat/mark-read/${groupId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
-  const sendMessage = () => {
-    if (!text.trim() || !activeUser) return;
+  // ================= FILE CHANGE =================
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    if (file.type.startsWith("image")) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl("");
+    }
+  };
+
+  // ================= UPLOAD FILE =================
+
+  const uploadFile = async () => {
+    if (!selectedFile) return null;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}chat/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("UPLOAD RESPONSE:", res.data);
+
+      return res.data?.data;
+    } catch (error) {
+      console.log("UPLOAD ERROR:", error);
+      return null;
+    }
+  };
+  // ================= SEND MESSAGE =================
+
+  const sendMessage = async () => {
+    if (!activeUser) return;
+
+    if (!text.trim() && !selectedFile) return;
+
+    let uploadedFile = null;
+
+    // ================= FILE UPLOAD =================
+
+    if (selectedFile) {
+      uploadedFile = await uploadFile();
+    }
+
+    // ================= MESSAGE TYPE =================
+
+    let messageType = "text";
+
+    if (selectedFile) {
+      if (selectedFile.type.startsWith("image/")) {
+        messageType = "image";
+      } else if (selectedFile.type.startsWith("video/")) {
+        messageType = "video";
+      } else {
+        messageType = "file";
+      }
+    }
+
+    // ================= PAYLOAD =================
 
     const payload = {
-      type: "chat",
-      from: CURRENT_USER_ID,
-      to: activeUser.id,
-      message: text,
-      created_at: new Date().toISOString(),
+      receiverId: activeUser.id,
+      groupId: activeUser.groupId?.startsWith("temp-")
+        ? null
+        : activeUser.groupId,
+
+      message: text.trim(),
+
+      messageType,
+
+      fileUrl: uploadedFile?.fileUrl || "",
+      fileName: selectedFile?.name || "",
+      fileMimeType: selectedFile?.type || "",
+      fileSize: selectedFile?.size || "",
+
+      clientMessageId: crypto.randomUUID(),
     };
 
-    socketRef.current.send(JSON.stringify(payload));
-    setMessages((prev) => [...prev, payload]);
-    // setChatStore((prev) => ({
-    //   ...prev,
-    //   [activeUser.id]: [...(prev[activeUser.id] || []), payload],
-    // }));
+    // ================= SOCKET SEND =================
+
+    socketRef.current.emit("send_message", payload, async (ack) => {
+      console.log("SEND ACK:", ack);
+
+      if (!ack?.success) {
+        console.log("Message send failed");
+        return;
+      }
+
+      // ================= NEW GROUP CREATED =================
+      if (activeUser.groupId?.startsWith("temp-") && ack?.groupId) {
+        const realGroupId = ack.groupId;
+
+        // update active user
+        setActiveUser((prev) => ({
+          ...prev,
+          groupId: realGroupId,
+        }));
+
+        // fetch latest conversations
+        await fetchConversations();
+
+        // fetch real history immediately
+        fetchHistory(realGroupId);
+      }
+    });
+
+    // ================= CLEAR =================
 
     setText("");
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setShowEmojiPicker(false);
+
+    fetchConversations();
   };
 
-  const getImageUrl = (url) => {
-    if (!url) return "assets/images/userIcon.png";
+  // ================= EMOJI =================
 
-    if (url.includes("http") && url.includes("uploads/http")) {
-      return url.replace(`${API_IMAGE_URL}`, "");
-    }
-
-    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
+  const handleEmojiClick = (emojiData) => {
+    setText((prev) => prev + emojiData.emoji);
   };
+
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+
+    const handleClickOutside = (e) => {
+      if (
+        emojiPickerRef.current?.contains(e.target) ||
+        emojiToggleRef.current?.contains(e.target)
+      ) {
+        return;
+      }
+      setShowEmojiPicker(false);
+    };
+
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setShowEmojiPicker(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showEmojiPicker]);
+
+  const handleTyping = () => {
+    if (!activeUser) return;
+
+    socketRef.current?.emit("typing:start", {
+      groupId: activeUser.groupId,
+    });
+
+    clearTimeout(typingTimer.current);
+
+    typingTimer.current = setTimeout(() => {
+      socketRef.current?.emit("typing:stop", {
+        groupId: activeUser.groupId,
+      });
+    }, 1500);
+  };
+  // ================= AUTO SCROLL =================
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [chatStore, activeUser]);
+
+  // ================= FILTER =================
+
+  const filteredUsers = users.filter((u) =>
+    (u?.otherUser?.fullName || u?.otherUser?.name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
 
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* Breadcrumb Area */}
+          {/* ================= BREADCRUMB ================= */}
+
           <div className="breadcrumb-area">
             <h1>Messages</h1>
+
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">Home</Link>
               </li>
-              <li className="item">
-                <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
-                </Link>
-              </li>
+
               <li className="item">
                 <i className="fa-solid fa-angle-right" />
                 Messages
               </li>
             </ol>
           </div>
-          {/* End Breadcrumb Area */}
 
-          {/*Start messaging system start here*/}
-          <div className="my-profile-area">
-            <div className="profile-form-content">
-              <div className="profile-form">
-                <div className="row">
-                  <div className="messaging-system-info-area">
-                    <div className="messaging-system-tab-area">
-                      <div className="messaging-system-heading-info">
-                        {/* <h5>Candidate massage</h5> */}
-                        <div className="messaging-system-search-icon">
-                          <div className="messaging-system-search">
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="search"
-                              placeholder="Search....."
-                            />
-                          </div>
-                          <div className="messaging-system-icon">
-                            <i className="fa-solid fa-magnifying-glass" />
-                          </div>
-                        </div>
-                      </div>
-                      {/* ---------------- USER LIST ---------------- */}
-                      <div>
-                        <ul className="nav nav-tabs" role="tablist">
-                          {users.length === 0 ? (
-                            <li className="nav-item w-100 text-center py-4">
-                              <div className="no-users">
-                                No Job Seeker available
-                              </div>
-                            </li>
-                          ) : (
-                            users.map((u) => (
-                              <li
-                                className="nav-item"
-                                role="presentation"
-                                style={{
-                                  cursor: "pointer",
-                                }}
-                                key={u.user?._id}
-                                onClick={() => {
-                                  loadChat(u);
-                                  fetchCandidates();
-                                  checkUnreadCount(u.groupId || "");
-                                }}
-                              >
-                                <a
-                                  className={`nav-link ${
-                                    String(activeUser?.id) ===
-                                    String(u.user?._id)
-                                      ? "active"
-                                      : ""
-                                  }`}
-                                  data-bs-toggle="tab"
-                                >
-                                  <div className="messaging-system-img-user-info">
-                                    <div className="messaging-system-user-img">
-                                      <img
-                                        crossOrigin="anonymous"
-                                        src={getImageUrl(u?.user?.profileImage)}
-                                      />
+          {/* ================= CHAT WRAPPER ================= */}
 
-                                      {u?.unreadCount > 0 && (
-                                        <>
-                                          <span className="chat-count">
-                                            {u?.unreadCount}
-                                          </span>
-                                        </>
-                                      )}
-                                    </div>
-                                    <div className="messaging-system-user-info">
-                                      <h5>
-                                        {u.user?.name}{" "}
-                                        {/* {u.applicant?.last_name} */}
-                                      </h5>
-                                      <p>
-                                        {u?.lastMessage?.length > 30
-                                          ? u.lastMessage.substring(0, 30) +
-                                            "..."
-                                          : u?.lastMessage}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </a>
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      </div>
-                    </div>
+          <div className="chat-modern-wrapper">
+            {/* ================= LEFT SIDEBAR ================= */}
 
-                    <div className="messaging-system-chat-box">
-                      {!activeUser ? (
-                        <div
-                          className="no-chat-selected"
-                          style={{
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexDirection: "column",
-                            color: "#999",
-                            background: "#a9a9a921",
-                          }}
-                        >
-                          {/* Optional Image */}
-                          <img
-                            src={image1}
-                            alt="No chat selected"
-                            style={{
-                              width: "50%",
-                              height: "100%",
-                              margin: "20px 0px",
-                              opacity: 0.7,
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        // ================= ACTIVE CHAT =================
-                        <>
-                          <div className="messaging-system-heading-info">
-                            <div className="messaging-system-img-user-info">
-                              <div className="messaging-system-user-img">
-                                <img
-                                  crossOrigin="anonymous"
-                                  src={getImageUrl(activeUser?.image)}
-                                  alt={activeUser?.name || "User"}
-                                />
-                              </div>
-                              <div className="messaging-system-user-name">
-                                <h5>
-                                  {activeUser ? activeUser.name : "Select User"}
-                                </h5>
-                                <p
-                                  style={{
-                                    color: activeUser?.isOnline
-                                      ? "green"
-                                      : "#a2a6a2",
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  {activeUser?.online}
-                                </p>
-                              </div>
-                            </div>
-                            <div class="user-message-dlt">
-                              <span>
-                                <i class="fa-solid fa-trash"></i>Delete
-                                Conversation
-                              </span>
-                            </div>
-                          </div>
-                          {/* ---------------- CHAT MESSAGES ---------------- */}
-                          <div className="tab-content" ref={chatContainerRef}>
-                            <div className="tab-pane fade show active">
-                              {(chatStore[activeUser?.id] || []).map(
-                                (msg, index) =>
-                                  String(msg.sender) ===
-                                  String(CURRENT_USER_ID) ? (
-                                    // RIGHT SIDE (RECTRUITER - YOU)
-                                    <>
-                                      <div
-                                        key={index}
-                                        className="messaging-system-recruiter-messaging"
-                                      >
-                                        <div className="messaging-system-user-message bg-color">
-                                          <p>{msg.message}</p>
-                                          <div className="messaging-system-recruiter-message-time">
-                                            <p>
-                                              {new Date(
-                                                msg.created_at,
-                                              ).toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })}
-                                            </p>
-                                          </div>
-                                        </div>
-                                        <div className="messaging-system-userImg">
-                                          <img
-                                            crossOrigin="anonymous"
-                                            src={getImageUrl(profileImage)}
-                                            alt="rectruiter"
-                                          />
-                                        </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div
-                                        key={index}
-                                        className="messaging-system-user-messaging"
-                                      >
-                                        <div className="messaging-system-userImg">
-                                          <img
-                                            crossOrigin="anonymous"
-                                            src={getImageUrl(activeUser?.image)}
-                                            alt={activeUser?.name || "User"}
-                                          />
-                                        </div>
-                                        <div className="messaging-system-user-message">
-                                          <p>{msg.message}</p>
-                                          <div className="messaging-system-message-time">
-                                            <p>
-                                              {new Date(
-                                                msg.created_at,
-                                              ).toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                              })}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </>
-                                  ),
-                              )}
-                              <div ref={bottomRef}></div>
-                            </div>
-                          </div>
-                          {/* ---------------- INPUT ---------------- */}
-                          <div className="messaging-system-typeing-send-btn">
-                            <>
-                              <textarea
-                                className="form-control"
-                                placeholder="Write Brief Bio Or Introduction"
-                                rows={1}
-                                value={text}
-                                onChange={(e) => setText(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    sendMessage();
-                                  }
-                                }}
-                              />
-                            </>
-                            <div
-                              onClick={sendMessage}
-                              className="send_chat cusror-pointer"
-                              style={{
-                                cursor: "pointer",
-                              }}
-                            >
-                              <i className="fa-solid fa-paper-plane" />
-                              Send
-                            </div>
-                            <div className="chat-messaging-typeing-function"></div>
-                          </div>
-                        </>
-                      )}
-                    </div>
+            <div className="chat-sidebar-left">
+              <div className="chat-sidebar-overview">
+                <div className="overview-header-minimal">
+                  <i className="fa-solid fa-chart-simple" />
+                  <span>Overview</span>
+                </div>
+
+                <div className="modern-msg-stats-integrated">
+                  <div className="msg-stat-item-premium">
+                    <span className="msg-stat-value-premium">
+                      {overview?.total || 0}
+                    </span>
+                    <span className="msg-stat-label-premium">Total</span>
+                  </div>
+
+                  <div className="msg-stat-item-premium unread">
+                    <span className="msg-stat-value-premium">
+                      {overview?.notRead || 0}
+                    </span>
+
+                    <span className="msg-stat-label-premium">Unread</span>
+                  </div>
+
+                  <div className="msg-stat-item-premium rate">
+                    <span className="msg-stat-value-premium">
+                      {overview?.answerRate || 0}%
+                    </span>
+
+                    <span className="msg-stat-label-premium">Answer</span>
                   </div>
                 </div>
               </div>
+
+              <div className="sidebar-divider-modern" />
+
+              <div className="chat-sidebar-header-modern">
+                <h2>Conversations</h2>
+              </div>
+
+              {/* ================= SEARCH ================= */}
+
+              {/* ================= USER LIST ================= */}
+
+              <div className="chat-contact-list">
+                {filteredUsers.length === 0 ? (
+                  <div className="no-messages-found">
+                    <i className="fa-solid fa-comment-slash" />
+                    <p>Aucun message trouvé</p>
+                  </div>
+                ) : (
+                  filteredUsers.map((u) => {
+                    const isOnline = u?.otherUser?.isOnline;
+
+                    return (
+                      <div
+                        key={u.groupId}
+                        className={`contact-card ${
+                          activeUser?.groupId === u.groupId ? "active" : ""
+                        }`}
+                        onClick={() => loadChat(u)}
+                      >
+                        <div className="contact-avatar-container">
+                          <img
+                            alt=""
+                            className="contact-avatar"
+                            crossOrigin="anonymous"
+                            src={getImageUrl(u?.otherUser?.profileImage)}
+                            onError={handleImageError}
+                          />
+
+                          <span
+                            className={`online-dot ${isOnline ? "" : "offline"}`}
+                          />
+                        </div>
+
+                        <div className="contact-info">
+                          <div className="contact-name-row">
+                            <span className="contact-name">
+                              {u?.otherUser?.fullName || u?.otherUser?.name}
+                            </span>
+
+                            <span className="contact-time">
+                              {u?.lastMessageAt
+                                ? new Date(u.lastMessageAt).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )
+                                : ""}
+                            </span>
+                          </div>
+
+                          <div className="contact-last-msg">
+                            <span className="msg-text">
+                              {u?.lastMessage || "No messages"}
+                            </span>
+
+                            {u?.unreadCount > 0 && (
+                              <span className="unread-count-badge">
+                                {u.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </div>
-          {/*Start messaging system end here*/}
-          <div className="copy-right-area bg-f0f4fc">
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-left-content">
-                  <p>
-                    {" "}
-                    <span className="copy">© </span>
-                    <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
-                  </p>
+
+            {/* ================= CHAT AREA ================= */}
+
+            <div className="chat-main-section">
+              <div className="chat-global-filter-bar">
+                <div className="empty-filters-group">
+                  <div className="chat-filters">
+                    <div
+                      className={`filter-tab ${activeFilter === "all" ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveFilter("all");
+                      }}
+                    >
+                      All
+                    </div>
+
+                    <div
+                      className={`filter-tab ${
+                        activeFilter === "non-verbal" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        setActiveFilter("non-verbal");
+                      }}
+                    >
+                      Unread
+                    </div>
+                  </div>
+
+                  <div className="chat-date-filters">
+                    {/* ALL */}
+                    <span
+                      className={`date-chip ${filter === "all" ? "active" : ""}`}
+                      onClick={() => {
+                        setFilter("all");
+                        setStartDate("");
+                        setEndDate("");
+                      }}
+                    >
+                      All
+                    </span>
+
+                    {/* TODAY */}
+                    <span
+                      className={`date-chip ${filter === "today" ? "active" : ""}`}
+                      onClick={() => {
+                        setFilter("today");
+                        setStartDate("");
+                        setEndDate("");
+                      }}
+                    >
+                      Today
+                    </span>
+
+                    {/* CUSTOM DATE */}
+                    <div
+                      className={`date-picker-wrapper ${
+                        filter === "custom" ? "active" : ""
+                      }`}
+                    >
+                      <i className="fa-regular fa-calendar-days" />
+
+                      <input
+                        className="date-picker-input"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => {
+                          setFilter("custom");
+                          setStartDate(e.target.value);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="chat-search-container">
+                  <div className="chat-search-box">
+                    <i className="fa-solid fa-magnifying-glass" />
+
+                    <input
+                      placeholder="Search user..."
+                      type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-right-content">
-                  <p>
-                    Designed By{" "}
-                    <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
-                    </a>
-                  </p>
-                </div>
+              {/* ================= HEADER ================= */}
+
+              <div className="chat-header-modern">
+                {activeUser && (
+                  <>
+                    <div className="chat-header-user-info">
+                      <img
+                        crossOrigin="anonymous"
+                        alt=""
+                        className="header-avatar"
+                        src={getImageUrl(activeUser?.image)}
+                        onError={handleImageError}
+                      />
+
+                      <div className="header-user-details">
+                        <h3>{activeUser?.name}</h3>
+
+                        <span
+                          className="header-user-status"
+                          style={{
+                            color: activeUser?.isOnline ? "#16a34a" : "#8b8b8b",
+                          }}
+                        >
+                          {activeUser?.online}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="chat-header-tools">
+                      <button
+                        className={`tool-btn ${showChatSearch ? "active" : ""}`}
+                        onClick={() => setShowChatSearch((prev) => !prev)}
+                      >
+                        <i className="fa-solid fa-magnifying-glass" />
+                      </button>
+
+                      <button
+                        className={`tool-btn ${showCompanyInfo ? "active" : ""}`}
+                        onClick={() => setShowCompanyInfo((prev) => !prev)}
+                      >
+                        <i className="fa-solid fa-circle-info" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
+              {showChatSearch && (
+                <div
+                  className="chat-search-container"
+                  style={{
+                    padding: "10px 30px",
+                    background: "var(--chat-bg-main)",
+                  }}
+                >
+                  <div className="chat-search-box">
+                    <i className="fa-solid fa-magnifying-glass" />
+                    <input
+                      placeholder="Rechercher un mot-clé dans ce chat..."
+                      type="text"
+                      value={chatSearchTerm}
+                      onChange={(e) => setChatSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+              {/* ================= MESSAGES ================= */}
+
+              <div className="messages-scroller" ref={chatContainerRef}>
+                {!activeUser ? (
+                  <div
+                    className="no-chat-selected"
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <img
+                      crossOrigin="anonymous"
+                      src={image1}
+                      alt="No chat"
+                      style={{
+                        width: "40%",
+                        opacity: 0.7,
+                      }}
+                    />
+
+                    <h2>Ready to trade?</h2>
+                  </div>
+                ) : (
+                  <>
+                    <>
+                      {(chatStore[activeUser?.groupId] || []).filter((msg) =>
+                        (
+                          (msg.message || "") +
+                          (msg.fileName || "") +
+                          (msg.messageType || "")
+                        )
+                          .toLowerCase()
+                          .includes(chatSearchTerm.toLowerCase()),
+                      ).length === 0 ? (
+                        <div className="no-messages-found">
+                          <i className="fa-solid fa-comment-slash"></i>
+                          <p>No messages found</p>
+                        </div>
+                      ) : (
+                        (chatStore[activeUser?.groupId] || [])
+                          .filter((msg) => {
+                            const searchableText = (
+                              (msg.message || "") +
+                              (msg.fileName || "") +
+                              (msg.messageType || "")
+                            ).toLowerCase();
+
+                            return searchableText.includes(
+                              chatSearchTerm.toLowerCase(),
+                            );
+                          })
+                          .map((msg, index) => {
+                            const isMine =
+                              String(msg.sender) === String(CURRENT_USER_ID);
+                            console.log({
+                              CURRENT_USER_ID,
+                              isMine,
+                            });
+
+                            return (
+                              <div
+                                key={msg._id}
+                                className={`message-group ${
+                                  isMine ? "self" : "other"
+                                }`}
+                              >
+                                <img
+                                  crossOrigin="anonymous"
+                                  className="msg-avatar"
+                                  alt="avatar"
+                                  src={
+                                    isMine
+                                      ? getImageUrl(profileImage)
+                                      : getImageUrl(activeUser?.image)
+                                  }
+                                  onError={handleImageError}
+                                />
+
+                                <div className="msg-content-wrapper">
+                                  <div className="msg-bubble-modern">
+                                    {(msg.messageType === "text" ||
+                                      msg.messageType === "emoji") &&
+                                      msg.message && (
+                                        <p
+                                          style={{
+                                            color: isMine ? "#fff" : "",
+                                          }}
+                                        >
+                                          {msg.message}
+                                        </p>
+                                      )}
+
+                                    {msg.fileUrl &&
+                                      msg.messageType === "image" && (
+                                        <a
+                                          href={getImageUrl(msg.fileUrl)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        >
+                                          <img
+                                            crossOrigin="anonymous"
+                                            src={getImageUrl(msg.fileUrl)}
+                                            style={{
+                                              height: "200px",
+                                              width: "200px",
+                                              objectFit: "cover",
+                                              cursor: "pointer",
+                                              borderRadius: "10px",
+                                            }}
+                                            alt="chat-img"
+                                            className="chat-image"
+                                            onError={(e) => {
+                                              console.log(
+                                                "IMAGE LOAD ERROR:",
+                                                e.target.src,
+                                              );
+                                            }}
+                                          />
+                                        </a>
+                                      )}
+                                    {msg.fileUrl &&
+                                      msg.messageType === "video" && (
+                                        <video
+                                          controls
+                                          style={{
+                                            width: "250px",
+                                            borderRadius: "10px",
+                                          }}
+                                        >
+                                          <source
+                                            src={getImageUrl(msg.fileUrl)}
+                                            type={
+                                              msg.fileMimeType || "video/mp4"
+                                            }
+                                          />
+                                        </video>
+                                      )}
+
+                                    {msg.fileUrl &&
+                                      msg.messageType === "file" && (
+                                        <a
+                                          href={getImageUrl(msg.fileUrl)}
+                                          target="_blank"
+                                        >
+                                          📄 Download File
+                                        </a>
+                                      )}
+                                  </div>
+
+                                  <span className="msg-timestamp">
+                                    {new Date(
+                                      msg.created_at,
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                      )}
+
+                      <div ref={bottomRef}></div>
+                    </>
+                  </>
+                )}
+              </div>
+              {/* ================= FOOTER ================= */}
+
+              {activeUser && (
+                <div className="chat-footer-modern">
+                  <div className="chat-input-container-modern">
+                    <button
+                      className="input-tool-btn"
+                      onClick={() => fileInputRef.current.click()}
+                    >
+                      <i className="fa-solid fa-paperclip" />
+                    </button>
+
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      accept="image/*,video/mp4,video/webm,video/ogg,.pdf,.doc,.docx"
+                      onChange={handleFileChange}
+                    />
+
+                    {selectedFile && (
+                      <div className="chat-file-preview">
+                        <img
+                          src={
+                            previewUrl ||
+                            "https://cdn-icons-png.flaticon.com/512/337/337946.png"
+                          }
+                          alt=""
+                        />
+
+                        <div className="file-preview-info">
+                          <div className="file-preview-name">
+                            {selectedFile.name}
+                          </div>
+
+                          <div className="file-preview-size">
+                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
+                        </div>
+
+                        <button
+                          className="remove-file-btn"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setPreviewUrl("");
+                          }}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                    )}
+
+                    <textarea
+                      className="chat-input-textarea"
+                      placeholder="Write your message..."
+                      rows={1}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                    />
+
+                    <div className="chat-input-tools">
+                      <div style={{ position: "relative" }}>
+                        <button
+                          ref={emojiToggleRef}
+                          type="button"
+                          className={`input-tool-btn ${showEmojiPicker ? "active" : ""}`}
+                          aria-expanded={showEmojiPicker}
+                          aria-label="Toggle emoji picker"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEmojiPicker((prev) => !prev);
+                          }}
+                        >
+                          <i className="fa-regular fa-face-smile" />
+                        </button>
+
+                        {showEmojiPicker && (
+                          <div
+                            ref={emojiPickerRef}
+                            className="emoji-picker-wrapper"
+                          >
+                            <button
+                              type="button"
+                              className="emoji-picker-close"
+                              aria-label="Close emoji picker"
+                              onClick={() => setShowEmojiPicker(false)}
+                            >
+                              <i className="fa-solid fa-xmark" />
+                            </button>
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="send-btn-modern" onClick={sendMessage}>
+                        <i className="fa-solid fa-paper-plane" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ================= RIGHT SIDEBAR ================= */}
+
+            <div
+              className={`chat-sidebar-right ${
+                showCompanyInfo && activeUser ? "show-sidebar" : "hide-sidebar"
+              }`}
+            >
+              {activeUser && (
+                <>
+                  <div className="info-panel-header">
+                    <img
+                      crossOrigin="anonymous"
+                      alt=""
+                      className="info-panel-logo"
+                      src={getImageUrl(activeUser?.image)}
+                      onError={handleImageError}
+                    />
+
+                    <h4>{activeUser?.name}</h4>
+
+                    <span className="industry-tag">Candidate</span>
+                  </div>
+
+                  <div className="info-section">
+                    <h5>Professional Summary</h5>
+
+                    <p
+                      className="info-description"
+                      style={{
+                        whiteSpace: "pre-line",
+                      }}
+                    >
+                      {activeUser?.professionParagraph ||
+                        "No professional summary available"}
+                    </p>
+
+                    <h5 style={{ marginTop: "20px" }}>Contact Details</h5>
+
+                    <div className="info-item">
+                      <i className="fa-solid fa-envelope" />
+                      {activeUser?.email || "N/A"}
+                    </div>
+
+                    <div className="info-item">
+                      <i className="fa-solid fa-phone" />
+                      {activeUser?.phone || "N/A"}
+                    </div>
+
+                    <div className="info-item">
+                      <i className="fa-solid fa-location-dot" />
+                      {activeUser?.city || "N/A"}
+                    </div>
+
+                    <div className="info-item">
+                      <i className="fa-solid fa-flag" />
+                      {activeUser?.nationality || "N/A"}
+                    </div>
+
+                    <button
+                      className="view-profile-btn"
+                      onClick={handleViewFullProfile}
+                    >
+                      View Full Profile
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

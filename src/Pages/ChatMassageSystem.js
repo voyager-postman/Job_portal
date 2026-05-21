@@ -1,14 +1,18 @@
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
 import EmojiPicker from "emoji-picker-react";
+import { io } from "socket.io-client";
 function ChatMassageSystem() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log(location);
   const socketRef = useRef(null);
+  const [date, setDate] = useState("");
   const bottomRef = useRef(null);
   const [showCompanyInfo, setShowCompanyInfo] = useState(true);
   const [showChatSearch, setShowChatSearch] = useState(false);
@@ -28,42 +32,249 @@ function ChatMassageSystem() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const fileInputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const emojiToggleRef = useRef(null);
   // ---------------- CONNECT SOCKET ----------------
+  const [overview, setOverview] = useState({
+    total: 0,
+    notRead: 0,
+    answerRate: 0,
+  });
+  const calculateAnswerRate = (total, unread) => {
+    if (!total || total <= 0) return 0;
+
+    const safeUnread = Math.min(unread, total);
+
+    const rate = ((total - safeUnread) / total) * 100;
+
+    return Math.max(0, Math.min(100, Math.round(rate)));
+  };
   useEffect(() => {
-    const ws = new WebSocket(
-      "wss://mobappssolutions.in/chatusingsocket/ws/chat/",
-    );
-    socketRef.current = ws;
-    ws.onopen = () => console.log("WebSocket Connected");
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      const normalized = {
-        ...data,
-        sender: data.from,
-        receiver: data.to,
-      };
+    const socket = io("https://sisccltd.com", {
+      path: "/job_portal/socket.io", // IMPORTANT (if backend uses custom path)
+      auth: {
+        token: token,
+      },
+      transports: ["websocket"],
+    });
 
-      const otherUserId =
-        String(normalized.sender) === String(CURRENT_USER_ID)
-          ? normalized.receiver
-          : normalized.sender;
+    socketRef.current = socket;
 
-      setChatStore((prev) => ({
-        ...prev,
-        [otherUserId]: [...(prev[otherUserId] || []), normalized],
-      }));
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
 
-      // If currently chatting with this user → update UI
-      if (activeUser && otherUserId === activeUser.id) {
-        setMessages((prev) => [...prev, normalized]);
-      }
+    socket.on("connect_error", (err) => {
+      console.log("Socket error:", err.message);
+    });
+
+    return () => {
+      socket.disconnect();
     };
-    ws.onclose = () => console.log("WebSocket Closed");
-    return () => ws.close();
   }, []);
+  useEffect(() => {
+    if (!socketRef.current) return;
+
+    // ================= NEW MESSAGE =================
+
+    const handleNewMessage = (payload) => {
+      console.log("📩 New message:", payload);
+
+      // ================= CHAT STORE =================
+
+      setChatStore((prev) => {
+        const oldMessages = prev[payload.groupId] || [];
+
+        const alreadyExists = oldMessages.some(
+          (m) =>
+            m._id === payload.message._id ||
+            m.clientMessageId === payload.message.clientMessageId,
+        );
+
+        if (alreadyExists) return prev;
+
+        return {
+          ...prev,
+          [payload.groupId]: [...oldMessages, payload.message],
+        };
+      });
+
+      // ================= USERS + OVERVIEW =================
+
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((user) => {
+          if (user.groupId === payload.groupId) {
+            const isMine =
+              String(payload.message.sender) === String(CURRENT_USER_ID);
+
+            return {
+              ...user,
+
+              lastMessage: payload.message.message || "📎 Attachment",
+
+              lastMessageAt: payload.message.created_at || new Date(),
+
+              unreadCount: isMine
+                ? user.unreadCount || 0
+                : (user.unreadCount || 0) + 1,
+            };
+          }
+
+          return user;
+        });
+
+        // latest chat top
+        updatedUsers.sort(
+          (a, b) =>
+            new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0),
+        );
+
+        // realtime unread total
+        const totalUnread = updatedUsers.reduce(
+          (sum, u) => sum + (u.unreadCount || 0),
+          0,
+        );
+
+        // realtime overview
+        setOverview((prev) => ({
+          ...prev,
+
+          notRead: totalUnread,
+
+          answerRate: calculateAnswerRate(prev.total, totalUnread),
+        }));
+
+        return [...updatedUsers];
+      });
+    };
+
+    socketRef.current.on("message:new", handleNewMessage);
+
+    // ================= MESSAGE READ =================
+
+    socketRef.current.on("message:read", ({ groupId }) => {
+      console.log("✔ Read:", groupId);
+
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((u) =>
+          u.groupId === groupId
+            ? {
+                ...u,
+                unreadCount: 0,
+              }
+            : u,
+        );
+
+        // recalculate unread
+        const totalUnread = updatedUsers.reduce(
+          (sum, u) => sum + (u.unreadCount || 0),
+          0,
+        );
+
+        setOverview((prev) => ({
+          ...prev,
+
+          notRead: totalUnread,
+
+          answerRate: calculateAnswerRate(prev.total, totalUnread),
+        }));
+
+        return updatedUsers;
+      });
+    });
+
+    // ================= UNREAD UPDATE =================
+
+    socketRef.current.on("unread:update", ({ groupId, unreadCount }) => {
+      console.log("Unread Update:", groupId, unreadCount);
+
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((u) =>
+          u.groupId === groupId
+            ? {
+                ...u,
+                unreadCount,
+              }
+            : u,
+        );
+
+        // realtime total unread
+        const totalUnread = updatedUsers.reduce(
+          (sum, item) => sum + (item.unreadCount || 0),
+          0,
+        );
+
+        // sync overview
+        setOverview((prev) => ({
+          ...prev,
+
+          notRead: totalUnread,
+
+          answerRate: calculateAnswerRate(prev.total, totalUnread),
+        }));
+
+        return updatedUsers;
+      });
+    });
+
+    return () => {
+      socketRef.current.off("message:new", handleNewMessage);
+      socketRef.current.off("message:read");
+      socketRef.current.off("unread:update");
+    };
+  }, []);
+  const uploadFile = async () => {
+    if (!selectedFile) return null;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await axios.post(`${API_BASE_URL}chat/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("UPLOAD RESPONSE:", res.data);
+
+      return res.data?.data;
+    } catch (error) {
+      console.log("UPLOAD ERROR:", error);
+      return null;
+    }
+  };
   const handleEmojiClick = (emojiData) => {
     setText((prev) => prev + emojiData.emoji);
   };
+
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+
+    const handleClickOutside = (e) => {
+      if (
+        emojiPickerRef.current?.contains(e.target) ||
+        emojiToggleRef.current?.contains(e.target)
+      ) {
+        return;
+      }
+      setShowEmojiPicker(false);
+    };
+
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setShowEmojiPicker(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showEmojiPicker]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
@@ -72,98 +283,196 @@ function ChatMassageSystem() {
     setSelectedFile(file);
 
     // Preview only
-    if (file.type.startsWith("image")) {
+    if (file.type.startsWith("image/")) {
       setPreviewUrl(URL.createObjectURL(file));
     } else {
       setPreviewUrl("");
     }
   };
   const sendMessage = async () => {
-    if ((!text.trim() && !selectedFile) || !activeUser) return;
+    if (!activeUser) return;
 
-    let uploadedFileUrl = "";
-    let uploadedFileType = "";
+    // prevent empty send
+    if (!text.trim() && !selectedFile) return;
 
-    try {
-      // FILE UPLOAD
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append("file", selectedFile);
+    let uploadedFile = null;
 
-        const res = await axios.post(
-          `${API_BASE_URL}upload-chat-file`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        );
+    // ================= UPLOAD FILE =================
 
-        uploadedFileUrl = res.data.fileUrl;
-        uploadedFileType = selectedFile.type;
-      }
-
-      const payload = {
-        type: "chat",
-        from: CURRENT_USER_ID,
-        to: activeUser.id,
-        message: text || "",
-        file: uploadedFileUrl || "",
-        fileType: uploadedFileType || "",
-        fileName: selectedFile?.name || "",
-        created_at: new Date().toISOString(),
-      };
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify(payload));
-      } else {
-        console.log("Socket not connected");
-      }
-
-      socketRef.current.send(JSON.stringify(payload));
-
-      setMessages((prev) => [...prev, payload]);
-
-      setText("");
-      setSelectedFile(null);
-      setPreviewUrl("");
-      setShowEmojiPicker(false);
-    } catch (error) {
-      console.log(error);
+    if (selectedFile) {
+      uploadedFile = await uploadFile();
     }
+
+    // ================= MESSAGE TYPE =================
+
+    let messageType = "text";
+
+    if (selectedFile) {
+      if (selectedFile.type.startsWith("image")) {
+        messageType = "image";
+      } else if (selectedFile.type.startsWith("video")) {
+        messageType = "video";
+      } else {
+        messageType = "file";
+      }
+    }
+
+    // ================= PAYLOAD =================
+
+    const payload = {
+      receiverId: activeUser.id,
+      groupId: activeUser.groupId,
+
+      message: text.trim(),
+
+      messageType,
+
+      fileUrl: uploadedFile?.fileUrl || "",
+      fileName: selectedFile?.name || "",
+      fileMimeType: selectedFile?.type || "",
+      fileSize: selectedFile?.size || "",
+
+      clientMessageId: crypto.randomUUID(),
+    };
+
+    console.log("FINAL PAYLOAD:", payload);
+
+    // ================= SOCKET SEND =================
+
+    socketRef.current.emit("send_message", payload, (ack) => {
+      console.log("SEND ACK:", ack);
+
+      if (!ack?.success) {
+        console.log("Message send failed");
+      }
+    });
+
+    // ================= CLEAR =================
+
+    setText("");
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setShowEmojiPicker(false);
   };
+
+  const typingTimer = useRef(null);
+
+  const handleTyping = () => {
+    if (!activeUser) return;
+
+    socketRef.current?.emit("typing:start", {
+      groupId: activeUser.groupId,
+    });
+
+    clearTimeout(typingTimer.current);
+
+    typingTimer.current = setTimeout(() => {
+      socketRef.current?.emit("typing:stop", {
+        groupId: activeUser.groupId,
+      });
+    }, 1500);
+  };
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatStore, activeUser]);
-
   const fetchCandidates = async () => {
-    const res = await fetch(`${API_BASE_URL}getJobseekerChatList`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    const chats = data.chats || [];
-    setUsers(chats);
-  };
+    try {
+      let params = {
+        search,
+      };
 
+      // ================= MAIN FILTER =================
+
+      if (dateFilter === "all") {
+        params.filter = "all";
+      }
+
+      if (dateFilter === "today") {
+        params.filter = "today";
+      }
+
+      if (dateFilter === "custom" && startDate) {
+        params.filter = "custom";
+        params.date = startDate;
+      }
+
+      // ================= UNREAD FILTER =================
+
+      if (filter === "unread") {
+        params.filter = "unread";
+
+        // custom + unread
+        if (dateFilter === "custom" && startDate) {
+          params.filter = "custom";
+          params.date = startDate;
+          params.unread = true;
+        }
+      }
+
+      console.log("FINAL PARAMS:", params);
+
+      const res = await axios.get(`${API_BASE_URL}chat/conversations`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params,
+      });
+
+      console.log("Conversation API:", res.data);
+
+      setUsers(res.data?.chats || []);
+      setOverview(res.data?.overview || {});
+    } catch (error) {
+      console.log("Conversation API Error", error);
+    }
+  };
+  const [filter, setFilter] = useState(""); // unread filter only
+
+  const [dateFilter, setDateFilter] = useState("all"); // date filter
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [search, setSearch] = useState("");
   useEffect(() => {
     fetchCandidates();
-  }, []);
-  const filteredUsers = users.filter((u) => {
-    const brandName = u?.otherUser?.brandName?.toLowerCase().trim();
+  }, [filter, dateFilter, search, startDate]);
+  const filteredUsers = users.filter((u) =>
+    (u?.otherUser?.brandName || "")
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+  // useEffect(() => {
+  //   if (!location.state?.groupId || users.length === 0) return;
 
-    const matchesSearch = brandName?.includes(searchTerm.toLowerCase().trim());
+  //   const selectedChat = users.find(
+  //     (u) => u.groupId === location.state.groupId,
+  //   );
 
-    // Non-verbal = unread messages
-    const matchesFilter =
-      activeFilter === "all"
-        ? true
-        : activeFilter === "non-verbal"
-          ? u?.unreadCount > 0
-          : true;
+  //   if (selectedChat) {
+  //     loadChat(selectedChat);
+  //   }
+  // }, [location.state, users]);
+  useEffect(() => {
+    if (!location.state?.groupId || users.length === 0) return;
 
-    return matchesSearch && matchesFilter;
-  });
+    const selectedChat = users.find(
+      (u) => u.groupId === location.state.groupId,
+    );
+
+    if (selectedChat) {
+      // ================= MOVE CHAT TO TOP =================
+      setUsers((prevUsers) => {
+        const filtered = prevUsers.filter(
+          (u) => u.groupId !== selectedChat.groupId,
+        );
+
+        return [selectedChat, ...filtered];
+      });
+
+      // ================= LOAD ACTIVE CHAT =================
+      loadChat(selectedChat);
+    }
+  }, [location.state, users]);
   const checkUnreadCount = async (groupId) => {
     try {
       const res = await axios.post(
@@ -178,91 +487,86 @@ function ChatMassageSystem() {
     }
   };
 
-  // ---------------- LOAD CHAT HISTORY ----------------
-  const loadChat = async (user) => {
-    console.log(user, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    const userId = user.otherUser.companyId;
-    const groupId = user.groupId;
-
-    const getLastSeenText = (lastActiveAt) => {
-      if (!lastActiveAt) return "";
-
-      const lastActive = new Date(lastActiveAt);
-      const now = new Date();
-
-      const isToday =
-        lastActive.getDate() === now.getDate() &&
-        lastActive.getMonth() === now.getMonth() &&
-        lastActive.getFullYear() === now.getFullYear();
-
-      if (isToday) {
-        const time = lastActive.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        });
-        return `last seen today at ${time}`;
-      }
-
-      const date = lastActive.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      });
-      return `last seen ${date}`;
-    };
-    const isOnline = user?.otherUser?.isOnline === "true";
-    setActiveUser({
-      id: userId,
-      slug: user?.otherUser?.slug,
-
-      name: user?.otherUser?.brandName || "Null",
-
-      image: user?.otherUser?.logo
-        ? user.otherUser.logo.startsWith("http")
-          ? user.otherUser.logo
-          : `${API_IMAGE_URL}${user.otherUser.logo}`
-        : "assets/images/freelancers/freelancers-img-1.jpg",
-
-      online: isOnline
-        ? "Online"
-        : getLastSeenText(user?.otherUser?.lastActiveAt),
-
-      isOnline,
-
-      groupId: groupId,
-
-      unreadCount: user.unreadCount,
-
-      aboutCompany: user?.otherUser?.aboutCompany,
-
-      website: user?.otherUser?.links?.officialWebsite,
-
-      location: user?.otherUser?.location || "Morocco",
-
-      industry: user?.otherUser?.industry?.name || "Company",
-    });
-
-    // If already cached, reuse it
-    if (chatStore[userId]) {
-      setMessages(chatStore[userId]);
-      return;
-    }
+  const fetchHistory = async (groupId) => {
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}getChatHistory/${userId}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
+      const res = await axios.get(
+        `${API_BASE_URL}chat/history/group/${groupId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
+
+      console.log("CHAT HISTORY:", res.data);
+
+      const history = res.data?.data || [];
+
+      // store messages
       setChatStore((prev) => ({
         ...prev,
-        [userId]: res.data.data,
+        [groupId]: history,
       }));
-      setMessages(res.data.data);
-      fetchCandidates();
-    } catch (err) {
-      console.log("History Load Failed", err);
+
+      setMessages(history);
+    } catch (error) {
+      console.log("Fetch History Error:", error);
     }
+  };
+  // ---------------- LOAD CHAT HISTORY ----------------
+  const loadChat = (user) => {
+    const groupId = user.groupId;
+
+    setActiveUser({
+      ...user,
+
+      id:
+        user?.otherUser?.companyId ||
+        user?.otherUser?._id ||
+        user?.otherUser?.userId,
+
+      // COMMON
+      type: user?.otherUser?.role,
+
+      // NAME
+      name:
+        user?.otherUser?.brandName || user?.otherUser?.name || "Unknown User",
+
+      // IMAGE
+      image: user?.otherUser?.logo || user?.otherUser?.profileImage || "",
+
+      // STATUS
+      online: user?.otherUser?.isOnline ? "Online" : "Offline",
+      isOnline: user?.otherUser?.isOnline,
+
+      // COMPANY ONLY
+      industry: user?.otherUser?.industry?.name || "",
+      aboutCompany: user?.otherUser?.aboutCompany || "",
+      website: user?.otherUser?.links?.officialWebsite || "",
+
+      // CANDIDATE ONLY
+      professionParagraph: user?.otherUser?.professionParagraph || "",
+      email: user?.otherUser?.email || "",
+      phone: user?.otherUser?.phone || "",
+      nationality: user?.otherUser?.Nationality || "",
+      gender: user?.otherUser?.gender || "",
+
+      // COMMON LOCATION
+      location: user?.otherUser?.location || user?.otherUser?.city || "N/A",
+
+      slug: user?.otherUser?.slug || "",
+    });
+
+    // 🔥 join socket room
+    socketRef.current?.emit("join_group", { groupId }, (res) => {
+      console.log("Joined group:", res);
+    });
+
+    // mark read
+    socketRef.current?.emit("mark_read", { groupId });
+
+    // load history
+    fetchHistory(groupId);
   };
 
   // ---------------- SEND MESSAGE ----------------
@@ -277,14 +581,33 @@ function ChatMassageSystem() {
       },
     });
   };
-  const getImageUrl = (url) => {
-    if (!url) return "";
+  const isValidImageUrl = (url) => {
+    if (url == null) return false;
 
-    if (url.startsWith("http")) {
-      return url;
+    const trimmed = String(url).trim();
+
+    if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+      return false;
     }
 
-    return `${API_IMAGE_URL}${url}`;
+    return true;
+  };
+
+  const getImageUrl = (url) => {
+    if (!isValidImageUrl(url)) return image1;
+
+    const trimmed = String(url).trim();
+
+    if (trimmed.startsWith("http")) {
+      return trimmed;
+    }
+
+    return `${API_IMAGE_URL}${trimmed}`;
+  };
+
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = image1;
   };
 
   return (
@@ -324,11 +647,15 @@ function ChatMassageSystem() {
                 </div>
                 <div className="modern-msg-stats-integrated">
                   <div className="msg-stat-item-premium">
-                    <span className="msg-stat-value-premium">7</span>
+                    <span className="msg-stat-value-premium">
+                      {overview?.total || 0}
+                    </span>
                     <span className="msg-stat-label-premium">Total</span>
                   </div>
                   <div className="msg-stat-item-premium unread">
-                    <span className="msg-stat-value-premium">3</span>
+                    <span className="msg-stat-value-premium">
+                      {overview?.notRead || 0}
+                    </span>
                     <span className="msg-stat-label-premium">
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         <font
@@ -341,7 +668,9 @@ function ChatMassageSystem() {
                     </span>
                   </div>
                   <div className="msg-stat-item-premium rate">
-                    <span className="msg-stat-value-premium">95%</span>
+                    <span className="msg-stat-value-premium">
+                      {overview?.answerRate || 0}%
+                    </span>
                     <span className="msg-stat-label-premium">
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         <font
@@ -368,71 +697,65 @@ function ChatMassageSystem() {
               <div className="chat-contact-list">
                 {filteredUsers.length === 0 ? (
                   <div className="no-messages-found">
-                    <i className="fa-solid fa-comment-slash"></i>
-                    <p>No messages found</p>
+                    <i className="fa-solid fa-comment-slash" />
+                    <p>Aucun message trouvé</p>
                   </div>
                 ) : (
                   filteredUsers.map((u) => {
-                    const isActive = activeUser?.id === u?.otherUser?.companyId;
+                    const isOnline = u?.otherUser?.isOnline;
 
                     return (
                       <div
                         key={u.groupId}
-                        className={`contact-card ${isActive ? "active" : ""}`}
-                        onClick={() => {
-                          loadChat(u);
-                          fetchCandidates();
-                          checkUnreadCount(u.groupId);
-
-                          setUsers((prevUsers) =>
-                            prevUsers.map((item) =>
-                              item.groupId === u.groupId
-                                ? {
-                                    ...item,
-                                    unreadCount: 0,
-                                  }
-                                : item,
-                            ),
-                          );
-                        }}
-                        style={{ cursor: "pointer" }}
+                        className={`contact-card ${
+                          activeUser?.groupId === u.groupId ? "active" : ""
+                        }`}
+                        onClick={() => loadChat(u)}
                       >
+                        {/* IMAGE */}
                         <div className="contact-avatar-container">
                           <img
                             alt="avatar"
-                            crossOrigin="anonymous"
                             className="contact-avatar"
-                            src={getImageUrl(u?.otherUser?.logo)}
+                            crossOrigin="anonymous"
+                            src={getImageUrl(
+                              u?.otherUser?.logo || u?.otherUser?.profileImage,
+                            )}
+                            onError={handleImageError}
                           />
 
                           <span
-                            className={`online-dot ${
-                              u?.otherUser?.isOnline === "true" ? "" : "offline"
-                            }`}
+                            className={`online-dot ${isOnline ? "" : "offline"}`}
                           />
                         </div>
 
+                        {/* INFO */}
                         <div className="contact-info">
+                          {/* TOP */}
                           <div className="contact-name-row">
                             <span className="contact-name">
-                              {u?.otherUser?.brandName}
+                              {u?.otherUser?.brandName || "Unknown"}
                             </span>
 
                             <span className="contact-time">
-                              {u?.updatedAt
-                                ? new Date(u.updatedAt).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })
+                              {u?.lastMessageAt
+                                ? new Date(u.lastMessageAt).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )
                                 : ""}
                             </span>
                           </div>
 
+                          {/* LAST MESSAGE */}
                           <div className="contact-last-msg">
                             <span className="msg-text">
                               {u?.lastMessage?.length > 55
                                 ? u.lastMessage.substring(0, 55) + "..."
-                                : u?.lastMessage}
+                                : u?.lastMessage || "No messages"}
                             </span>
 
                             {u?.unreadCount > 0 && (
@@ -453,8 +776,13 @@ function ChatMassageSystem() {
                 <div className="empty-filters-group">
                   <div className="chat-filters">
                     <div
-                      className={`filter-tab ${activeFilter === "all" ? "active" : ""}`}
-                      onClick={() => setActiveFilter("all")}
+                      className={`filter-tab ${
+                        activeFilter === "all" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        setActiveFilter("all");
+                        setFilter("");
+                      }}
                     >
                       All
                     </div>
@@ -463,21 +791,65 @@ function ChatMassageSystem() {
                       className={`filter-tab ${
                         activeFilter === "non-verbal" ? "active" : ""
                       }`}
-                      onClick={() => setActiveFilter("non-verbal")}
+                      onClick={() => {
+                        setActiveFilter("non-verbal");
+                        setFilter("unread");
+                      }}
                     >
                       Non-verbal
                     </div>
                   </div>
 
                   <div className="chat-date-filters">
-                    <span className="date-chip active">All</span>
+                    {/* ALL */}
+                    <span
+                      className={`date-chip ${
+                        dateFilter === "all" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        setDateFilter("all");
+                      }}
+                    >
+                      All
+                    </span>
 
-                    <span className="date-chip">Today</span>
+                    {/* TODAY */}
+                    <span
+                      className={`date-chip ${
+                        dateFilter === "today" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        const today = new Date().toISOString().split("T")[0];
 
-                    <div className="date-picker-wrapper">
+                        setDateFilter("today");
+
+                        setStartDate(today);
+                        setEndDate(today);
+                      }}
+                    >
+                      Today
+                    </span>
+
+                    {/* CUSTOM */}
+                    <div
+                      className={`date-picker-wrapper ${
+                        dateFilter === "custom" ? "active" : ""
+                      }`}
+                    >
                       <i className="fa-regular fa-calendar-days" />
 
-                      <input className="date-picker-input" type="date" />
+                      <input
+                        className="date-picker-input"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value;
+
+                          setDateFilter("custom");
+
+                          setStartDate(selectedDate);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -489,8 +861,8 @@ function ChatMassageSystem() {
                     <input
                       placeholder="Search for a company..."
                       type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
                 </div>
@@ -505,6 +877,7 @@ function ChatMassageSystem() {
                         alt="header-avatar"
                         className="header-avatar"
                         src={getImageUrl(activeUser?.image)}
+                        onError={handleImageError}
                       />
 
                       <div className="header-user-details">
@@ -589,9 +962,13 @@ function ChatMassageSystem() {
                 ) : (
                   <>
                     <>
-                      {(chatStore[activeUser?.id] || []).filter((msg) =>
-                        msg?.message
-                          ?.toLowerCase()
+                      {(chatStore[activeUser?.groupId] || []).filter((msg) =>
+                        (
+                          (msg.message || "") +
+                          (msg.fileName || "") +
+                          (msg.messageType || "")
+                        )
+                          .toLowerCase()
                           .includes(chatSearchTerm.toLowerCase()),
                       ).length === 0 ? (
                         <div className="no-messages-found">
@@ -599,19 +976,29 @@ function ChatMassageSystem() {
                           <p>No messages found</p>
                         </div>
                       ) : (
-                        (chatStore[activeUser?.id] || [])
-                          .filter((msg) =>
-                            msg?.message
-                              ?.toLowerCase()
-                              .includes(chatSearchTerm.toLowerCase()),
-                          )
+                        (chatStore[activeUser?.groupId] || [])
+                          .filter((msg) => {
+                            const searchableText = (
+                              (msg.message || "") +
+                              (msg.fileName || "") +
+                              (msg.messageType || "")
+                            ).toLowerCase();
+
+                            return searchableText.includes(
+                              chatSearchTerm.toLowerCase(),
+                            );
+                          })
                           .map((msg, index) => {
                             const isMine =
                               String(msg.sender) === String(CURRENT_USER_ID);
 
+                            const imageUrl = msg.fileUrl
+                              ? getImageUrl(msg.fileUrl)
+                              : "";
+
                             return (
                               <div
-                                key={index}
+                                key={msg._id}
                                 className={`message-group ${
                                   isMine ? "self" : "other"
                                 }`}
@@ -625,51 +1012,71 @@ function ChatMassageSystem() {
                                       ? getImageUrl(profileImage)
                                       : getImageUrl(activeUser?.image)
                                   }
+                                  onError={handleImageError}
                                 />
 
                                 <div className="msg-content-wrapper">
                                   <div className="msg-bubble-modern">
-                                    {msg.message && <p>{msg.message}</p>}
+                                    {(msg.messageType === "text" ||
+                                      msg.messageType === "emoji") &&
+                                      msg.message && (
+                                        <p
+                                          style={{
+                                            color: isMine ? "#fff" : "",
+                                          }}
+                                        >
+                                          {msg.message}
+                                        </p>
+                                      )}
 
-                                    {msg.file && (
-                                      <>
-                                        {msg.fileType?.startsWith("image") ? (
+                                    {msg.fileUrl &&
+                                      msg.messageType === "image" && (
+                                        <a
+                                          href={getImageUrl(msg.fileUrl)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        >
                                           <img
-                                            src={getImageUrl(msg.file)}
-                                            alt="chat-file"
+                                            crossOrigin="anonymous"
+                                            src={getImageUrl(msg.fileUrl)}
                                             style={{
-                                              maxWidth: "250px",
-                                              borderRadius: "12px",
-                                              marginTop: "8px",
+                                              height: "200px",
+                                              width: "200px",
+                                              objectFit: "cover",
+                                              cursor: "pointer",
+                                              borderRadius: "10px",
+                                            }}
+                                            alt="chat-img"
+                                            className="chat-image"
+                                            onError={(e) => {
+                                              console.log(
+                                                "IMAGE LOAD ERROR:",
+                                                e.target.src,
+                                              );
                                             }}
                                           />
-                                        ) : msg.fileType?.startsWith(
-                                            "video",
-                                          ) ? (
-                                          <video
-                                            controls
-                                            style={{
-                                              maxWidth: "250px",
-                                              borderRadius: "12px",
-                                              marginTop: "8px",
-                                            }}
-                                          >
-                                            <source
-                                              src={getImageUrl(msg.file)}
-                                            />
-                                          </video>
-                                        ) : (
-                                          <a
-                                            href={getImageUrl(msg.file)}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="chat-file-link"
-                                          >
-                                            📄 Download File
-                                          </a>
-                                        )}
-                                      </>
-                                    )}
+                                        </a>
+                                      )}
+
+                                    {msg.fileUrl &&
+                                      msg.messageType === "video" && (
+                                        <video controls>
+                                          <source
+                                            cr
+                                            src={getImageUrl(msg.fileUrl)}
+                                          />
+                                        </video>
+                                      )}
+                                    {msg.fileUrl &&
+                                      msg.messageType === "file" && (
+                                        <a
+                                          href={getImageUrl(msg.fileUrl)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        >
+                                          📄 Download File
+                                        </a>
+                                      )}
                                   </div>
 
                                   <span className="msg-timestamp">
@@ -743,7 +1150,10 @@ function ChatMassageSystem() {
                       placeholder="Write your message..."
                       rows={1}
                       value={text}
-                      onChange={(e) => setText(e.target.value)}
+                      onChange={(e) => {
+                        setText(e.target.value);
+                        handleTyping();
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
@@ -755,15 +1165,32 @@ function ChatMassageSystem() {
                     <div className="chat-input-tools">
                       <div style={{ position: "relative" }}>
                         <button
+                          ref={emojiToggleRef}
                           type="button"
-                          className="input-tool-btn"
-                          onClick={() => setShowEmojiPicker((prev) => !prev)}
+                          className={`input-tool-btn ${showEmojiPicker ? "active" : ""}`}
+                          aria-expanded={showEmojiPicker}
+                          aria-label="Toggle emoji picker"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEmojiPicker((prev) => !prev);
+                          }}
                         >
                           <i className="fa-regular fa-face-smile" />
                         </button>
 
                         {showEmojiPicker && (
-                          <div className="emoji-picker-wrapper">
+                          <div
+                            ref={emojiPickerRef}
+                            className="emoji-picker-wrapper"
+                          >
+                            <button
+                              type="button"
+                              className="emoji-picker-close"
+                              aria-label="Close emoji picker"
+                              onClick={() => setShowEmojiPicker(false)}
+                            >
+                              <i className="fa-solid fa-xmark" />
+                            </button>
                             <EmojiPicker onEmojiClick={handleEmojiClick} />
                           </div>
                         )}
@@ -790,6 +1217,7 @@ function ChatMassageSystem() {
                       alt="logo"
                       className="info-panel-logo"
                       src={getImageUrl(activeUser?.image)}
+                      onError={handleImageError}
                     />
 
                     <h4>{activeUser?.name}</h4>
@@ -798,30 +1226,77 @@ function ChatMassageSystem() {
                   </div>
 
                   <div className="info-section">
-                    <h5>About</h5>
+                    {/* COMPANY VIEW */}
+                    {activeUser?.type !== "JobSeeker" ? (
+                      <>
+                        <h5>About Company</h5>
 
-                    <p
-                      className="info-description"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          activeUser?.aboutCompany ||
-                          "No company description available.",
-                      }}
-                    />
+                        <p
+                          className="info-description"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              activeUser?.aboutCompany ||
+                              "No company description available.",
+                          }}
+                        />
 
-                    <h5 style={{ marginTop: "24px" }}>Contact details</h5>
+                        <h5 style={{ marginTop: "24px" }}>Contact Details</h5>
 
-                    {activeUser?.website && (
-                      <div className="info-item">
-                        <i className="fa-solid fa-globe" />
-                        {activeUser?.website}
-                      </div>
+                        {activeUser?.website && (
+                          <div className="info-item">
+                            <i className="fa-solid fa-globe" />
+                            {activeUser?.website}
+                          </div>
+                        )}
+
+                        <div className="info-item">
+                          <i className="fa-solid fa-location-dot" />
+                          {activeUser?.location}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* CANDIDATE VIEW */}
+
+                        <h5>Candidate Details</h5>
+
+                        <div className="candidate-info-grid">
+                          <div className="info-item">
+                            <i className="fa-solid fa-envelope" />
+                            {activeUser?.email || "N/A"}
+                          </div>
+
+                          <div className="info-item">
+                            <i className="fa-solid fa-phone" />
+                            {activeUser?.phone || "N/A"}
+                          </div>
+
+                          <div className="info-item">
+                            <i className="fa-solid fa-location-dot" />
+                            {activeUser?.location || "N/A"}
+                          </div>
+
+                          <div className="info-item">
+                            <i className="fa-solid fa-flag" />
+                            {activeUser?.nationality || "N/A"}
+                          </div>
+
+                          <div className="info-item">
+                            <i className="fa-solid fa-user" />
+                            {activeUser?.gender || "N/A"}
+                          </div>
+                        </div>
+
+                        <h5 style={{ marginTop: "24px" }}>
+                          Professional Summary
+                        </h5>
+
+                        <p className="info-description">
+                          {activeUser?.professionParagraph ||
+                            "No professional summary available."}
+                        </p>
+                      </>
                     )}
-
-                    <div className="info-item">
-                      <i className="fa-solid fa-location-dot" />
-                      {activeUser?.location}
-                    </div>
 
                     <button
                       className="view-profile-btn"
@@ -835,7 +1310,7 @@ function ChatMassageSystem() {
                         )
                       }
                     >
-                      View full profile
+                      View Full Profile
                     </button>
                   </div>
                 </>

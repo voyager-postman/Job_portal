@@ -1325,7 +1325,118 @@
 }
 .emoji-picker-wrapper {
   position: absolute;
-  bottom: 60px;
+  bottom: calc(100% + 8px);
   right: 0;
   z-index: 9999;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.emoji-picker-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 10001;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.emoji-picker-close:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.input-tool-btn.active {
+  color: var(--chat-primary, #f05a1c);
+}
+.chat-file-preview {
+  max-width: 220px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.file-preview-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-file-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.chat-input-container-modern {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.chat-input-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.send-btn-modern {
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.contact-status-text {
+  font-size: 12px;
+  color: #8b8b8b;
+  margin-top: 3px;
+}
+
+.online-dot.offline {
+  background: #9ca3af;
+}
+.modern-job-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modern-delete-btn {
+  border: none;
+  outline: none;
+  background: #dc2626;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.modern-delete-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.modern-apply-btn:disabled {
+  background: #e5e7eb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  opacity: 0.9;
 }

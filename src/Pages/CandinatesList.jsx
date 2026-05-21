@@ -97,10 +97,15 @@ function CandinatesList() {
   ];
   const availabilityOptions = ["Immediate", "1 month", "1-3 months", "More"];
   useEffect(() => {
+    if (userId) {
+      setSelectedCandidateId(userId);
+      return;
+    }
+
     if (candidates.length > 0 && !selectedCandidateId) {
       setSelectedCandidateId(candidates[0]?.userId?._id);
     }
-  }, [candidates]);
+  }, [candidates, userId]);
 
   useEffect(() => {
     if (selectedCandidateId) {
@@ -1772,9 +1777,7 @@ function CandinatesList() {
                                             );
                                           }}
                                         >
-                                          {t(
-                                            "header.Job_ApplManual_Foldersication",
-                                          )}
+                                          {t("header.Manual_Folders")}
                                         </button>
                                       </li>
 
@@ -2243,6 +2246,14 @@ function CandinatesList() {
                                         candidateId:
                                           candidateDetails?.userId?._id,
                                         candidate: candidateDetails,
+                                        from: "/candidates-search",
+                                        candidateName: `${candidateDetails?.userId?.first_name || ""} ${
+                                          candidateDetails?.userId?.last_name ||
+                                          ""
+                                        }`,
+                                        candidateImage:
+                                          candidateDetails?.userId
+                                            ?.profileImage,
                                       }}
                                       className="btn btn-warning text-white btn-sm shadow-sm gap-2 fw-bold "
                                     >
@@ -2267,7 +2278,7 @@ function CandinatesList() {
                                     }}
                                   >
                                     <i className="fa-regular fa-eye me-2" />
-                                  {t("header.Afficher_les_coordonnées")}
+                                    {t("header.Afficher_les_coordonnées")}
                                   </button>
                                 </div>
                               )}
@@ -2287,7 +2298,7 @@ function CandinatesList() {
                                     borderRadius: "4px",
                                   }}
                                 />
-                              {t("header.Professional_Summary")}
+                                {t("header.Professional_Summary")}
                               </h5>
 
                               <p
@@ -2481,7 +2492,7 @@ function CandinatesList() {
                                   )
                                 ) : (
                                   <p className="text-muted small">
-                                   {t("header.No_education_added")}
+                                    {t("header.No_education_added")}
                                   </p>
                                 )}
                               </div>
@@ -2537,7 +2548,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-bullseye text-primary" />
-                                   {t("header.Career_Preferences")}
+                                    {t("header.Career_Preferences")}
                                   </h6>
 
                                   {candidateDetails?.career_goals ? (
@@ -2575,8 +2586,8 @@ function CandinatesList() {
                                             fontSize: "10px",
                                             letterSpacing: "1px",
                                           }}
-                                        > 
-                                         {t("header.Contract_Types")}
+                                        >
+                                          {t("header.Contract_Types")}
                                         </div>
 
                                         <div className="d-flex flex-wrap gap-1">
@@ -2620,7 +2631,7 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                         {t("header.Occupation_Type")}
+                                          {t("header.Occupation_Type")}
                                         </div>
 
                                         <div className="fw-bold small">
@@ -2663,19 +2674,19 @@ function CandinatesList() {
                                             letterSpacing: "1px",
                                           }}
                                         >
-                                         {t("header.Work_Eligibility_France")}
+                                          {t("header.Work_Eligibility_France")}
                                         </div>
 
                                         <div className="fw-bold small d-flex align-items-center gap-2">
                                           {candidateDetails?.eligibleToWorkInFrance ? (
                                             <span className="text-success d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-check" />{" "}
-                                          {t("header.Eligible")}
+                                              {t("header.Eligible")}
                                             </span>
                                           ) : (
                                             <span className="text-danger d-flex align-items-center gap-1">
                                               <i className="fa-solid fa-circle-xmark" />{" "}
-                                           {t("header.Not_Eligible")}
+                                              {t("header.Not_Eligible")}
                                             </span>
                                           )}
                                         </div>
@@ -2702,7 +2713,7 @@ function CandinatesList() {
                                             className="text-muted text-uppercase mb-1"
                                             style={{ fontSize: "10px" }}
                                           >
-                                          {t("header.Min_Salary")}
+                                            {t("header.Min_Salary")}
                                           </div>
 
                                           <div className="fw-bold small">
@@ -2723,7 +2734,7 @@ function CandinatesList() {
                                         {/* TJM */}
                                         <div className="mt-2 pt-2 border-top border-light-subtle d-flex justify-content-between">
                                           <div className="text-muted small fw-bold">
-                                           {t("header.TJM")}
+                                            {t("header.TJM")}
                                           </div>
 
                                           <div
@@ -2740,7 +2751,7 @@ function CandinatesList() {
                                     </div>
                                   ) : (
                                     <p className="text-muted small">
-                                     {t("header.No_career_goals_specified")}
+                                      {t("header.No_career_goals_specified")}
                                     </p>
                                   )}
                                 </div>
@@ -2749,7 +2760,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-language text-primary" />
-                                {t("header.Languages")}
+                                    {t("header.Languages")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2784,7 +2795,7 @@ function CandinatesList() {
                                       )
                                     ) : (
                                       <span className="text-muted small">
-                                      {t("header.No_languages_added")}
+                                        {t("header.No_languages_added")}
                                       </span>
                                     )}
                                   </div>
@@ -2794,7 +2805,7 @@ function CandinatesList() {
                                 <div className="card-body p-4">
                                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i className="fa-solid fa-medal text-warning" />
-                                   {t("header.Certifications")}
+                                    {t("header.Certifications")}
                                   </h6>
 
                                   <div className="d-flex flex-column gap-3 mt-3">
@@ -2852,7 +2863,9 @@ function CandinatesList() {
                         style={{ minHeight: "500px" }}
                       >
                         <p className="text-muted">
-                          {t("header.Sélectionnez_un_candidat_pour_voir_les_détails")}
+                          {t(
+                            "header.Sélectionnez_un_candidat_pour_voir_les_détails",
+                          )}
                         </p>
                       </div>
                     )}
@@ -2862,7 +2875,7 @@ function CandinatesList() {
             </div>
           </section>
 
-           <div className="copy-right-area bg-f0f4fc">
+          <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-left-content">
@@ -2931,7 +2944,8 @@ function CandinatesList() {
             <button
               className="default-btn btn w-100 mt-3"
               onClick={async () => {
-                if (!rating) return toast.error(t("header.Please_select_a_rating"));
+                if (!rating)
+                  return toast.error(t("header.Please_select_a_rating"));
                 if (!review.trim())
                   return toast.error("Review cannot be empty!");
 
@@ -2968,7 +2982,7 @@ function CandinatesList() {
                 }
               }}
             >
-             {t("header.Submit_Review")}
+              {t("header.Submit_Review")}
             </button>
           </div>
         </div>

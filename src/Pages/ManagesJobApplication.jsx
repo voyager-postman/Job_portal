@@ -10,6 +10,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import "./ManagesJobApplicationModern.css";
+
 import Swal from "sweetalert2";
 function ManagesJobApplication() {
   const location = useLocation();
@@ -114,7 +115,35 @@ function ManagesJobApplication() {
   useEffect(() => {
     fetchIndustries();
   }, []);
+  const handleDeleteUnavailableSavedJob = async (savedJobId) => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const response = await fetch(
+        `http://localhost:4000/api/delete-unavailable-saved-job/${savedJobId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message || "Saved job removed");
+
+        // remove from UI instantly
+        setSavedJobs((prev) => prev.filter((item) => item._id !== savedJobId));
+      } else {
+        toast.error(data.message || "Failed to delete");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
+  };
   const filteredOptions = options.filter((industry) =>
     industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -605,7 +634,54 @@ function ManagesJobApplication() {
       setLoading(false);
     }
   };
+  const handleDeleteUnavailableJob = async (savedJobId) => {
+    try {
+      const result = await Swal.fire({
+        title: "Remove Saved Job?",
+        text: "This unavailable job will be removed permanently.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, Remove",
+        cancelButtonText: "Cancel",
+        borderRadius: "16px",
+      });
 
+      if (!result.isConfirmed) return;
+
+      const token = localStorage.getItem("token");
+
+      const response = await axios.delete(
+        `${API_BASE_URL}delete-unavailable-saved-job/${savedJobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response?.data?.success) {
+        setSavedJobs((prev) => prev.filter((item) => item._id !== savedJobId));
+
+        Swal.fire({
+          title: "Removed!",
+          text: "Saved job removed successfully.",
+          icon: "success",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+
+      Swal.fire({
+        title: "Error",
+        text: "Failed to remove job.",
+        icon: "error",
+      });
+    }
+  };
   const fetchApplications = async (status = "") => {
     try {
       setLoading(true);
@@ -1059,7 +1135,8 @@ function ManagesJobApplication() {
                         filteredApplications.map((app) => {
                           const job = app?.jobId;
                           const company = job?.companyId;
-
+                          const isJobRemoved =
+                            job?.isDeleted || app?.status === "Job Removed";
                           return (
                             <div
                               className="modern-job-card clickable mb-4"
@@ -1110,23 +1187,26 @@ function ManagesJobApplication() {
                                   <span
                                     className="modern-status-badge"
                                     style={{
-                                      background:
-                                        statusConfig[app?.status]?.background ||
-                                        "#f3f4f6",
-                                      color:
-                                        statusConfig[app?.status]?.color ||
-                                        "#374151",
+                                      background: isJobRemoved
+                                        ? "#fef2f2"
+                                        : statusConfig[app?.status]
+                                            ?.background || "#f3f4f6",
+
+                                      color: isJobRemoved
+                                        ? "#dc2626"
+                                        : statusConfig[app?.status]?.color ||
+                                          "#374151",
+
                                       padding: "6px 14px",
                                       borderRadius: "30px",
                                       fontSize: "13px",
                                       fontWeight: "600",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "6px",
                                     }}
                                   >
-                                    {statusConfig[app?.status]?.label ||
-                                      app?.status}
+                                    {isJobRemoved
+                                      ? "Job no longer available"
+                                      : statusConfig[app?.status]?.label ||
+                                        app?.status}
                                   </span>
                                 </div>
                               </div>
@@ -1134,12 +1214,30 @@ function ManagesJobApplication() {
                               {/* BODY */}
                               <div className="modern-job-body">
                                 <h3 className="modern-job-title">
+                                  {job?.jobUnavailable && (
+                                    <div
+                                      style={{
+                                        background: "#fef2f2",
+                                        color: "#dc2626",
+                                        padding: "6px 12px",
+                                        borderRadius: "8px",
+                                        fontSize: "12px",
+                                        fontWeight: "600",
+                                        display: "inline-block",
+                                        marginBottom: "10px",
+                                      }}
+                                    >
+                                      <i className="fa-solid fa-triangle-exclamation me-2" />
+                                      Job no longer available
+                                    </div>
+                                  )}
                                   {job?.jobTitle || "N/A"}
                                 </h3>
 
                                 <p className="modern-job-description">
-                                  You applied for this position. View details to
-                                  see full job information.
+                                  {isJobRemoved
+                                    ? "This job is no longer available. Your application history has been saved."
+                                    : "You applied for this position. View details to see full job information."}
                                 </p>
                               </div>
 
@@ -1246,22 +1344,28 @@ function ManagesJobApplication() {
                                     flexWrap: "wrap",
                                   }}
                                 >
-                                  <Link
-                                    className="view-details-link"
-                                    to={`/job/${job?.slug}`}
-                                    state={{
-                                      from: `/manage-job-application?tab=${activeTab}`,
-                                      JobId: job?._id,
-                                    }}
-                                    style={{
-                                      textDecoration: "none",
-                                      fontWeight: "700",
-                                      fontSize: "14px",
-                                      color: "var(--primary-color)",
-                                    }}
-                                  >
-                                    See details
-                                  </Link>
+                                  {isJobRemoved ? (
+                                    <span
+                                      style={{
+                                        color: "#94a3b8",
+                                        fontWeight: "600",
+                                        fontSize: "14px",
+                                      }}
+                                    >
+                                      Job Closed
+                                    </span>
+                                  ) : (
+                                    <Link
+                                      className="view-details-link"
+                                      to={`/job/${job?.slug}`}
+                                      state={{
+                                        from: `/manage-job-application?tab=${activeTab}`,
+                                        JobId: job?._id,
+                                      }}
+                                    >
+                                      See details
+                                    </Link>
+                                  )}
 
                                   {/* WITHDRAW BUTTON */}
                                   {app?.status === "Applied" && (
@@ -1601,22 +1705,55 @@ function ManagesJobApplication() {
                                     <i className="fa-solid fa-bookmark" /> Saved{" "}
                                     {moment(job?.savedAt).fromNow()}
                                   </span>
+
+                                 
                                 </div>
 
                                 <div className="modern-job-footer-actions">
-                                  <Link
-                                    className="modern-apply-btn"
-                                    to={`/job/${jobData?.slug}`}
-                                    state={{
-                                      from: `/manage-job-application?tab=${activeTab}`,
-                                      JobId: jobData?._id,
-                                    }}
-                                    style={{
-                                      textDecoration: "none",
-                                    }}
-                                  >
-                                    View Details
-                                  </Link>
+                                  {/* ACTIVE JOB */}
+                                  {!job?.jobUnavailable ? (
+                                    <Link
+                                      className="modern-apply-btn"
+                                      to={`/job/${jobData?.slug}`}
+                                      state={{
+                                        from: `/manage-job-application?tab=${activeTab}`,
+                                        JobId: jobData?._id,
+                                      }}
+                                      style={{
+                                        textDecoration: "none",
+                                      }}
+                                    >
+                                      View Details
+                                    </Link>
+                                  ) : (
+                                    <>
+                                      {/* UNAVAILABLE BUTTON */}
+                                      <button
+                                        className="modern-apply-btn"
+                                        disabled
+                                        style={{
+                                          background: "#e5e7eb",
+                                          cursor: "not-allowed",
+                                          opacity: 0.7,
+                                        }}
+                                      >
+                                        Job No Longer Available
+                                      </button>
+
+                                      {/* DELETE OPTION */}
+                                      {job?.allowDelete && (
+                                        <button
+                                          className="modern-delete-btn"
+                                          onClick={() =>
+                                            handleDeleteUnavailableJob(job?._id)
+                                          }
+                                        >
+                                          <i className="fa-solid fa-trash"></i>
+                                          Remove
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>

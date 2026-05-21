@@ -23,6 +23,9 @@ const Employers = () => {
   const [options, setOptions] = useState([]); // All industries from API
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+  const [defaultSections, setDefaultSections] = useState({
+    justJoinedUs: [],
+  });
   const dropdownRef = useRef(null);
   const stripHtml = (html) => {
     if (!html) return "";
@@ -82,7 +85,31 @@ const Employers = () => {
       console.error("Error fetching company list:", error);
     }
   };
-  const joinedCompanies = companies?.sections?.justJoinedUs || [];
+  const fetchDefaultSections = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+        params: { page: 1, limit: 15 },
+      });
+
+      if (res.data.success) {
+        setDefaultSections({
+          justJoinedUs: res.data?.sections?.justJoinedUs || [],
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching default sections:", error);
+    }
+  };
+
+  const isSearchActive =
+    Boolean(companySearch?.trim()) ||
+    Boolean(locationSearch?.trim()) ||
+    selected.length > 0;
+
+  const joinedCompanies = isSearchActive
+    ? defaultSections.justJoinedUs
+    : companies?.sections?.justJoinedUs || [];
+
   const settings = {
     dots: false, // remove bullets
     arrows: false, // remove arrows
@@ -109,16 +136,17 @@ const Employers = () => {
       },
     ],
   };
-  // ✅ Re-fetch when pagination or filters change
-  useEffect(() => {
-    const selectedIndustryIds = selected.map((i) => i._id);
-    getCompanyList(selectedIndustryIds, pageNumber, pageSize);
-  }, [pageNumber, pageSize, selected]);
-
   const totalPages = companies?.totalPages;
+
   useEffect(() => {
-    getCompanyList();
+    fetchDefaultSections();
   }, []);
+
+  // Reset to page 1 when search filters change
+  useEffect(() => {
+    setPageNumber(1);
+  }, [companySearch, locationSearch, selected]);
+
   // Refetch when filters change
   useEffect(() => {
     const selectedIndustryIds = selected.map((i) => i._id);
@@ -147,16 +175,22 @@ const Employers = () => {
     setSearchTerm("");
     setCompanySearch("");
     setLocationSearch("");
+    setPageNumber(1);
 
-    getCompanyList();
+    getCompanyList([], 1, pageSize, "", "");
   };
   const removeTag = (_id) => {
     const newSelected = selected?.filter((i) => i._id !== _id);
     setSelected(newSelected);
 
-    // Refetch companies based on updated industries
     const selectedIndustryIds = newSelected?.map((i) => i._id);
-    getCompanyList(selectedIndustryIds);
+    getCompanyList(
+      selectedIndustryIds,
+      pageNumber,
+      pageSize,
+      companySearch,
+      locationSearch,
+    );
   };
   const filteredOptions = options.filter((industry) =>
     industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -195,12 +229,197 @@ const Employers = () => {
 
     // Refetch companies based on updated industries
     const selectedIndustryIds = newSelected.map((i) => i._id);
-    getCompanyList(selectedIndustryIds);
+    getCompanyList(
+      selectedIndustryIds,
+      pageNumber,
+      pageSize,
+      companySearch,
+      locationSearch,
+    );
   };
   console.log(selected);
 
   const companiesOfMoment = companies?.sections?.companiesOfMoment || [];
   const partnerCompanies = companies?.sections?.partnerCompanies || [];
+
+  const getSearchResultsFromResponse = (data) => {
+    if (data?.companies?.length > 0) {
+      return data.companies;
+    }
+
+    const sections = data?.sections || {};
+    const combined = [
+      ...(sections.companiesOfMoment || []),
+      ...(sections.partnerCompanies || []),
+      ...(sections.justJoinedUs || []),
+    ];
+
+    const seen = new Set();
+    return combined.filter((item) => {
+      const id = item?.companyId?._id || item?._id;
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  };
+
+  const searchResults = isSearchActive
+    ? getSearchResultsFromResponse(companies)
+    : [];
+
+  const renderPartnerStyleCard = (item, index) => {
+    const company = item?.companyId;
+    if (!company) return null;
+
+    return (
+      <div
+        className="col-xl-3 col-lg-4 col-md-6 mb-4"
+        key={company?._id || index}
+      >
+        <div className="premium-company-box h-100">
+          <div className="premium-cover">
+            <img
+              crossOrigin="anonymous"
+              src={
+                company?.coverPhoto
+                  ? `${API_IMAGE_URL}${company?.coverPhoto}`
+                  : "/jobPortal/assets/images/company/company-img-1.jpg"
+              }
+              alt={company?.brandName || "Company Cover"}
+            />
+            <div className="premium-overlay" />
+          </div>
+
+          <div className="premium-content d-flex flex-column h-100">
+            <div
+              className="premium-logo-container"
+              style={{
+                width: "100px",
+                height: "100px",
+                marginTop: "-50px",
+              }}
+            >
+              <img
+                crossOrigin="anonymous"
+                src={
+                  company?.logo
+                    ? `${API_IMAGE_URL}${company?.logo}`
+                    : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                }
+                alt={company?.brandName || "Company Logo"}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+
+            <h4
+              className="premium-title text-truncate"
+              title={company?.brandName}
+            >
+              {company?.brandName}
+            </h4>
+
+            <div
+              className="premium-details d-flex flex-column mb-3"
+              style={{ gap: "10px" }}
+            >
+              <div className="company-about-box">
+                <span
+                  style={{
+                    fontWeight: "600",
+                    display: "block",
+                    marginBottom: "4px",
+                    color: "#0f172a",
+                  }}
+                >
+                  About the Company
+                </span>
+
+                <p
+                  className="company-short-description text-muted mb-0"
+                  style={{
+                    fontSize: "0.85rem",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  {stripHtml(company?.aboutCompany) ||
+                    "No description available"}
+                </p>
+              </div>
+
+              <div
+                className="sector-highlight"
+                style={{
+                  background: "rgb(240, 245, 247)",
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  borderLeft: "3px solid rgb(0, 102, 204)",
+                }}
+              >
+                <i
+                  className="fa-solid fa-layer-group"
+                  style={{
+                    color: "rgb(0, 102, 204)",
+                    fontSize: "0.9rem",
+                  }}
+                />
+
+                <span
+                  style={{
+                    fontWeight: "600",
+                    color: "rgb(30, 41, 59)",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  {company?.industry?.name || "N/A"}
+                </span>
+              </div>
+
+              <div
+                className="detail-item mt-1 d-flex align-items-center"
+                style={{ gap: "8px" }}
+              >
+                <i
+                  className="fa-solid fa-briefcase"
+                  style={{ color: "rgb(0, 102, 204)" }}
+                />
+
+                <span
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: "500",
+                    color: "rgb(51, 51, 51)",
+                  }}
+                >
+                  {item?.jobCount || item?.jobList?.length || 0} offers
+                  available
+                </span>
+              </div>
+            </div>
+
+            <button
+              className="btn premium-view-btn w-100 mt-auto"
+              onClick={() => handleViewCompany(company, "/companies")}
+            >
+              See Company
+              <i className="fa-solid fa-arrow-right ms-2" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <>
       <Helmet>
@@ -616,8 +835,7 @@ const Employers = () => {
                                           className="new-joiner-card p-2 border rounded"
                                           style={{
                                             background: "#fff",
-                                            height: "100%",
-                                            minHeight: "100px",
+                                            height: "120px",
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
@@ -642,10 +860,9 @@ const Employers = () => {
                                                   : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                                               }
                                               style={{
-                                                width: "40%",
-                                                maxHeight: "100%",
+                                                width: "120px",
+                                                height: "80px",
                                                 objectFit: "contain",
-                                                filter: "grayscale(0%)",
                                                 transition: "0.3s",
                                               }}
                                             />
@@ -741,189 +958,511 @@ const Employers = () => {
                       opacity: "1",
                     }}
                   />
-                  <div className="trending-companies-section mb-2">
-                    <div className="row g-4 mb-4">
-                      <div className="col-12 pb-0 mb-0">
-                        <div
-                          className="section-title text-start m-0"
-                          style={{ margin: "0px" }}
-                        >
-                          <h3
-                            className="fw-bold d-inline-block"
-                            style={{
-                              color: "rgb(0, 102, 204)",
-                              "font-size": "1.5rem",
-                              "border-bottom": "2px solid rgb(240, 245, 247)",
-                              "padding-bottom": "10px",
-                            }}
+                  {isSearchActive ? (
+                    <div className="search-results-section mb-5">
+                      <div className="row g-4 mb-4">
+                        <div className="col-12 pb-0 mb-0">
+                          <div
+                            className="section-title text-start m-0"
+                            style={{ margin: "0px" }}
                           >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
+                            <h3
+                              className="fw-bold d-inline-block"
+                              style={{
+                                color: "rgb(0, 102, 204)",
+                                "font-size": "1.5rem",
+                                "border-bottom": "2px solid rgb(240, 245, 247)",
+                                "padding-bottom": "10px",
+                              }}
+                            >
+                              Search Results
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="row">
+                          {searchResults?.length > 0 ? (
+                            searchResults.map((item, index) =>
+                              renderPartnerStyleCard(item, index),
+                            )
+                          ) : (
+                            <div className="col-12">
+                              <div
+                                className="text-center py-5"
+                                style={{
+                                  background: "#fff",
+                                  borderRadius: "12px",
+                                  border: "1px solid #e5e7eb",
+                                }}
+                              >
+                                <i
+                                  className="fa-solid fa-building-circle-xmark mb-3"
+                                  style={{
+                                    fontSize: "50px",
+                                    color: "#cbd5e1",
+                                  }}
+                                />
+
+                                <h5
+                                  style={{
+                                    color: "#475569",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  No Companies Found
+                                </h5>
+
+                                <p
+                                  style={{
+                                    color: "#94a3b8",
+                                    marginBottom: 0,
+                                  }}
+                                >
+                                  No companies match your search criteria.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="trending-companies-section mb-2">
+                      <div className="row g-4 mb-4">
+                        <div className="col-12 pb-0 mb-0">
+                          <div
+                            className="section-title text-start m-0"
+                            style={{ margin: "0px" }}
+                          >
+                            <h3
+                              className="fw-bold d-inline-block"
+                              style={{
+                                color: "rgb(0, 102, 204)",
+                                "font-size": "1.5rem",
+                                "border-bottom": "2px solid rgb(240, 245, 247)",
+                                "padding-bottom": "10px",
+                              }}
                             >
                               <font
                                 dir="auto"
                                 style={{ "vertical-align": "inherit" }}
                               >
-                                Companies of the moment
+                                <font
+                                  dir="auto"
+                                  style={{ "vertical-align": "inherit" }}
+                                >
+                                  Companies of the moment
+                                </font>
                               </font>
-                            </font>
-                          </h3>
+                            </h3>
+                          </div>
                         </div>
-                      </div>
-                      <div className="row">
-                        {companiesOfMoment?.length > 0 ? (
-                          companiesOfMoment.map((item, index) => {
-                            const company = item?.companyId;
+                        <div className="row">
+                          {companiesOfMoment?.length > 0 ? (
+                            companiesOfMoment.map((item, index) => {
+                              const company = item?.companyId;
 
-                            return (
-                              <div
-                                className="col-xl-4 col-lg-4 col-md-6 mb-4"
-                                key={company?._id || index}
-                              >
-                                <div className="premium-company-box h-100">
-                                  {/* Cover Image */}
-                                  <div className="premium-cover">
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={
-                                        company?.coverPhoto
-                                          ? `${API_IMAGE_URL}${company?.coverPhoto}`
-                                          : "/jobPortal/assets/images/company/company-img-1.jpg"
-                                      }
-                                      alt={
-                                        company?.brandName || "Company Cover"
-                                      }
-                                    />
-
-                                    <div className="premium-overlay" />
-                                  </div>
-
-                                  {/* Content */}
-                                  <div className="premium-content d-flex flex-column h-100">
-                                    {/* Logo */}
-                                    <div
-                                      className="premium-logo-container"
-                                      style={{
-                                        width: "200px",
-                                        height: "150px",
-                                        marginTop: "-75px",
-                                      }}
-                                    >
+                              return (
+                                <div
+                                  className="col-xl-4 col-lg-4 col-md-6 mb-4"
+                                  key={company?._id || index}
+                                >
+                                  <div className="premium-company-box h-100">
+                                    {/* Cover Image */}
+                                    <div className="premium-cover">
                                       <img
                                         crossOrigin="anonymous"
                                         src={
-                                          company?.logo
-                                            ? `${API_IMAGE_URL}${company?.logo}`
-                                            : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                                          company?.coverPhoto
+                                            ? `${API_IMAGE_URL}${company?.coverPhoto}`
+                                            : "/jobPortal/assets/images/company/company-img-1.jpg"
                                         }
                                         alt={
-                                          company?.brandName || "Company Logo"
+                                          company?.brandName || "Company Cover"
                                         }
-                                        style={{
-                                          objectFit: "contain",
-                                          width: "100%",
-                                          height: "100%",
-                                        }}
                                       />
+
+                                      <div className="premium-overlay" />
                                     </div>
 
-                                    {/* Company Name */}
-                                    <h4
-                                      className="premium-title text-truncate"
-                                      title={company?.brandName}
-                                    >
-                                      {company?.brandName}
-                                    </h4>
-
-                                    {/* Description + Industry */}
-                                    <div
-                                      className="premium-details d-flex flex-column mb-3"
-                                      style={{ gap: "10px" }}
-                                    >
-                                      <div className="company-about-box">
-                                        <span
-                                          style={{
-                                            fontWeight: "600",
-                                            display: "block",
-                                            marginBottom: "4px",
-                                            color: "#0f172a",
-                                          }}
-                                        >
-                                          About the Company
-                                        </span>
-
-                                        <p
-                                          className="company-short-description text-muted mb-0"
-                                          style={{
-                                            fontSize: "0.85rem",
-                                            display: "-webkit-box",
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: "vertical",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            lineHeight: "1.4",
-                                          }}
-                                        >
-                                          {stripHtml(company?.aboutCompany) ||
-                                            "No description available"}
-                                        </p>
-                                      </div>
-
-                                      {/* Industry */}
+                                    {/* Content */}
+                                    <div className="premium-content d-flex flex-column h-100">
+                                      {/* Logo */}
                                       <div
-                                        className="sector-highlight"
+                                        className="premium-logo-container"
                                         style={{
-                                          background: "rgb(240, 245, 247)",
-                                          padding: "6px 12px",
-                                          borderRadius: "6px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          borderLeft:
-                                            "3px solid rgb(0, 102, 204)",
+                                          width: "200px",
+                                          height: "150px",
+                                          marginTop: "-75px",
                                         }}
                                       >
-                                        <i
-                                          className="fa-solid fa-layer-group"
+                                        <img
+                                          crossOrigin="anonymous"
+                                          src={
+                                            company?.logo
+                                              ? `${API_IMAGE_URL}${company?.logo}`
+                                              : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                                          }
+                                          alt={
+                                            company?.brandName || "Company Logo"
+                                          }
                                           style={{
-                                            color: "rgb(0, 102, 204)",
-                                            fontSize: "0.9rem",
+                                            objectFit: "contain",
+                                            width: "100%",
+                                            height: "100%",
                                           }}
                                         />
+                                      </div>
 
-                                        <span
+                                      {/* Company Name */}
+                                      <h4
+                                        className="premium-title text-truncate"
+                                        title={company?.brandName}
+                                      >
+                                        {company?.brandName}
+                                      </h4>
+
+                                      {/* Description + Industry */}
+                                      <div
+                                        className="premium-details d-flex flex-column mb-3"
+                                        style={{ gap: "10px" }}
+                                      >
+                                        <div className="company-about-box">
+                                          <span
+                                            style={{
+                                              fontWeight: "600",
+                                              display: "block",
+                                              marginBottom: "4px",
+                                              color: "#0f172a",
+                                            }}
+                                          >
+                                            About the Company
+                                          </span>
+
+                                          <p
+                                            className="company-short-description text-muted mb-0"
+                                            style={{
+                                              fontSize: "0.85rem",
+                                              display: "-webkit-box",
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: "vertical",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              lineHeight: "1.4",
+                                            }}
+                                          >
+                                            {stripHtml(company?.aboutCompany) ||
+                                              "No description available"}
+                                          </p>
+                                        </div>
+
+                                        {/* Industry */}
+                                        <div
+                                          className="sector-highlight"
                                           style={{
-                                            fontWeight: "600",
-                                            color: "rgb(30, 41, 59)",
-                                            fontSize: "0.85rem",
+                                            background: "rgb(240, 245, 247)",
+                                            padding: "6px 12px",
+                                            borderRadius: "6px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                            borderLeft:
+                                              "3px solid rgb(0, 102, 204)",
                                           }}
                                         >
-                                          {company?.industry?.name || "N/A"}
+                                          <i
+                                            className="fa-solid fa-layer-group"
+                                            style={{
+                                              color: "rgb(0, 102, 204)",
+                                              fontSize: "0.9rem",
+                                            }}
+                                          />
+
+                                          <span
+                                            style={{
+                                              fontWeight: "600",
+                                              color: "rgb(30, 41, 59)",
+                                              fontSize: "0.85rem",
+                                            }}
+                                          >
+                                            {company?.industry?.name || "N/A"}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Footer */}
+                                      <div className="d-flex justify-content-between align-items-center mt-auto pt-3">
+                                        <span
+                                          className="fw-bold px-3 py-1 offers-anim-btn"
+                                          onClick={() =>
+                                            handleViewCompany(
+                                              company,
+                                              "/companies",
+                                            )
+                                          }
+                                        >
+                                          {item?.jobCount ||
+                                            item?.jobList?.length ||
+                                            0}{" "}
+                                          Offers
                                         </span>
+
+                                        <button
+                                          className="btn premium-view-btn px-4"
+                                          style={{ width: "auto" }}
+                                          onClick={() =>
+                                            handleViewCompany(
+                                              company,
+                                              "/companies",
+                                            )
+                                          }
+                                        >
+                                          See
+                                          <i className="fa-solid fa-arrow-right ms-2" />
+                                        </button>
                                       </div>
                                     </div>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="col-12">
+                              <div
+                                className="text-center py-5"
+                                style={{
+                                  background: "#fff",
+                                  borderRadius: "12px",
+                                  border: "1px solid #e5e7eb",
+                                }}
+                              >
+                                <i
+                                  className="fa-solid fa-building-circle-xmark mb-3"
+                                  style={{
+                                    fontSize: "50px",
+                                    color: "#cbd5e1",
+                                  }}
+                                />
 
-                                    {/* Footer */}
-                                    <div className="d-flex justify-content-between align-items-center mt-auto pt-3">
-                                      <span
-                                        className="fw-bold px-3 py-1 offers-anim-btn"
-                                        onClick={() =>
-                                          handleViewCompany(
-                                            company,
-                                            "/companies",
-                                          )
+                                <h5
+                                  style={{
+                                    color: "#475569",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  No Companies Found
+                                </h5>
+
+                                <p
+                                  style={{
+                                    color: "#94a3b8",
+                                    marginBottom: 0,
+                                  }}
+                                >
+                                  There are currently no companies available at
+                                  the moment.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {!isSearchActive && (
+                  <div className="all-companies-section mb-5">
+                    <div className="available-company-list-area">
+                      <div className="row premium-companies-grid">
+                        <div className="col-12 mb-3">
+                          <div
+                            className="section-title text-start m-0"
+                            style={{ margin: "0px" }}
+                          >
+                            <h3
+                              className="fw-bold d-inline-block"
+                              style={{
+                                color: "rgb(0, 102, 204)",
+                                "font-size": "1.5rem",
+                                "border-bottom": "2px solid rgb(240, 245, 247)",
+                                "padding-bottom": "10px",
+                              }}
+                            >
+                              <font
+                                dir="auto"
+                                style={{ "vertical-align": "inherit" }}
+                              >
+                                <font
+                                  dir="auto"
+                                  style={{ "vertical-align": "inherit" }}
+                                >
+                                  Our partner companies
+                                </font>
+                              </font>
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="row">
+                          {partnerCompanies?.length > 0 ? (
+                            partnerCompanies.map((item, index) => {
+                              const company = item?.companyId;
+
+                              return (
+                                <div
+                                  className="col-xl-3 col-lg-4 col-md-6 mb-4"
+                                  key={company?._id || index}
+                                >
+                                  <div className="premium-company-box h-100">
+                                    {/* Cover */}
+                                    <div className="premium-cover">
+                                      <img
+                                        crossOrigin="anonymous"
+                                        src={
+                                          company?.coverPhoto
+                                            ? `${API_IMAGE_URL}${company?.coverPhoto}`
+                                            : "/jobPortal/assets/images/company/company-img-1.jpg"
                                         }
-                                      >
-                                        {item?.jobCount ||
-                                          item?.jobList?.length ||
-                                          0}{" "}
-                                        Offers
-                                      </span>
+                                        alt={
+                                          company?.brandName || "Company Cover"
+                                        }
+                                      />
+                                      <div className="premium-overlay" />
+                                    </div>
 
+                                    {/* Content */}
+                                    <div className="premium-content d-flex flex-column h-100">
+                                      {/* Logo */}
+                                      <div
+                                        className="premium-logo-container"
+                                        style={{
+                                          width: "100px",
+                                          height: "100px",
+                                          marginTop: "-50px",
+                                        }}
+                                      >
+                                        <img
+                                          crossOrigin="anonymous"
+                                          src={
+                                            company?.logo
+                                              ? `${API_IMAGE_URL}${company?.logo}`
+                                              : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                                          }
+                                          alt={
+                                            company?.brandName || "Company Logo"
+                                          }
+                                          style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "contain",
+                                          }}
+                                        />
+                                      </div>
+
+                                      {/* Company Name */}
+                                      <h4
+                                        className="premium-title text-truncate"
+                                        title={company?.brandName}
+                                      >
+                                        {company?.brandName}
+                                      </h4>
+
+                                      {/* Details */}
+                                      <div
+                                        className="premium-details d-flex flex-column mb-3"
+                                        style={{ gap: "10px" }}
+                                      >
+                                        {/* Description */}
+                                        <div className="company-about-box">
+                                          <span
+                                            style={{
+                                              fontWeight: "600",
+                                              display: "block",
+                                              marginBottom: "4px",
+                                              color: "#0f172a",
+                                            }}
+                                          >
+                                            About the Company
+                                          </span>
+
+                                          <p
+                                            className="company-short-description text-muted mb-0"
+                                            style={{
+                                              fontSize: "0.85rem",
+                                              display: "-webkit-box",
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: "vertical",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              lineHeight: "1.4",
+                                            }}
+                                          >
+                                            {stripHtml(company?.aboutCompany) ||
+                                              "No description available"}
+                                          </p>
+                                        </div>
+
+                                        {/* Industry */}
+                                        <div
+                                          className="sector-highlight"
+                                          style={{
+                                            background: "rgb(240, 245, 247)",
+                                            padding: "6px 12px",
+                                            borderRadius: "6px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                            borderLeft:
+                                              "3px solid rgb(0, 102, 204)",
+                                          }}
+                                        >
+                                          <i
+                                            className="fa-solid fa-layer-group"
+                                            style={{
+                                              color: "rgb(0, 102, 204)",
+                                              fontSize: "0.9rem",
+                                            }}
+                                          />
+
+                                          <span
+                                            style={{
+                                              fontWeight: "600",
+                                              color: "rgb(30, 41, 59)",
+                                              fontSize: "0.85rem",
+                                            }}
+                                          >
+                                            {company?.industry?.name || "N/A"}
+                                          </span>
+                                        </div>
+
+                                        {/* Offers */}
+                                        <div
+                                          className="detail-item mt-1 d-flex align-items-center"
+                                          style={{ gap: "8px" }}
+                                        >
+                                          <i
+                                            className="fa-solid fa-briefcase"
+                                            style={{
+                                              color: "rgb(0, 102, 204)",
+                                            }}
+                                          />
+
+                                          <span
+                                            style={{
+                                              fontSize: "0.85rem",
+                                              fontWeight: "500",
+                                              color: "rgb(51, 51, 51)",
+                                            }}
+                                          >
+                                            {item?.jobCount ||
+                                              item?.jobList?.length ||
+                                              0}{" "}
+                                            offers available
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Button */}
                                       <button
-                                        className="btn premium-view-btn px-4"
-                                        style={{ width: "auto" }}
+                                        className="btn premium-view-btn w-100 mt-auto"
                                         onClick={() =>
                                           handleViewCompany(
                                             company,
@@ -931,304 +1470,58 @@ const Employers = () => {
                                           )
                                         }
                                       >
-                                        See
+                                        See Company
                                         <i className="fa-solid fa-arrow-right ms-2" />
                                       </button>
                                     </div>
                                   </div>
                                 </div>
+                              );
+                            })
+                          ) : (
+                            <div className="col-12">
+                              <div
+                                className="text-center py-5"
+                                style={{
+                                  background: "#fff",
+                                  borderRadius: "12px",
+                                  border: "1px solid #e5e7eb",
+                                }}
+                              >
+                                <i
+                                  className="fa-solid fa-building-circle-xmark mb-3"
+                                  style={{
+                                    fontSize: "50px",
+                                    color: "#cbd5e1",
+                                  }}
+                                />
+
+                                <h5
+                                  style={{
+                                    color: "#475569",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  No Partner Companies Found
+                                </h5>
+
+                                <p
+                                  style={{
+                                    color: "#94a3b8",
+                                    marginBottom: 0,
+                                  }}
+                                >
+                                  There are currently no partner companies
+                                  available.
+                                </p>
                               </div>
-                            );
-                          })
-                        ) : (
-                          <div className="col-12">
-                            <div
-                              className="text-center py-5"
-                              style={{
-                                background: "#fff",
-                                borderRadius: "12px",
-                                border: "1px solid #e5e7eb",
-                              }}
-                            >
-                              <i
-                                className="fa-solid fa-building-circle-xmark mb-3"
-                                style={{
-                                  fontSize: "50px",
-                                  color: "#cbd5e1",
-                                }}
-                              />
-
-                              <h5
-                                style={{
-                                  color: "#475569",
-                                  fontWeight: "600",
-                                }}
-                              >
-                                No Companies Found
-                              </h5>
-
-                              <p
-                                style={{
-                                  color: "#94a3b8",
-                                  marginBottom: 0,
-                                }}
-                              >
-                                There are currently no companies available at
-                                the moment.
-                              </p>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="all-companies-section mb-5">
-                  <div className="available-company-list-area">
-                    <div className="row premium-companies-grid">
-                      <div className="col-12 mb-3">
-                        <div
-                          className="section-title text-start m-0"
-                          style={{ margin: "0px" }}
-                        >
-                          <h3
-                            className="fw-bold d-inline-block"
-                            style={{
-                              color: "rgb(0, 102, 204)",
-                              "font-size": "1.5rem",
-                              "border-bottom": "2px solid rgb(240, 245, 247)",
-                              "padding-bottom": "10px",
-                            }}
-                          >
-                            <font
-                              dir="auto"
-                              style={{ "vertical-align": "inherit" }}
-                            >
-                              <font
-                                dir="auto"
-                                style={{ "vertical-align": "inherit" }}
-                              >
-                                Our partner companies
-                              </font>
-                            </font>
-                          </h3>
+                          )}
                         </div>
                       </div>
-                      <div className="row">
-                        {partnerCompanies?.length > 0 ? (
-                          partnerCompanies.map((item, index) => {
-                            const company = item?.companyId;
-
-                            return (
-                              <div
-                                className="col-xl-3 col-lg-4 col-md-6 mb-4"
-                                key={company?._id || index}
-                              >
-                                <div className="premium-company-box h-100">
-                                  {/* Cover */}
-                                  <div className="premium-cover">
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={
-                                        company?.coverPhoto
-                                          ? `${API_IMAGE_URL}${company?.coverPhoto}`
-                                          : "/jobPortal/assets/images/company/company-img-1.jpg"
-                                      }
-                                      alt={
-                                        company?.brandName || "Company Cover"
-                                      }
-                                    />
-                                    <div className="premium-overlay" />
-                                  </div>
-
-                                  {/* Content */}
-                                  <div className="premium-content d-flex flex-column h-100">
-                                    {/* Logo */}
-                                    <div
-                                      className="premium-logo-container"
-                                      style={{
-                                        width: "100px",
-                                        height: "100px",
-                                        marginTop: "-50px",
-                                      }}
-                                    >
-                                      <img
-                                        crossOrigin="anonymous"
-                                        src={
-                                          company?.logo
-                                            ? `${API_IMAGE_URL}${company?.logo}`
-                                            : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
-                                        }
-                                        alt={
-                                          company?.brandName || "Company Logo"
-                                        }
-                                        style={{
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "contain",
-                                        }}
-                                      />
-                                    </div>
-
-                                    {/* Company Name */}
-                                    <h4
-                                      className="premium-title text-truncate"
-                                      title={company?.brandName}
-                                    >
-                                      {company?.brandName}
-                                    </h4>
-
-                                    {/* Details */}
-                                    <div
-                                      className="premium-details d-flex flex-column mb-3"
-                                      style={{ gap: "10px" }}
-                                    >
-                                      {/* Description */}
-                                      <div className="company-about-box">
-                                        <span
-                                          style={{
-                                            fontWeight: "600",
-                                            display: "block",
-                                            marginBottom: "4px",
-                                            color: "#0f172a",
-                                          }}
-                                        >
-                                          About the Company
-                                        </span>
-
-                                        <p
-                                          className="company-short-description text-muted mb-0"
-                                          style={{
-                                            fontSize: "0.85rem",
-                                            display: "-webkit-box",
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: "vertical",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            lineHeight: "1.4",
-                                          }}
-                                        >
-                                          {stripHtml(company?.aboutCompany) ||
-                                            "No description available"}
-                                        </p>
-                                      </div>
-
-                                      {/* Industry */}
-                                      <div
-                                        className="sector-highlight"
-                                        style={{
-                                          background: "rgb(240, 245, 247)",
-                                          padding: "6px 12px",
-                                          borderRadius: "6px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          borderLeft:
-                                            "3px solid rgb(0, 102, 204)",
-                                        }}
-                                      >
-                                        <i
-                                          className="fa-solid fa-layer-group"
-                                          style={{
-                                            color: "rgb(0, 102, 204)",
-                                            fontSize: "0.9rem",
-                                          }}
-                                        />
-
-                                        <span
-                                          style={{
-                                            fontWeight: "600",
-                                            color: "rgb(30, 41, 59)",
-                                            fontSize: "0.85rem",
-                                          }}
-                                        >
-                                          {company?.industry?.name || "N/A"}
-                                        </span>
-                                      </div>
-
-                                      {/* Offers */}
-                                      <div
-                                        className="detail-item mt-1 d-flex align-items-center"
-                                        style={{ gap: "8px" }}
-                                      >
-                                        <i
-                                          className="fa-solid fa-briefcase"
-                                          style={{ color: "rgb(0, 102, 204)" }}
-                                        />
-
-                                        <span
-                                          style={{
-                                            fontSize: "0.85rem",
-                                            fontWeight: "500",
-                                            color: "rgb(51, 51, 51)",
-                                          }}
-                                        >
-                                          {item?.jobCount ||
-                                            item?.jobList?.length ||
-                                            0}{" "}
-                                          offers available
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    {/* Button */}
-                                    <button
-                                      className="btn premium-view-btn w-100 mt-auto"
-                                      onClick={() =>
-                                        handleViewCompany(company, "/companies")
-                                      }
-                                    >
-                                      See Company
-                                      <i className="fa-solid fa-arrow-right ms-2" />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className="col-12">
-                            <div
-                              className="text-center py-5"
-                              style={{
-                                background: "#fff",
-                                borderRadius: "12px",
-                                border: "1px solid #e5e7eb",
-                              }}
-                            >
-                              <i
-                                className="fa-solid fa-building-circle-xmark mb-3"
-                                style={{
-                                  fontSize: "50px",
-                                  color: "#cbd5e1",
-                                }}
-                              />
-
-                              <h5
-                                style={{
-                                  color: "#475569",
-                                  fontWeight: "600",
-                                }}
-                              >
-                                No Partner Companies Found
-                              </h5>
-
-                              <p
-                                style={{
-                                  color: "#94a3b8",
-                                  marginBottom: 0,
-                                }}
-                              >
-                                There are currently no partner companies
-                                available.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
-                </div>
+                )}
                 <div className="MuiStack-root css-14yaqqw">
                   <Stack
                     direction="row"

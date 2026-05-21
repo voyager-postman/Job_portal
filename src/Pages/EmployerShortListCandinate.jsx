@@ -9,7 +9,6 @@ import { ToastContainer, toast } from "react-toastify";
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
 
-
   const cityDropdownRef = useRef(null);
   const experienceRef = useRef(null);
   const educationRef = useRef(null);
@@ -151,7 +150,7 @@ function EmployerShortListCandinate() {
       const message = error.response?.data?.message;
       const exhausted = error.response?.data?.is_exhausted;
 
-    toast.error(message || t("header.something_wrong"));
+      toast.error(message || t("header.something_wrong"));
 
       // 🚀 Navigate only if exhausted
       if (exhausted === 1) {
@@ -695,7 +694,7 @@ function EmployerShortListCandinate() {
             <div className="row g-3 mb-4">
               <div className="col-12 mb-3">
                 <h5 className="mb-0 fw-bold">
-                 {t("header.All_Candidates")}{" "}
+                  {t("header.All_Candidates")}{" "}
                   <span className="text-muted fs-6 fw-normal">
                     ({totalCandidates || 0} {t("header.candidates")})
                   </span>
@@ -2023,6 +2022,15 @@ function EmployerShortListCandinate() {
                                         candidateId:
                                           candidateDetails?.userId?._id,
                                         candidate: candidateDetails,
+                                        from: "/candidates-search",
+                                        candidateName:
+                                          `${candidateDetails?.userId?.first_name || ""} ${
+                                            candidateDetails?.userId
+                                              ?.last_name || ""
+                                          }`.trim(),
+                                        candidateImage:
+                                          candidateDetails?.userId
+                                            ?.profileImage,
                                       }}
                                       className="btn btn-warning text-white btn-sm shadow-sm gap-2 fw-bold "
                                     >
