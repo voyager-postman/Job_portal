@@ -420,6 +420,7 @@ function EmployerDashboard() {
                   <Link
                     className="text-decoration-none"
                     to="/all-applicants-list"
+                    state={{ showAllJobs: true }}
                   >
                     <div className="summary-card-compact green-theme">
                       <div className="employer-box-icon">

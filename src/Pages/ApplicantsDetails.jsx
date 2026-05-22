@@ -423,7 +423,9 @@ function ApplicantsDetails() {
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/all-applicants-list">Applicant Management</Link>
+                    <Link to="/all-applicants-list" state={{ showAllJobs: true }}>
+                      Applicant Management
+                    </Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>Applicant Details</li>

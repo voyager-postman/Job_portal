@@ -788,14 +788,21 @@ const EmployerWallet = () => {
                                         <td>
                                           <span
                                             className={`badge ${
-                                              item.isActive
+                                              item.activationStatus === "Active"
                                                 ? "bg-success"
-                                                : "bg-warning"
+                                                : item.activationStatus ===
+                                                    "Expired"
+                                                  ? "bg-danger"
+                                                  : item.activationStatus ===
+                                                      "Pending"
+                                                    ? "bg-warning"
+                                                    : "bg-secondary"
                                             }`}
                                           >
-                                            {item.isActive
-                                              ? "Active"
-                                              : "Pending"}
+                                            {item.activationStatus ||
+                                              (item.isActive
+                                                ? "Active"
+                                                : "Inactive")}
                                           </span>
                                         </td>
                                       </tr>

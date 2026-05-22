@@ -13367,3 +13367,115 @@ i.fa-solid.fa-trash {
   border-bottom: 1px solid #f1f5f9;
   font-size: 14px;
 }
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.premium-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 24px;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease;
+}
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.table-container {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.top-space-search-reslute {
+  margin-top: 30px;
+}
+.top-space-search-reslute .tab-content {
+  padding: unset !important;
+}
+.parentProduceSearch {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.table thead th {
+  background-color: #f6f9fc;
+  color: #8898aa;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e9ecef;
+  letter-spacing: 0.5px;
+}
+.table tbody td {
+  padding: 18px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f3f9;
+  color: #525f7f;
+  font-size: 14px;
+}
+.recruiter-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.status-inactive {
+  background-color: #fee6e0;
+  color: #fb6340;
+}
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+}
+.form-switch .form-check-input:checked {
+  background-color: #2dce89;
+  border-color: #2dce89;
+}
+.form-switch .form-check-input {
+  cursor: pointer;
+  width: 40px;
+  height: 20px;
+}
+
+.action-btns {
+  display: flex;
+  gap: 12px;
+}
+.btn-edit {
+  background: #e8eafe;
+  color: #5e72e4;
+}
+.btn-delete {
+  background: #fee6e0;
+  color: #fb6340;
+}
+
+.add-recruiter-btn {
+  background: linear-gradient(87deg, #ff6600 0, #ff8533 100%);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 6px rgba(255, 102, 0, 0.11),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

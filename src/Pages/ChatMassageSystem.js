@@ -6,6 +6,11 @@ import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
+import { useDebounce } from "../hooks/useDebounce";
+import { checkSearchRateLimit } from "../utils/searchRateLimit";
+
+const CHAT_SEARCH_DEBOUNCE_MS = 600;
+
 function ChatMassageSystem() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -377,9 +382,14 @@ function ChatMassageSystem() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatStore, activeUser]);
   const fetchCandidates = async () => {
+    const rateCheck = checkSearchRateLimit("chat-conversations");
+    if (!rateCheck.allowed) {
+      return;
+    }
+
     try {
       let params = {
-        search,
+        search: debouncedSearch,
       };
 
       // ================= MAIN FILTER =================
@@ -433,9 +443,11 @@ function ChatMassageSystem() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, CHAT_SEARCH_DEBOUNCE_MS);
+
   useEffect(() => {
     fetchCandidates();
-  }, [filter, dateFilter, search, startDate]);
+  }, [filter, dateFilter, debouncedSearch, startDate]);
   const filteredUsers = users.filter((u) =>
     (u?.otherUser?.brandName || "")
       .toLowerCase()
@@ -547,8 +559,11 @@ function ChatMassageSystem() {
       // CANDIDATE ONLY
       professionParagraph: user?.otherUser?.professionParagraph || "",
       email: user?.otherUser?.email || "",
-      phone: user?.otherUser?.phone || "",
-      nationality: user?.otherUser?.Nationality || "",
+      phone:
+        typeof user?.otherUser?.phone === "object"
+          ? `+${user.otherUser.phone.countryCode} ${user.otherUser.phone.number}`
+          : user?.otherUser?.phone || "",
+      nationality: user?.otherUser?.country || "",
       gender: user?.otherUser?.gender || "",
 
       // COMMON LOCATION
@@ -1181,7 +1196,7 @@ function ChatMassageSystem() {
                         {showEmojiPicker && (
                           <div
                             ref={emojiPickerRef}
-                            className="emoji-picker-wrapper"
+                            className="emoji-picker-wrapper emoji-pop-box "
                           >
                             <button
                               type="button"
@@ -1226,77 +1241,63 @@ function ChatMassageSystem() {
                   </div>
 
                   <div className="info-section">
-                    {/* COMPANY VIEW */}
-                    {activeUser?.type !== "JobSeeker" ? (
-                      <>
-                        <h5>About Company</h5>
+                    <div className="company-about">
+                      <h5 className="section-title">About Company</h5>
 
-                        <p
-                          className="info-description"
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              activeUser?.aboutCompany ||
-                              "No company description available.",
-                          }}
-                        />
+                      <div
+                        className="info-description"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            activeUser?.aboutCompany ||
+                            "No company description available.",
+                        }}
+                      />
+                    </div>
 
-                        <h5 style={{ marginTop: "24px" }}>Contact Details</h5>
+                    <div className="contact-section">
+                      <h5 className="section-title">Contact Details</h5>
 
-                        {activeUser?.website && (
-                          <div className="info-item">
-                            <i className="fa-solid fa-globe" />
-                            {activeUser?.website}
-                          </div>
-                        )}
-
+                      {activeUser?.website && (
                         <div className="info-item">
-                          <i className="fa-solid fa-location-dot" />
-                          {activeUser?.location}
+                          <i className="fa-solid fa-globe"></i>
+
+                          <a
+                            href={activeUser.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="info-link"
+                          >
+                            {activeUser.website}
+                          </a>
                         </div>
-                      </>
-                    ) : (
-                      <>
-                        {/* CANDIDATE VIEW */}
+                      )}
 
-                        <h5>Candidate Details</h5>
+                      <div className="info-item">
+                        <i className="fa-solid fa-envelope"></i>
+                        <span>{activeUser?.email || "N/A"}</span>
+                      </div>
 
-                        <div className="candidate-info-grid">
-                          <div className="info-item">
-                            <i className="fa-solid fa-envelope" />
-                            {activeUser?.email || "N/A"}
-                          </div>
+                      <div className="info-item">
+                        <i className="fa-solid fa-phone"></i>
+                        <span>
+                          {activeUser?.phone
+                            ? typeof activeUser.phone === "object"
+                              ? `+${activeUser.phone.countryCode} ${activeUser.phone.number}`
+                              : activeUser.phone
+                            : "N/A"}
+                        </span>
+                      </div>
 
-                          <div className="info-item">
-                            <i className="fa-solid fa-phone" />
-                            {activeUser?.phone || "N/A"}
-                          </div>
+                      <div className="info-item">
+                        <i className="fa-solid fa-location-dot"></i>
+                        <span>{activeUser?.location || "N/A"}</span>
+                      </div>
 
-                          <div className="info-item">
-                            <i className="fa-solid fa-location-dot" />
-                            {activeUser?.location || "N/A"}
-                          </div>
-
-                          <div className="info-item">
-                            <i className="fa-solid fa-flag" />
-                            {activeUser?.nationality || "N/A"}
-                          </div>
-
-                          <div className="info-item">
-                            <i className="fa-solid fa-user" />
-                            {activeUser?.gender || "N/A"}
-                          </div>
-                        </div>
-
-                        <h5 style={{ marginTop: "24px" }}>
-                          Professional Summary
-                        </h5>
-
-                        <p className="info-description">
-                          {activeUser?.professionParagraph ||
-                            "No professional summary available."}
-                        </p>
-                      </>
-                    )}
+                      <div className="info-item">
+                        <i className="fa-solid fa-flag"></i>
+                        <span>{activeUser?.nationality || "N/A"}</span>
+                      </div>
+                    </div>
 
                     <button
                       className="view-profile-btn"

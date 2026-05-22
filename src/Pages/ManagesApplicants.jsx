@@ -8,6 +8,11 @@ import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import Swal from "sweetalert2";
+import { useDebounce } from "../hooks/useDebounce";
+import { checkSearchRateLimit } from "../utils/searchRateLimit";
+
+const APPLICANTS_SEARCH_DEBOUNCE_MS = 600;
+
 function ManagesApplicants() {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
@@ -18,6 +23,19 @@ function ManagesApplicants() {
   const salaryRef = useRef(null);
   const token = localStorage.getItem("token");
   const cityDropdownRef = useRef(null);
+  const listScrollRef = useRef(null);
+  const isFromMessaging = location.state?.from === "/messaging-system";
+  const navApplicationId = location.state?.applicationId || null;
+  const navCandidateId = location.state?.candidateId || null;
+
+  const moveSelectedToTop = (list, matchId, getId) => {
+    if (!matchId || !list?.length) return list;
+    const index = list.findIndex((item) => String(getId(item)) === String(matchId));
+    if (index <= 0) return list;
+    const reordered = [...list];
+    const [selected] = reordered.splice(index, 1);
+    return [selected, ...reordered];
+  };
   const [selectedCities, setSelectedCities] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -35,6 +53,7 @@ function ManagesApplicants() {
   const [cityList, setCityList] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, APPLICANTS_SEARCH_DEBOUNCE_MS);
   const [candidateDetails, setCandidateDetails] = useState(null);
   const [minValue, setMinValue] = useState(0);
   const [showAllExperience, setShowAllExperience] = useState(false);
@@ -61,9 +80,30 @@ function ManagesApplicants() {
   const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedJob, setSelectedJob] = useState(
-    location.state?.jobId?._id || location.state?.jobId || "",
-  );
+  const getJobFilterFromLocation = () => {
+    if (location.state?.showAllJobs) {
+      return "";
+    }
+
+    const navJobId =
+      location.state?.jobId?._id || location.state?.jobId || "";
+
+    if (isFromMessaging) {
+      return navJobId ? String(navJobId) : "";
+    }
+
+    if (!location.state?.filterByJob) {
+      return "";
+    }
+
+    return navJobId ? String(navJobId) : "";
+  };
+
+  const [selectedJob, setSelectedJob] = useState(getJobFilterFromLocation);
+
+  useEffect(() => {
+    setSelectedJob(getJobFilterFromLocation());
+  }, [location.key, location.state?.showAllJobs, location.state?.filterByJob, location.state?.jobId, isFromMessaging]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(10000); // default
@@ -379,13 +419,33 @@ function ManagesApplicants() {
   };
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [
+    selectedJob,
+    status,
+    debouncedSearch,
+    selectedSkills,
+    selectedExperience,
+    selectedEducation,
+    selectedSalary,
+    selectedAvailability,
+    selectedCountry,
+    selectedCity,
+    sortByATS,
+  ]);
 
   const fetchApplicants = async (
     page = 1,
     customFilters = filters,
-    customSearch = search,
+    customSearch = debouncedSearch,
   ) => {
+    const rateCheck = checkSearchRateLimit("manage-applicants");
+    if (!rateCheck.allowed) {
+      toast.warning(
+        "Too many searches. Please wait a moment before trying again.",
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -407,10 +467,10 @@ function ManagesApplicants() {
 
           salary: Array.isArray(customFilters.selectedSalary)
             ? customFilters.selectedSalary
-                .map(
-                  (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
-                )
-                .join(",")
+              .map(
+                (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
+              )
+              .join(",")
             : undefined,
 
           availability: Array.isArray(customFilters.selectedAvailability)
@@ -431,7 +491,6 @@ function ManagesApplicants() {
 
       const applicants = res.data.applicants || [];
 
-      setCandidates(applicants);
       setTotalResults(res.data.totalApplicants || 0);
       setTotalPages(res.data.pagination?.totalPages || 1);
 
@@ -440,7 +499,7 @@ function ManagesApplicants() {
 
         if (selectedCandidateId) {
           const found = applicants.find(
-            (item) => item._id === selectedCandidateId,
+            (item) => String(item._id) === String(selectedCandidateId),
           );
 
           if (found) {
@@ -457,13 +516,25 @@ function ManagesApplicants() {
           }
         }
 
+        const orderedApplicants = moveSelectedToTop(
+          applicants,
+          selected._id,
+          (item) => item._id,
+        );
+
+        setCandidates(orderedApplicants);
         setSelectedCandidate(selected);
         setSelectedCandidateId(selected._id);
 
-        if (!selectedJob && selected?.jobId) {
-          setSelectedJob(selected.jobId?._id || selected.jobId);
+        if (isFromMessaging && (navApplicationId || navCandidateId)) {
+          requestAnimationFrame(() => {
+            if (listScrollRef.current) {
+              listScrollRef.current.scrollTop = 0;
+            }
+          });
         }
       } else {
+        setCandidates([]);
         setSelectedCandidate(null);
       }
     } catch (error) {
@@ -480,7 +551,7 @@ function ManagesApplicants() {
     currentPage,
     selectedJob,
     status,
-    search,
+    debouncedSearch,
     selectedSkills,
     selectedExperience,
     selectedEducation,
@@ -886,7 +957,7 @@ function ManagesApplicants() {
                 </Link>
               </li>
               <li className="item">
-                <Link to="/all-applicants-list">
+                <Link to="/all-applicants-list" state={{ showAllJobs: true }}>
                   <i className="fa-solid fa-angle-right" /> Applicant Management
                 </Link>
               </li>
@@ -914,11 +985,10 @@ function ManagesApplicants() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("all")}
-                  className={`btn btn-sm rounded-pill px-3 fw-bold ${
-                    activeTab === "all"
-                      ? "bg-white shadow-sm text-primary"
-                      : "text-muted"
-                  }`}
+                  className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "all"
+                    ? "bg-white shadow-sm text-primary"
+                    : "text-muted"
+                    }`}
                   style={{
                     border: "none",
                     transition: "0.2s",
@@ -932,11 +1002,10 @@ function ManagesApplicants() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("summary")}
-                  className={`btn btn-sm rounded-pill px-3 fw-bold ${
-                    activeTab === "summary"
-                      ? "bg-white shadow-sm text-primary"
-                      : "text-muted"
-                  }`}
+                  className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "summary"
+                    ? "bg-white shadow-sm text-primary"
+                    : "text-muted"
+                    }`}
                   style={{
                     border: "none",
                     transition: "0.2s",
@@ -1010,11 +1079,10 @@ function ManagesApplicants() {
                       setStatus(statusItem.value); // ✅ send correct API value
                       setCurrentPage(1);
                     }}
-                    className={`btn btn-sm rounded-pill px-3 ${
-                      isActive
-                        ? "btn-dark text-white"
-                        : "btn-outline-light text-dark border"
-                    }`}
+                    className={`btn btn-sm rounded-pill px-3 ${isActive
+                      ? "btn-dark text-white"
+                      : "btn-outline-light text-dark border"
+                      }`}
                     style={{ whiteSpace: "nowrap" }}
                   >
                     {statusItem.label}
@@ -1064,9 +1132,8 @@ function ManagesApplicants() {
                     onClick={() => setShowFilter(!showFilter)}
                   >
                     <i
-                      className={`fa-solid ${
-                        showFilter ? "fa-chevron-up" : "fa-filter"
-                      }`}
+                      className={`fa-solid ${showFilter ? "fa-chevron-up" : "fa-filter"
+                        }`}
                     />
                     {showFilter ? "Hide Filters" : "Show Filters"}
                   </button>
@@ -1148,11 +1215,10 @@ function ManagesApplicants() {
                           </span>
 
                           <i
-                            className={`fa-solid ${
-                              showExperienceDropdown
-                                ? "fa-chevron-up"
-                                : "fa-chevron-down"
-                            }`}
+                            className={`fa-solid ${showExperienceDropdown
+                              ? "fa-chevron-up"
+                              : "fa-chevron-down"
+                              }`}
                           />
                         </div>
 
@@ -1280,11 +1346,10 @@ function ManagesApplicants() {
                           </span>
 
                           <i
-                            className={`fa-solid ${
-                              showEducationDropdown
-                                ? "fa-chevron-up"
-                                : "fa-chevron-down"
-                            }`}
+                            className={`fa-solid ${showEducationDropdown
+                              ? "fa-chevron-up"
+                              : "fa-chevron-down"
+                              }`}
                           />
                         </div>
 
@@ -1388,11 +1453,10 @@ function ManagesApplicants() {
                           </span>
 
                           <i
-                            className={`fa-solid ${
-                              showAvailabilityDropdown
-                                ? "fa-chevron-up"
-                                : "fa-chevron-down"
-                            }`}
+                            className={`fa-solid ${showAvailabilityDropdown
+                              ? "fa-chevron-up"
+                              : "fa-chevron-down"
+                              }`}
                           />
                         </div>
 
@@ -1494,11 +1558,10 @@ function ManagesApplicants() {
                           </span>
 
                           <i
-                            className={`fa-solid ${
-                              showSalaryDropdown
-                                ? "fa-chevron-up"
-                                : "fa-chevron-down"
-                            }`}
+                            className={`fa-solid ${showSalaryDropdown
+                              ? "fa-chevron-up"
+                              : "fa-chevron-down"
+                              }`}
                           />
                         </div>
 
@@ -1921,6 +1984,7 @@ function ManagesApplicants() {
                     </select>
                   </div>
                   <div
+                    ref={listScrollRef}
                     className="candidate-list-scroll px-1"
                     style={{ maxHeight: "800px" }}
                   >
@@ -1944,9 +2008,10 @@ function ManagesApplicants() {
                             setSelectedCandidate(user);
                             setSelectedCandidateId(user._id); // ✅ track ID
                           }}
-                          className={`card mb-3 border-0 shadow-sm candidate-list-card ${
-                            selectedCandidateId === item._id ? "active" : ""
-                          }`}
+                          className={`card mb-3 border-0 shadow-sm candidate-list-card ${String(selectedCandidateId) === String(item._id)
+                            ? "active"
+                            : ""
+                            }`}
                           style={{ cursor: "pointer" }}
                         >
                           <div className="card-body p-3">
@@ -2377,18 +2442,18 @@ function ManagesApplicants() {
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-location-dot text-danger" />
                                 {selectedCandidate?.userId?.city &&
-                                selectedCandidate?.userId?.Nationality
+                                  selectedCandidate?.userId?.Nationality
                                   ? `${selectedCandidate.userId.city
-                                      .toLowerCase()
-                                      .replace(/^\w/, (c) =>
-                                        c.toUpperCase(),
-                                      )}, ${selectedCandidate.userId.Nationality}`
+                                    .toLowerCase()
+                                    .replace(/^\w/, (c) =>
+                                      c.toUpperCase(),
+                                    )}, ${selectedCandidate.userId.Nationality}`
                                   : selectedCandidate?.userId?.city
                                     ? selectedCandidate.userId.city
-                                        .toLowerCase()
-                                        .replace(/^\w/, (c) => c.toUpperCase())
+                                      .toLowerCase()
+                                      .replace(/^\w/, (c) => c.toUpperCase())
                                     : selectedCandidate?.userId?.Nationality ||
-                                      "Not Provided"}
+                                    "Not Provided"}
                               </span>
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-briefcase text-info" />
@@ -2484,12 +2549,11 @@ function ManagesApplicants() {
                                         >
                                           {selectedCandidate?.userId
                                             ?.countryCode
-                                            ? `+${selectedCandidate.userId.countryCode} ${
-                                                selectedCandidate?.userId
-                                                  ?.phone || ""
-                                              }`
+                                            ? `+${selectedCandidate.userId.countryCode} ${selectedCandidate?.userId
+                                              ?.phone || ""
+                                            }`
                                             : selectedCandidate?.userId
-                                                ?.phone || "Not Provided"}
+                                              ?.phone || "Not Provided"}
                                         </div>
                                       </div>
                                     </div>
@@ -2779,7 +2843,7 @@ function ManagesApplicants() {
                                 {selectedCandidate?.userId?.candidateProfile
                                   ?.professionalSummary
                                   ? selectedCandidate.userId.candidateProfile
-                                      .professionalSummary
+                                    .professionalSummary
                                   : "No professional summary added."}
                               </p>
                             </div>
@@ -2799,23 +2863,23 @@ function ManagesApplicants() {
 
                                 {selectedCandidate?.userId?.candidateProfile
                                   ?.workHistory?.length > 2 && (
-                                  <button
-                                    className="btn btn-link btn-sm text-decoration-none fw-bold"
-                                    onClick={() =>
-                                      setShowAllExperience(!showAllExperience)
-                                    }
-                                  >
-                                    {showAllExperience
-                                      ? "Voir moins"
-                                      : "Voir plus"}{" "}
-                                    (
-                                    {
-                                      selectedCandidate?.userId
-                                        ?.candidateProfile?.workHistory?.length
-                                    }
-                                    )
-                                  </button>
-                                )}
+                                    <button
+                                      className="btn btn-link btn-sm text-decoration-none fw-bold"
+                                      onClick={() =>
+                                        setShowAllExperience(!showAllExperience)
+                                      }
+                                    >
+                                      {showAllExperience
+                                        ? "Voir moins"
+                                        : "Voir plus"}{" "}
+                                      (
+                                      {
+                                        selectedCandidate?.userId
+                                          ?.candidateProfile?.workHistory?.length
+                                      }
+                                      )
+                                    </button>
+                                  )}
                               </div>
 
                               <div className="experience-timeline position-relative ps-4">
@@ -2828,11 +2892,11 @@ function ManagesApplicants() {
                                   ?.workHistory?.length > 0 ? (
                                   (showAllExperience
                                     ? selectedCandidate.userId.candidateProfile
-                                        .workHistory
+                                      .workHistory
                                     : selectedCandidate.userId.candidateProfile.workHistory.slice(
-                                        0,
-                                        2,
-                                      )
+                                      0,
+                                      2,
+                                    )
                                   ).map((work) => (
                                     <div
                                       key={work._id}
@@ -2862,16 +2926,16 @@ function ManagesApplicants() {
                                         >
                                           {work.startDate
                                             ? new Date(
-                                                work.startDate,
-                                              ).getFullYear()
+                                              work.startDate,
+                                            ).getFullYear()
                                             : "NA"}{" "}
                                           -{" "}
                                           {work.currentlyWorkingHere
                                             ? "Present"
                                             : work.endDate
                                               ? new Date(
-                                                  work.endDate,
-                                                ).getFullYear()
+                                                work.endDate,
+                                              ).getFullYear()
                                               : "NA"}
                                         </span>
                                       </div>
@@ -2958,16 +3022,16 @@ function ManagesApplicants() {
                                               {edu.degree || "NA"} •{" "}
                                               {edu.startDate
                                                 ? new Date(
-                                                    edu.startDate,
-                                                  ).getFullYear()
+                                                  edu.startDate,
+                                                ).getFullYear()
                                                 : "NA"}{" "}
                                               -{" "}
                                               {edu.currentlyStudyingHere
                                                 ? "Present"
                                                 : edu.endDate
                                                   ? new Date(
-                                                      edu.endDate,
-                                                    ).getFullYear()
+                                                    edu.endDate,
+                                                  ).getFullYear()
                                                   : "NA"}
                                             </span>
                                           </div>
@@ -3057,11 +3121,11 @@ function ManagesApplicants() {
                                             ?.DesiredJobTitle,
                                         )
                                           ? selectedCandidate.userId.candidateProfile.career_goals.DesiredJobTitle.join(
-                                              ", ",
-                                            )
+                                            ", ",
+                                          )
                                           : selectedCandidate?.userId
-                                              ?.candidateProfile?.career_goals
-                                              ?.DesiredJobTitle || "NA"}
+                                            ?.candidateProfile?.career_goals
+                                            ?.DesiredJobTitle || "NA"}
                                       </div>
                                     </div>
 
@@ -3095,8 +3159,8 @@ function ManagesApplicants() {
                                             ),
                                           )
                                         ) : selectedCandidate?.userId
-                                            ?.candidateProfile?.career_goals
-                                            ?.DesiredEmploymentType ? (
+                                          ?.candidateProfile?.career_goals
+                                          ?.DesiredEmploymentType ? (
                                           <span
                                             className="badge bg-white text-dark border px-2 py-1"
                                             style={{ fontSize: "10px" }}
@@ -3134,11 +3198,11 @@ function ManagesApplicants() {
                                             ?.DesiredJobCategory,
                                         )
                                           ? selectedCandidate.userId.candidateProfile.career_goals.DesiredJobCategory.join(
-                                              ", ",
-                                            )
+                                            ", ",
+                                          )
                                           : selectedCandidate?.userId
-                                              ?.candidateProfile?.career_goals
-                                              ?.DesiredJobCategory || "NA"}
+                                            ?.candidateProfile?.career_goals
+                                            ?.DesiredJobCategory || "NA"}
                                       </div>
                                     </div>
 
@@ -3231,11 +3295,10 @@ function ManagesApplicants() {
                                           {selectedCandidate?.userId
                                             ?.candidateProfile?.career_goals
                                             ?.MinimumDesiredSalary?.type
-                                            ? `/ ${
-                                                selectedCandidate.userId
-                                                  .candidateProfile.career_goals
-                                                  .MinimumDesiredSalary.type
-                                              }`
+                                            ? `/ ${selectedCandidate.userId
+                                              .candidateProfile.career_goals
+                                              .MinimumDesiredSalary.type
+                                            }`
                                             : ""}
                                         </div>
                                       </div>
@@ -3341,8 +3404,8 @@ function ManagesApplicants() {
                                                 Issued:{" "}
                                                 {cer.issueDate
                                                   ? new Date(
-                                                      cer.issueDate,
-                                                    ).toLocaleDateString()
+                                                    cer.issueDate,
+                                                  ).toLocaleDateString()
                                                   : "NA"}
                                               </div>
                                             </div>
@@ -3621,8 +3684,8 @@ function ManagesApplicants() {
                                           (prev) =>
                                             prev.includes(item._id)
                                               ? prev.filter(
-                                                  (id) => id !== item._id,
-                                                ) // close
+                                                (id) => id !== item._id,
+                                              ) // close
                                               : [...prev, item._id], // open
                                         );
                                       }}
@@ -3635,11 +3698,10 @@ function ManagesApplicants() {
                                       </span>
 
                                       <i
-                                        className={`fa-solid ${
-                                          expandedRows.includes(item._id)
-                                            ? "fa-chevron-up"
-                                            : "fa-chevron-down"
-                                        }`}
+                                        className={`fa-solid ${expandedRows.includes(item._id)
+                                          ? "fa-chevron-up"
+                                          : "fa-chevron-down"
+                                          }`}
                                         style={{
                                           fontSize: "10px",
                                           color: "#6c757d",
@@ -3683,31 +3745,31 @@ function ManagesApplicants() {
                                           {item.userId?.candidateProfile
                                             ?.workHistory?.[0]
                                             ?.currentSalary && (
-                                            <span
-                                              className="fw-bold"
-                                              style={{
-                                                color: "rgb(25, 103, 210)",
-                                              }}
-                                            >
-                                              Salary:{" "}
-                                              {
-                                                item.userId.candidateProfile
-                                                  .workHistory[0].currentSalary
-                                                  .amount
-                                              }{" "}
-                                              {
-                                                item.userId.candidateProfile
-                                                  .workHistory[0].currentSalary
-                                                  .currency
-                                              }
-                                              {/* {" / "}
+                                              <span
+                                                className="fw-bold"
+                                                style={{
+                                                  color: "rgb(25, 103, 210)",
+                                                }}
+                                              >
+                                                Salary:{" "}
+                                                {
+                                                  item.userId.candidateProfile
+                                                    .workHistory[0].currentSalary
+                                                    .amount
+                                                }{" "}
+                                                {
+                                                  item.userId.candidateProfile
+                                                    .workHistory[0].currentSalary
+                                                    .currency
+                                                }
+                                                {/* {" / "}
                                               {
                                                 item.userId.candidateProfile
                                                   .workHistory[0].currentSalary
                                                   .payrollFrequency
                                               } */}
-                                            </span>
-                                          )}
+                                              </span>
+                                            )}
 
                                           {/* ✅ Desired Salary (Fallback) */}
                                           {!item.userId?.candidateProfile
@@ -3745,23 +3807,23 @@ function ManagesApplicants() {
                                           {/* ✅ TJM */}
                                           {item.userId?.candidateProfile
                                             ?.career_goals?.TJM && (
-                                            <span
-                                              className="fw-bold"
-                                              style={{
-                                                color: "rgb(243, 122, 71)",
-                                              }}
-                                            >
-                                              TJM:{" "}
-                                              {
-                                                item.userId.candidateProfile
-                                                  .career_goals.TJM.amount
-                                              }{" "}
-                                              {
-                                                item.userId.candidateProfile
-                                                  .career_goals.TJM.currency
-                                              }
-                                            </span>
-                                          )}
+                                              <span
+                                                className="fw-bold"
+                                                style={{
+                                                  color: "rgb(243, 122, 71)",
+                                                }}
+                                              >
+                                                TJM:{" "}
+                                                {
+                                                  item.userId.candidateProfile
+                                                    .career_goals.TJM.amount
+                                                }{" "}
+                                                {
+                                                  item.userId.candidateProfile
+                                                    .career_goals.TJM.currency
+                                                }
+                                              </span>
+                                            )}
                                         </div>
                                       </div>
                                     </div>
@@ -3788,18 +3850,18 @@ function ManagesApplicants() {
                                   {/* CITY */}
                                   <td className="py-3 text-center">
                                     {item?.userId?.city &&
-                                    item?.userId?.Nationality
+                                      item?.userId?.Nationality
                                       ? `${item.userId.city
+                                        .toLowerCase()
+                                        .replace(/^\w/, (c) =>
+                                          c.toUpperCase(),
+                                        )}, ${item.userId.Nationality}`
+                                      : item?.userId?.city
+                                        ? item.userId.city
                                           .toLowerCase()
                                           .replace(/^\w/, (c) =>
                                             c.toUpperCase(),
-                                          )}, ${item.userId.Nationality}`
-                                      : item?.userId?.city
-                                        ? item.userId.city
-                                            .toLowerCase()
-                                            .replace(/^\w/, (c) =>
-                                              c.toUpperCase(),
-                                            )
+                                          )
                                         : item?.userId?.Nationality || "N/A"}
                                   </td>
 
@@ -4024,7 +4086,7 @@ function ManagesApplicants() {
                                                     }}
                                                   >
                                                     {isCompleted &&
-                                                    !isRejected ? (
+                                                      !isRejected ? (
                                                       <i
                                                         className="fa-solid fa-check"
                                                         style={{

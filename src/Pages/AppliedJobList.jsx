@@ -327,7 +327,7 @@ function AppliedJobList() {
                           {job?.applicantCount > 0 ? (
                             <Link
                               to="/all-applicants-list"
-                              state={{ jobId: job._id }}
+                              state={{ jobId: job._id, filterByJob: true }}
                               className="fw-bold text-primary"
                               // style={{ color: "#0d6efd", fontWeight: "500" }}
                             >

@@ -9,6 +9,14 @@ import Pagination from "@mui/material/Pagination"; // MUI one
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import Slider from "react-slick";
+import { ToastContainer, toast } from "react-toastify";
+import { useDebounce } from "../hooks/useDebounce";
+import { checkSearchRateLimit } from "../utils/searchRateLimit";
+import { filterCompanySearchResults } from "../utils/companySearchFilter";
+
+const SEARCH_DEBOUNCE_MS = 600;
+const SEARCH_RATE_LIMIT_KEY = "employers-companies";
+
 const Employers = () => {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
@@ -26,7 +34,53 @@ const Employers = () => {
   const [defaultSections, setDefaultSections] = useState({
     justJoinedUs: [],
   });
+  const [companiesLoading, setCompaniesLoading] = useState(true);
+  const isFirstFetch = useRef(true);
+  const filterKeyRef = useRef("");
   const dropdownRef = useRef(null);
+  const debouncedCompanySearch = useDebounce(companySearch, SEARCH_DEBOUNCE_MS);
+  const debouncedLocationSearch = useDebounce(
+    locationSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
+
+  const CompaniesSectionLoader = ({ message = "Loading companies..." }) => (
+    <div className="col-12">
+      <div
+        className="text-center py-5"
+        style={{
+          background: "#fff",
+          borderRadius: "12px",
+          border: "1px solid #e5e7eb",
+          minHeight: "200px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div className="custom-spinner mb-3" role="status" aria-label="Loading" />
+        <p className="text-muted mb-0">{message}</p>
+      </div>
+    </div>
+  );
+
+  const JoinedCompaniesLoader = () => (
+    <div
+      className="d-flex flex-column justify-content-center align-items-center w-100"
+      style={{
+        minHeight: "150px",
+        background: "#fff",
+        borderRadius: "10px",
+        padding: "20px",
+      }}
+    >
+      <div className="custom-spinner mb-3" role="status" aria-label="Loading" />
+      <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+        Loading companies...
+      </p>
+    </div>
+  );
   const stripHtml = (html) => {
     if (!html) return "";
     return html.replace(/<[^>]*>/g, "");
@@ -53,23 +107,29 @@ const Employers = () => {
     search = "",
     location = "",
   ) => {
+    const rateCheck = checkSearchRateLimit(SEARCH_RATE_LIMIT_KEY);
+    if (!rateCheck.allowed) {
+      toast.warning(
+        "Too many searches. Please wait a moment before trying again.",
+      );
+      return;
+    }
+
+    setCompaniesLoading(true);
     try {
       const params = {
         page,
         limit,
       };
 
-      // Industry Filter
       if (industryIds.length > 0) {
         params.industry = industryIds.join(",");
       }
 
-      // Company Search
       if (search?.trim()) {
         params.search = search;
       }
 
-      // Location Search
       if (location?.trim()) {
         params.location = location;
       }
@@ -80,30 +140,28 @@ const Employers = () => {
 
       if (res.data.success) {
         setCompanies(res.data);
+
+        const hasActiveFilters =
+          industryIds.length > 0 ||
+          Boolean(search?.trim()) ||
+          Boolean(location?.trim());
+
+        if (!hasActiveFilters && page === 1) {
+          setDefaultSections({
+            justJoinedUs: res.data?.sections?.justJoinedUs || [],
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching company list:", error);
-    }
-  };
-  const fetchDefaultSections = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
-        params: { page: 1, limit: 15 },
-      });
-
-      if (res.data.success) {
-        setDefaultSections({
-          justJoinedUs: res.data?.sections?.justJoinedUs || [],
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching default sections:", error);
+    } finally {
+      setCompaniesLoading(false);
     }
   };
 
   const isSearchActive =
-    Boolean(companySearch?.trim()) ||
-    Boolean(locationSearch?.trim()) ||
+    Boolean(debouncedCompanySearch?.trim()) ||
+    Boolean(debouncedLocationSearch?.trim()) ||
     selected.length > 0;
 
   const joinedCompanies = isSearchActive
@@ -139,30 +197,47 @@ const Employers = () => {
   const totalPages = companies?.totalPages;
 
   useEffect(() => {
-    fetchDefaultSections();
-  }, []);
-
-  // Reset to page 1 when search filters change
-  useEffect(() => {
-    setPageNumber(1);
-  }, [companySearch, locationSearch, selected]);
-
-  // Refetch when filters change
-  useEffect(() => {
     const selectedIndustryIds = selected.map((i) => i._id);
+    const filterKey = [
+      debouncedCompanySearch,
+      debouncedLocationSearch,
+      selectedIndustryIds.join(","),
+    ].join("|");
+    const filtersChanged = filterKeyRef.current !== filterKey;
+    filterKeyRef.current = filterKey;
 
-    const delayDebounce = setTimeout(() => {
+    const pageToFetch = filtersChanged ? 1 : pageNumber;
+    if (filtersChanged && pageNumber !== 1) {
+      setPageNumber(1);
+      return;
+    }
+
+    if (isFirstFetch.current) {
+      isFirstFetch.current = false;
       getCompanyList(
         selectedIndustryIds,
-        pageNumber,
+        pageToFetch,
         pageSize,
-        companySearch,
-        locationSearch,
+        debouncedCompanySearch,
+        debouncedLocationSearch,
       );
-    }, 500);
+      return;
+    }
 
-    return () => clearTimeout(delayDebounce);
-  }, [selected, pageNumber, pageSize, companySearch, locationSearch]);
+    getCompanyList(
+      selectedIndustryIds,
+      pageToFetch,
+      pageSize,
+      debouncedCompanySearch,
+      debouncedLocationSearch,
+    );
+  }, [
+    selected,
+    pageNumber,
+    pageSize,
+    debouncedCompanySearch,
+    debouncedLocationSearch,
+  ]);
   const handleViewCompany = (company, from) => {
     navigate(`/${company.slug}`, {
       state: { companyId: company._id, from }, // ✅ keep ID hidden
@@ -188,8 +263,8 @@ const Employers = () => {
       selectedIndustryIds,
       pageNumber,
       pageSize,
-      companySearch,
-      locationSearch,
+      debouncedCompanySearch,
+      debouncedLocationSearch,
     );
   };
   const filteredOptions = options.filter((industry) =>
@@ -233,8 +308,8 @@ const Employers = () => {
       selectedIndustryIds,
       pageNumber,
       pageSize,
-      companySearch,
-      locationSearch,
+      debouncedCompanySearch,
+      debouncedLocationSearch,
     );
   };
   console.log(selected);
@@ -243,24 +318,24 @@ const Employers = () => {
   const partnerCompanies = companies?.sections?.partnerCompanies || [];
 
   const getSearchResultsFromResponse = (data) => {
+    let results = [];
+
     if (data?.companies?.length > 0) {
-      return data.companies;
+      results = data.companies;
+    } else {
+      const sections = data?.sections || {};
+      results = [
+        ...(sections.companiesOfMoment || []),
+        ...(sections.partnerCompanies || []),
+        ...(sections.justJoinedUs || []),
+      ];
     }
 
-    const sections = data?.sections || {};
-    const combined = [
-      ...(sections.companiesOfMoment || []),
-      ...(sections.partnerCompanies || []),
-      ...(sections.justJoinedUs || []),
-    ];
-
-    const seen = new Set();
-    return combined.filter((item) => {
-      const id = item?.companyId?._id || item?._id;
-      if (!id || seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    });
+    return filterCompanySearchResults(
+      results,
+      debouncedCompanySearch,
+      debouncedLocationSearch,
+    );
   };
 
   const searchResults = isSearchActive
@@ -422,6 +497,7 @@ const Employers = () => {
   };
   return (
     <>
+      <ToastContainer position="top-right" autoClose={3000} />
       <Helmet>
         {/* Basic SEO */}
         <title>Companies | Job Portal</title>
@@ -821,7 +897,9 @@ const Employers = () => {
                           borderRadius: "12px",
                         }}
                       >
-                        {joinedCompanies?.length > 0 ? (
+                        {companiesLoading && !isSearchActive ? (
+                          <JoinedCompaniesLoader />
+                        ) : joinedCompanies?.length > 0 ? (
                           <div className="carousel-container px-2 w-100">
                             <div className="slider-container">
                               <Slider {...settings}>
@@ -980,7 +1058,9 @@ const Employers = () => {
                           </div>
                         </div>
                         <div className="row">
-                          {searchResults?.length > 0 ? (
+                          {companiesLoading ? (
+                            <CompaniesSectionLoader message="Searching companies..." />
+                          ) : searchResults?.length > 0 ? (
                             searchResults.map((item, index) =>
                               renderPartnerStyleCard(item, index),
                             )
@@ -1057,7 +1137,9 @@ const Employers = () => {
                           </div>
                         </div>
                         <div className="row">
-                          {companiesOfMoment?.length > 0 ? (
+                          {companiesLoading ? (
+                            <CompaniesSectionLoader />
+                          ) : companiesOfMoment?.length > 0 ? (
                             companiesOfMoment.map((item, index) => {
                               const company = item?.companyId;
 
@@ -1302,7 +1384,9 @@ const Employers = () => {
                           </div>
                         </div>
                         <div className="row">
-                          {partnerCompanies?.length > 0 ? (
+                          {companiesLoading ? (
+                            <CompaniesSectionLoader />
+                          ) : partnerCompanies?.length > 0 ? (
                             partnerCompanies.map((item, index) => {
                               const company = item?.companyId;
 
@@ -1523,38 +1607,48 @@ const Employers = () => {
                   </div>
                 )}
                 <div className="MuiStack-root css-14yaqqw">
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{ mt: 3 }}
-                  >
-                    <Pagination
-                      count={companies?.totalPages || 1}
-                      page={pageNumber}
-                      onChange={(e, value) => setPageNumber(value)}
-                      variant="outlined"
-                      shape="rounded"
-                      color="secondary"
-                      siblingCount={2}
-                      boundaryCount={1}
-                    />
-
-                    <Select
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(e.target.value);
-                        setPageNumber(1); // reset to first page
-                      }}
-                      size="small"
+                  {companiesLoading ? (
+                    <div className="d-flex justify-content-center align-items-center py-3">
+                      <div
+                        className="custom-spinner"
+                        role="status"
+                        aria-label="Loading pagination"
+                      />
+                    </div>
+                  ) : (
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                      justifyContent="center"
+                      sx={{ mt: 3 }}
                     >
-                      <MenuItem value={15}>15 / {t("header.page")}</MenuItem>
-                      <MenuItem value={25}>25 / {t("header.page")}</MenuItem>
-                      <MenuItem value={50}>50 /{t("header.page")}</MenuItem>
-                      <MenuItem value={100}>100 /{t("header.page")}</MenuItem>
-                    </Select>
-                  </Stack>
+                      <Pagination
+                        count={companies?.totalPages || 1}
+                        page={pageNumber}
+                        onChange={(e, value) => setPageNumber(value)}
+                        variant="outlined"
+                        shape="rounded"
+                        color="secondary"
+                        siblingCount={2}
+                        boundaryCount={1}
+                      />
+
+                      <Select
+                        value={pageSize}
+                        onChange={(e) => {
+                          setPageSize(e.target.value);
+                          setPageNumber(1);
+                        }}
+                        size="small"
+                      >
+                        <MenuItem value={15}>15 / {t("header.page")}</MenuItem>
+                        <MenuItem value={25}>25 / {t("header.page")}</MenuItem>
+                        <MenuItem value={50}>50 /{t("header.page")}</MenuItem>
+                        <MenuItem value={100}>100 /{t("header.page")}</MenuItem>
+                      </Select>
+                    </Stack>
+                  )}
                 </div>
               </div>
             </div>

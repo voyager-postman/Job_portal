@@ -8,6 +8,10 @@ import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
 import EmojiPicker from "emoji-picker-react";
 import { io } from "socket.io-client";
+import { useDebounce } from "../hooks/useDebounce";
+import { checkSearchRateLimit } from "../utils/searchRateLimit";
+
+const MESSAGING_SEARCH_DEBOUNCE_MS = 600;
 
 function MassagingSystem() {
   const token = localStorage.getItem("token");
@@ -59,6 +63,7 @@ function MassagingSystem() {
   const [chatStore, setChatStore] = useState({});
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, MESSAGING_SEARCH_DEBOUNCE_MS);
   const [showCompanyInfo, setShowCompanyInfo] = useState(true);
   const [showChatSearch, setShowChatSearch] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -295,9 +300,14 @@ function MassagingSystem() {
 
   // ================= FETCH CONVERSATIONS =================
   const fetchConversations = async () => {
+    const rateCheck = checkSearchRateLimit("messaging-conversations");
+    if (!rateCheck.allowed) {
+      return;
+    }
+
     try {
       let params = {
-        search,
+        search: debouncedSearch,
       };
 
       // ================= FILTER =================
@@ -339,7 +349,7 @@ function MassagingSystem() {
   };
   useEffect(() => {
     fetchConversations();
-  }, [filter, activeFilter, startDate, search]);
+  }, [filter, activeFilter, startDate, debouncedSearch]);
   // ================= AUTO OPEN CHAT =================
 
   // ================= FETCH CHAT =================
@@ -484,27 +494,78 @@ function MassagingSystem() {
 
   // ================= LOAD CHAT =================
 
+  const findApplicantByUserId = async (userId) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page: 1, limit: 200 },
+      });
+
+      const applicants = res.data?.applicants || [];
+      return applicants.find(
+        (item) => String(item?.userId?._id) === String(userId),
+      );
+    } catch (error) {
+      console.log("Applicant lookup error:", error);
+      return null;
+    }
+  };
+
+  const resolveApplicationContext = async (userId, existing = {}) => {
+    let jobId = existing?.jobId;
+    let applicationId = existing?.applicationId;
+
+    if (!jobId || !applicationId) {
+      const fromNav = getProfileContext(userId);
+      jobId = jobId || fromNav.jobId || resolveJobId(candidateData);
+      applicationId =
+        applicationId || fromNav.applicationId || resolveApplicationId(candidateData);
+    }
+
+    if (jobId && applicationId) {
+      return { jobId, applicationId, hasApplication: true };
+    }
+
+    const match = await findApplicantByUserId(userId);
+    if (match) {
+      return {
+        jobId: match?.jobId?._id || match?.jobId,
+        applicationId: match._id,
+        hasApplication: true,
+      };
+    }
+
+    return { jobId: null, applicationId: null, hasApplication: false };
+  };
+
   const handleViewFullProfile = async () => {
     const candidateUserId = activeUser?.id;
     if (!candidateUserId) return;
 
-    let jobId = activeUser?.jobId;
-    let applicationId = activeUser?.applicationId;
     const fromPage = activeUser?.fromPage || profileFrom;
-
-    if (!jobId || !applicationId) {
-      jobId = jobId || resolveJobId(candidateData);
-      applicationId = applicationId || resolveApplicationId(candidateData);
-    }
-
-    if (jobId && applicationId) {
-      navigate("/all-applicants-list", {
-        state: {
-          jobId,
-          applicationId,
-          candidateId: candidateUserId,
-        },
+    const { jobId, applicationId, hasApplication } =
+      await resolveApplicationContext(candidateUserId, {
+        jobId: activeUser?.jobId,
+        applicationId: activeUser?.applicationId,
       });
+
+    const goToApplicants = (resolvedApplicationId, resolvedJobId) => {
+      const state = {
+        applicationId: resolvedApplicationId,
+        candidateId: candidateUserId,
+        from: "/messaging-system",
+      };
+
+      if (resolvedJobId) {
+        state.jobId = resolvedJobId;
+        state.filterByJob = true;
+      }
+
+      navigate("/all-applicants-list", { state });
+    };
+
+    if (hasApplication) {
+      goToApplicants(applicationId, jobId);
       return;
     }
 
@@ -515,29 +576,11 @@ function MassagingSystem() {
       return;
     }
 
-    try {
-      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { page: 1, limit: 200 },
+    if (fromPage === "/all-applicants-list") {
+      navigate("/all-applicants-list", {
+        state: { candidateId: candidateUserId, from: "/messaging-system" },
       });
-
-      const applicants = res.data?.applicants || [];
-      const match = applicants.find(
-        (item) => String(item?.userId?._id) === String(candidateUserId),
-      );
-
-      if (match) {
-        navigate("/all-applicants-list", {
-          state: {
-            jobId: match?.jobId?._id || match?.jobId,
-            applicationId: match._id,
-            candidateId: candidateUserId,
-          },
-        });
-        return;
-      }
-    } catch (error) {
-      console.log("Applicant lookup error:", error);
+      return;
     }
 
     navigate("/candidates-search", {
@@ -586,6 +629,7 @@ function MassagingSystem() {
 
       slug: user?.otherUser?.slug,
 
+      fromPage: profileFrom,
       ...getProfileContext(otherUserId),
     });
 
@@ -1351,7 +1395,7 @@ function MassagingSystem() {
                         {showEmojiPicker && (
                           <div
                             ref={emojiPickerRef}
-                            className="emoji-picker-wrapper"
+                            className="emoji-picker-wrapper emoji-pop-box"
                           >
                             <button
                               type="button"

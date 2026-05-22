@@ -198,6 +198,7 @@ function Sidebar() {
             <li className="nav-item">
               <NavLink
                 to="/all-applicants-list"
+                state={{ showAllJobs: true }}
                 className={({ isActive }) =>
                   "nav-link" + (isActive ? " active" : "")
                 }
