@@ -50,11 +50,11 @@ function CandidateDashboard() {
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [profileVisible, setProfileVisible] = useState(true); // ✅ default true
-  const [selectedType, setSelectedType] = useState(null);
+  const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
+  const [selectedCoverLetterUrl, setSelectedCoverLetterUrl] = useState(null);
   const [selectedCustomFile, setSelectedCustomFile] = useState(null);
-  const [visibilityMessage, setVisibilityMessage] = useState("");
-  const [selectedId, setSelectedId] = useState(null);
   const fileInputRef = useRef(null);
+  const [visibilityMessage, setVisibilityMessage] = useState("");
   const [jobId, setJobId] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -249,11 +249,6 @@ function CandidateDashboard() {
     }
   };
 
-  const handleLinkClick = (e) => {
-    e.preventDefault(); // prevent navigation
-    fileInputRef.current.click(); // open file dialog
-  };
-
   const fetchResume = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
@@ -277,17 +272,23 @@ function CandidateDashboard() {
   }, []);
 
   const handleSelect = (type, id = null) => {
-    setSelectedType(type);
-    setSelectedId(id);
+    if (type === "resume") {
+      setSelectedResumeUrl(id);
+      setSelectedCustomFile(null);
+      if (fileInputRef?.current) fileInputRef.current.value = "";
+    } else if (type === "cover") {
+      setSelectedCoverLetterUrl(id);
+    }
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedCustomFile(file);
-      setSelectedType("custom");
-      setSelectedId(null);
+      setSelectedResumeUrl(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -315,23 +316,16 @@ function CandidateDashboard() {
   };
 
   const isSelectionMade = () => {
-    return (
-      (selectedType === "resume" && selectedId) ||
-      (selectedType === "cover" && selectedId) ||
-      (selectedType === "custom" && selectedCustomFile)
-    );
+    return !!(selectedResumeUrl || selectedCustomFile);
   };
 
   const resetApplyModal = () => {
-    setSelectedType("");
-    setSelectedId(null);
+    setSelectedResumeUrl(null);
+    setSelectedCoverLetterUrl(null);
     setSelectedCustomFile(null);
     setIsApplying(false);
 
-    // reset file input
-    if (fileInputRef?.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef?.current) fileInputRef.current.value = "";
   };
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleApplyJob = async () => {
@@ -340,55 +334,36 @@ function CandidateDashboard() {
       return;
     }
 
-    // ✅ VALIDATION: Ensure one of the three options is selected
-    if (
-      selectedType === "resume" &&
-      !selectedId &&
-      selectedType === "cover" &&
-      !selectedId &&
-      selectedType === "custom" &&
-      !selectedCustomFile
-    ) {
-      toast.error(
-        "Please select a resume, cover letter, or upload a custom file.",
-        {
-          autoClose: 2000,
-          theme: "colored",
-        },
-      );
-      return; // stop here
+    if (!selectedResumeUrl && !selectedCustomFile) {
+      toast.error(t("header.Please_select_resume_file"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
     }
 
-    setIsApplying(true); // 🔥 Start loader
+    setIsApplying(true);
 
     const formData = new FormData();
 
-    if (selectedType === "resume") {
-      formData.append("cv", selectedId);
-    } else if (selectedType === "cover") {
-      formData.append("coverLetter", selectedId);
-    } else if (selectedType === "custom") {
-      const file = selectedCustomFile;
+    if (selectedResumeUrl) {
+      formData.append("cv", selectedResumeUrl);
+    }
 
-      if (!file) {
-        toast.error("Please select a custom file.", {
+    if (selectedCoverLetterUrl) {
+      formData.append("coverLetter", selectedCoverLetterUrl);
+    }
+
+    if (selectedCustomFile) {
+      if (selectedCustomFile.size > MAX_FILE_SIZE) {
+        toast.error(t("header.file_too_large"), {
           autoClose: 2000,
           theme: "colored",
         });
         setIsApplying(false);
         return;
       }
-
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return;
-      }
-
-      formData.append("customResume", file);
+      formData.append("customResume", selectedCustomFile);
     }
 
     formData.append("jobId", jobId);
@@ -747,10 +722,10 @@ function CandidateDashboard() {
                                   {job?.isAssessmentRequired && (
                                     <span className="modern-status-badge assessment me-2">
                                       {job?.assessmentResult?.status ===
-                                      "passed"
+                                        "passed"
                                         ? "Test Passed"
                                         : job?.assessmentResult?.status ===
-                                            "failed"
+                                          "failed"
                                           ? "Test Failed"
                                           : t("header.Test_Required")}
                                     </span>
@@ -772,9 +747,8 @@ function CandidateDashboard() {
                                     }}
                                   >
                                     <i
-                                      className={`fa-${
-                                        job.isSaved ? "solid" : "regular"
-                                      } fa-heart`}
+                                      className={`fa-${job.isSaved ? "solid" : "regular"
+                                        } fa-heart`}
                                       style={{
                                         color: job?.isSaved
                                           ? "#ff0000"
@@ -792,7 +766,7 @@ function CandidateDashboard() {
 
                                       window.open(
                                         job?.social_links?.linkedin ||
-                                          "https://linkedin.com",
+                                        "https://linkedin.com",
                                         "_blank",
                                       );
                                     }}
@@ -818,8 +792,8 @@ function CandidateDashboard() {
                                     <i className="fa-regular fa-file me-1"></i>
                                     {job?.jobCategory?.length > 0
                                       ? job.jobCategory
-                                          .map((item) => item.name)
-                                          .join(", ")
+                                        .map((item) => item.name)
+                                        .join(", ")
                                       : "N/A"}
                                   </span>
 
@@ -831,7 +805,7 @@ function CandidateDashboard() {
                                   <span className="modern-meta-tag">
                                     <i className="fa-regular fa-user me-1"></i>
                                     {Array.isArray(job?.employmentType) &&
-                                    job.employmentType.length > 0
+                                      job.employmentType.length > 0
                                       ? job.employmentType.join(", ")
                                       : "N/A"}
                                   </span>
@@ -865,7 +839,7 @@ function CandidateDashboard() {
                                     <i className="fa-solid fa-wallet" />
 
                                     {job?.privatJobDetails?.salaryNegotiable ===
-                                    true ? (
+                                      true ? (
                                       "Salary Negotiable"
                                     ) : job?.privatJobDetails?.minSalary ||
                                       job?.privatJobDetails?.maxSalary ? (
@@ -965,13 +939,12 @@ function CandidateDashboard() {
                               {/* NOTE: use className, not class */}
                               <div className="modal-body">
                                 <div className="job-apply-defult-resume-custom-resume">
-                                  {/* RESUME LIST - inline hide */}
                                   <div
                                     className="job-apply-custom-resume-info-area"
                                     style={{
                                       display:
                                         Array.isArray(resumeList) &&
-                                        resumeList.length > 0
+                                          resumeList.length > 0
                                           ? "block"
                                           : "none",
                                     }}
@@ -986,8 +959,7 @@ function CandidateDashboard() {
                                             key={resume._id}
                                             className={
                                               "job-apply-custom-resume-info " +
-                                              (selectedType === "resume" &&
-                                              selectedId === resume.url
+                                              (selectedResumeUrl === resume.url
                                                 ? "active"
                                                 : "")
                                             }
@@ -1000,9 +972,8 @@ function CandidateDashboard() {
                                               <i className="fa-solid fa-file" />{" "}
                                               {fileName}
                                             </span>
-
-                                            {selectedType === "resume" &&
-                                              selectedId === resume.url && (
+                                            {selectedResumeUrl ===
+                                              resume.url && (
                                                 <i className="fa-solid fa-circle-check selected-check-icon" />
                                               )}
                                           </div>
@@ -1010,13 +981,12 @@ function CandidateDashboard() {
                                       })}
                                   </div>
 
-                                  {/* OR DIVIDER for resume - inline hide */}
                                   <div
                                     className="defult-resume-custom-resume-divder-line"
                                     style={{
                                       display:
                                         Array.isArray(resumeList) &&
-                                        resumeList.length > 0
+                                          resumeList.length > 0
                                           ? "block"
                                           : "none",
                                     }}
@@ -1024,13 +994,12 @@ function CandidateDashboard() {
                                     <h4>or</h4>
                                   </div>
 
-                                  {/* COVER LETTER LIST - inline hide */}
                                   <div
                                     className="job-apply-custom-resume-info-area"
                                     style={{
                                       display:
                                         Array.isArray(coverLetterList) &&
-                                        coverLetterList.length > 0
+                                          coverLetterList.length > 0
                                           ? "block"
                                           : "none",
                                     }}
@@ -1043,8 +1012,8 @@ function CandidateDashboard() {
                                             key={cover._id}
                                             className={
                                               "job-apply-custom-resume-info " +
-                                              (selectedType === "cover" &&
-                                              selectedId === cover.url
+                                              (selectedCoverLetterUrl ===
+                                                cover.url
                                                 ? "active"
                                                 : "")
                                             }
@@ -1057,9 +1026,8 @@ function CandidateDashboard() {
                                               <i className="fa-solid fa-file" />{" "}
                                               {fileName}
                                             </span>
-
-                                            {selectedType === "cover" &&
-                                              selectedId === cover.url && (
+                                            {selectedCoverLetterUrl ===
+                                              cover.url && (
                                                 <i className="fa-solid fa-circle-check selected-check-icon" />
                                               )}
                                           </div>
@@ -1067,13 +1035,12 @@ function CandidateDashboard() {
                                       })}
                                   </div>
 
-                                  {/* OR DIVIDER for cover - inline hide */}
                                   <div
                                     className="defult-resume-custom-resume-divder-line"
                                     style={{
                                       display:
                                         Array.isArray(coverLetterList) &&
-                                        coverLetterList.length > 0
+                                          coverLetterList.length > 0
                                           ? "block"
                                           : "none",
                                     }}
@@ -1081,12 +1048,10 @@ function CandidateDashboard() {
                                     <h4>{t("header.or")}</h4>
                                   </div>
 
-                                  {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
                                   <div
                                     className="job-apply-custom-resume-info-area"
                                     style={{ display: "block" }}
                                   >
-                                    {/* Show selected custom file if exists */}
                                     <div
                                       style={{
                                         display: selectedCustomFile
@@ -1097,13 +1062,7 @@ function CandidateDashboard() {
                                       <div
                                         className={
                                           "job-apply-custom-resume-info " +
-                                          (selectedType === "custom"
-                                            ? "active"
-                                            : "")
-                                        }
-                                        onClick={() =>
-                                          selectedCustomFile &&
-                                          handleSelect("custom")
+                                          (selectedCustomFile ? "active" : "")
                                         }
                                         style={{
                                           cursor: selectedCustomFile
@@ -1117,14 +1076,12 @@ function CandidateDashboard() {
                                             ? selectedCustomFile.name
                                             : ""}
                                         </span>
-
-                                        {selectedType === "custom" && (
+                                        {selectedCustomFile && (
                                           <i className="fa-solid fa-circle-check selected-check-icon" />
                                         )}
                                       </div>
                                     </div>
 
-                                    {/* Upload Button — prevent default and open file input */}
                                     <div
                                       className="job-apply-custom-resume-cover-letter-btn"
                                       style={{ marginTop: 12 }}
@@ -1134,7 +1091,6 @@ function CandidateDashboard() {
                                         className="default-btn btn"
                                         onClick={(e) => {
                                           e.preventDefault();
-                                          // ensure fileInputRef.current exists
                                           if (
                                             fileInputRef &&
                                             fileInputRef.current
@@ -1146,7 +1102,6 @@ function CandidateDashboard() {
                                           "header.Custom_resume_with_cover_letter",
                                         )}
                                       </a>
-
                                       <input
                                         ref={fileInputRef}
                                         type="file"
@@ -1344,9 +1299,8 @@ function CandidateDashboard() {
                     unreadChat.map((chat, index) => (
                       <li
                         key={chat.groupId}
-                        className={`modern-message-item ${
-                          chat?.unreadCount > 0 ? "today" : ""
-                        }`}
+                        className={`modern-message-item ${chat?.unreadCount > 0 ? "today" : ""
+                          }`}
                       >
                         <Link
                           className="message-link-wrapper"
@@ -1555,7 +1509,7 @@ function CandidateDashboard() {
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         {Array.isArray(selectedJob?.jobCategory) &&
-                        selectedJob.jobCategory.length > 0
+                          selectedJob.jobCategory.length > 0
                           ? selectedJob.jobCategory.join(", ")
                           : "N/A"}
                       </font>
@@ -1600,7 +1554,7 @@ function CandidateDashboard() {
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         {Array.isArray(selectedJob?.employmentType) &&
-                        selectedJob.employmentType.length > 0
+                          selectedJob.employmentType.length > 0
                           ? selectedJob.employmentType.join(", ")
                           : "N/A"}
                       </font>
@@ -1627,7 +1581,7 @@ function CandidateDashboard() {
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         {selectedJob?.privatJobDetails?.salaryNegotiable ===
-                        true ? (
+                          true ? (
                           "Salaire à négocier"
                         ) : selectedJob?.privatJobDetails?.minSalary ||
                           selectedJob?.privatJobDetails?.maxSalary ? (
@@ -1693,7 +1647,7 @@ function CandidateDashboard() {
                   </h4>
                   <div className="modern-tag-list">
                     {Array.isArray(selectedJob?.tags) &&
-                    selectedJob.tags.length > 0 ? (
+                      selectedJob.tags.length > 0 ? (
                       selectedJob.tags.map((tag, index) => (
                         <span key={index} className="modern-job-tag">
                           {tag}
@@ -1811,9 +1765,8 @@ function CandidateDashboard() {
                     }}
                   >
                     <i
-                      className={`fa-${
-                        selectedJob?.isSaved ? "solid" : "regular"
-                      } fa-heart`}
+                      className={`fa-${selectedJob?.isSaved ? "solid" : "regular"
+                        } fa-heart`}
                       style={{
                         color: selectedJob?.isSaved ? "#ff0000" : "#65758a",
                       }}

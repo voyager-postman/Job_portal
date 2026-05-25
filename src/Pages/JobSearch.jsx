@@ -46,8 +46,8 @@ function JobSearch() {
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [showAlertOptions, setShowAlertOptions] = useState(false);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
+  const [selectedCoverLetterUrl, setSelectedCoverLetterUrl] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -258,16 +258,20 @@ function JobSearch() {
     fetchResume();
   }, []);
   const handleSelect = (type, id = null) => {
-    setSelectedType(type);
-    setSelectedId(id);
+    if (type === "resume") {
+      setSelectedResumeUrl(id);
+      setSelectedCustomFile(null);
+      if (fileInputRef?.current) fileInputRef.current.value = "";
+    } else if (type === "cover") {
+      setSelectedCoverLetterUrl(id);
+    }
   };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedCustomFile(file);
-      setSelectedType("custom");
-      setSelectedId(null);
+      setSelectedResumeUrl(null);
     }
   };
 
@@ -331,46 +335,31 @@ function JobSearch() {
       return;
     }
 
-    // ✅ VALIDATION: Ensure one of the three options is selected
-    if (
-      selectedType === "resume" &&
-      !selectedId &&
-      selectedType === "cover" &&
-      !selectedId &&
-      selectedType === "custom" &&
-      !selectedCustomFile
-    ) {
+    if (!selectedResumeUrl && !selectedCustomFile) {
       toast.error(
-        "Please select a resume, cover letter, or upload a custom file.",
+        "Please select a resume or upload a custom file.",
         {
           autoClose: 2000,
           theme: "colored",
         },
       );
-      return; // stop here
+      return;
     }
 
-    setIsApplying(true); // 🔥 Start loader
+    setIsApplying(true);
 
     const formData = new FormData();
 
-    if (selectedType === "resume") {
-      formData.append("cv", selectedId);
-    } else if (selectedType === "cover") {
-      formData.append("coverLetter", selectedId);
-    } else if (selectedType === "custom") {
-      const file = selectedCustomFile;
+    if (selectedResumeUrl) {
+      formData.append("cv", selectedResumeUrl);
+    }
 
-      if (!file) {
-        toast.error("Please select a custom file.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return;
-      }
+    if (selectedCoverLetterUrl) {
+      formData.append("coverLetter", selectedCoverLetterUrl);
+    }
 
-      if (file.size > MAX_FILE_SIZE) {
+    if (selectedCustomFile) {
+      if (selectedCustomFile.size > MAX_FILE_SIZE) {
         toast.error("Uploaded file is too large. Max size is 2MB.", {
           autoClose: 2000,
           theme: "colored",
@@ -378,8 +367,7 @@ function JobSearch() {
         setIsApplying(false);
         return;
       }
-
-      formData.append("customResume", file);
+      formData.append("customResume", selectedCustomFile);
     }
 
     formData.append("jobId", jobId);
@@ -1081,12 +1069,11 @@ function JobSearch() {
     }
   }, [pageNumber, pageSize, alert]);
   const resetApplyModal = () => {
-    setSelectedType("");
-    setSelectedId(null);
+    setSelectedResumeUrl(null);
+    setSelectedCoverLetterUrl(null);
     setSelectedCustomFile(null);
     setIsApplying(false);
 
-    // reset file input
     if (fileInputRef?.current) {
       fileInputRef.current.value = "";
     }
@@ -1298,11 +1285,7 @@ function JobSearch() {
     );
   };
   const isSelectionMade = () => {
-    return (
-      (selectedType === "resume" && selectedId) ||
-      (selectedType === "cover" && selectedId) ||
-      (selectedType === "custom" && selectedCustomFile)
-    );
+    return !!(selectedResumeUrl || selectedCustomFile);
   };
 
   const handleClearTechStacks = () => {
@@ -2637,8 +2620,8 @@ function JobSearch() {
                                                 key={resume._id}
                                                 className={
                                                   "job-apply-custom-resume-info " +
-                                                  (selectedType === "resume" &&
-                                                  selectedId === resume.url
+                                                  (selectedResumeUrl ===
+                                                  resume.url
                                                     ? "active"
                                                     : "")
                                                 }
@@ -2655,8 +2638,8 @@ function JobSearch() {
                                                   {fileName}
                                                 </span>
 
-                                                {selectedType === "resume" &&
-                                                  selectedId === resume.url && (
+                                                {selectedResumeUrl ===
+                                                  resume.url && (
                                                     <i className="fa-solid fa-circle-check selected-check-icon" />
                                                   )}
                                               </div>
@@ -2699,8 +2682,8 @@ function JobSearch() {
                                                 key={cover._id}
                                                 className={
                                                   "job-apply-custom-resume-info " +
-                                                  (selectedType === "cover" &&
-                                                  selectedId === cover.url
+                                                  (selectedCoverLetterUrl ===
+                                                  cover.url
                                                     ? "active"
                                                     : "")
                                                 }
@@ -2717,8 +2700,8 @@ function JobSearch() {
                                                   {fileName}
                                                 </span>
 
-                                                {selectedType === "cover" &&
-                                                  selectedId === cover.url && (
+                                                {selectedCoverLetterUrl ===
+                                                  cover.url && (
                                                     <i className="fa-solid fa-circle-check selected-check-icon" />
                                                   )}
                                               </div>
@@ -2756,14 +2739,9 @@ function JobSearch() {
                                           <div
                                             className={
                                               "job-apply-custom-resume-info " +
-                                              (selectedType === "custom"
-                                                ? "active"
-                                                : "")
+                                              (selectedCustomFile ? "active" : "")
                                             }
-                                            onClick={() =>
-                                              selectedCustomFile &&
-                                              handleSelect("custom")
-                                            }
+                                            onClick={() => {}}
                                             style={{
                                               cursor: selectedCustomFile
                                                 ? "pointer"
@@ -2777,7 +2755,7 @@ function JobSearch() {
                                                 : ""}
                                             </span>
 
-                                            {selectedType === "custom" && (
+                                            {selectedCustomFile && (
                                               <i className="fa-solid fa-circle-check selected-check-icon" />
                                             )}
                                           </div>

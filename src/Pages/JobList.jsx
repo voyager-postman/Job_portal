@@ -36,14 +36,14 @@ const JobList = () => {
   console.log(userRole);
   // or from context:  user?.role
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
+  const [selectedCoverLetterUrl, setSelectedCoverLetterUrl] = useState(null);
+  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   const fileInputRef = useRef(null);
   const [jobId, setJobId] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
   const [resumeList, setResumeList] = useState([]);
   const [coverLetterList, setCoverLetterList] = useState([]);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   const [showAlertOptions, setShowAlertOptions] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
@@ -474,17 +474,23 @@ const JobList = () => {
     fetchResume();
   }, []);
   const handleSelect = (type, id = null) => {
-    setSelectedType(type);
-    setSelectedId(id);
+    if (type === "resume") {
+      setSelectedResumeUrl(id);
+      setSelectedCustomFile(null);
+      if (fileInputRef?.current) fileInputRef.current.value = "";
+    } else if (type === "cover") {
+      setSelectedCoverLetterUrl(id);
+    }
   };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedCustomFile(file);
-      setSelectedType("custom");
-      setSelectedId(null);
+      setSelectedResumeUrl(null);
     }
   };
+
   const getFileName = (url) => {
     return url?.split("/").pop();
   };
@@ -658,10 +664,6 @@ const JobList = () => {
       console.error(err);
       toast.error(err.response?.data?.message || "Server error");
     }
-  };
-  const handleLinkClick = (e) => {
-    e.preventDefault(); // prevent navigation
-    fileInputRef.current.click(); // open file dialog
   };
   const handleSelectCompany = (company) => {
     const updatedCompanies = [...selectedCompanies, company];
@@ -933,25 +935,18 @@ const JobList = () => {
   };
 
   const isSelectionMade = () => {
-    return (
-      (selectedType === "resume" && selectedId) ||
-      (selectedType === "cover" && selectedId) ||
-      (selectedType === "custom" && selectedCustomFile)
-    );
+    return !!(selectedResumeUrl || selectedCustomFile);
   };
 
   const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const resetApplyModal = () => {
-    setSelectedType("");
-    setSelectedId(null);
+    setSelectedResumeUrl(null);
+    setSelectedCoverLetterUrl(null);
     setSelectedCustomFile(null);
     setIsApplying(false);
 
-    // reset file input
-    if (fileInputRef?.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef?.current) fileInputRef.current.value = "";
   };
   const handleApplyJob = async () => {
     if (!jobId) {
@@ -959,42 +954,36 @@ const JobList = () => {
       return;
     }
 
-    setIsApplying(true); // 🔥 Start loader
+    if (!selectedResumeUrl && !selectedCustomFile) {
+      toast.error(t("header.Please_select_resume_file"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    setIsApplying(true);
 
     const formData = new FormData();
 
-    if (selectedType === "resume") {
-      formData.append("cv", selectedId);
+    if (selectedResumeUrl) {
+      formData.append("cv", selectedResumeUrl);
     }
 
-    if (selectedType === "cover") {
-      formData.append("coverLetter", selectedId);
+    if (selectedCoverLetterUrl) {
+      formData.append("coverLetter", selectedCoverLetterUrl);
     }
 
-    if (selectedType === "custom") {
-      const file = fileInputRef.current?.files?.[0];
-
-      // ✅ FILE REQUIRED
-      if (!file) {
-        toast.error(t("header.Please_select_resume_file"), {
+    if (selectedCustomFile) {
+      if (selectedCustomFile.size > MAX_FILE_SIZE) {
+        toast.error(t("header.file_too_large"), {
           autoClose: 2000,
           theme: "colored",
         });
         setIsApplying(false);
         return;
       }
-
-      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(t("header.file_too_large"), {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return; // ⛔ STOP — DO NOT HIT API
-      }
-
-      formData.append("customResume", file);
+      formData.append("customResume", selectedCustomFile);
     }
 
     formData.append("jobId", jobId);
@@ -2650,7 +2639,6 @@ const JobList = () => {
                                     {/* NOTE: use className, not class */}
                                     <div className="modal-body">
                                       <div className="job-apply-defult-resume-custom-resume">
-                                        {/* RESUME LIST - inline hide */}
                                         <div
                                           className="job-apply-custom-resume-info-area"
                                           style={{
@@ -2671,9 +2659,8 @@ const JobList = () => {
                                                   key={resume._id}
                                                   className={
                                                     "job-apply-custom-resume-info " +
-                                                    (selectedType ===
-                                                      "resume" &&
-                                                    selectedId === resume.url
+                                                    (selectedResumeUrl ===
+                                                    resume.url
                                                       ? "active"
                                                       : "")
                                                   }
@@ -2689,18 +2676,15 @@ const JobList = () => {
                                                     <i className="fa-solid fa-file" />{" "}
                                                     {fileName}
                                                   </span>
-
-                                                  {selectedType === "resume" &&
-                                                    selectedId ===
-                                                      resume.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
+                                                  {selectedResumeUrl ===
+                                                    resume.url && (
+                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                  )}
                                                 </div>
                                               );
                                             })}
                                         </div>
 
-                                        {/* OR DIVIDER for resume - inline hide */}
                                         <div
                                           className="defult-resume-custom-resume-divder-line"
                                           style={{
@@ -2714,7 +2698,6 @@ const JobList = () => {
                                           <h4>or</h4>
                                         </div>
 
-                                        {/* COVER LETTER LIST - inline hide */}
                                         <div
                                           className="job-apply-custom-resume-info-area"
                                           style={{
@@ -2735,8 +2718,8 @@ const JobList = () => {
                                                   key={cover._id}
                                                   className={
                                                     "job-apply-custom-resume-info " +
-                                                    (selectedType === "cover" &&
-                                                    selectedId === cover.url
+                                                    (selectedCoverLetterUrl ===
+                                                    cover.url
                                                       ? "active"
                                                       : "")
                                                   }
@@ -2752,18 +2735,15 @@ const JobList = () => {
                                                     <i className="fa-solid fa-file" />{" "}
                                                     {fileName}
                                                   </span>
-
-                                                  {selectedType === "cover" &&
-                                                    selectedId ===
-                                                      cover.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
+                                                  {selectedCoverLetterUrl ===
+                                                    cover.url && (
+                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
+                                                  )}
                                                 </div>
                                               );
                                             })}
                                         </div>
 
-                                        {/* OR DIVIDER for cover - inline hide */}
                                         <div
                                           className="defult-resume-custom-resume-divder-line"
                                           style={{
@@ -2777,12 +2757,10 @@ const JobList = () => {
                                           <h4>{t("header.or")}</h4>
                                         </div>
 
-                                        {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
                                         <div
                                           className="job-apply-custom-resume-info-area"
                                           style={{ display: "block" }}
                                         >
-                                          {/* Show selected custom file if exists */}
                                           <div
                                             style={{
                                               display: selectedCustomFile
@@ -2793,13 +2771,9 @@ const JobList = () => {
                                             <div
                                               className={
                                                 "job-apply-custom-resume-info " +
-                                                (selectedType === "custom"
+                                                (selectedCustomFile
                                                   ? "active"
                                                   : "")
-                                              }
-                                              onClick={() =>
-                                                selectedCustomFile &&
-                                                handleSelect("custom")
                                               }
                                               style={{
                                                 cursor: selectedCustomFile
@@ -2813,14 +2787,12 @@ const JobList = () => {
                                                   ? selectedCustomFile.name
                                                   : ""}
                                               </span>
-
-                                              {selectedType === "custom" && (
+                                              {selectedCustomFile && (
                                                 <i className="fa-solid fa-circle-check selected-check-icon" />
                                               )}
                                             </div>
                                           </div>
 
-                                          {/* Upload Button — prevent default and open file input */}
                                           <div
                                             className="job-apply-custom-resume-cover-letter-btn"
                                             style={{ marginTop: 12 }}
@@ -2830,7 +2802,6 @@ const JobList = () => {
                                               className="default-btn btn"
                                               onClick={(e) => {
                                                 e.preventDefault();
-                                                // ensure fileInputRef.current exists
                                                 if (
                                                   fileInputRef &&
                                                   fileInputRef.current
@@ -2842,7 +2813,6 @@ const JobList = () => {
                                                 "header.Custom_resume_with_cover_letter",
                                               )}
                                             </a>
-
                                             <input
                                               ref={fileInputRef}
                                               type="file"

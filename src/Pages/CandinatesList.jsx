@@ -396,10 +396,49 @@ function CandinatesList() {
     }
 
     const latestResume = resumes[resumes.length - 1];
-    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
+
+    const fileUrl = latestResume?.url?.startsWith("http")
+      ? latestResume.url
+      : `${API_IMAGE_URL}${latestResume.url}`;
 
     window.open(fileUrl, "_blank");
   };
+
+  const handleDownloadCoverLetter = () => {
+    const coverLetters = candidateDetails?.coverLetter;
+
+    if (!coverLetters || coverLetters.length === 0) {
+      toast.info("No Cover Letter uploaded by candidate", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    const latestCoverLetter = coverLetters[coverLetters.length - 1];
+
+    const fileUrl = latestCoverLetter?.url?.startsWith("http")
+      ? latestCoverLetter.url
+      : `${API_IMAGE_URL}${latestCoverLetter.url}`;
+
+    window.open(fileUrl, "_blank");
+  };
+  // const handleDownloadCV = () => {
+  //   const resumes = candidateDetails?.resumeUrls;
+
+  //   if (!resumes || resumes.length === 0) {
+  //     toast.info("No CV uploaded by candidate", {
+  //       position: "top-right",
+  //       autoClose: 3000,
+  //     });
+  //     return;
+  //   }
+
+  //   const latestResume = resumes[resumes.length - 1];
+  //   const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
+
+  //   window.open(fileUrl, "_blank");
+  // };
   console.log(selectedSalary);
 
   const fetchCandidates = async (page = 1) => {
@@ -450,10 +489,10 @@ function CandinatesList() {
         salary:
           selectedSalary?.length > 0
             ? selectedSalary
-              .map(
-                (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
-              )
-              .join(",")
+                .map(
+                  (item) => item.replace(/\s*dh$/i, "").trim(), // ✅ remove "dh"
+                )
+                .join(",")
             : undefined,
         availability:
           selectedAvailability?.length > 0
@@ -696,9 +735,9 @@ function CandinatesList() {
   const averageRating =
     reviews && reviews.length > 0
       ? (
-        reviews.reduce((acc, item) => acc + (item.rating || 0), 0) /
-        reviews.length
-      ).toFixed(1)
+          reviews.reduce((acc, item) => acc + (item.rating || 0), 0) /
+          reviews.length
+        ).toFixed(1)
       : 0;
   const getReviewsByUser = async (id) => {
     try {
@@ -842,8 +881,9 @@ function CandinatesList() {
                     onClick={() => setShowFilter(!showFilter)}
                   >
                     <i
-                      className={`fa-solid ${showFilter ? "fa-chevron-up" : "fa-filter"
-                        }`}
+                      className={`fa-solid ${
+                        showFilter ? "fa-chevron-up" : "fa-filter"
+                      }`}
                     />
                     {showFilter ? "Hide Filters" : "Show Filters"}
                   </button>
@@ -925,10 +965,11 @@ function CandinatesList() {
                           </span>
 
                           <i
-                            className={`fa-solid ${showExperienceDropdown
+                            className={`fa-solid ${
+                              showExperienceDropdown
                                 ? "fa-chevron-up"
                                 : "fa-chevron-down"
-                              }`}
+                            }`}
                           />
                         </div>
 
@@ -1032,10 +1073,11 @@ function CandinatesList() {
                           </span>
 
                           <i
-                            className={`fa-solid ${showEducationDropdown
+                            className={`fa-solid ${
+                              showEducationDropdown
                                 ? "fa-chevron-up"
                                 : "fa-chevron-down"
-                              }`}
+                            }`}
                           />
                         </div>
 
@@ -1141,10 +1183,11 @@ function CandinatesList() {
                           </span>
 
                           <i
-                            className={`fa-solid ${showAvailabilityDropdown
+                            className={`fa-solid ${
+                              showAvailabilityDropdown
                                 ? "fa-chevron-up"
                                 : "fa-chevron-down"
-                              }`}
+                            }`}
                           />
                         </div>
 
@@ -1247,10 +1290,11 @@ function CandinatesList() {
                           </span>
 
                           <i
-                            className={`fa-solid ${showSalaryDropdown
+                            className={`fa-solid ${
+                              showSalaryDropdown
                                 ? "fa-chevron-up"
                                 : "fa-chevron-down"
-                              }`}
+                            }`}
                           />
                         </div>
 
@@ -1697,10 +1741,11 @@ function CandinatesList() {
                             setSelectedCandidateId(user._id);
                           }}
                           key={candidate._id || index}
-                          className={`card mb-3 border-0 shadow-sm candidate-list-card-candidate ${String(selectedCandidateId) === String(user._id)
+                          className={`card mb-3 border-0 shadow-sm candidate-list-card-candidate ${
+                            String(selectedCandidateId) === String(user._id)
                               ? "active"
                               : ""
-                            }`}
+                          }`}
                         >
                           <div className="card-body p-3">
                             <div className="d-flex align-items-start">
@@ -1897,7 +1942,7 @@ function CandinatesList() {
                                       {user?.city
                                         ? `${user.city}`
                                         : user?.city ||
-                                        "Location not available"}
+                                          "Location not available"}
                                     </span>
                                   </span>
                                 </div>
@@ -1984,13 +2029,25 @@ function CandinatesList() {
                               </div>
                               <div className="d-flex gap-2">
                                 {candidateDetails?.isUnlocked && (
-                                  <button
-                                    className="btn btn-primary btn-sm"
-                                    onClick={handleDownloadCV}
-                                  >
-                                    <i className="fa-solid fa-download me-1" />{" "}
-                                    {t("header.Download_CV")}
-                                  </button>
+                                  <div className="d-flex gap-2 flex-wrap">
+                                    {/* CV Button */}
+                                    <button
+                                      className="btn btn-primary btn-sm"
+                                      onClick={handleDownloadCV}
+                                    >
+                                      <i className="fa-solid fa-download me-1" />
+                                      {t("header.Download_CV")}
+                                    </button>
+
+                                    {/* Cover Letter Button */}
+                                    <button
+                                      className="btn btn-outline-primary btn-sm"
+                                      onClick={handleDownloadCoverLetter}
+                                    >
+                                      <i className="fa-solid fa-file-lines me-1" />
+                                      Download Cover Letter
+                                    </button>
+                                  </div>
                                 )}
 
                                 <div className="dropdown">
@@ -2124,18 +2181,18 @@ function CandinatesList() {
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-location-dot text-danger" />
                                 {candidateDetails?.userId?.city &&
-                                  candidateDetails?.userId?.Nationality
+                                candidateDetails?.userId?.Nationality
                                   ? `${candidateDetails.userId.city
-                                    .toLowerCase()
-                                    .replace(/^\w/, (c) =>
-                                      c.toUpperCase(),
-                                    )}, ${candidateDetails.userId.Nationality}`
+                                      .toLowerCase()
+                                      .replace(/^\w/, (c) =>
+                                        c.toUpperCase(),
+                                      )}, ${candidateDetails.userId.Nationality}`
                                   : candidateDetails?.userId?.city
                                     ? candidateDetails.userId.city
-                                      .toLowerCase()
-                                      .replace(/^\w/, (c) => c.toUpperCase())
+                                        .toLowerCase()
+                                        .replace(/^\w/, (c) => c.toUpperCase())
                                     : candidateDetails?.userId?.Nationality ||
-                                    "Not Provided"}
+                                      "Not Provided"}
                               </span>
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-briefcase text-info" />
@@ -2229,11 +2286,12 @@ function CandinatesList() {
                                           style={{ "font-size": "12px" }}
                                         >
                                           {candidateDetails?.userId?.countryCode
-                                            ? `+${candidateDetails.userId.countryCode} ${candidateDetails?.userId
-                                              ?.phone || ""
-                                            }`
+                                            ? `+${candidateDetails.userId.countryCode} ${
+                                                candidateDetails?.userId
+                                                  ?.phone || ""
+                                              }`
                                             : candidateDetails?.userId?.phone ||
-                                            "Not Provided"}
+                                              "Not Provided"}
                                         </div>
                                       </div>
                                     </div>
@@ -2281,9 +2339,10 @@ function CandinatesList() {
                                           candidateDetails?.userId?._id,
                                         candidate: candidateDetails,
                                         from: "/candidates-search",
-                                        candidateName: `${candidateDetails?.userId?.first_name || ""} ${candidateDetails?.userId?.last_name ||
+                                        candidateName: `${candidateDetails?.userId?.first_name || ""} ${
+                                          candidateDetails?.userId?.last_name ||
                                           ""
-                                          }`,
+                                        }`,
                                         candidateImage:
                                           candidateDetails?.userId
                                             ?.profileImage,
@@ -2411,16 +2470,16 @@ function CandinatesList() {
                                         <span className="badge bg-light text-muted border px-2 py-1">
                                           {work.startDate
                                             ? new Date(
-                                              work.startDate,
-                                            ).getFullYear()
+                                                work.startDate,
+                                              ).getFullYear()
                                             : "NA"}{" "}
                                           -{" "}
                                           {work.currentlyWorkingHere
                                             ? "Present"
                                             : work.endDate
                                               ? new Date(
-                                                work.endDate,
-                                              ).getFullYear()
+                                                  work.endDate,
+                                                ).getFullYear()
                                               : "NA"}
                                         </span>
                                       </div>
@@ -2506,16 +2565,16 @@ function CandinatesList() {
                                               {edu.degree || "NA"} •{" "}
                                               {edu.startDate
                                                 ? new Date(
-                                                  edu.startDate,
-                                                ).getFullYear()
+                                                    edu.startDate,
+                                                  ).getFullYear()
                                                 : "NA"}{" "}
                                               -{" "}
                                               {edu.currentlyStudyingHere
                                                 ? "Present"
                                                 : edu.endDate
                                                   ? new Date(
-                                                    edu.endDate,
-                                                  ).getFullYear()
+                                                      edu.endDate,
+                                                    ).getFullYear()
                                                   : "NA"}
                                             </span>
                                           </div>
@@ -2604,10 +2663,10 @@ function CandinatesList() {
                                               ?.DesiredJobTitle,
                                           )
                                             ? candidateDetails.career_goals.DesiredJobTitle.join(
-                                              ", ",
-                                            )
+                                                ", ",
+                                              )
                                             : candidateDetails.career_goals
-                                              ?.DesiredJobTitle || "NA"}
+                                                ?.DesiredJobTitle || "NA"}
                                         </div>
                                       </div>
 
@@ -2640,7 +2699,7 @@ function CandinatesList() {
                                               ),
                                             )
                                           ) : candidateDetails.career_goals
-                                            ?.DesiredEmploymentType ? (
+                                              ?.DesiredEmploymentType ? (
                                             <span className="badge bg-white text-dark border px-2 py-1">
                                               {
                                                 candidateDetails.career_goals
@@ -2673,10 +2732,10 @@ function CandinatesList() {
                                               ?.DesiredJobCategory,
                                           )
                                             ? candidateDetails.career_goals.DesiredJobCategory.join(
-                                              ", ",
-                                            )
+                                                ", ",
+                                              )
                                             : candidateDetails.career_goals
-                                              ?.DesiredJobCategory || "NA"}
+                                                ?.DesiredJobCategory || "NA"}
                                         </div>
                                       </div>
 
@@ -2870,8 +2929,8 @@ function CandinatesList() {
                                                 Issued:{" "}
                                                 {cer.issueDate
                                                   ? new Date(
-                                                    cer.issueDate,
-                                                  ).toLocaleDateString()
+                                                      cer.issueDate,
+                                                    ).toLocaleDateString()
                                                   : "NA"}
                                               </div>
                                             </div>

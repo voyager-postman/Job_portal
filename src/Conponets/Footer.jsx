@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 function Footer() {
-   const { t, i18n } = useTranslation("global");
+  const { t, i18n } = useTranslation("global");
   const [homeData, setHomeData] = useState({});
   const [contactData, setContactData] = useState({});
   const getContactInfo = async () => {
@@ -124,7 +124,9 @@ function Footer() {
                         <Link to="/jobs"> {t("header.browseJobs")} </Link>
                       </li>
                       <li>
-                        <Link to="/companies">{t("header.browseCompanies")} </Link>
+                        <Link to="/companies">
+                          {t("header.browseCompanies")}{" "}
+                        </Link>
                       </li>
                       <li>
                         <Link
@@ -134,11 +136,13 @@ function Footer() {
                               : "/login"
                           }
                         >
-                         {t("header.uploadResume")}
+                          {t("header.uploadResume")}
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq/jobseeker">{t("header.faqJobSeeker")}</Link>
+                        <Link to="/faq/jobseeker">
+                          {t("header.faqJobSeeker")}
+                        </Link>
                       </li>
                     </ul>
                   </div>
@@ -158,7 +162,7 @@ function Footer() {
                               : "/employer-login"
                           }
                         >
-                       {t("header.jobPosts")}
+                          {t("header.jobPosts")}
                         </Link>
                       </li>
                       <li>
@@ -180,11 +184,14 @@ function Footer() {
                               : "/employer-login"
                           }
                         >
-                        {t("header.candidateListing")}
+                          {t("header.candidateListing")}
                         </Link>
                       </li>
                       <li>
-                        <Link to="/faq/recruiter"> {t("header.faqEmployer")}</Link>
+                        <Link to="/faq/recruiter">
+                          {" "}
+                          {t("header.faqEmployer")}
+                        </Link>
                       </li>
                     </ul>
                   </div>
@@ -201,7 +208,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-envelope" />
                       <h4>
-                      {t("header.email")} :{" "}
+                        {t("header.email")} :{" "}
                         {contactData.emails?.map((e, i) => (
                           <span key={i}>
                             <a href={`mailto:${e}`}>{e}</a>
@@ -213,7 +220,7 @@ function Footer() {
                     <li>
                       <i className="fa-solid fa-phone" />
                       <h4>
-                       {t("header.phone")}:{" "}
+                        {t("header.phone")}:{" "}
                         {contactData.phones?.map((p, i) => (
                           <span key={i}>
                             <a href={`tel:${p}`}>{p}</a>
@@ -231,9 +238,12 @@ function Footer() {
         <div className="copy-right">
           <div className="container">
             <p>
-              © <span>Connect Work.ma</span> is Proudly Owned by{" "}
-              <a href="https://www.webnmobappssolutions.com/" target="_blank">
-                Webnmobapps Solution Pvt. Ltd
+              <span></span>
+              <a
+                href="https://itdevelopmentservices.com/jobPortal"
+                target="_blank"
+              >
+                © 2026 Connect Work.ma | All Rights Reserved
               </a>
             </p>
           </div>

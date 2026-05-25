@@ -88,7 +88,7 @@ function EmployerShortListCandinate() {
     const resumes = candidateDetails?.resumeUrls;
 
     if (!resumes || resumes.length === 0) {
-      toast.info(t("header.No_CV_uploaded_by_candidate"), {
+      toast.info("No CV uploaded by candidate", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -96,7 +96,30 @@ function EmployerShortListCandinate() {
     }
 
     const latestResume = resumes[resumes.length - 1];
-    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
+
+    const fileUrl = latestResume?.url?.startsWith("http")
+      ? latestResume.url
+      : `${API_IMAGE_URL}${latestResume.url}`;
+
+    window.open(fileUrl, "_blank");
+  };
+
+  const handleDownloadCoverLetter = () => {
+    const coverLetters = candidateDetails?.coverLetter;
+
+    if (!coverLetters || coverLetters.length === 0) {
+      toast.info("No Cover Letter uploaded by candidate", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    const latestCoverLetter = coverLetters[coverLetters.length - 1];
+
+    const fileUrl = latestCoverLetter?.url?.startsWith("http")
+      ? latestCoverLetter.url
+      : `${API_IMAGE_URL}${latestCoverLetter.url}`;
 
     window.open(fileUrl, "_blank");
   };
@@ -1848,13 +1871,25 @@ function EmployerShortListCandinate() {
                               </div>
                               <div className="d-flex gap-2">
                                 {candidateDetails?.isUnlocked && (
-                                  <button
-                                    className="btn btn-primary btn-sm"
-                                    onClick={handleDownloadCV}
-                                  >
-                                    <i className="fa-solid fa-download me-1" />{" "}
-                                    {t("header.Download_CV")}
-                                  </button>
+                                  <div className="d-flex gap-2 flex-wrap">
+                                    {/* CV Button */}
+                                    <button
+                                      className="btn btn-primary btn-sm"
+                                      onClick={handleDownloadCV}
+                                    >
+                                      <i className="fa-solid fa-download me-1" />
+                                      {t("header.Download_CV")}
+                                    </button>
+
+                                    {/* Cover Letter Button */}
+                                    <button
+                                      className="btn btn-outline-primary btn-sm"
+                                      onClick={handleDownloadCoverLetter}
+                                    >
+                                      <i className="fa-solid fa-file-lines me-1" />
+                                      Download Cover Letter
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </div>
