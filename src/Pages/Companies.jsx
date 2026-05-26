@@ -3,6 +3,7 @@ import axios from "axios";
 
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { sanitizeCompanyListApiResponse } from "../utils/sanitizePublicCompany";
 import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -40,7 +41,7 @@ function Companies() {
       });
 
       if (res.data.success) {
-        setCompanies(res.data);
+        setCompanies(sanitizeCompanyListApiResponse(res.data));
       }
     } catch (error) {
       console.error("Error fetching company list:", error);
@@ -58,8 +59,6 @@ function Companies() {
     getCompanyList();
   }, []);
 const handleViewCompany = (company, from) => {
-  console.log(company);
-
   navigate(`/${company.slug}`, {
     state: { companyId: company._id, from },
   });
@@ -116,7 +115,6 @@ const handleViewCompany = (company, from) => {
     const selectedIndustryIds = newSelected.map((i) => i._id);
     getCompanyList(selectedIndustryIds);
   };
-  console.log(selected);
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">

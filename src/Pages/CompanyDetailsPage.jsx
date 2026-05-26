@@ -53,7 +53,6 @@ function CompanyDetailsPage() {
         },
       );
       setCompany(res?.data?.company);
-      console.log(res.data?.company);
     } catch (error) {
       console.error("Error fetching company details:", error);
     } finally {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
@@ -11,11 +11,27 @@ import { Helmet } from "react-helmet-async";
 import Slider from "react-slick";
 import { ToastContainer, toast } from "react-toastify";
 import { useDebounce } from "../hooks/useDebounce";
-import { checkSearchRateLimit } from "../utils/searchRateLimit";
+import {
+  checkSearchRateLimit,
+  getRateLimitStatus,
+} from "../utils/searchRateLimit";
 import { filterCompanySearchResults } from "../utils/companySearchFilter";
+import { sanitizeCompanyListApiResponse } from "../utils/sanitizePublicCompany";
 
 const SEARCH_DEBOUNCE_MS = 600;
-const SEARCH_RATE_LIMIT_KEY = "employers-companies";
+const MIN_SEARCH_LENGTH = 2;
+const SEARCH_RATE_LIMIT_KEY = "employers-companies-search";
+const BROWSE_RATE_LIMIT_KEY = "employers-companies-browse";
+const SEARCH_RATE_LIMIT = { maxRequests: 15, windowMs: 60_000 };
+const BROWSE_RATE_LIMIT = { maxRequests: 30, windowMs: 60_000 };
+
+const normalizeSearchQuery = (value = "") => {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length < MIN_SEARCH_LENGTH) {
+    return "";
+  }
+  return trimmed;
+};
 
 const Employers = () => {
   const navigate = useNavigate();
@@ -35,14 +51,17 @@ const Employers = () => {
     justJoinedUs: [],
   });
   const [companiesLoading, setCompaniesLoading] = useState(true);
-  const isFirstFetch = useRef(true);
+  const [rateLimitBlockedUntil, setRateLimitBlockedUntil] = useState(0);
   const filterKeyRef = useRef("");
+  const fetchAbortRef = useRef(null);
   const dropdownRef = useRef(null);
   const debouncedCompanySearch = useDebounce(companySearch, SEARCH_DEBOUNCE_MS);
   const debouncedLocationSearch = useDebounce(
     locationSearch,
     SEARCH_DEBOUNCE_MS,
   );
+  const effectiveCompanySearch = normalizeSearchQuery(debouncedCompanySearch);
+  const effectiveLocationSearch = normalizeSearchQuery(debouncedLocationSearch);
 
   const CompaniesSectionLoader = ({ message = "Loading companies..." }) => (
     <div className="col-12">
@@ -98,70 +117,125 @@ const Employers = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  // ✅ Fetch Company List (with pagination + filters)
-  // API Call
-  const getCompanyList = async (
-    industryIds = [],
-    page = 1,
-    limit = pageSize,
-    search = "",
-    location = "",
-  ) => {
-    const rateCheck = checkSearchRateLimit(SEARCH_RATE_LIMIT_KEY);
-    if (!rateCheck.allowed) {
-      toast.warning(
-        "Too many searches. Please wait a moment before trying again.",
-      );
+  const applyRateLimitBlock = (retryAfterMs) => {
+    if (!retryAfterMs) {
       return;
     }
-
-    setCompaniesLoading(true);
-    try {
-      const params = {
-        page,
-        limit,
-      };
-
-      if (industryIds.length > 0) {
-        params.industry = industryIds.join(",");
-      }
-
-      if (search?.trim()) {
-        params.search = search;
-      }
-
-      if (location?.trim()) {
-        params.location = location;
-      }
-
-      const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
-        params,
-      });
-
-      if (res.data.success) {
-        setCompanies(res.data);
-
-        const hasActiveFilters =
-          industryIds.length > 0 ||
-          Boolean(search?.trim()) ||
-          Boolean(location?.trim());
-
-        if (!hasActiveFilters && page === 1) {
-          setDefaultSections({
-            justJoinedUs: res.data?.sections?.justJoinedUs || [],
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching company list:", error);
-    } finally {
-      setCompaniesLoading(false);
-    }
+    setRateLimitBlockedUntil(Date.now() + retryAfterMs);
   };
 
+  const isRateLimited =
+    rateLimitBlockedUntil > Date.now() ||
+    getRateLimitStatus(SEARCH_RATE_LIMIT_KEY, SEARCH_RATE_LIMIT).blocked ||
+    getRateLimitStatus(BROWSE_RATE_LIMIT_KEY, BROWSE_RATE_LIMIT).blocked;
+
+  useEffect(() => {
+    if (!rateLimitBlockedUntil || rateLimitBlockedUntil <= Date.now()) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setRateLimitBlockedUntil(0);
+    }, rateLimitBlockedUntil - Date.now());
+
+    return () => clearTimeout(timer);
+  }, [rateLimitBlockedUntil]);
+
+  // ✅ Fetch Company List (with pagination + filters)
+  const getCompanyList = useCallback(
+    async (
+      industryIds = [],
+      page = 1,
+      limit = pageSize,
+      search = "",
+      location = "",
+      signal,
+    ) => {
+      const normalizedSearch = normalizeSearchQuery(search);
+      const normalizedLocation = normalizeSearchQuery(location);
+      const isSearchRequest =
+        Boolean(normalizedSearch) || Boolean(normalizedLocation);
+      const rateKey = isSearchRequest
+        ? SEARCH_RATE_LIMIT_KEY
+        : BROWSE_RATE_LIMIT_KEY;
+      const rateOptions = isSearchRequest
+        ? SEARCH_RATE_LIMIT
+        : BROWSE_RATE_LIMIT;
+
+      if (rateLimitBlockedUntil > Date.now()) {
+        return;
+      }
+
+      const rateCheck = checkSearchRateLimit(rateKey, rateOptions);
+      if (!rateCheck.allowed) {
+        applyRateLimitBlock(rateCheck.retryAfterMs);
+        toast.warning(
+          `Too many requests. Please wait ${Math.ceil(
+            rateCheck.retryAfterMs / 1000,
+          )} seconds before trying again.`,
+        );
+        return;
+      }
+
+      setCompaniesLoading(true);
+      try {
+        const params = {
+          page,
+          limit,
+        };
+
+        if (industryIds.length > 0) {
+          params.industry = industryIds.join(",");
+        }
+
+        if (normalizedSearch) {
+          params.search = normalizedSearch;
+        }
+
+        if (normalizedLocation) {
+          params.location = normalizedLocation;
+        }
+
+        const res = await axios.get(`${API_BASE_URL}GetCompanyDetailsList`, {
+          params,
+          signal,
+        });
+
+        if (res.data.success) {
+          const sanitizedData = sanitizeCompanyListApiResponse(res.data);
+          setCompanies(sanitizedData);
+
+          const hasActiveFilters =
+            industryIds.length > 0 ||
+            Boolean(normalizedSearch) ||
+            Boolean(normalizedLocation);
+
+          if (!hasActiveFilters && page === 1) {
+            setDefaultSections({
+              justJoinedUs: sanitizedData?.sections?.justJoinedUs || [],
+            });
+          }
+        }
+      } catch (error) {
+        if (
+          error?.code === "ERR_CANCELED" ||
+          error?.name === "CanceledError"
+        ) {
+          return;
+        }
+        console.error("Error fetching company list:", error);
+      } finally {
+        if (!signal?.aborted) {
+          setCompaniesLoading(false);
+        }
+      }
+    },
+    [pageSize, rateLimitBlockedUntil],
+  );
+
   const isSearchActive =
-    Boolean(debouncedCompanySearch?.trim()) ||
-    Boolean(debouncedLocationSearch?.trim()) ||
+    Boolean(effectiveCompanySearch) ||
+    Boolean(effectiveLocationSearch) ||
     selected.length > 0;
 
   const joinedCompanies = isSearchActive
@@ -199,8 +273,8 @@ const Employers = () => {
   useEffect(() => {
     const selectedIndustryIds = selected.map((i) => i._id);
     const filterKey = [
-      debouncedCompanySearch,
-      debouncedLocationSearch,
+      effectiveCompanySearch,
+      effectiveLocationSearch,
       selectedIndustryIds.join(","),
     ].join("|");
     const filtersChanged = filterKeyRef.current !== filterKey;
@@ -212,31 +286,32 @@ const Employers = () => {
       return;
     }
 
-    if (isFirstFetch.current) {
-      isFirstFetch.current = false;
-      getCompanyList(
-        selectedIndustryIds,
-        pageToFetch,
-        pageSize,
-        debouncedCompanySearch,
-        debouncedLocationSearch,
-      );
+    if (rateLimitBlockedUntil > Date.now()) {
       return;
     }
+
+    fetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    fetchAbortRef.current = controller;
 
     getCompanyList(
       selectedIndustryIds,
       pageToFetch,
       pageSize,
-      debouncedCompanySearch,
-      debouncedLocationSearch,
+      effectiveCompanySearch,
+      effectiveLocationSearch,
+      controller.signal,
     );
+
+    return () => controller.abort();
   }, [
     selected,
     pageNumber,
     pageSize,
-    debouncedCompanySearch,
-    debouncedLocationSearch,
+    effectiveCompanySearch,
+    effectiveLocationSearch,
+    getCompanyList,
+    rateLimitBlockedUntil,
   ]);
   const handleViewCompany = (company, from) => {
     navigate(`/${company.slug}`, {
@@ -246,26 +321,17 @@ const Employers = () => {
 
   // Updated Clear All
   const clearAll = () => {
+    fetchAbortRef.current?.abort();
+    filterKeyRef.current = "||";
     setSelected([]);
     setSearchTerm("");
     setCompanySearch("");
     setLocationSearch("");
     setPageNumber(1);
-
     getCompanyList([], 1, pageSize, "", "");
   };
   const removeTag = (_id) => {
-    const newSelected = selected?.filter((i) => i._id !== _id);
-    setSelected(newSelected);
-
-    const selectedIndustryIds = newSelected?.map((i) => i._id);
-    getCompanyList(
-      selectedIndustryIds,
-      pageNumber,
-      pageSize,
-      debouncedCompanySearch,
-      debouncedLocationSearch,
-    );
+    setSelected(selected?.filter((i) => i._id !== _id));
   };
   const filteredOptions = options.filter((industry) =>
     industry.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -301,18 +367,7 @@ const Employers = () => {
     }
 
     setSelected(newSelected);
-
-    // Refetch companies based on updated industries
-    const selectedIndustryIds = newSelected.map((i) => i._id);
-    getCompanyList(
-      selectedIndustryIds,
-      pageNumber,
-      pageSize,
-      debouncedCompanySearch,
-      debouncedLocationSearch,
-    );
   };
-  console.log(selected);
 
   const companiesOfMoment = companies?.sections?.companiesOfMoment || [];
   const partnerCompanies = companies?.sections?.partnerCompanies || [];
@@ -333,8 +388,8 @@ const Employers = () => {
 
     return filterCompanySearchResults(
       results,
-      debouncedCompanySearch,
-      debouncedLocationSearch,
+      effectiveCompanySearch,
+      effectiveLocationSearch,
     );
   };
 
@@ -704,6 +759,15 @@ const Employers = () => {
           <div className="row justify-content-center">
             <div className="col-xl-10 col-lg-11 col-md-12">
               <div className="elegant-sidebar-filter mb-5">
+                {isRateLimited && (
+                  <div
+                    className="alert alert-warning py-2 px-3 mb-3"
+                    role="alert"
+                  >
+                    Too many requests from this browser. Please wait before
+                    searching again.
+                  </div>
+                )}
                 <div className="row align-items-start">
                   <div className="col-lg-4 col-md-4 mb-3 mb-lg-0">
                     <h5 className="filter-title mb-3 text-start">
@@ -718,9 +782,13 @@ const Employers = () => {
                         className="form-control elegant-input"
                         type="text"
                         value={companySearch}
+                        disabled={isRateLimited}
                         onChange={(e) => setCompanySearch(e.target.value)}
                       />
                     </div>
+                    <small className="text-muted">
+                      Type at least {MIN_SEARCH_LENGTH} characters to search
+                    </small>
                   </div>
                   <div className="col-lg-4 col-md-4 mb-3 mb-lg-0">
                     <h5 className="filter-title mb-3 text-start">
@@ -845,9 +913,13 @@ const Employers = () => {
                         className="form-control elegant-input"
                         type="text"
                         value={locationSearch}
+                        disabled={isRateLimited}
                         onChange={(e) => setLocationSearch(e.target.value)}
                       />
                     </div>
+                    <small className="text-muted">
+                      Type at least {MIN_SEARCH_LENGTH} characters to search
+                    </small>
                   </div>
                 </div>
               </div>

@@ -60,6 +60,7 @@ import Blog from "./Pages/Blog";
 import BlogDetails from "./Pages/BlogDetails";
 import Setting from "./Pages/Setting";
 import EmployerWallet from "./Pages/EmployerWallet";
+import Checkout from "./Pages/Checkout";
 import AddPlan from "./Pages/AddPlan";
 import ResumeBuilder from "./Pages/ResumeBuilder";
 import AddOnPack from "./Pages/AddOnPack";
@@ -83,7 +84,7 @@ import InvoiceView from "./Pages/InvoiceView";
 console.log("Date:20-02-2026,time:-18:05");
 function LayoutWrapper() {
   const location = useLocation();
-  const noLayoutRoutes = ["/start-test", "/apply-test", "/test-result"];
+  const noLayoutRoutes = ["/start-test", "/apply-test", "/test-result", "/checkout"];
   const hideLayout = noLayoutRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
@@ -321,6 +322,14 @@ function LayoutWrapper() {
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
               <EmployerWallet />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
+              <Checkout />
             </PrivateRoute>
           }
         />

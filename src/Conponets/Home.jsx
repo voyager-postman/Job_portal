@@ -259,8 +259,6 @@ function Home() {
   });
 
   const handleViewCompany = (company, from) => {
-    console.log(company);
-
     navigate(`/${company.slug}`, {
       state: { companyId: company._id, from },
     });

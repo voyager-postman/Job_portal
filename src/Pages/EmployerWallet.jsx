@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import "./EmployerWallet.css";
 const EmployerWallet = () => {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
@@ -34,6 +36,19 @@ const EmployerWallet = () => {
   const [packsHistory, setPacksHistory] = useState([]);
   const [addOnHistory, setAddOnHistory] = useState([]);
   const [rechargeRequests, setRechargeRequests] = useState([]);
+  const [walletTab, setWalletTab] = useState("transactions");
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedContactPlan, setSelectedContactPlan] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedTopUpPack, setSelectedTopUpPack] = useState(null);
+  const [showCustomCreditModal, setShowCustomCreditModal] = useState(false);
+  const [customCreditType, setCustomCreditType] = useState("BOTH");
+  const [customJobCredits, setCustomJobCredits] = useState("");
+  const [customCvCredits, setCustomCvCredits] = useState("");
+  const [customCreditLoading, setCustomCreditLoading] = useState(false);
   const fetchcreditStatus = async () => {
     try {
       setLoading(true);
@@ -81,7 +96,7 @@ const EmployerWallet = () => {
       const res = await axios.get(`${API_BASE_URL}recharge-track`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Recharge API Response:", res.data.data); // 👈 add this
+      console.log("Recharge API Response:", res.data.data); // ðŸ‘ˆ add this
       setRechargeRequests(res.data.data || []);
     } catch (error) {
       console.error(error);
@@ -92,23 +107,6 @@ const EmployerWallet = () => {
     fetchPurchaseHistory();
     fetchRechargeRequests();
   }, []);
-  const creditHistory = purchaseHistory?.filter(
-    (item) => item.type === "credit",
-  );
-
-  const debitHistory = purchaseHistory?.filter((item) => item.type === "debit");
-  if (!credits) return null;
-
-  const {
-    hasWelcomePack,
-    hasPurchasedPack,
-    welcomePack,
-    hasAddOns,
-    purchasedPack,
-    usageToday,
-    remainingToday,
-    addOns,
-  } = credits;
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -146,1032 +144,1491 @@ const EmployerWallet = () => {
   const handleRequestPageChange = (page) => {
     setRequestPage(page);
   };
+
+  const formatWalletDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+      : "-";
+
+  const formatShortDate = (date) =>
+    date ? new Date(date).toLocaleDateString("en-US") : "-";
+
+  const calcCreditProgress = (remaining, total) => {
+    if (total === -1 || !total) return 100;
+    return Math.min(100, Math.round((remaining / total) * 100));
+  };
+
+  const calcUsageProgress = (used, limit) => {
+    if (limit === -1 || !limit) return 0;
+    return Math.min(100, Math.round((used / limit) * 100));
+  };
+
+  const {
+    hasWelcomePack,
+    hasPurchasedPack,
+    welcomePack,
+    purchasedPack,
+    usageToday,
+  } = credits || {};
+
+  const jobCreditData = credits?.fullCredit?.jobCredits || {};
+  const profileCreditData = credits?.fullCredit?.profileCredits || {};
+  const jobRemaining =
+    jobCreditData.remaining ??
+    Math.max(0, (jobCreditData.total ?? 0) - (jobCreditData.used ?? 0));
+  const jobTotal = jobCreditData.total ?? 0;
+  const profileRemaining =
+    profileCreditData.remaining ??
+    Math.max(0, (profileCreditData.total ?? 0) - (profileCreditData.used ?? 0));
+  const profileTotal = profileCreditData.total ?? 0;
+
+  const activePack =
+    hasPurchasedPack && purchasedPack
+      ? purchasedPack
+      : hasWelcomePack
+        ? welcomePack
+        : null;
+
+  const currentPlanName = activePack?.packName || "No Active Plan";
+  const jobsUsedToday =
+    usageToday?.jobPostingUsed ?? activePack?.jobUsedToday ?? 0;
+  const cvUsedToday =
+    usageToday?.profileViewingUsed ?? activePack?.profileUsedToday ?? 0;
+  const dailyJobLimit = activePack?.dailyJobLimit ?? 0;
+  const dailyProfileLimit = activePack?.dailyProfileLimit ?? 0;
+  const planDaysLeft = activePack?.daysLeft ?? 0;
+  const planExpiresAt = activePack?.expiresAt;
+
+  const activePacksFromHistory = packsHistory.filter((pack) => pack.isActive);
+  const activePackCards =
+    activePacksFromHistory.length > 0
+      ? activePacksFromHistory.map((pack) => ({
+        id: pack._id,
+        name: pack.paymentTransactionId?.planName || "Pack",
+        totalJobs: pack.jobPostingCredits,
+        totalCvs: pack.profileViewingCredits,
+        dailyJobs: pack.dailyJobPostingLimit,
+        dailyCvs: pack.dailyProfileViewingLimit,
+        startedAt: pack.createdAt || pack.activatedAt,
+        expiresAt: pack.expiresAt,
+      }))
+      : [
+        ...(hasWelcomePack && welcomePack
+          ? [
+            {
+              id: "welcome",
+              name: "Welcome Pack",
+              totalJobs: welcomePack.jobCreditsTotal,
+              totalCvs: welcomePack.profileCreditsTotal,
+              dailyJobs: welcomePack.dailyJobLimit,
+              dailyCvs: welcomePack.dailyProfileLimit,
+              startedAt: welcomePack.startedAt || welcomePack.createdAt,
+              expiresAt: welcomePack.expiresAt,
+            },
+          ]
+          : []),
+        ...(hasPurchasedPack && purchasedPack
+          ? [
+            {
+              id: purchasedPack.companyPackId || "purchased",
+              name: purchasedPack.packName,
+              totalJobs: purchasedPack.jobCreditsTotal,
+              totalCvs: purchasedPack.profileCreditsTotal,
+              dailyJobs: purchasedPack.dailyJobLimit,
+              dailyCvs: purchasedPack.dailyProfileLimit,
+              startedAt: purchasedPack.startedAt || purchasedPack.createdAt,
+              expiresAt: purchasedPack.expiresAt,
+            },
+          ]
+          : []),
+      ];
+
+  const activeAddOns = addOnHistory.filter((item) => item.isActive);
+  const addedJobsTotal = activeAddOns.reduce(
+    (sum, item) => sum + (item.totalJobCredits ?? 0),
+    0,
+  );
+  const addedCvsTotal = activeAddOns.reduce(
+    (sum, item) => sum + (item.totalProfileCredits ?? 0),
+    0,
+  );
+  const manualRechargeRequests = rechargeRequests.filter(
+    (req) => req.type === "MANUAL_CREDITS",
+  );
+  const currentManualRequests = manualRechargeRequests.slice(
+    requestIndexFirst,
+    requestIndexLast,
+  );
+  const manualRequestTotalPages = Math.ceil(
+    manualRechargeRequests.length / requestRowsPerPage,
+  );
+
+  const getTransactionCredits = (item) => {
+    const isPack = item.paymentTransactionId?.planType === "Pack";
+    return {
+      jobs: isPack ? item.jobPostingCredits : (item.totalJobCredits ?? 0),
+      profiles: isPack
+        ? item.profileViewingCredits
+        : (item.totalProfileCredits ?? 0),
+      dailyJobs: isPack ? item.dailyJobPostingLimit : null,
+      dailyCvs: isPack ? item.dailyProfileViewingLimit : null,
+      isPack,
+    };
+  };
+
+  const renderCreditAmount = (value) =>
+    value === -1 ? "Unlimited" : (value ?? 0);
+
+  const openContactModal = (planName) => {
+    setSelectedContactPlan(planName);
+    setContactMessage(
+      `I am interested in the ${planName}. Please contact me to discuss details...`,
+    );
+    setShowContactModal(true);
+  };
+
+  const closeContactModal = () => {
+    setShowContactModal(false);
+    setSelectedContactPlan("");
+    setContactMessage("");
+  };
+
+  const closeUpgradePlanModal = () => {
+    setShowUpgradePlanModal(false);
+    closeContactModal();
+  };
+
+  const openPaymentModal = (pack) => {
+    setSelectedTopUpPack(pack);
+    setShowPaymentModal(true);
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setSelectedTopUpPack(null);
+  };
+
+  const closeTopUpModal = () => {
+    setShowTopUpModal(false);
+    closePaymentModal();
+    closeCustomCreditModal();
+  };
+
+  const closeCustomCreditModal = () => {
+    setShowCustomCreditModal(false);
+    setCustomCreditType("BOTH");
+    setCustomJobCredits("");
+    setCustomCvCredits("");
+  };
+
+  const handleCustomCreditSubmit = async () => {
+    const jobCredits =
+      customCreditType === "CV" ? 0 : Number(customJobCredits || 0);
+    const cvCredits =
+      customCreditType === "JOB" ? 0 : Number(customCvCredits || 0);
+
+    if (customCreditType === "JOB" && !jobCredits) {
+      toast.error("Please enter job posting credits");
+      return;
+    }
+    if (customCreditType === "CV" && !cvCredits) {
+      toast.error("Please enter CV viewing credits");
+      return;
+    }
+    if (customCreditType === "BOTH" && !jobCredits && !cvCredits) {
+      toast.error("Please enter at least one credit amount");
+      return;
+    }
+
+    try {
+      setCustomCreditLoading(true);
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        `${API_BASE_URL}createManualRechargeRequest`,
+        {
+          jobCreditsRequested: jobCredits,
+          profileCreditsRequested: cvCredits,
+          message: "",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (res.data.success) {
+        toast.success("Manual recharge request submitted successfully");
+        closeCustomCreditModal();
+        closeTopUpModal();
+        fetchRechargeRequests();
+        setWalletTab("manual");
+      } else {
+        toast.error(res.data.message || "Request failed");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to submit manual request",
+      );
+    } finally {
+      setCustomCreditLoading(false);
+    }
+  };
+
+  const handleSelectPayment = (paymentMethod) => {
+    if (!selectedTopUpPack) return;
+
+    closeTopUpModal();
+    navigate("/checkout", {
+      state: {
+        paymentMethod,
+        pack: selectedTopUpPack,
+      },
+    });
+  };
+
   return (
     <>
       {/* <!-- Start Main Dashboard Content Wrapper Area --> */}
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* <!-- Breadcrumb Area --> */}
-          <div className="breadcrumb-area">
-            <h1>{t("header.My_Wallet")}</h1>
-            <ol className="breadcrumb">
-              <li className="item">
-                <Link to="/">{t("header.home")} </Link>
-              </li>
-              <li className="item">
-                <Link to="/employer-dashboard">
-                  {" "}
-                  <i className="fa-solid fa-angle-right" />{" "}
-                  {t("header.dashboard")}{" "}
-                </Link>
-              </li>
-              <li className="item">
-                <Link to="/employer-wallet">
-                  <i className="fa-solid fa-angle-right"></i>{" "}
-                  {t("header.My_Wallet")}
-                </Link>
-              </li>
-            </ol>
+          <div className="wallet-page-header">
+            <div className="wallet-page-header-left">
+              <h1 className="wallet-page-title">{t("header.My_Wallet")}</h1>
+              <span className="wallet-header-divider">|</span>
+              <ol className="wallet-inline-breadcrumb">
+                <li>
+                  <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
+                </li>
+                <li className="active">Wallet</li>
+              </ol>
+            </div>
+            <button
+              type="button"
+              className="btn-buy-primary"
+              onClick={() => setShowUpgradePlanModal(true)}
+            >
+              <i className="fa-solid fa-plus me-2" />
+              Upgrade Plan
+            </button>
           </div>
-          {/* <!-- End Breadcrumb Area --> */}
-          {loading ? (
+
+          {loading || !credits ? (
             <JobListLoader />
           ) : (
             <>
-              {/* <!-- employer dashboard user wallet start here --> */}
-              <section className="employer-dashboard-info-area">
-                <div className="employer-dashboard-common-heading subscription-plan-name">
-                  <h2>Global credit balances</h2>
-                  <span>Initial Base Plan</span>
-                </div>
-              </section>
-
-              <section className="user-wallet-credit-button-info">
-                <div className="user-wallet-credit-box-info">
-                  <div className="user-wallet-credit-button">
-                    <div className="user-wallet-credit">
-                      <h4>
-                        Total Job posting credits:{" "}
-                        <span>
-                          {credits.fullCredit?.jobCredits?.total === -1
-                            ? "Unlimited"
-                            : `${credits.fullCredit?.jobCredits?.used || 0}/${
-                                credits.fullCredit?.jobCredits?.total || 0
-                              }`}
-                        </span>
-                      </h4>
-
-                      <h4>
-                        Total profile viewing credits:{" "}
-                        <span>
-                          {credits.fullCredit?.profileCredits?.total === -1
-                            ? "Unlimited"
-                            : `${credits.fullCredit?.profileCredits?.used || 0}/${
-                                credits.fullCredit?.profileCredits?.total || 0
-                              }`}
-                        </span>
-                      </h4>
-                      {/* <h4>
-                        Total Featured Job credits:{" "}
-                        <span>
-                          {credits.fullCredit?.featuredJobCredits?.total === -1
-                            ? "Unlimited"
-                            : `${credits.fullCredit?.featuredJobCredits?.used || 0}/${
-                                credits.fullCredit?.featuredJobCredits?.total ||
-                                0
-                              }`}
-                        </span>
-                      </h4> */}
+              <div className="row g-4 mb-5">
+                <div className="col-xl-3 col-md-6">
+                  <div className="glass-card kpi-card blue-glow h-100">
+                    <div className="kpi-icon-wrap bg-blue-subtle text-primary">
+                      <i className="fa-solid fa-briefcase" />
                     </div>
-                    <div className="user-wallet-credit-buy-button">
-                      <Link to="/add-plan" className="credit-buy-btn">
-                        Add Plan
-                      </Link>
-                      {hasPurchasedPack && (
-                        <Link
-                          to="/add-on-pack"
-                          state={{ packId: purchasedPack?.companyPackId }}
-                          className="credit-buy-btn"
-                        >
-                          Add On Pack
-                        </Link>
+                    <div className="kpi-content">
+                      <span className="kpi-label">Job Posting Credits</span>
+                      <div className="kpi-value">
+                        {jobTotal === -1 ? (
+                          "Unlimited"
+                        ) : (
+                          <>
+                            {jobRemaining}
+                            <span className="kpi-total">/ {jobTotal}</span>
+                          </>
+                        )}
+                        <span
+                          className="live-indicator-dot"
+                          title="Live status"
+                        />
+                      </div>
+                      <div className="kpi-progress">
+                        <div
+                          className="progress-bar bg-primary fluid-progress"
+                          style={{
+                            width: `${calcCreditProgress(jobRemaining, jobTotal)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-xl-3 col-md-6">
+                  <div className="glass-card kpi-card orange-glow h-100">
+                    <div className="kpi-icon-wrap bg-orange-subtle text-orange">
+                      <i className="fa-solid fa-user-tie" />
+                    </div>
+                    <div className="kpi-content">
+                      <span className="kpi-label">CV Viewing Credits</span>
+                      <div className="kpi-value">
+                        {profileTotal === -1 ? (
+                          "Unlimited"
+                        ) : (
+                          <>
+                            {profileRemaining}
+                            <span className="kpi-total">/ {profileTotal}</span>
+                          </>
+                        )}
+                        <span
+                          className="live-indicator-dot orange"
+                          title="Live status"
+                        />
+                      </div>
+                      <div className="kpi-progress">
+                        <div
+                          className="progress-bar bg-orange fluid-progress"
+                          style={{
+                            width: `${calcCreditProgress(profileRemaining, profileTotal)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-xl-3 col-md-6">
+                  <div className="glass-card kpi-card green-glow h-100">
+                    <div className="kpi-icon-wrap bg-success-subtle text-success">
+                      <i className="fa-solid fa-bolt" />
+                    </div>
+                    <div className="kpi-content">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <span className="kpi-label">Activity Today</span>
+                        {activePack && (
+                          <span
+                            className="badge bg-info-subtle text-info xsmall"
+                            style={{ fontSize: "0.6rem" }}
+                          >
+                            {currentPlanName}
+                          </span>
+                        )}
+                      </div>
+                      <div className="d-flex flex-column gap-2">
+                        <div className="activity-item">
+                          <div className="d-flex justify-content-between small mb-1">
+                            <span className="text-muted">Jobs Posts</span>
+                            <span className="fw-bold">
+                              {jobsUsedToday} /{" "}
+                              {dailyJobLimit === -1
+                                ? "Unlimited"
+                                : dailyJobLimit}
+                            </span>
+                          </div>
+                          <div
+                            className="progress mini-progress"
+                            style={{ height: "4px" }}
+                          >
+                            <div
+                              className="progress-bar bg-success"
+                              style={{
+                                width: `${calcUsageProgress(
+                                  jobsUsedToday,
+                                  dailyJobLimit,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="activity-item">
+                          <div className="d-flex justify-content-between small mb-1">
+                            <span className="text-muted">CV Views</span>
+                            <span className="fw-bold">
+                              {cvUsedToday} /{" "}
+                              {dailyProfileLimit === -1
+                                ? "Unlimited"
+                                : dailyProfileLimit}
+                            </span>
+                          </div>
+                          <div
+                            className="progress mini-progress"
+                            style={{ height: "4px" }}
+                          >
+                            <div
+                              className="progress-bar bg-info"
+                              style={{
+                                width: `${calcUsageProgress(
+                                  cvUsedToday,
+                                  dailyProfileLimit,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-xl-3 col-md-6">
+                  <div className="glass-card kpi-card dark-glow h-100">
+                    <div className="kpi-icon-wrap bg-dark-subtle text-dark">
+                      <i className="fa-solid fa-hourglass-half" />
+                    </div>
+                    <div className="kpi-content">
+                      <span className="kpi-label">Plan Validity</span>
+                      <div className="kpi-value h3 mb-1">
+                        {planDaysLeft}
+                        <span className="small fs-6 fw-normal text-muted">
+                          {" "}
+                          Days Left
+                        </span>
+                      </div>
+                      <div className="small text-muted xsmall">
+                        Ends: {formatWalletDate(planExpiresAt)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="active-plan-minimal-banner mb-5">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-4">
+                  <div className="plan-main-info">
+                    <span className="plan-badge-label">Current Plan</span>
+                    <h4 className="plan-name-display mb-0">
+                      {currentPlanName}
+                    </h4>
+                  </div>
+                  <div className="plan-details-row d-flex gap-5">
+                    <div className="plan-detail-item">
+                      <span className="detail-label">Ad Credits</span>
+                      <span className="detail-value">
+                        {renderCreditAmount(
+                          activePack?.jobCreditsTotal ?? jobTotal,
+                        )}
+                      </span>
+                    </div>
+                    <div className="plan-detail-item">
+                      <span className="detail-label">
+                        Access to the CV database
+                      </span>
+                      <span className="detail-value">
+                        {renderCreditAmount(
+                          activePack?.profileCreditsTotal ?? profileTotal,
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="row g-4 mb-5">
+                <div className="col-lg-6">
+                  <div className="premium-card h-100">
+                    <div className="card-header-premium">
+                      <h5 className="mb-0 fw-bold">
+                        Active Subscription Packs
+                      </h5>
+                      <span className="badge-total">
+                        {activePackCards.length} Active
+                      </span>
+                    </div>
+                    <div className="card-body p-4">
+                      {activePackCards.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <p className="mb-3">No active subscription packs</p>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => navigate("/add-plan")}
+                          >
+                            View Plans
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="row g-3">
+                          {activePackCards.map((pack) => (
+                            <div className="col-md-12" key={pack.id}>
+                              <div className="sub-pack-card">
+                                <div className="sub-pack-title">
+                                  {pack.name}
+                                </div>
+                                <div className="sub-pack-stats">
+                                  <div className="stat-row">
+                                    <span className="stat-label">
+                                      Total Jobs
+                                    </span>
+                                    <span className="stat-val">
+                                      {renderCreditAmount(pack.totalJobs)}
+                                    </span>
+                                  </div>
+                                  <div className="stat-row">
+                                    <span className="stat-label">
+                                      Total CVs
+                                    </span>
+                                    <span className="stat-val">
+                                      {renderCreditAmount(pack.totalCvs)}
+                                    </span>
+                                  </div>
+                                  <div className="stat-separator my-2" />
+                                  <div className="stat-row">
+                                    <span className="stat-label">
+                                      Daily Jobs Limit
+                                    </span>
+                                    <span className="stat-val text-muted">
+                                      {renderCreditAmount(pack.dailyJobs)}
+                                    </span>
+                                  </div>
+                                  <div className="stat-row">
+                                    <span className="stat-label">
+                                      Daily CVs Limit
+                                    </span>
+                                    <span className="stat-val text-muted">
+                                      {renderCreditAmount(pack.dailyCvs)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 pt-3 border-top xsmall">
+                                  <div className="d-flex justify-content-between mb-1">
+                                    <span className="text-muted">Started:</span>
+                                    <span className="fw-bold">
+                                      {formatShortDate(pack.startedAt)}
+                                    </span>
+                                  </div>
+                                  <div className="d-flex justify-content-between">
+                                    <span className="text-muted">Ends:</span>
+                                    <span className="fw-bold text-danger">
+                                      {formatShortDate(pack.expiresAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="add-credits-modal-info">
-                  {/* <!-- Modal --> */}
-                  <div
-                    className="modal fade"
-                    id="exampleModal"
-                    tabindex="-1"
-                    aria-labelledby="exampleModalLabel"
-                    aria-hidden="true"
-                  >
-                    <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h1
-                            className="modal-title fs-5"
-                            id="exampleModalLabel"
-                          >
-                            Add Credits
-                          </h1>
-                          <button
-                            type="button"
-                            className="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"
-                          ></button>
+                <div className="col-lg-6">
+                  <div className="premium-card h-100">
+                    <div className="card-header-premium">
+                      <h5 className="mb-0 fw-bold">Manual Credit</h5>
+                    </div>
+                    <div className="card-body p-4">
+                      <div className="sub-pack-card border-info-subtle">
+                        <div className="sub-pack-title text-primary">
+                          Summary of Active Add-ons
                         </div>
-                        <div className="modal-body">
-                          <div className="form-group">
-                            <label>Credits Type</label>
-                            <select
-                              name="cars"
-                              className="form-select form-control"
-                              aria-label="Default2 select example"
-                              id="Industry"
-                            >
-                              <option value="volvo">Select Credits Type</option>
-                              <option value="volvo">Job Post Credits</option>
-                              <option value="saab">Profile View Credits</option>
-                            </select>
+                        <div className="sub-pack-stats">
+                          <div className="stat-row">
+                            <span className="stat-label">Added Jobs</span>
+                            <span className="stat-val text-primary">
+                              +{addedJobsTotal}
+                            </span>
                           </div>
-                          <form className="add-credits-input-btn">
-                            <div className="form-group">
-                              <label>Add Credits</label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                id="first-name"
-                                name="first_name"
-                                placeholder="Add Credits"
-                                required
-                              />
-                            </div>
-                          </form>
+                          <div className="stat-row">
+                            <span className="stat-label">Added CVs</span>
+                            <span className="stat-val text-orange">
+                              +{addedCvsTotal}
+                            </span>
+                          </div>
                         </div>
-                        <div className="modal-footer">
-                          <a href="#" className="buy-plan-btn">
-                            Request
-                          </a>
+                        <div className="mt-3 pt-3 border-top xsmall text-muted">
+                          Total from {activeAddOns.length} active recharge(s)
                         </div>
+                      </div>
+                      <div className="mt-4 pt-2 text-center">
+                        <button
+                          type="button"
+                          className="btn-topup-outline w-100"
+                          onClick={() => setShowTopUpModal(true)}
+                        >
+                          <i className="fa-solid fa-plus-circle me-2" />
+                          Request Credit Top-up
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              </section>
-              <section className="user-wallet-credit-limit-info">
-                <div className="accordion" id="accordionExample">
-                  {/* ===================== WELCOME PACK ===================== */}
-                  {hasWelcomePack && welcomePack && (
-                    <div className="accordion-item">
-                      <h2 className="accordion-header">
-                        <button
-                          className="accordion-button collapsed"
-                          type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target="#welcomePack"
-                        >
-                          Welcome Pack
-                          <span className="PlusIcon">
-                            <i className="fa-solid fa-plus" />
-                          </span>
-                          <span className="MinusIcon">
-                            <i className="fa-solid fa-minus" />
-                          </span>
-                        </button>
-                      </h2>
 
-                      <div
-                        id="welcomePack"
-                        className="accordion-collapse collapse"
-                        data-bs-parent="#accordionExample"
-                      >
-                        <div className="accordion-body">
-                          <div className="user-wallet-credit-limit">
-                            {/* Job Credits */}
-                            <div className="user-wallet-credit-box">
-                              <h3>
-                                {welcomePack.jobCreditsTotal -
-                                  welcomePack.jobCreditsRemaining}{" "}
-                                / {welcomePack.jobCreditsTotal}
-                              </h3>
-                              <h4>Total Job Credits</h4>
-                              <p>
-                                Remaining: {welcomePack.jobCreditsRemaining}
-                              </p>
-                            </div>
-
-                            {/* Profile Credits */}
-                            <div className="user-wallet-credit-box">
-                              <h3>
-                                {" "}
-                                {welcomePack.profileCreditsTotal -
-                                  welcomePack.profileCreditsRemaining}{" "}
-                                / {welcomePack.profileCreditsTotal}
-                              </h3>
-                              <h4>Total Profile Credits</h4>
-                              <p>
-                                Remaining: {welcomePack.profileCreditsRemaining}
-                              </p>
-                            </div>
-
-                            {/* Jobs Today */}
-                            <div className="user-wallet-credit-box">
-                              <h3>
-                                {welcomePack.jobUsedToday} /{" "}
-                                {welcomePack.dailyJobLimit}
-                              </h3>
-                              <h4>Jobs Created Today</h4>
-                              <p>
-                                Daily limits reset automatically at midnight
-                              </p>
-                            </div>
-
-                            {/* Profiles Today */}
-                            <div className="user-wallet-credit-box">
-                              <h3>
-                                {welcomePack.profileUsedToday} /{" "}
-                                {welcomePack.dailyProfileLimit}
-                              </h3>
-                              <h4>Profiles Viewed Today</h4>
-                              <p>
-                                Daily limits reset automatically at midnight
-                              </p>
-                            </div>
-
-                            {/* Validity */}
-                            <div className="user-wallet-credit-box">
-                              <h3>{welcomePack.daysLeft} Days</h3>
-                              <h4>Pack Validity</h4>
-                              <p>
-                                Expiry:{" "}
-                                {new Date(
-                                  welcomePack.expiresAt,
-                                ).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ===================== PURCHASED PACK ===================== */}
-                  {hasPurchasedPack && purchasedPack && (
-                    <>
-                      <div className="accordion-item">
-                        <h2 className="accordion-header">
-                          <button
-                            className="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#purchasedPack"
-                          >
-                            {purchasedPack.packName}
-                            <span className="PlusIcon">
-                              <i className="fa-solid fa-plus" />
-                            </span>
-                            <span className="MinusIcon">
-                              <i className="fa-solid fa-minus" />
-                            </span>
-                          </button>
-                        </h2>
-
-                        <div
-                          id="purchasedPack"
-                          className="accordion-collapse collapse"
-                          data-bs-parent="#accordionExample"
-                        >
-                          <div className="accordion-body">
-                            <div className="user-wallet-credit-limit">
-                              {/* Job Credits */}
-                              <div className="user-wallet-credit-box">
-                                <h3>
-                                  {" "}
-                                  <h3>
-                                    {purchasedPack.jobCreditsTotal === -1
-                                      ? "Unlimited"
-                                      : `${purchasedPack.jobCreditsTotal - purchasedPack.jobCreditsRemaining}/${purchasedPack.jobCreditsTotal}`}
-                                  </h3>
-                                  <h4>Total Job Credits</h4>
-                                  <p>
-                                    Remaining:{" "}
-                                    {purchasedPack.jobCreditsRemaining === -1
-                                      ? "Unlimited"
-                                      : purchasedPack.jobCreditsRemaining}
-                                  </p>
-                                </h3>
-                              </div>
-
-                              {/* Profile Credits */}
-                              <div className="user-wallet-credit-box">
-                                <h3>
-                                  {purchasedPack.profileCreditsTotal === -1
-                                    ? "Unlimited"
-                                    : `${purchasedPack.profileCreditsTotal - purchasedPack.profileCreditsRemaining}/${purchasedPack.profileCreditsTotal}`}
-                                </h3>
-
-                                <h4>Total Profile Credits</h4>
-
-                                <p>
-                                  Remaining:{" "}
-                                  {purchasedPack.profileCreditsRemaining === -1
-                                    ? "Unlimited"
-                                    : purchasedPack.profileCreditsRemaining}
-                                </p>
-                              </div>
-
-                              {/* Daily Usage */}
-                              <div className="user-wallet-credit-box">
-                                <h3>
-                                  {purchasedPack.dailyJobLimit === -1
-                                    ? "Unlimited"
-                                    : `${purchasedPack.jobUsedToday}/${purchasedPack.dailyJobLimit}`}
-                                </h3>
-                                <h4>Jobs Created Today</h4>
-                                <p>Daily limit resets at midnight</p>
-                              </div>
-
-                              {/* Daily Profile Usage */}
-                              <div className="user-wallet-credit-box">
-                                <h3>
-                                  {purchasedPack.dailyProfileLimit === -1
-                                    ? "Unlimited"
-                                    : `${purchasedPack.profileUsedToday}/${purchasedPack.dailyProfileLimit}`}
-                                </h3>
-                                <h4>Profiles Viewed Today</h4>
-                                <p>Daily limit resets at midnight</p>
-                              </div>
-
-                              {/* Validity */}
-                              <div className="user-wallet-credit-box">
-                                <h3>{purchasedPack.daysLeft} Days</h3>
-                                <h4>Pack Validity</h4>
-                                <p>
-                                  Expiry:{" "}
-                                  {new Date(
-                                    purchasedPack.expiresAt,
-                                  ).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })}
-                                </p>
-                              </div>
-                              {/* Featured Job Credits */}
-                              {/* Featured Jobs */}
-                              {purchasedPack.features?.hasFeaturedJobs && (
-                                <div className="user-wallet-credit-box">
-                                  <h3>
-                                    {purchasedPack.features.featuredJobsUsed ||
-                                      0}
-                                    /{purchasedPack.features.maxFeaturedJobs}
-                                  </h3>
-
-                                  <h4>Featured Job Slots</h4>
-
-                                  <p>
-                                    Remaining:{" "}
-                                    {purchasedPack.features.maxFeaturedJobs -
-                                      purchasedPack.features.featuredJobsUsed}
-                                  </p>
-
-                                  <p>
-                                    Duration:{" "}
-                                    {
-                                      purchasedPack.features
-                                        .featuredJobDurationDays
-                                    }{" "}
-                                    Days
-                                  </p>
-
-                                  <p>
-                                    Locations:{" "}
-                                    {purchasedPack.features.featuredJobLocations.join(
-                                      ", ",
-                                    )}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Company Profile Highlight */}
-                              {purchasedPack.features?.hasProfileHighlight && (
-                                <div className="user-wallet-credit-box">
-                                  <h3>Enabled</h3>
-
-                                  <h4>Company Profile Highlight</h4>
-
-                                  <p>
-                                    Your Company Profile Will Appear Highlighted
-                                    To Candidates.
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  {/* ===================== ADD-ON PACK ===================== */}
-
-                  {/* ===================== NO ACTIVE PLAN ===================== */}
-                  {!hasWelcomePack && !hasPurchasedPack && !hasAddOns && (
-                    <div className="accordion-item">
-                      <h2 className="accordion-header">
-                        <button
-                          className="accordion-button"
-                          type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target="#noPlan"
-                        >
-                          No Active Plan
-                        </button>
-                      </h2>
-
-                      <div
-                        id="noPlan"
-                        className="accordion-collapse collapse show"
-                        data-bs-parent="#accordionExample"
-                      >
-                        <div className="accordion-body">
-                          <div className="no-plan-wrapper text-center p-4">
-                            <div className="mb-3">
-                              <i className="fa-solid fa-credit-card fa-3x text-primary"></i>
-                            </div>
-
-                            <h4 className="mb-2">
-                              You don’t have an active subscription
-                            </h4>
-
-                            <p className="text-muted mb-4">
-                              Purchase a plan to start posting jobs and viewing
-                              profiles.
-                            </p>
-
-                            <div className="d-flex justify-content-center gap-3 flex-wrap">
-                              <button
-                                className="btn btn-primary px-4"
-                                onClick={() => navigate("/add-plan")}
-                              >
-                                View Plans
-                              </button>
-
-                              <button
-                                className="btn btn-outline-secondary px-4"
-                                onClick={() => navigate("/add-on-pack")}
-                              >
-                                Request Custom Credits
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-              {currentCreditTransactions.length > 0 && (
-                <section className="user-wallet-transaction-list">
-                  <div className="employer-dashboard-common-heading">
-                    <h2>Credit Transaction History</h2>
+                <div className="col-12">
+                  <div className="premium-tabs-nav mb-4">
+                    <button
+                      type="button"
+                      className={`tab-btn ${walletTab === "transactions" ? "active" : ""}`}
+                      onClick={() => setWalletTab("transactions")}
+                    >
+                      <i className="fa-solid fa-list-check me-2" /> Transaction
+                      History
+                    </button>
+                    <button
+                      type="button"
+                      className={`tab-btn ${walletTab === "recharge" ? "active" : ""}`}
+                      onClick={() => setWalletTab("recharge")}
+                    >
+                      <i className="fa-solid fa-clock-rotate-left me-2" />{" "}
+                      Recharge Track
+                    </button>
+                    <button
+                      type="button"
+                      className={`tab-btn ${walletTab === "payments" ? "active" : ""}`}
+                      onClick={() => setWalletTab("payments")}
+                    >
+                      <i className="fa-solid fa-credit-card me-2" /> Recent
+                      Payments
+                    </button>
+                    <button
+                      type="button"
+                      className={`tab-btn ${walletTab === "manual" ? "active" : ""}`}
+                      onClick={() => setWalletTab("manual")}
+                    >
+                      <i className="fa-solid fa-hand-holding-hand me-2" />{" "}
+                      Manual Requests
+                    </button>
                   </div>
 
-                  <div className="tab-content user-wallet-transaction-table">
-                    <div className="tab-pane fade show active">
-                      <div className="table-responsive">
-                        <table className="table table-bordered">
-                          <thead>
-                            <tr>
-                              <th>S.No</th>
-                              <th>Plan Type</th>
-                              <th>Plan Name</th>
-                              <th>Credits</th>
-                              <th>Daily Limits</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
+                  <div className="premium-card">
+                    <div className="table-responsive-premium">
+                      <div className="card-header-premium border-0">
+                        <h5 className="mb-0 fw-bold">
+                          {walletTab === "transactions" &&
+                            "Transaction History"}
+                          {walletTab === "recharge" && "Recharge Track"}
+                          {walletTab === "payments" && "Recent Payments"}
+                          {walletTab === "manual" && "Manual Requests"}
+                        </h5>
+                      </div>
 
-                          <tbody>
-                            {packsHistory.length === 0 &&
-                            addOnHistory.length === 0 ? (
+                      {walletTab === "transactions" && (
+                        <>
+                          <table className="table-premium">
+                            <thead>
                               <tr>
-                                <td colSpan="5" className="text-center">
-                                  No transaction history found
-                                </td>
+                                <th>Type</th>
+                                <th>Plan Name</th>
+                                <th>Jobs</th>
+                                <th>CV Views</th>
+                                <th>Daily Jobs</th>
+                                <th>Daily CV</th>
+                                <th>Date</th>
                               </tr>
-                            ) : (
-                              <>
-                                {/* PACK HISTORY */}
-                                {/* {currentCreditTransactions.map(
-                                  (item, index) => (
+                            </thead>
+                            <tbody>
+                              {currentCreditTransactions.length === 0 ? (
+                                <tr>
+                                  <td colSpan="7" className="text-center py-4">
+                                    No transaction history found
+                                  </td>
+                                </tr>
+                              ) : (
+                                currentCreditTransactions.map((item) => {
+                                  const tx = getTransactionCredits(item);
+                                  const isPack =
+                                    item.paymentTransactionId?.planType ===
+                                    "Pack";
+                                  return (
                                     <tr key={item._id}>
-                                      <td>{item.paymentTransactionId?._id}</td>
                                       <td>
-                                        {item.paymentTransactionId?.planType}
-                                      </td>
-                                      <td>
-                                        {item.paymentTransactionId?.planName}
-                                      </td>
-                                      <td>{item.jobPostingCredits}</td>
-                                      <td>{item.dailyJobPostingLimit}</td>
-                                      <td>{item.profileViewingCredits}</td>
-                                      <td>{item.dailyProfileViewingLimit}</td>
-                                      <td>
-                                        {" "}
                                         <span
-                                          className={`badge ${
-                                            item.activationStatus === "Pending"
-                                              ? "bg-warning"
-                                              : item.activationStatus ===
-                                                  "Active"
-                                                ? "bg-success"
-                                                : "bg-secondary"
-                                          }`}
+                                          className={`pill-badge ${isPack ? "pill-blue" : "pill-info"}`}
                                         >
-                                          {item.activationStatus || "Success"}
+                                          {isPack ? "Pack" : "AddOn"}
                                         </span>
                                       </td>
+                                      <td className="fw-bold text-dark">
+                                        {item.paymentTransactionId?.planName ||
+                                          "-"}
+                                      </td>
+                                      <td>
+                                        <span className="text-primary fw-bold">
+                                          {renderCreditAmount(tx.jobs)}
+                                        </span>
+                                      </td>
+                                      <td>
+                                        <span className="text-orange-premium fw-bold">
+                                          {renderCreditAmount(tx.profiles)}
+                                        </span>
+                                      </td>
+                                      <td className="small">
+                                        {tx.isPack
+                                          ? renderCreditAmount(tx.dailyJobs)
+                                          : "-"}
+                                      </td>
+                                      <td className="small">
+                                        {tx.isPack
+                                          ? renderCreditAmount(tx.dailyCvs)
+                                          : "-"}
+                                      </td>
+                                      <td className="small text-muted">
+                                        {formatWalletDate(
+                                          item.createdAt ||
+                                          item.paymentTransactionId
+                                            ?.paymentDate,
+                                        )}
+                                      </td>
                                     </tr>
-                                  ),
-                                )} */}
-                                {currentCreditTransactions.map(
-                                  (item, index) => {
-                                    const isPack =
-                                      item.paymentTransactionId?.planType ===
-                                      "Pack";
-
-                                    return (
-                                      <tr key={item._id}>
-                                        <td>{index + 1}</td>
-
-                                        <td>
-                                          {item.paymentTransactionId?.planType}
-                                        </td>
-
-                                        <td>
-                                          {item.paymentTransactionId?.planName}
-                                        </td>
-
-                                        {/* Credits */}
-                                        <td>
-                                          {(() => {
-                                            const jobCredits = isPack
-                                              ? item.jobPostingCredits
-                                              : (item.totalJobCredits ?? 0);
-
-                                            const profileCredits = isPack
-                                              ? item.profileViewingCredits
-                                              : (item.totalProfileCredits ?? 0);
-
-                                            const jobDisplay =
-                                              jobCredits === -1
-                                                ? "∞"
-                                                : jobCredits;
-                                            const profileDisplay =
-                                              profileCredits === -1
-                                                ? "∞"
-                                                : profileCredits;
-
-                                            return (
-                                              <span
-                                                title={`Job Posting Credits: ${
-                                                  jobCredits === -1
-                                                    ? "Unlimited"
-                                                    : jobCredits
-                                                } | CV Viewing Credits: ${
-                                                  profileCredits === -1
-                                                    ? "Unlimited"
-                                                    : profileCredits
-                                                }`}
-                                                style={{ cursor: "pointer" }}
-                                              >
-                                                {jobDisplay}p / {profileDisplay}
-                                                v
-                                              </span>
-                                            );
-                                          })()}
-                                        </td>
-
-                                        {/* Daily Limits */}
-                                        <td>
-                                          {isPack
-                                            ? (() => {
-                                                const jobLimit =
-                                                  item.dailyJobPostingLimit ??
-                                                  0;
-                                                const profileLimit =
-                                                  item.dailyProfileViewingLimit ??
-                                                  0;
-
-                                                const jobDisplay =
-                                                  jobLimit === -1
-                                                    ? "∞"
-                                                    : jobLimit;
-                                                const profileDisplay =
-                                                  profileLimit === -1
-                                                    ? "∞"
-                                                    : profileLimit;
-
-                                                return (
-                                                  <span
-                                                    title={`Daily Job Posting Limit: ${
-                                                      jobLimit === -1
-                                                        ? "Unlimited"
-                                                        : jobLimit
-                                                    } | Daily CV Viewing Limit: ${
-                                                      profileLimit === -1
-                                                        ? "Unlimited"
-                                                        : profileLimit
-                                                    }`}
-                                                    style={{
-                                                      cursor: "pointer",
-                                                      fontWeight: 500,
-                                                    }}
-                                                  >
-                                                    {jobDisplay}p /{" "}
-                                                    {profileDisplay}v
-                                                  </span>
-                                                );
-                                              })()
-                                            : "-"}
-                                        </td>
-
-                                        <td>
-                                          <span
-                                            className={`badge ${
-                                              item.activationStatus === "Active"
-                                                ? "bg-success"
-                                                : item.activationStatus ===
-                                                    "Expired"
-                                                  ? "bg-danger"
-                                                  : item.activationStatus ===
-                                                      "Pending"
-                                                    ? "bg-warning"
-                                                    : "bg-secondary"
-                                            }`}
-                                          >
-                                            {item.activationStatus ||
-                                              (item.isActive
-                                                ? "Active"
-                                                : "Inactive")}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    );
-                                  },
-                                )}
-                              </>
-                            )}
-                          </tbody>
-                        </table>
-                        <div className="paginations mb-30">
-                          <ul>
-                            <li>
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (creditPage > 1)
-                                    handleCreditPageChange(creditPage - 1);
-                                }}
-                              >
-                                <i className="fa-solid fa-angle-left" />
-                              </a>
-                            </li>
-
-                            {Array.from(
-                              { length: creditTotalPages },
-                              (_, i) => (
-                                <li key={i + 1}>
+                                  );
+                                })
+                              )}
+                            </tbody>
+                          </table>
+                          {creditTotalPages > 1 && (
+                            <div className="paginations mb-30">
+                              <ul>
+                                <li>
                                   <a
                                     href="#"
-                                    className={
-                                      creditPage === i + 1 ? "active" : ""
-                                    }
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      handleCreditPageChange(i + 1);
+                                      if (creditPage > 1)
+                                        handleCreditPageChange(creditPage - 1);
                                     }}
                                   >
-                                    {i + 1}
+                                    <i className="fa-solid fa-angle-left" />
                                   </a>
                                 </li>
-                              ),
-                            )}
-
-                            <li>
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (creditPage < creditTotalPages)
-                                    handleCreditPageChange(creditPage + 1);
-                                }}
-                              >
-                                <i className="fa-solid fa-angle-right" />
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              )}
-              {currentRechargeRequests.length > 0 && (
-                <section className="user-wallet-transaction-list">
-                  <div className="employer-dashboard-common-heading">
-                    <h2>Recharge Requests</h2>
-                  </div>
-
-                  <div className="table-responsive">
-                    <table className="table table-bordered">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Request Type</th>
-                          <th>Requested Credits / Pack</th>
-                          <th>Message</th>
-                          <th>Status</th>
-                          <th>Date</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {currentRechargeRequests.length === 0 ? (
-                          <tr>
-                            <td colSpan="7" className="text-center">
-                              No recharge requests found
-                            </td>
-                          </tr>
-                        ) : (
-                          currentRechargeRequests.map((req, index) => (
-                            <tr key={index}>
-                              <td>{index + 1}</td>
-
-                              {/* Request Type */}
-                              <td>{req.type || "-"}</td>
-
-                              {/* Requested Credits / Pack */}
-                              <td>
-                                {req.type === "PACK" && (
-                                  <>
-                                    <strong>Pack:</strong> {req.packName || "-"}
-                                    <br />
-                                    <strong>Job:</strong>{" "}
-                                    {req.totalJobCredits ??
-                                      req.jobCreditsRequested ??
-                                      "-"}
-                                    <br />
-                                    <strong>CV:</strong>{" "}
-                                    {req.totalProfileCredits ??
-                                      req.profileCreditsRequested ??
-                                      "-"}
-                                  </>
+                                {Array.from(
+                                  { length: creditTotalPages },
+                                  (_, i) => (
+                                    <li key={i + 1}>
+                                      <a
+                                        href="#"
+                                        className={
+                                          creditPage === i + 1 ? "active" : ""
+                                        }
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleCreditPageChange(i + 1);
+                                        }}
+                                      >
+                                        {i + 1}
+                                      </a>
+                                    </li>
+                                  ),
                                 )}
-
-                                {req.type === "ADDON" && (
-                                  <>
-                                    <strong>Add-on:</strong>{" "}
-                                    {req.addOnName || "-"}
-                                    <br />
-                                    <strong>Job:</strong>{" "}
-                                    {req.totalJobCredits ?? "-"}
-                                    <br />
-                                    <strong>CV:</strong>{" "}
-                                    {req.totalProfileCredits ?? "-"}
-                                  </>
-                                )}
-
-                                {req.type === "MANUAL_CREDITS" && (
-                                  <>
-                                    Job: {req.jobCreditsRequested || "-"}
-                                    <br />
-                                    CV: {req.profileCreditsRequested || "-"}
-                                  </>
-                                )}
-                              </td>
-
-                              {/* Transaction ID */}
-
-                              {/* Message */}
-                              <td>{req.message || "-"}</td>
-
-                              {/* Status */}
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    req.status
-                                      ?.toLowerCase()
-                                      .includes("credits added")
-                                      ? "bg-success"
-                                      : "bg-warning text-dark"
-                                  }`}
-                                >
-                                  {req.status || "Pending"}
-                                </span>
-                              </td>
-                              {/* Date */}
-                              <td>
-                                {new Date(
-                                  req.createdAt || req.requestedAt,
-                                ).toLocaleDateString("en-GB")}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                    <div className="paginations mb-30">
-                      <ul>
-                        <li>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (requestPage > 1)
-                                handleRequestPageChange(requestPage - 1);
-                            }}
-                          >
-                            <i className="fa-solid fa-angle-left" />
-                          </a>
-                        </li>
-
-                        {Array.from({ length: requestTotalPages }, (_, i) => (
-                          <li key={i + 1}>
-                            <a
-                              href="#"
-                              className={requestPage === i + 1 ? "active" : ""}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleRequestPageChange(i + 1);
-                              }}
-                            >
-                              {i + 1}
-                            </a>
-                          </li>
-                        ))}
-
-                        <li>
-                          <a
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (requestPage < requestTotalPages)
-                                handleRequestPageChange(requestPage + 1);
-                            }}
-                          >
-                            <i className="fa-solid fa-angle-right" />
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </section>
-              )}
-              {currentPayments.length > 0 && (
-                <section>
-                  <div className="employer-dashboard-common-heading">
-                    <h2>Payment History</h2>
-                  </div>
-
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Transaction ID</th>
-                        <th>Plan</th>
-                        <th>Amount</th>
-                        <th>Payment Method</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Invoice</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {currentPayments.length > 0 ? (
-                        currentPayments.map((payment, index) => (
-                          <tr key={payment._id}>
-                            <td>{indexOfFirstRow + index + 1}</td>
-
-                            {/* Transaction ID */}
-                            <td>{payment._id}</td>
-
-                            {/* Plan Name + Type */}
-                            <td>
-                              {payment.planName}
-                              <br />
-                              <small className="text-muted">
-                                {payment.planType}
-                              </small>
-                            </td>
-
-                            {/* Amount */}
-                            <td>
-                              {payment.currency} {payment.amount}
-                            </td>
-
-                            {/* Payment Method */}
-                            <td>{payment.paymentMethod}</td>
-
-                            {/* Status */}
-                            <td>
-                              <span
-                                className={`badge ${
-                                  payment.status === "Success"
-                                    ? "bg-success"
-                                    : "bg-secondary"
-                                }`}
-                              >
-                                {payment.status}
-                              </span>
-                            </td>
-
-                            {/* Date */}
-                            <td>
-                              {new Date(payment.paymentDate).toLocaleDateString(
-                                "en-GB",
-                              )}
-                            </td>
-
-                            {/* Invoice */}
-                            <td>
-                              {payment.invoice?._id ? (
-                                <span
-                                  style={{
-                                    cursor: "pointer",
-                                    color: "#0d6efd",
-                                  }}
-                                  onClick={() =>
-                                    navigate(
-                                      `/view-invoice/${payment.invoice._id}`,
-                                    )
-                                  }
-                                  title="View Invoice"
-                                >
-                                  <i className="fa-solid fa-eye"></i>
-                                </span>
-                              ) : (
-                                <span className="text-muted">N/A</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="8"
-                            className="text-center text-muted py-4"
-                          >
-                            No payment history found
-                          </td>
-                        </tr>
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (creditPage < creditTotalPages)
+                                        handleCreditPageChange(creditPage + 1);
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-right" />
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </>
                       )}
-                    </tbody>
-                  </table>
-                  <div className="paginations mb-30">
-                    <ul>
-                      {/* Previous button */}
-                      <li>
-                        <a
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (currentPage > 1)
-                              handlePageChange(currentPage - 1);
-                          }}
-                          className={currentPage === 1 ? "disabled" : ""}
-                        >
-                          <i className="fa-solid fa-angle-left" />
-                        </a>
-                      </li>
 
-                      {/* Page numbers */}
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <li key={i + 1}>
-                          <a
-                            href="#"
-                            className={currentPage === i + 1 ? "active" : ""}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handlePageChange(i + 1);
-                            }}
-                          >
-                            {i + 1}
-                          </a>
-                        </li>
-                      ))}
+                      {walletTab === "recharge" && (
+                        <>
+                          <div className="premium-card">
+                            <div className="table-responsive-premium">
+                              <div className="card-header-premium border-0 flex-column align-items-start gap-3">
+                                <div className="d-flex justify-content-between w-100 align-items-center">
+                                  <h5 className="mb-0 fw-bold">
+                                    Recharge Request Track
+                                  </h5>
+                                  <button className="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    <i className="fa-solid fa-rotate-left me-1" />{" "}
+                                    Reset Filter
+                                  </button>
+                                </div>
+                                <div className="modern-filter-bar d-flex flex-wrap gap-4 align-items-end bg-white p-4 rounded-5 shadow-sm w-100 border border-light">
+                                  <div className="filter-item flex-grow-1">
+                                    <label className="filter-label">
+                                      <i className="fa-solid fa-calendar-days me-2 text-primary" />
+                                      From Date
+                                    </label>
+                                    <div className="input-with-icon">
+                                      <input
+                                        className="premium-filter-input"
+                                        type="date"
+                                        defaultValue
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="filter-item flex-grow-1">
+                                    <label className="filter-label">
+                                      <i className="fa-solid fa-calendar-check me-2 text-primary" />
+                                      To Date
+                                    </label>
+                                    <div className="input-with-icon">
+                                      <input
+                                        className="premium-filter-input"
+                                        type="date"
+                                        defaultValue
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="filter-item flex-grow-1 position-relative">
+                                    <label className="filter-label">
+                                      <i className="fa-solid fa-layer-group me-2 text-primary" />
+                                      Status
+                                    </label>
+                                    <div className="naddi-custom-select active">
+                                      <div className="selected-value">
+                                        <span>
+                                          <i className="fa-solid fa-list-ul me-2" />{" "}
+                                          All Requests
+                                        </span>
+                                        <i className="fa-solid fa-chevron-down ms-auto arrow-icon rotate" />
+                                      </div>
+                                      <div className="naddi-options-menu">
+                                        <div className="naddi-option">
+                                          All Requests
+                                        </div>
+                                        <div className="naddi-option text-warning">
+                                          <i className="fa-solid fa-clock me-2" />{" "}
+                                          Pending
+                                        </div>
+                                        <div className="naddi-option text-success">
+                                          <i className="fa-solid fa-circle-check me-2" />{" "}
+                                          Approved
+                                        </div>
+                                        <div className="naddi-option text-danger">
+                                          <i className="fa-solid fa-circle-xmark me-2" />{" "}
+                                          Rejected
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="filter-actions d-flex align-items-center gap-3">
+                                    <div className="results-counter bg-primary-subtle text-primary px-3 py-2 rounded-4 fw-bold small">
+                                      11 found
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <table className="table-premium">
+                                <thead>
+                                  <tr>
+                                    <th>Request Details</th>
+                                    <th>Job Postings</th>
+                                    <th>View Profiles</th>
+                                    <th>Status</th>
+                                    <th>Created Date</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/26/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/26/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +50
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/21/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/21/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/20/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/19/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        MANUAL_CREDITS : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +5
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      5/14/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        PACK : STANDARD PACK
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +10
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +100
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill approved">
+                                        Recharge validated – credits added
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      4/30/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        ADDON : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +50
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Your request is pending approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      4/1/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        ADDON : Manual Credits
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +0
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +50
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill approved">
+                                        Recharge validated – credits added
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <div className="fw-bold text-dark">
+                                        PACK : STANDARD PACK
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-primary-subtle-premium text-primary-premium px-3 py-2 rounded-pill fw-bold">
+                                        +10
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="badge bg-orange-subtle-premium text-orange-premium px-3 py-2 rounded-pill fw-bold">
+                                        +100
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="status-pill pending">
+                                        Payment done – waiting for admin
+                                        approval
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          {requestTotalPages > 1 && (
+                            <div className="paginations mb-30">
+                              <ul>
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (requestPage > 1)
+                                        handleRequestPageChange(
+                                          requestPage - 1,
+                                        );
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-left" />
+                                  </a>
+                                </li>
+                                {Array.from(
+                                  { length: requestTotalPages },
+                                  (_, i) => (
+                                    <li key={i + 1}>
+                                      <a
+                                        href="#"
+                                        className={
+                                          requestPage === i + 1 ? "active" : ""
+                                        }
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleRequestPageChange(i + 1);
+                                        }}
+                                      >
+                                        {i + 1}
+                                      </a>
+                                    </li>
+                                  ),
+                                )}
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (requestPage < requestTotalPages)
+                                        handleRequestPageChange(
+                                          requestPage + 1,
+                                        );
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-right" />
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      )}
 
-                      {/* Next button */}
-                      <li>
-                        <a
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (currentPage < totalPages)
-                              handlePageChange(currentPage + 1);
-                          }}
-                          className={
-                            currentPage === totalPages ? "disabled" : ""
-                          }
-                        >
-                          <i className="fa-solid fa-angle-right" />
-                        </a>
-                      </li>
-                    </ul>
+                      {walletTab === "payments" && (
+                        <>
+                          <div className="premium-card">
+                            <div className="table-responsive-premium">
+                              <div className="card-header-premium border-0">
+                                <h5 className="mb-0 fw-bold">
+                                  Payment History
+                                </h5>
+                              </div>
+                              <table className="table-premium">
+                                <thead>
+                                  <tr>
+                                    <th>Plan / Item</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="fw-bold text-dark">
+                                      STANDARD PACK
+                                    </td>
+                                    <td className="fw-bold text-success">
+                                      100 DH
+                                    </td>
+                                    <td>
+                                      <span className="pill-badge pill-blue">
+                                        Successful
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      4/30/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="fw-bold text-dark">
+                                      CV Viewing Add-on
+                                    </td>
+                                    <td className="fw-bold text-success">
+                                      20 DH
+                                    </td>
+                                    <td>
+                                      <span className="pill-badge pill-blue">
+                                        Successful
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="fw-bold text-dark">
+                                      Job Posting Add-on
+                                    </td>
+                                    <td className="fw-bold text-success">
+                                      10 DH
+                                    </td>
+                                    <td>
+                                      <span className="pill-badge pill-blue">
+                                        Successful
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="fw-bold text-dark">
+                                      Job Posting Add-on
+                                    </td>
+                                    <td className="fw-bold text-success">
+                                      10 DH
+                                    </td>
+                                    <td>
+                                      <span className="pill-badge pill-blue">
+                                        Successful
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="fw-bold text-dark">
+                                      STANDARD PACK
+                                    </td>
+                                    <td className="fw-bold text-success">
+                                      100 DH
+                                    </td>
+                                    <td>
+                                      <span className="pill-badge pill-blue">
+                                        Successful
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          {totalPages > 1 && (
+                            <div className="paginations mb-30">
+                              <ul>
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (currentPage > 1)
+                                        handlePageChange(currentPage - 1);
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-left" />
+                                  </a>
+                                </li>
+                                {Array.from({ length: totalPages }, (_, i) => (
+                                  <li key={i + 1}>
+                                    <a
+                                      href="#"
+                                      className={
+                                        currentPage === i + 1 ? "active" : ""
+                                      }
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageChange(i + 1);
+                                      }}
+                                    >
+                                      {i + 1}
+                                    </a>
+                                  </li>
+                                ))}
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (currentPage < totalPages)
+                                        handlePageChange(currentPage + 1);
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-right" />
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {walletTab === "manual" && (
+                        <>
+                          <div className="premium-card">
+                            <div className="table-responsive-premium">
+                              <div className="card-header-premium border-0">
+                                <h5 className="mb-0 fw-bold">
+                                  Manual Add-ons History
+                                </h5>
+                              </div>
+                              <table className="table-premium">
+                                <thead>
+                                  <tr>
+                                    <th>Ref ID</th>
+                                    <th>Added Jobs</th>
+                                    <th>Added CVs</th>
+                                    <th>State</th>
+                                    <th>Assigned Date</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="small font-monospace">
+                                      3F232FFA
+                                    </td>
+                                    <td className="text-primary fw-bold">+5</td>
+                                    <td className="text-orange-premium fw-bold">
+                                      +0
+                                    </td>
+                                    <td>
+                                      <span className="status-pill approved">
+                                        Active
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="small font-monospace">
+                                      5FC0F453
+                                    </td>
+                                    <td className="text-primary fw-bold">+5</td>
+                                    <td className="text-orange-premium fw-bold">
+                                      +0
+                                    </td>
+                                    <td>
+                                      <span className="status-pill approved">
+                                        Active
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td className="small font-monospace">
+                                      F29DF2D0
+                                    </td>
+                                    <td className="text-primary fw-bold">+0</td>
+                                    <td className="text-orange-premium fw-bold">
+                                      +50
+                                    </td>
+                                    <td>
+                                      <span className="status-pill approved">
+                                        Active
+                                      </span>
+                                    </td>
+                                    <td className="small text-muted">
+                                      3/27/2026
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          {manualRequestTotalPages > 1 && (
+                            <div className="paginations mb-30">
+                              <ul>
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (requestPage > 1)
+                                        handleRequestPageChange(
+                                          requestPage - 1,
+                                        );
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-left" />
+                                  </a>
+                                </li>
+                                {Array.from(
+                                  { length: manualRequestTotalPages },
+                                  (_, i) => (
+                                    <li key={i + 1}>
+                                      <a
+                                        href="#"
+                                        className={
+                                          requestPage === i + 1 ? "active" : ""
+                                        }
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          handleRequestPageChange(i + 1);
+                                        }}
+                                      >
+                                        {i + 1}
+                                      </a>
+                                    </li>
+                                  ),
+                                )}
+                                <li>
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (requestPage < manualRequestTotalPages)
+                                        handleRequestPageChange(
+                                          requestPage + 1,
+                                        );
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-angle-right" />
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                </section>
-              )}
+                </div>
+              </div>
             </>
           )}
           {/* Your Job Posts Info */}
@@ -1181,7 +1638,7 @@ const EmployerWallet = () => {
                 <div className="copyright-left-content">
                   <p>
                     {" "}
-                    <span className="copy">© </span>
+                    <span className="copy">Â© </span>
                     <span id="year" />
                     <span className="template-name"> Connect Work.ma </span> All
                     Rights Reserved
@@ -1202,6 +1659,657 @@ const EmployerWallet = () => {
           </div>
         </div>
       </div>
+      {showTopUpModal && (
+        <div
+          className="custom-modal-overlay"
+          onClick={() => closeTopUpModal()}
+        >
+          <div
+            className="custom-modal-content topup-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-premium">
+              <h4 className="fw-bold mb-0">Select a Top-up Pack</h4>
+              <button
+                type="button"
+                className="btn-close-custom"
+                onClick={() => closeTopUpModal()}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+            <div className="modal-body-premium p-4">
+              <div className="row g-3 justify-content-center">
+                <div className="col-lg-4 col-md-6 d-flex">
+                  <div className="addon-selection-card w-100">
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div className="addon-icon">
+                        <i className="fa-solid fa-briefcase" />
+                      </div>
+                      <div className="addon-price">
+                        10 <span className="small">MAD</span>
+                      </div>
+                    </div>
+                    <h6 className="fw-bold text-dark mb-2">
+                      Job Posting Add-on
+                    </h6>
+                    <div className="addon-details mb-4">
+                      <div className="d-flex justify-content-between small mb-1">
+                        <span className="text-muted">Job Credits:</span>
+                        <span className="fw-bold">+5</span>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span className="text-muted">Mode:</span>
+                        <span className="badge bg-light text-dark">Manual</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-select-addon w-100 d-flex align-items-center justify-content-center"
+                    >
+                      Manuel Request
+                    </button>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 d-flex">
+                  <div className="addon-selection-card w-100">
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div className="addon-icon">
+                        <i className="fa-solid fa-user-tie" />
+                      </div>
+                      <div className="addon-price">
+                        20 <span className="small">MAD</span>
+                      </div>
+                    </div>
+                    <h6 className="fw-bold text-dark mb-2">
+                      CV Viewing Add-on
+                    </h6>
+                    <div className="addon-details mb-4">
+                      <div className="d-flex justify-content-between small mb-1">
+                        <span className="text-muted">CV Credits:</span>
+                        <span className="fw-bold">+50</span>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span className="text-muted">Mode:</span>
+                        <span className="badge bg-light text-dark">Manual</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-select-addon w-100 d-flex align-items-center justify-content-center"
+                    >
+                      Manuel Request
+                    </button>
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-6 d-flex">
+                  <div className="addon-selection-card w-100">
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div className="addon-icon">
+                        <i className="fa-solid fa-layer-group" />
+                      </div>
+                      <div className="addon-price">
+                        5000 <span className="small">MAD</span>
+                      </div>
+                    </div>
+                    <h6 className="fw-bold text-dark mb-2">job and profile</h6>
+                    <div className="addon-details mb-4">
+                      <div className="d-flex justify-content-between small mb-1">
+                        <span className="text-muted">Job Credits:</span>
+                        <span className="fw-bold">+100</span>
+                      </div>
+                      <div className="d-flex justify-content-between small mb-1">
+                        <span className="text-muted">CV Credits:</span>
+                        <span className="fw-bold">+200</span>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span className="text-muted">Mode:</span>
+                        <span className="badge bg-light text-dark">Online</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-select-addon w-100 d-flex align-items-center justify-content-center"
+                      onClick={() =>
+                        openPaymentModal({
+                          name: "job and profile",
+                          price: "5000",
+                          currency: "MAD",
+                          jobCredits: 100,
+                          cvCredits: 200,
+                        })
+                      }
+                    >
+                      Buy
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-top text-center">
+                <p className="text-muted small mb-3">
+                  Need a specific amount of credits?
+                </p>
+                <button
+                  type="button"
+                  className="btn-custom-trigger"
+                  onClick={() => setShowCustomCreditModal(true)}
+                >
+                  <i className="fa-solid fa-wand-magic-sparkles me-2" /> Request
+                  Custom Credit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpgradePlanModal && (
+        <div
+          className="custom-modal-overlay"
+          onClick={() => closeUpgradePlanModal()}
+        >
+          <div
+            className="custom-modal-content packs-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-creative text-center p-5 pb-4">
+              <div>
+                <h3 className="mb-1 fw-800">Elevate Your Hiring Power</h3>
+                <p className="text-muted small mb-0">
+                  Choose a professional plan designed for modern recruitment
+                  excellence
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-close-creative"
+                onClick={() => closeUpgradePlanModal()}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+            <div className="modal-body p-0">
+              <div className="p-4 p-lg-5">
+                <div className="row g-4 justify-content-center">
+                  <div className="col-lg-4 col-md-6">
+                    <div className="refined-pack-card ">
+                      <div className="refined-card-top">
+                        <h4 className="refined-name">BASIC</h4>
+                        <div className="refined-price">
+                          <span className="refined-curr">MAD</span>
+                          <span className="refined-val">400</span>
+                          <span className="refined-period">/Day</span>
+                        </div>
+                      </div>
+                      <div className="refined-features-list">
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Job Postings
+                            </span>
+                            <span className="refined-feature-count">50</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              CV Unlocks
+                            </span>
+                            <span className="refined-feature-count">200</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item border-top pt-3 mt-1">
+                          <i className="fa-solid fa-clock-rotate-left" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily Posting Limit
+                            </span>
+                            <span className="refined-feature-count">5</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-eye" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily CV Limit
+                            </span>
+                            <span className="refined-feature-count">50</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="refined-card-bottom mt-auto">
+                        <button
+                          type="button"
+                          className="refined-action-btn"
+                          onClick={() => openContactModal("BASIC")}
+                        >
+                          Contact Us
+                        </button>
+                        <p className="refined-terms mt-3 text-center">
+                          No hidden fees. Full access included.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6">
+                    <div className="refined-pack-card ">
+                      <div className="refined-card-top">
+                        <h4 className="refined-name">PREMIUM</h4>
+                        <div className="refined-price">
+                          <span className="refined-curr">MAD</span>
+                          <span className="refined-val">800</span>
+                          <span className="refined-period">/Day</span>
+                        </div>
+                      </div>
+                      <div className="refined-features-list">
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Job Postings
+                            </span>
+                            <span className="refined-feature-count">200</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              CV Unlocks
+                            </span>
+                            <span className="refined-feature-count">2000</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item border-top pt-3 mt-1">
+                          <i className="fa-solid fa-clock-rotate-left" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily Posting Limit
+                            </span>
+                            <span className="refined-feature-count">20</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-eye" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily CV Limit
+                            </span>
+                            <span className="refined-feature-count">200</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="refined-card-bottom mt-auto">
+                        <button
+                          type="button"
+                          className="refined-action-btn"
+                          onClick={() => openContactModal("PREMIUM")}
+                        >
+                          Contact Us
+                        </button>
+                        <p className="refined-terms mt-3 text-center">
+                          No hidden fees. Full access included.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-md-6">
+                    <div className="refined-pack-card refined-pro-pack">
+                      <div className="refined-badge">Entreprise Elite</div>
+                      <div className="refined-card-top">
+                        <h4 className="refined-name">PRO</h4>
+                        <div className="refined-price">
+                          <span className="refined-curr">MAD</span>
+                          <span className="refined-val">1500</span>
+                          <span className="refined-period">/Day</span>
+                        </div>
+                      </div>
+                      <div className="refined-features-list">
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Job Postings
+                            </span>
+                            <span className="refined-feature-count">1000</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-check" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              CV Unlocks
+                            </span>
+                            <span className="refined-feature-count">5000</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item border-top pt-3 mt-1">
+                          <i className="fa-solid fa-clock-rotate-left" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily Posting Limit
+                            </span>
+                            <span className="refined-feature-count">200</span>
+                          </div>
+                        </div>
+                        <div className="refined-feature-item">
+                          <i className="fa-solid fa-eye" />
+                          <div className="refined-feature-info">
+                            <span className="refined-feature-label">
+                              Daily CV Limit
+                            </span>
+                            <span className="refined-feature-count">500</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="refined-card-bottom mt-auto">
+                        <button
+                          type="button"
+                          className="refined-action-btn refined-btn-pro"
+                          onClick={() => openContactModal("PRO")}
+                        >
+                          Contact Us
+                        </button>
+                        <p className="refined-terms mt-3 text-center">
+                          No hidden fees. Full access included.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showContactModal && (
+        <div
+          className="custom-modal-overlay"
+          onClick={() => closeContactModal()}
+        >
+          <div
+            className="custom-modal-content packs-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-creative text-center p-5 pb-4">
+              <div>
+                <h3 className="mb-1 fw-800">
+                  Contact: {selectedContactPlan}
+                </h3>
+                <p className="text-muted small mb-0">
+                  Our specialized sales team is ready to tailor this plan for
+                  your specific enterprise needs
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn-close-creative"
+                onClick={() => closeContactModal()}
+              >
+                <i className="fa-solid fa-arrow-left" />
+              </button>
+            </div>
+            <div className="modal-body p-0">
+              <div className="contact-form-v2-container">
+                <div className="company-header-v2">
+                  <div className="company-logo-v2">
+                    <img
+                      crossOrigin="anonymous"
+                      alt="Company Logo"
+                      className="logo-img-v2"
+                      src="https://sisccltd.com/job_portal/uploads/photos/1771565351927-461360120.png"
+                    />
+                  </div>
+                  <div className="text-center mt-3">
+                    <h2 className="text-dark fw-800 mb-1">
+                      Devstringx Technologies Pvt Ltd
+                    </h2>
+                    <p className="text-muted small mb-0">
+                      <i className="fa-solid fa-envelope me-2" />
+                      yadol60672@lawior.com
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 p-lg-5 pt-0">
+                  <div
+                    className="mx-auto"
+                    style={{ maxWidth: "600px", width: "100%" }}
+                  >
+                    <div className="form-group mb-4">
+                      <label className="filter-label text-dark">
+                        Your Message
+                      </label>
+                      <textarea
+                        className="form-control premium-textarea"
+                        rows={5}
+                        placeholder={`I am interested in the ${selectedContactPlan}. Please contact me to discuss details...`}
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                      />
+                    </div>
+                    <div className="d-flex gap-4">
+                      <button
+                        type="button"
+                        className="refined-secondary-btn w-100"
+                        onClick={() => closeContactModal()}
+                      >
+                        Back to Plans
+                      </button>
+                      <button
+                        type="button"
+                        className="refined-primary-btn w-100 d-flex align-items-center justify-content-center"
+                        onClick={() => closeContactModal()}
+                      >
+                        Send Inquiry
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showPaymentModal && selectedTopUpPack && (
+        <div
+          className="custom-modal-overlay"
+          onClick={() => closePaymentModal()}
+        >
+          <div
+            className="custom-modal-content topup-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-premium">
+              <h4 className="fw-bold mb-0">Select Payment Method</h4>
+              <button
+                type="button"
+                className="btn-close-custom"
+                onClick={() => closePaymentModal()}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+            <div className="modal-body-premium p-4">
+              <div className="payment-gateway-selection">
+                <div className="selected-plan-summary mb-4">
+                  <span className="small text-muted d-block">Purchasing:</span>
+                  <span className="fw-bold text-dark fs-5">
+                    {selectedTopUpPack.name}
+                  </span>
+                  <span className="badge bg-primary-subtle text-primary ms-2">
+                    {selectedTopUpPack.price} {selectedTopUpPack.currency}
+                  </span>
+                </div>
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <div
+                      className="gateway-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelectPayment("paypal")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectPayment("paypal");
+                        }
+                      }}
+                    >
+                      <div className="gateway-logo">
+                        <i className="fa-brands fa-paypal fs-2 text-primary" />
+                      </div>
+                      <span className="fw-bold text-dark text-uppercase">
+                        paypal
+                      </span>
+                      <i className="fa-solid fa-chevron-right ms-auto text-muted small" />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div
+                      className="gateway-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelectPayment("cmi")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectPayment("cmi");
+                        }
+                      }}
+                    >
+                      <div className="gateway-logo">
+                        <i className="fa-solid fa-credit-card fs-2 text-success" />
+                      </div>
+                      <span className="fw-bold text-dark text-uppercase">
+                        cmi
+                      </span>
+                      <i className="fa-solid fa-chevron-right ms-auto text-muted small" />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div
+                      className="gateway-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelectPayment("stripe")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectPayment("stripe");
+                        }
+                      }}
+                    >
+                      <div className="gateway-logo">
+                        <i className="fa-brands fa-stripe fs-2 text-primary" />
+                      </div>
+                      <span className="fw-bold text-dark text-uppercase">
+                        stripe
+                      </span>
+                      <i className="fa-solid fa-chevron-right ms-auto text-muted small" />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-5">
+                  <button
+                    type="button"
+                    className="btn-cancel-custom w-100"
+                    onClick={() => closePaymentModal()}
+                  >
+                    Back to Packs
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showCustomCreditModal && (
+        <div
+          className="custom-modal-overlay"
+          onClick={() => closeCustomCreditModal()}
+        >
+          <div
+            className="custom-modal-content topup-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header-premium">
+              <h4 className="fw-bold mb-0">Request Custom Credits</h4>
+              <button
+                type="button"
+                className="btn-close-custom"
+                onClick={() => closeCustomCreditModal()}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+            <div className="modal-body-premium p-4">
+              <div className="custom-request-form">
+                <div className="mb-4">
+                  <label className="form-label-premium">Credit Type</label>
+                  <select
+                    className="form-select-premium"
+                    value={customCreditType}
+                    onChange={(e) => setCustomCreditType(e.target.value)}
+                  >
+                    <option value="CV">CV Credit Only</option>
+                    <option value="JOB">Job Posting Credit Only</option>
+                    <option value="BOTH">Both (CV Credit, Job Posting)</option>
+                  </select>
+                </div>
+                <div className="row g-3 mb-4">
+                  {(customCreditType === "JOB" || customCreditType === "BOTH") && (
+                    <div className="col-md-6">
+                      <label className="form-label-premium">
+                        Job Posting Credits
+                      </label>
+                      <input
+                        className="form-control-premium"
+                        placeholder="Enter amount"
+                        type="number"
+                        min="0"
+                        value={customJobCredits}
+                        onChange={(e) => setCustomJobCredits(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  {(customCreditType === "CV" || customCreditType === "BOTH") && (
+                    <div className="col-md-6">
+                      <label className="form-label-premium">
+                        CV Viewing Credits
+                      </label>
+                      <input
+                        className="form-control-premium"
+                        placeholder="Enter amount"
+                        type="number"
+                        min="0"
+                        value={customCvCredits}
+                        onChange={(e) => setCustomCvCredits(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="d-flex gap-3 mt-5">
+                  <button
+                    type="button"
+                    className="btn-cancel-custom w-100"
+                    onClick={() => closeCustomCreditModal()}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-submit-custom w-100"
+                    onClick={handleCustomCreditSubmit}
+                    disabled={customCreditLoading}
+                  >
+                    {customCreditLoading ? "Submitting..." : "Submit Request"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* <!-- End Main Dashboard Content Wrapper Area --> */}
     </>
   );

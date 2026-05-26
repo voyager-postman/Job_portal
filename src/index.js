@@ -9,6 +9,9 @@ import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google"; // ⬅ moved here
 import "./i18n";
 import { HelmetProvider } from "react-helmet-async";
+import { installPublicApiSanitizer } from "./utils/publicApiSanitizer";
+
+installPublicApiSanitizer();
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
