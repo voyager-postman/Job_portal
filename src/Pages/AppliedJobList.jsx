@@ -8,23 +8,18 @@ import { API_IMAGE_URL } from "../Url/Url";
 import { TbMessages } from "react-icons/tb";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 function AppliedJobList() {
   const { t, i18n } = useTranslation("global");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 500); // waits 500ms after user stops typing
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
 
   const fetchJobs = async (search = "", page = 1) => {
     try {

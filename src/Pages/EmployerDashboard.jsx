@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useState, useEffect } from "react";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -23,6 +24,7 @@ function EmployerDashboard() {
   const fName = localStorage.getItem("first_name");
   const lName = localStorage.getItem("last_name");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   const [createdAt, setCreatedAt] = useState(-1);
 
   const [chartData, setChartData] = useState({
@@ -268,7 +270,7 @@ function EmployerDashboard() {
             params: {
               page,
               limit,
-              search,
+              search: debouncedSearch,
               createdAt,
             },
           },
@@ -281,7 +283,7 @@ function EmployerDashboard() {
       }
     };
     fetchJobList();
-  }, [page, limit, search, createdAt]);
+  }, [page, limit, debouncedSearch, createdAt]);
 
   return (
     <>

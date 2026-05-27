@@ -12,6 +12,8 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useAuth } from "../context/AuthContext";
 import "./Main.css";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 function EmployerProfile() {
   const { updateProfileImage } = useAuth();
   const [careerDetail, setCareerDetail] = useState("");
@@ -81,33 +83,44 @@ function EmployerProfile() {
   const [countries, setCountries] = useState([]);
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const handleCitySearch = async (e) => {
-    const value = e.target.value;
-    handleChange(e); // update formData.company_address
+  const debouncedCompanyAddress = useDebounce(
+    formData.company_address,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-    if (!value.trim()) {
-      setCitySuggestions([]);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
-
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setCitySuggestions(res.data.cities);
-      } else {
-        setCitySuggestions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setCitySuggestions([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleCitySearch = (e) => {
+    handleChange(e);
   };
+
+  useEffect(() => {
+    if (!debouncedCompanyAddress.trim()) {
+      setCitySuggestions([]);
+      return undefined;
+    }
+
+    const fetchCitySuggestions = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_BASE_URL}searchCities`, {
+          params: { key: debouncedCompanyAddress },
+        });
+
+        if (res.data?.success && Array.isArray(res.data.cities)) {
+          setCitySuggestions(res.data.cities);
+        } else {
+          setCitySuggestions([]);
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+        setCitySuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCitySuggestions();
+  }, [debouncedCompanyAddress]);
+
   const addMember = () => {
     setTeamMembers((prev) => [
       ...prev,

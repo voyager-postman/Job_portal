@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { toast } from "react-toastify";
+import { handleRateLimitError } from "./apiRateLimitHandler";
 
 // Create instance
 const axiosInstance = axios.create({
@@ -23,6 +24,10 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (handleRateLimitError(error)) {
+      return Promise.reject(error);
+    }
+
     const status = error?.response?.status;
 
     if (status === 401) {

@@ -11,6 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { TbMessages } from "react-icons/tb";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 
 function ApplicantsDetails() {
   const location = useLocation();
@@ -30,6 +31,10 @@ function ApplicantsDetails() {
   const [levels, setLevels] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [locationSearchTerm, setLocationSearchTerm] = useState("");
+  const debouncedLocationSearch = useDebounce(
+    locationSearchTerm,
+    SEARCH_DEBOUNCE_MS,
+  );
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -239,33 +244,38 @@ function ApplicantsDetails() {
     }
   };
 
-  const handleLocationSearch = async (e) => {
-    const value = e.target.value;
-    setLocationSearchTerm(value);
-
-    if (!value.trim()) {
-      setLocationSuggestions([]);
-      return;
-    }
-
-    try {
-      setIsLocationLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
-
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setLocationSuggestions(res.data.cities);
-      } else {
-        setLocationSuggestions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setLocationSuggestions([]);
-    } finally {
-      setIsLocationLoading(false);
-    }
+  const handleLocationSearch = (e) => {
+    setLocationSearchTerm(e.target.value);
   };
+
+  useEffect(() => {
+    if (!debouncedLocationSearch.trim()) {
+      setLocationSuggestions([]);
+      return undefined;
+    }
+
+    const fetchLocationSuggestions = async () => {
+      try {
+        setIsLocationLoading(true);
+        const res = await axios.get(`${API_BASE_URL}searchCities`, {
+          params: { key: debouncedLocationSearch },
+        });
+
+        if (res.data?.success && Array.isArray(res.data.cities)) {
+          setLocationSuggestions(res.data.cities);
+        } else {
+          setLocationSuggestions([]);
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationLoading(false);
+      }
+    };
+
+    fetchLocationSuggestions();
+  }, [debouncedLocationSearch]);
 
   const getLabelStyle = (rating) => {
     switch (rating) {

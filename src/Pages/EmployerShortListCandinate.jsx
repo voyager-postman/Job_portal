@@ -6,6 +6,8 @@ import { API_IMAGE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
 
@@ -45,6 +47,7 @@ function EmployerShortListCandinate() {
   const token = localStorage.getItem("token");
   const [selectedJob, setSelectedJob] = useState("");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   const [folders, setFolders] = useState([]);
   const [applicants, setApplicants] = useState([]);
   const [selectedSalary, setSelectedSalary] = useState([]);
@@ -485,7 +488,7 @@ function EmployerShortListCandinate() {
   const fetchApplicants = async (
     page = 1,
     customFilters = filters,
-    customSearch = search,
+    customSearch = debouncedSearch,
     folderId = activeFolder,
   ) => {
     try {
@@ -571,7 +574,7 @@ function EmployerShortListCandinate() {
     perPage,
     activeFolder,
     selectedJob,
-    search,
+    debouncedSearch,
     selectedSkills,
     selectedExperience,
     selectedSalary, // ✅ ADD THIS
@@ -776,7 +779,7 @@ function EmployerShortListCandinate() {
                     className="btn btn-primary px-4 fw-bold"
                     onClick={() => {
                       setCurrentPage(1);
-                      fetchApplicants(1); // ✅ CALL API
+                      fetchApplicants(1, filters, search.trim());
                     }}
                     style={{
                       height: "45px",

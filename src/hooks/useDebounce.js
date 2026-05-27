@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
+export const SEARCH_DEBOUNCE_MS = 600;
+
 /**
  * Returns a debounced copy of `value` that updates after `delay` ms of inactivity.
  */
-export function useDebounce(value, delay = 600) {
+export function useDebounce(value, delay = SEARCH_DEBOUNCE_MS) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   const isFirstRun = useRef(true);
 
@@ -27,7 +29,7 @@ export function useDebounce(value, delay = 600) {
 /**
  * Runs `callback` only after `delay` ms of inactivity across `deps` changes.
  */
-export function useDebouncedEffect(callback, deps, delay = 600) {
+export function useDebouncedEffect(callback, deps, delay = SEARCH_DEBOUNCE_MS) {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 

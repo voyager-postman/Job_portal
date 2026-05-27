@@ -4,12 +4,13 @@ import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "./CheckoutForm";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 const AddPlan = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [stripePromise, setStripePromise] = useState(null);
@@ -270,6 +271,16 @@ const AddPlan = () => {
     fetchActivePacks();
     fetchActiveGateways();
   }, []);
+
+  useEffect(() => {
+    const selectedPlanId = location.state?.selectedPlanId;
+    if (!loading && selectedPlanId && plans.length > 0) {
+      const plan = plans.find((item) => item._id === selectedPlanId);
+      if (plan) {
+        handleBuyNow(plan);
+      }
+    }
+  }, [loading, location.state, plans]);
 
   //   try {
   //     const token = localStorage.getItem("token");

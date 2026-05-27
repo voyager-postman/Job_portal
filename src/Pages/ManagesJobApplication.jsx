@@ -12,6 +12,8 @@ import Pagination from "@mui/material/Pagination"; // MUI one
 import "./ManagesJobApplicationModern.css";
 
 import Swal from "sweetalert2";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 function ManagesJobApplication() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +46,10 @@ function ManagesJobApplication() {
   const [loading, setLoading] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const debouncedCompanySearch = useDebounce(
+    companySearchTerm,
+    SEARCH_DEBOUNCE_MS,
+  );
   const [companyOptions, setCompanyOptions] = useState([]);
   const [selectedCompanies, setSelectedCompanies] = useState([]);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
@@ -198,8 +204,8 @@ function ManagesJobApplication() {
   };
 
   useEffect(() => {
-    fetchCompanies(companySearchTerm);
-  }, [companySearchTerm]);
+    fetchCompanies(debouncedCompanySearch);
+  }, [debouncedCompanySearch]);
   const dropdownRef = useRef(null);
 
   useEffect(() => {

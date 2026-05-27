@@ -1,4 +1,5 @@
 import axios from "axios";
+import { handleRateLimitError } from "../utils/apiRateLimitHandler";
 
 const api = axios.create({
   baseURL: process.env.API_BASE_URL,
@@ -7,6 +8,10 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (handleRateLimitError(error)) {
+      return Promise.reject(error);
+    }
+
     const status = error.response?.status;
     const message = error.response?.data?.message;
     const code = error.response?.data?.code;

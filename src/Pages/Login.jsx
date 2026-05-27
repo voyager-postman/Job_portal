@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { isRateLimitError } from "../utils/apiRateLimitHandler";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -182,11 +183,8 @@ function Login() {
         navigate("/verification", {
           state: { email: formData.email, showToast: true },
         });
-      } else if (error.response?.status === 429) {
-        // Handle Too Many Requests
-        toast.error(
-          "Too many login attempts. Please wait a moment and try again.",
-        );
+      } else if (isRateLimitError(error)) {
+        // Handled globally by installApiRateLimitHandler()
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {

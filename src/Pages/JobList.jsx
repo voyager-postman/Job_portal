@@ -23,6 +23,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { ToastContainer, toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 const JobList = () => {
   const location = useLocation();
   const { t, i18n } = useTranslation("global");
@@ -65,6 +66,10 @@ const JobList = () => {
   const [companies, setCompanies] = useState([]);
   // Loading state for city suggestions
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const debouncedLocationSearch = useDebounce(
+    locationSearchTerm,
+    SEARCH_DEBOUNCE_MS,
+  );
   const [globalCurrency, setGlobalCurrency] = useState({
     code: "MAD",
     symbol: "DH",
@@ -426,33 +431,39 @@ const JobList = () => {
     }
   };
 
-  const handleLocationSearch = async (e) => {
-    const value = e.target.value;
-    setLocationSearchTerm(value);
-
-    if (!value.trim()) {
-      setLocationSuggestions([]);
-      return;
-    }
-
-    try {
-      setIsLocationLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
-
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setLocationSuggestions(res.data.cities);
-      } else {
-        setLocationSuggestions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setLocationSuggestions([]);
-    } finally {
-      setIsLocationLoading(false);
-    }
+  const handleLocationSearch = (e) => {
+    setLocationSearchTerm(e.target.value);
   };
+
+  useEffect(() => {
+    if (!debouncedLocationSearch.trim()) {
+      setLocationSuggestions([]);
+      return undefined;
+    }
+
+    const fetchLocationSuggestions = async () => {
+      try {
+        setIsLocationLoading(true);
+        const res = await axios.get(`${API_BASE_URL}searchCities`, {
+          params: { key: debouncedLocationSearch },
+        });
+
+        if (res.data?.success && Array.isArray(res.data.cities)) {
+          setLocationSuggestions(res.data.cities);
+        } else {
+          setLocationSuggestions([]);
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationLoading(false);
+      }
+    };
+
+    fetchLocationSuggestions();
+  }, [debouncedLocationSearch]);
+
   useEffect(() => {
     const fetchResume = async () => {
       if (token) {
@@ -607,6 +618,10 @@ const JobList = () => {
   const [selected, setSelected] = useState([]);
   const [selectedCompanies, setSelectedCompanies] = useState([]);
   const [companySearchTerm, setCompanySearchTerm] = useState("");
+  const debouncedCompanySearch = useDebounce(
+    companySearchTerm,
+    SEARCH_DEBOUNCE_MS,
+  );
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const companyContainerRef = useRef(null);
@@ -822,8 +837,8 @@ const JobList = () => {
     }
   };
   useEffect(() => {
-    fetchCompanies(companySearchTerm); // call API with search term
-  }, [companySearchTerm]);
+    fetchCompanies(debouncedCompanySearch);
+  }, [debouncedCompanySearch]);
 
   const getAllJobList = async (
     limit = pageSize,
@@ -881,10 +896,6 @@ const JobList = () => {
     getCategories();
     getAllJobList(pageSize, pageNumber);
   }, [pageNumber, pageSize]);
-
-  useEffect(() => {
-    fetchCompanies(companySearchTerm);
-  }, [companySearchTerm]);
 
   const totalPages = totalJobData?.totalPages;
   const jobChunks = [];

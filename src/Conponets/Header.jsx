@@ -171,14 +171,7 @@ function Header({ bgColor }) {
   };
 
   const handlePostJob = () => {
-    navigate("/your-job-posts", {
-      state: { openModal: true },
-      replace: true,
-    });
-
-    const modalElement = document.getElementById("exampleModal");
-    const modal = window.bootstrap.Modal.getInstance(modalElement);
-    modal?.hide();
+    navigate("/job-details-form");
   };
 
   const handleGithubLogin = () => {

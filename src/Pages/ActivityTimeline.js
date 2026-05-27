@@ -3,6 +3,7 @@ import axios from "axios";
 import "./ActivityTimelineModern.css";
 import { API_BASE_URL } from "../Url/Url";
 import { Link, useNavigate } from "react-router-dom";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 
 function ActivityTimeline() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function ActivityTimeline() {
 
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   // ✅ CUSTOM DATE
   const [customFromDate, setCustomFromDate] = useState("");
   const [customToDate, setCustomToDate] = useState("");
@@ -35,7 +37,7 @@ function ActivityTimeline() {
         page,
         limit,
         filter,
-        search,
+        search: debouncedSearch,
       };
 
       // ✅ SEND CUSTOM DATE
@@ -73,7 +75,7 @@ function ActivityTimeline() {
 
   useEffect(() => {
     fetchActivity();
-  }, [page, filter, search, customFromDate, customToDate]);
+  }, [page, filter, debouncedSearch, customFromDate, customToDate]);
 
   // ================= ICON =================
 

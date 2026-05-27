@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { API_BASE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -41,7 +41,6 @@ const EmployerWallet = () => {
   const [showUpgradePlanModal, setShowUpgradePlanModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [selectedContactPlan, setSelectedContactPlan] = useState("");
-  const [contactMessage, setContactMessage] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedTopUpPack, setSelectedTopUpPack] = useState(null);
   const [showCustomCreditModal, setShowCustomCreditModal] = useState(false);
@@ -49,6 +48,13 @@ const EmployerWallet = () => {
   const [customJobCredits, setCustomJobCredits] = useState("");
   const [customCvCredits, setCustomCvCredits] = useState("");
   const [customCreditLoading, setCustomCreditLoading] = useState(false);
+  const [availablePlans, setAvailablePlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedPlanForContact, setSelectedPlanForContact] = useState(null);
+  const [hasActiveGateway, setHasActiveGateway] = useState(false);
+  const [contactMessage, setContactMessage] = useState("");
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [planActionLoading, setPlanActionLoading] = useState(false);
   const fetchcreditStatus = async () => {
     try {
       setLoading(true);
@@ -102,11 +108,75 @@ const EmployerWallet = () => {
       console.error(error);
     }
   };
+  const fetchCompanyProfile = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const companyId = user?.companyId || localStorage.getItem("companyId");
+      const token = localStorage.getItem("token");
+
+      if (!companyId) return;
+
+      const response = await axios.get(
+        `${API_BASE_URL}GetCompanyById/${companyId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.data.success && response.data.company) {
+        setCompanyProfile(response.data.company);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchcreditStatus();
     fetchPurchaseHistory();
     fetchRechargeRequests();
+    fetchActiveGateways();
+    fetchCompanyProfile();
   }, []);
+
+  const fetchAvailablePlans = async () => {
+    try {
+      setPlansLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}active/packs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setAvailablePlans(res.data.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch plans", error);
+    } finally {
+      setPlansLoading(false);
+    }
+  };
+
+  const fetchActiveGateways = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}getActivePaymentGateways`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setHasActiveGateway(
+          (res.data.data || []).some((gateway) => gateway.isActive),
+        );
+      }
+    } catch (error) {
+      console.error("Gateway fetch error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (showUpgradePlanModal) {
+      fetchAvailablePlans();
+    }
+  }, [showUpgradePlanModal]);
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
@@ -283,10 +353,70 @@ const EmployerWallet = () => {
   const renderCreditAmount = (value) =>
     value === -1 ? "Unlimited" : (value ?? 0);
 
-  const openContactModal = (planName) => {
-    setSelectedContactPlan(planName);
+  const getPlanPeriod = (plan) =>
+    plan?.validityUnit ? `/${plan.validityUnit}` : "/Plan";
+
+  const isManualPlan = (plan) =>
+    plan?.creditApprovalType === "Manual" || plan?.isCustom === true;
+
+  const showPlanValue = (value) => value !== undefined && value !== 0;
+
+  const getCompanyLogoUrl = () => {
+    const logo =
+      companyProfile?.logo || localStorage.getItem("profileImage") || "";
+    if (!logo) return "/jobPortal/assets/images/userIcon.png";
+    return logo.startsWith("http") ? logo : `${API_IMAGE_URL}${logo}`;
+  };
+
+  const getContactDetails = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const firstName =
+      localStorage.getItem("first_name") || user?.first_name || "";
+    const lastName = localStorage.getItem("last_name") || user?.last_name || "";
+    const phoneNumber = companyProfile?.phone?.number || "";
+    const countryCode = companyProfile?.phone?.countryCode || "";
+
+    return {
+      contactPersonName:
+        `${firstName} ${lastName}`.trim() ||
+        companyProfile?.brandName ||
+        "Company User",
+      contactEmail:
+        localStorage.getItem("user_email") || user?.email || "",
+      contactPhone: phoneNumber
+        ? `${countryCode ? `+${countryCode} ` : ""}${phoneNumber}`.trim()
+        : "",
+    };
+  };
+
+  const validatePack = async (packId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}packs/validate`,
+        { packId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (res.data.success) {
+        return { success: true, data: res.data.data };
+      }
+
+      toast.error(res.data.message || "Pack validation failed");
+      return { success: false };
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Validation failed");
+      return { success: false };
+    }
+  };
+
+  const openContactModal = (plan) => {
+    setSelectedPlanForContact(plan);
+    setSelectedContactPlan(plan?.packName || "Plan");
     setContactMessage(
-      `I am interested in the ${planName}. Please contact me to discuss details...`,
+      `I am interested in the ${plan?.packName}. Please contact me to discuss details...`,
     );
     setShowContactModal(true);
   };
@@ -294,7 +424,70 @@ const EmployerWallet = () => {
   const closeContactModal = () => {
     setShowContactModal(false);
     setSelectedContactPlan("");
+    setSelectedPlanForContact(null);
     setContactMessage("");
+  };
+
+  const handlePlanBuy = (plan) => {
+    closeUpgradePlanModal();
+    navigate("/add-plan", { state: { selectedPlanId: plan._id } });
+  };
+
+  const handleContactPlanSubmit = async () => {
+    if (!contactMessage.trim()) {
+      toast.error("Please enter your message");
+      return;
+    }
+
+    const contactDetails = getContactDetails();
+    if (!contactDetails.contactPersonName || !contactDetails.contactEmail) {
+      toast.error("Company contact details not found. Please update your profile.");
+      return;
+    }
+
+    if (!selectedPlanForContact?._id) {
+      toast.error("Plan not selected");
+      return;
+    }
+
+    try {
+      setPlanActionLoading(true);
+
+      const validation = await validatePack(selectedPlanForContact._id);
+      if (!validation.success) {
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}contactForPack`,
+        {
+          packId: selectedPlanForContact._id,
+          contactPersonName: contactDetails.contactPersonName,
+          contactEmail: contactDetails.contactEmail,
+          contactPhone: contactDetails.contactPhone,
+          message: contactMessage.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Request sent successfully");
+        closeContactModal();
+        closeUpgradePlanModal();
+      } else {
+        toast.error(response.data.message || "Request failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send request");
+    } finally {
+      setPlanActionLoading(false);
+    }
   };
 
   const closeUpgradePlanModal = () => {
@@ -1829,195 +2022,135 @@ const EmployerWallet = () => {
             </div>
             <div className="modal-body p-0">
               <div className="p-4 p-lg-5">
-                <div className="row g-4 justify-content-center">
-                  <div className="col-lg-4 col-md-6">
-                    <div className="refined-pack-card ">
-                      <div className="refined-card-top">
-                        <h4 className="refined-name">BASIC</h4>
-                        <div className="refined-price">
-                          <span className="refined-curr">MAD</span>
-                          <span className="refined-val">400</span>
-                          <span className="refined-period">/Day</span>
-                        </div>
-                      </div>
-                      <div className="refined-features-list">
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Job Postings
-                            </span>
-                            <span className="refined-feature-count">50</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              CV Unlocks
-                            </span>
-                            <span className="refined-feature-count">200</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item border-top pt-3 mt-1">
-                          <i className="fa-solid fa-clock-rotate-left" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily Posting Limit
-                            </span>
-                            <span className="refined-feature-count">5</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-eye" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily CV Limit
-                            </span>
-                            <span className="refined-feature-count">50</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="refined-card-bottom mt-auto">
-                        <button
-                          type="button"
-                          className="refined-action-btn"
-                          onClick={() => openContactModal("BASIC")}
-                        >
-                          Contact Us
-                        </button>
-                        <p className="refined-terms mt-3 text-center">
-                          No hidden fees. Full access included.
-                        </p>
-                      </div>
-                    </div>
+                {plansLoading ? (
+                  <div className="text-center py-5">
+                    <div
+                      className="spinner-border text-primary mb-3"
+                      role="status"
+                    />
+                    <p className="text-muted mb-0">Loading plans...</p>
                   </div>
-                  <div className="col-lg-4 col-md-6">
-                    <div className="refined-pack-card ">
-                      <div className="refined-card-top">
-                        <h4 className="refined-name">PREMIUM</h4>
-                        <div className="refined-price">
-                          <span className="refined-curr">MAD</span>
-                          <span className="refined-val">800</span>
-                          <span className="refined-period">/Day</span>
-                        </div>
-                      </div>
-                      <div className="refined-features-list">
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Job Postings
-                            </span>
-                            <span className="refined-feature-count">200</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              CV Unlocks
-                            </span>
-                            <span className="refined-feature-count">2000</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item border-top pt-3 mt-1">
-                          <i className="fa-solid fa-clock-rotate-left" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily Posting Limit
-                            </span>
-                            <span className="refined-feature-count">20</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-eye" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily CV Limit
-                            </span>
-                            <span className="refined-feature-count">200</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="refined-card-bottom mt-auto">
-                        <button
-                          type="button"
-                          className="refined-action-btn"
-                          onClick={() => openContactModal("PREMIUM")}
-                        >
-                          Contact Us
-                        </button>
-                        <p className="refined-terms mt-3 text-center">
-                          No hidden fees. Full access included.
-                        </p>
-                      </div>
-                    </div>
+                ) : availablePlans.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    No active plans available
                   </div>
-                  <div className="col-lg-4 col-md-6">
-                    <div className="refined-pack-card refined-pro-pack">
-                      <div className="refined-badge">Entreprise Elite</div>
-                      <div className="refined-card-top">
-                        <h4 className="refined-name">PRO</h4>
-                        <div className="refined-price">
-                          <span className="refined-curr">MAD</span>
-                          <span className="refined-val">1500</span>
-                          <span className="refined-period">/Day</span>
-                        </div>
-                      </div>
-                      <div className="refined-features-list">
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Job Postings
-                            </span>
-                            <span className="refined-feature-count">1000</span>
+                ) : (
+                  <div className="row g-4 justify-content-center">
+                    {availablePlans.map((plan, index) => {
+                      const isEnterprise = plan.isCustom === true;
+                      const isProCard =
+                        isEnterprise || index === availablePlans.length - 1;
+                      const manual =
+                        isManualPlan(plan) || !hasActiveGateway;
+
+                      return (
+                        <div className="col-lg-4 col-md-6" key={plan._id}>
+                          <div
+                            className={`refined-pack-card h-100 d-flex flex-column ${isProCard ? "refined-pro-pack" : ""}`}
+                          >
+                            {isEnterprise && (
+                              <div className="refined-badge">
+                                Entreprise Elite
+                              </div>
+                            )}
+                            <div className="refined-card-top">
+                              <h4 className="refined-name">{plan.packName}</h4>
+                              <div className="refined-price">
+                                <span className="refined-curr">
+                                  {plan.currency || "MAD"}
+                                </span>
+                                <span className="refined-val">
+                                  {plan.amount ?? "Custom"}
+                                </span>
+                                <span className="refined-period">
+                                  {getPlanPeriod(plan)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="refined-features-list flex-grow-1">
+                              {showPlanValue(plan.jobPostingCredits) && (
+                                <div className="refined-feature-item">
+                                  <i className="fa-solid fa-check" />
+                                  <div className="refined-feature-info">
+                                    <span className="refined-feature-label">
+                                      Job Postings
+                                    </span>
+                                    <span className="refined-feature-count">
+                                      {renderCreditAmount(
+                                        plan.jobPostingCredits,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                              {showPlanValue(plan.profileViewingCredits) && (
+                                <div className="refined-feature-item">
+                                  <i className="fa-solid fa-check" />
+                                  <div className="refined-feature-info">
+                                    <span className="refined-feature-label">
+                                      CV Unlocks
+                                    </span>
+                                    <span className="refined-feature-count">
+                                      {renderCreditAmount(
+                                        plan.profileViewingCredits,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                              {showPlanValue(plan.dailyJobPostingLimit) && (
+                                <div className="refined-feature-item border-top pt-3 mt-1">
+                                  <i className="fa-solid fa-clock-rotate-left" />
+                                  <div className="refined-feature-info">
+                                    <span className="refined-feature-label">
+                                      Daily Posting Limit
+                                    </span>
+                                    <span className="refined-feature-count">
+                                      {renderCreditAmount(
+                                        plan.dailyJobPostingLimit,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                              {showPlanValue(plan.dailyProfileViewingLimit) && (
+                                <div className="refined-feature-item">
+                                  <i className="fa-solid fa-eye" />
+                                  <div className="refined-feature-info">
+                                    <span className="refined-feature-label">
+                                      Daily CV Limit
+                                    </span>
+                                    <span className="refined-feature-count">
+                                      {renderCreditAmount(
+                                        plan.dailyProfileViewingLimit,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="refined-card-bottom mt-auto">
+                              <button
+                                type="button"
+                                className={`refined-action-btn ${isProCard ? "refined-btn-pro" : ""}`}
+                                onClick={() =>
+                                  manual
+                                    ? openContactModal(plan)
+                                    : handlePlanBuy(plan)
+                                }
+                              >
+                                {manual ? "Contact Us" : "Buy Now"}
+                              </button>
+                              <p className="refined-terms mt-3 text-center">
+                                No hidden fees. Full access included.
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-check" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              CV Unlocks
-                            </span>
-                            <span className="refined-feature-count">5000</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item border-top pt-3 mt-1">
-                          <i className="fa-solid fa-clock-rotate-left" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily Posting Limit
-                            </span>
-                            <span className="refined-feature-count">200</span>
-                          </div>
-                        </div>
-                        <div className="refined-feature-item">
-                          <i className="fa-solid fa-eye" />
-                          <div className="refined-feature-info">
-                            <span className="refined-feature-label">
-                              Daily CV Limit
-                            </span>
-                            <span className="refined-feature-count">500</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="refined-card-bottom mt-auto">
-                        <button
-                          type="button"
-                          className="refined-action-btn refined-btn-pro"
-                          onClick={() => openContactModal("PRO")}
-                        >
-                          Contact Us
-                        </button>
-                        <p className="refined-terms mt-3 text-center">
-                          No hidden fees. Full access included.
-                        </p>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -2058,16 +2191,16 @@ const EmployerWallet = () => {
                       crossOrigin="anonymous"
                       alt="Company Logo"
                       className="logo-img-v2"
-                      src="https://sisccltd.com/job_portal/uploads/photos/1771565351927-461360120.png"
+                      src={getCompanyLogoUrl()}
                     />
                   </div>
                   <div className="text-center mt-3">
                     <h2 className="text-dark fw-800 mb-1">
-                      Devstringx Technologies Pvt Ltd
+                      {companyProfile?.brandName || "Company Name"}
                     </h2>
                     <p className="text-muted small mb-0">
                       <i className="fa-solid fa-envelope me-2" />
-                      yadol60672@lawior.com
+                      {localStorage.getItem("user_email") || ""}
                     </p>
                   </div>
                 </div>
@@ -2099,9 +2232,10 @@ const EmployerWallet = () => {
                       <button
                         type="button"
                         className="refined-primary-btn w-100 d-flex align-items-center justify-content-center"
-                        onClick={() => closeContactModal()}
+                        onClick={handleContactPlanSubmit}
+                        disabled={planActionLoading}
                       >
-                        Send Inquiry
+                        {planActionLoading ? "Sending..." : "Send Inquiry"}
                       </button>
                     </div>
                   </div>

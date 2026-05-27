@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { isRateLimitError } from "../utils/apiRateLimitHandler";
 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -103,10 +104,8 @@ function EmployerLogin() {
     } catch (error) {
       console.error("Login error:", error);
 
-      if (error.response?.status === 429) {
-        toast.error(
-          "Too many login attempts. Please wait a moment and try again.",
-        );
+      if (isRateLimitError(error)) {
+        // Handled globally by installApiRateLimitHandler()
       } else if (
         error.response?.status === 403 &&
         error.response?.data?.action === "resendVerificationEmail"

@@ -8,6 +8,8 @@ import { API_IMAGE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
 import { green } from "@mui/material/colors";
 import { useTranslation } from "react-i18next";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 function YourJobPosts() {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ function YourJobPosts() {
   const [cateroryList, setCategoryList] = useState([]);
   // add with your other useState hooks
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
   const [sortBy, setSortBy] = useState("newest");
   const [sortOpen, setSortOpen] = useState(false);
   const [dashboardStats, setDashboardStats] = useState(null);
@@ -34,12 +37,12 @@ function YourJobPosts() {
   const [perPage, setPerPage] = useState(10); // default
 
   useEffect(() => {
-    if (location.state?.openModal) {
-      const modalElement = document.getElementById("exampleModal");
-      const modal = new window.bootstrap.Modal(modalElement);
-      modal.show();
+    if (!location.state?.openModal) {
+      return;
     }
-  }, [location.state]);
+
+    navigate("/job-details-form", { replace: true, state: {} });
+  }, [location.state, navigate]);
 
   const handleCreate = async () => {
     if (!jobTitle || !jobCategory) {
@@ -66,10 +69,6 @@ function YourJobPosts() {
       setJobTitle("");
       setJobCategory("");
 
-      const modalElement = document.getElementById("exampleModal");
-      const modal = window.bootstrap.Modal.getInstance(modalElement);
-      modal.hide();
-
       navigate(`/job-details-form/${createdJob._id}`, {
         state: { jobData: createdJob },
       });
@@ -90,10 +89,6 @@ function YourJobPosts() {
         toast.warning(errorMessage, { autoClose: 5000 });
 
         setTimeout(() => {
-          const modalElement = document.getElementById("exampleModal");
-          const modal = window.bootstrap.Modal.getInstance(modalElement);
-          modal.hide();
-
           navigate("/add-plan");
         }, 5000);
 
@@ -252,7 +247,7 @@ function YourJobPosts() {
     status,
     page = currentPage,
     limit = perPage,
-    search = searchTerm,
+    search = debouncedSearchTerm,
     sort = sortBy,
   ) => {
     try {
@@ -278,8 +273,8 @@ function YourJobPosts() {
     }
   };
   useEffect(() => {
-    fetchJobs(activeStatus, currentPage, perPage, searchTerm, sortBy);
-  }, [activeStatus, currentPage, searchTerm, sortBy]);
+    fetchJobs(activeStatus, currentPage, perPage, debouncedSearchTerm, sortBy);
+  }, [activeStatus, currentPage, debouncedSearchTerm, sortBy]);
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
   const endResult = Math.min(currentPage * perPage, totalResults);
 

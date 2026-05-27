@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 
 function CandinatesList() {
   const { t, i18n } = useTranslation("global");
@@ -45,6 +46,7 @@ function CandinatesList() {
   const [newFolderName, setNewFolderName] = useState("");
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const debouncedKeyword = useDebounce(keyword, SEARCH_DEBOUNCE_MS);
   const [listLoading, setListLoading] = useState(false);
   const [minValue, setMinValue] = useState(0);
   const [maxValue, setMaxValue] = useState(5000);
@@ -73,7 +75,6 @@ function CandinatesList() {
   const [candidateDetails, setCandidateDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState([]);
-  const debounceTimer = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedEducation, setSelectedEducation] = useState([]);
@@ -475,7 +476,7 @@ function CandinatesList() {
             ? selectedExperience.join(",")
             : undefined,
 
-        keyword: keyword?.trim() || undefined,
+        keyword: debouncedKeyword?.trim() || undefined,
 
         sortBy: sortField || undefined,
         order: sortOrder || undefined,
@@ -692,26 +693,20 @@ function CandinatesList() {
   }, []);
 
   useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-
-    debounceTimer.current = setTimeout(() => {
-      setCurrentPage(1);
-      fetchCandidates(1, perPage);
-    }, 500);
-
-    return () => clearTimeout(debounceTimer.current);
+    setCurrentPage(1);
+    fetchCandidates(1, perPage);
   }, [
-    keyword,
+    debouncedKeyword,
     selectedSkills,
     selectedEducation,
     selectedExperience,
-    selectedCity, // ✅ FIXED
+    selectedCity,
     selectedCountry,
-    selectedSalary, // ✅ ADD THIS
-    selectedAvailability, // ✅ ADD THIS
-    isFreelancer, // ✅ add
-    minValue, // ✅ add
-    maxValue, // ✅ add
+    selectedSalary,
+    selectedAvailability,
+    isFreelancer,
+    minValue,
+    maxValue,
     sortBy,
     perPage,
   ]);

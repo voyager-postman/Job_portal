@@ -7,6 +7,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL } from "../Url/Url";
 import Select from "react-select";
 import Swal from "sweetalert2";
+import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+
 const EmployerBasicInformation = () => {
   const [formData, setFormData] = useState({
     brand_name: "",
@@ -30,34 +32,44 @@ const EmployerBasicInformation = () => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const debouncedCompanyAddress = useDebounce(
+    formData.company_address,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-  const handleCitySearch = async (e) => {
-    const value = e.target.value;
-    handleChange(e); // update formData.company_address
-
-    if (!value.trim()) {
-      setCitySuggestions([]);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}searchCities`, {
-        params: { key: value },
-      });
-
-      if (res.data?.success && Array.isArray(res.data.cities)) {
-        setCitySuggestions(res.data.cities);
-      } else {
-        setCitySuggestions([]);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-      setCitySuggestions([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleCitySearch = (e) => {
+    handleChange(e);
   };
+
+  useEffect(() => {
+    if (!debouncedCompanyAddress.trim()) {
+      setCitySuggestions([]);
+      return undefined;
+    }
+
+    const fetchCitySuggestions = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${API_BASE_URL}searchCities`, {
+          params: { key: debouncedCompanyAddress },
+        });
+
+        if (res.data?.success && Array.isArray(res.data.cities)) {
+          setCitySuggestions(res.data.cities);
+        } else {
+          setCitySuggestions([]);
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+        setCitySuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCitySuggestions();
+  }, [debouncedCompanyAddress]);
+
   useEffect(() => {
     // Set default location — Noida
     setMapUrl(
