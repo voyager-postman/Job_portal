@@ -12,6 +12,11 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { TbMessages } from "react-icons/tb";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import {
+  getApplicantCoverLetterUrl,
+  getApplicantCvSource,
+  openApplicationFile,
+} from "../utils/applicationDocuments";
 
 function ApplicantsDetails() {
   const location = useLocation();
@@ -364,15 +369,7 @@ function ApplicantsDetails() {
     }
   };
 
-  const getResumeUrl = () => {
-    const { coverLetter, cv, customResume } = selectedCandidate || {};
-    console.log(selectedCandidate);
-    if (coverLetter) return coverLetter;
-    if (cv) return cv;
-    if (customResume) return customResume;
-
-    return null;
-  };
+  const getResumeUrl = () => getApplicantCvSource(selectedCandidate);
   const handleClearLocation = () => {
     setLocationSearchTerm("");
     setSelectedLocation(null);
@@ -618,10 +615,8 @@ function ApplicantsDetails() {
                                 return;
                               }
 
-                              // open in new tab
-                              window.open(
-                                `${API_IMAGE_URL}${fileUrl}`,
-                                "_blank",
+                              openApplicationFile(fileUrl, () =>
+                                toast.error("No resume uploaded"),
                               );
                             }}
                           >

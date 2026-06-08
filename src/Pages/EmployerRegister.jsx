@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
+import {
+  postCompanyRegister,
+  isInsecureTransportError,
+} from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -64,15 +69,16 @@ function EmployerRegister() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}register/company`, {
+      const response = await postCompanyRegister({
         email,
         password,
       });
-      console.log(response);
 
       if (response.data.success) {
         const { token, user } = response.data;
 
+        setPassword("");
+        setConfirmPassword("");
         // ✅ store token and user details correctly
         localStorage.setItem("token", token);
 
@@ -84,6 +90,12 @@ function EmployerRegister() {
       }
     } catch (error) {
       console.error("Register error:", error);
+
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
+
       toast.error(
         error.response?.data?.message || "Registration failed. Try again."
       );

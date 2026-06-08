@@ -8,6 +8,9 @@ import { ToastContainer, toast } from "react-toastify";
 import { useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
+import { cleanupBootstrapModal } from "../utils/cleanupBootstrapModal";
+import { openProtectedDocument } from "../utils/protectedFile";
+
 function CandidateProfile() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -97,6 +100,10 @@ function CandidateProfile() {
 
   useEffect(() => {
     fetchGlobalCurrency();
+  }, []);
+
+  useEffect(() => {
+    cleanupBootstrapModal();
   }, []);
 
   const [masterLanguages, setMasterLanguages] = useState([]); // from /getLanguage
@@ -4455,12 +4462,8 @@ function CandidateProfile() {
                         {/* ✅ CV LIST */}
                         {cvFiles.length > 0 ? (
                           cvFiles.map((cv, index) => {
-                            const fileUrl =
-                              typeof cv === "string"
-                                ? `${API_IMAGE_URL}${cv}`
-                                : cv?.url
-                                  ? `${API_IMAGE_URL}${cv.url}`
-                                  : null;
+                            const fileSource =
+                              typeof cv === "string" ? cv : cv?.url || null;
 
                             const fileName =
                               typeof cv === "string"
@@ -4485,12 +4488,17 @@ function CandidateProfile() {
                                 </div>
 
                                 <div>
-                                  {fileUrl && (
+                                  {fileSource && (
                                     <i
                                       className="fas fa-download text-muted me-2"
                                       style={{ cursor: "pointer" }}
                                       onClick={() =>
-                                        window.open(fileUrl, "_blank")
+                                        openProtectedDocument(fileSource, {
+                                          token: localStorage.getItem("token"),
+                                          toast,
+                                          context: "candidate",
+                                          fileKind: "resumes",
+                                        })
                                       }
                                     />
                                   )}
@@ -4546,12 +4554,8 @@ function CandidateProfile() {
                         {/* ✅ Cover Letter List */}
                         {coverLetters.length > 0 ? (
                           coverLetters.map((cl, index) => {
-                            const fileUrl =
-                              typeof cl === "string"
-                                ? `${API_IMAGE_URL}${cl}`
-                                : cl?.url
-                                  ? `${API_IMAGE_URL}${cl.url}`
-                                  : null;
+                            const fileSource =
+                              typeof cl === "string" ? cl : cl?.url || null;
 
                             const fileName =
                               typeof cl === "string"
@@ -4576,12 +4580,17 @@ function CandidateProfile() {
                                 </div>
 
                                 <div>
-                                  {fileUrl && (
+                                  {fileSource && (
                                     <i
                                       className="fas fa-download text-muted me-2"
                                       style={{ cursor: "pointer" }}
                                       onClick={() =>
-                                        window.open(fileUrl, "_blank")
+                                        openProtectedDocument(fileSource, {
+                                          token: localStorage.getItem("token"),
+                                          toast,
+                                          context: "candidate",
+                                          fileKind: "coverLetters",
+                                        })
                                       }
                                     />
                                   )}

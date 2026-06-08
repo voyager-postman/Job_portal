@@ -11,9 +11,11 @@ import "./i18n";
 import { HelmetProvider } from "react-helmet-async";
 import { installPublicApiSanitizer } from "./utils/publicApiSanitizer";
 import { installApiRateLimitHandler } from "./utils/apiRateLimitHandler";
+import { installCredentialSecurity } from "./utils/credentialSecurity";
 
 installPublicApiSanitizer();
 installApiRateLimitHandler();
+installCredentialSecurity();
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(

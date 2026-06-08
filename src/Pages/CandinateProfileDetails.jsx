@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import { openProtectedDocument } from "../utils/protectedFile";
 
 function CandinateProfileDetails() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { userId } = location.state || {};
   console.log(userId);
   const [candidate, setCandidate] = useState(null);
@@ -98,7 +100,40 @@ function CandinateProfileDetails() {
     if (!text) return "";
     return text.length > limit ? text.substring(0, limit) + "..." : text;
   };
-  const handleDownloadCV = () => {
+  const handleUnlockContact = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}viewCandidate/${candidate?.userId?._id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (!response.data.success) {
+        toast.error(response.data.message);
+        if (response.data.is_exhausted === 1) {
+          setTimeout(() => navigate("/add-plan"), 2000);
+        }
+        return;
+      }
+
+      const refreshed = await axios.post(
+        `${API_BASE_URL}getCandidateDetails/${candidate?.userId?._id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setCandidate(refreshed.data?.data);
+    } catch (error) {
+      const message = error.response?.data?.message;
+      const exhausted = error.response?.data?.is_exhausted;
+      toast.error(message || "Something went wrong");
+      if (exhausted === 1) {
+        setTimeout(() => navigate("/add-plan"), 2000);
+      }
+    }
+  };
+
+  const handleDownloadCV = async () => {
     const resumes = candidate?.resumeUrls;
 
     if (!resumes || resumes.length === 0) {
@@ -109,11 +144,13 @@ function CandinateProfileDetails() {
       return;
     }
 
-    // ✅ Always download latest CV
     const latestResume = resumes[resumes.length - 1];
-    const fileUrl = `${API_IMAGE_URL}${latestResume.url}`;
-
-    window.open(fileUrl, "_blank");
+    await openProtectedDocument(latestResume?.url || latestResume, {
+      token: localStorage.getItem("token"),
+      toast,
+      context: "recruiter",
+      fileKind: "resumes",
+    });
   };
 
   const JobListLoader = () => (
@@ -193,15 +230,19 @@ function CandinateProfileDetails() {
                     </h3>
                     <h3>
                       <strong>Email:</strong>{" "}
-                      {candidate?.userId?.email || "Not Provided"}
+                      {candidate?.isUnlocked
+                        ? candidate?.userId?.email || "Not Provided"
+                        : "Hidden until unlocked"}
                     </h3>
                     <h3>
                       <strong>Contact:</strong>{" "}
-                      {candidate?.userId?.countryCode
-                        ? `+${candidate.userId.countryCode} ${
-                            candidate?.userId?.phone || ""
-                          }`
-                        : candidate?.userId?.phone || "Not Provided"}
+                      {candidate?.isUnlocked
+                        ? candidate?.userId?.countryCode
+                          ? `+${candidate.userId.countryCode} ${
+                              candidate?.userId?.phone || ""
+                            }`
+                          : candidate?.userId?.phone || "Not Provided"
+                        : "Hidden until unlocked"}
                     </h3>
                     <h3>
                       <strong>Address:</strong>{" "}
@@ -241,13 +282,23 @@ function CandinateProfileDetails() {
             </div>
             <div className="col-lg-5 col-md-4">
               <div className="candidate-profile-dcv-btn">
-                <button
-                  type="button"
-                  className="default-btn btn"
-                  onClick={handleDownloadCV}
-                >
-                  Download CV
-                </button>
+                {candidate?.isUnlocked ? (
+                  <button
+                    type="button"
+                    className="default-btn btn"
+                    onClick={handleDownloadCV}
+                  >
+                    Download CV
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="default-btn btn"
+                    onClick={handleUnlockContact}
+                  >
+                    View / Reveal contact
+                  </button>
+                )}
               </div>
               <div className="candidates-share-content">
                 <h4>Social Media</h4>
@@ -646,7 +697,9 @@ function CandinateProfileDetails() {
                     <li>
                       {/* <span>Current salary :</span>$2000 */}
                       <span>Phone No.:</span>
-                      {candidate?.userId?.phone || "Not Provided"}
+                      {candidate?.isUnlocked
+                        ? candidate?.userId?.phone || "Not Provided"
+                        : "Hidden until unlocked"}
                     </li>
                     <li>
                       <span>Education level :</span>
@@ -689,7 +742,23 @@ function CandinateProfileDetails() {
                   </ul>
                 </div>
                 <div className="candidate-profile-summary single-sidebar-widget download">
-                  <a className="default-btn btn">Download CV</a>
+                  {candidate?.isUnlocked ? (
+                    <button
+                      type="button"
+                      className="default-btn btn"
+                      onClick={handleDownloadCV}
+                    >
+                      Download CV
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="default-btn btn"
+                      onClick={handleUnlockContact}
+                    >
+                      View / Reveal contact
+                    </button>
+                  )}
                 </div>
               </div>
 

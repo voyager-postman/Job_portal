@@ -1,25 +1,25 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useLocation, useParams, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { Modal } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
+import JobApplyModal from "../components/JobApplyModal";
+import { useJobApply } from "../hooks/useJobApply";
+import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
 import "./Main.css";
 function CompanyDetailsPage() {
+  const { t } = useTranslation("global");
+  const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
-  const fileInputRef = useRef(null);
-  const [jobId, setJobId] = useState(null);
+  const userRole = localStorage.getItem("user_role");
   const [aboutMuted, setAboutMuted] = useState(true);
   const [aboutLoaded, setAboutLoaded] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
   const [hoveredVideo, setHoveredVideo] = useState(null);
   const [loadedVideo, setLoadedVideo] = useState({});
   const [mutedVideos, setMutedVideos] = useState({});
-  const [resumeList, setResumeList] = useState([]);
-  const [coverLetterList, setCoverLetterList] = useState([]);
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const { companySlug } = useParams();
@@ -27,7 +27,6 @@ function CompanyDetailsPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
   const from = location.state?.from || "/";
   const [showVideoModal, setShowVideoModal] = useState(false);
   // const breadcrumbLabel = from.includes("/manage-job-application")
@@ -63,6 +62,15 @@ function CompanyDetailsPage() {
   useEffect(() => {
     if (companySlug) getCompanyDetails();
   }, [companySlug]);
+
+  const apply = useJobApply({
+    t,
+    token,
+    onApplySuccess: () => {
+      if (companySlug) getCompanyDetails();
+    },
+  });
+  const { setJobId } = apply;
 
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
@@ -115,41 +123,23 @@ function CompanyDetailsPage() {
 
     return url;
   };
-  useEffect(() => {
-    const fetchResume = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Resume Data:-", res.data.profile);
-        const profile = res.data.profile;
-        setResumeList(profile.resumeUrls || []);
-        setCoverLetterList(profile.coverLetter || []);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchResume();
-  }, []);
+  const openApplyModal = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  const handleSelect = (type, id = null) => {
-    setSelectedType(type);
-    setSelectedId(id);
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedCustomFile(file);
-      setSelectedType("custom");
-      setSelectedId(null);
+    if (!token || userRole !== "JobSeeker") {
+      navigate("/login");
+      return;
     }
-  };
 
-  const getFileName = (url) => {
-    return url?.split("/").pop();
+    setJobId(id);
+    handleJobClick(id);
+
+    const modalEl = document.getElementById("exampleModal");
+    if (modalEl) {
+      const modal = new window.bootstrap.Modal(modalEl);
+      modal.show();
+    }
   };
 
   // Double decode for escaped HTML
@@ -204,111 +194,6 @@ function CompanyDetailsPage() {
       toast.error(err.response?.data?.message || "Server error. Try again!");
     }
   };
-
-  const handleLinkClick = (e) => {
-    e.preventDefault(); // prevent navigation
-    fileInputRef.current.click(); // open file dialog
-  };
-
-  const isSelectionMade = () => {
-    return (
-      (selectedType === "resume" && selectedId) ||
-      (selectedType === "cover" && selectedId) ||
-      (selectedType === "custom" && selectedCustomFile)
-    );
-  };
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-  const handleApplyJob = async () => {
-    if (!jobId) {
-      console.error("❌ jobId is missing");
-      return;
-    }
-    setIsApplying(true); // 🔥 Start loader
-
-    const formData = new FormData();
-
-    if (selectedType === "resume") {
-      formData.append("cv", selectedId);
-    }
-
-    if (selectedType === "cover") {
-      formData.append("coverLetter", selectedId);
-    }
-
-    if (selectedType === "custom") {
-      const file = fileInputRef.current?.files?.[0];
-
-      // ✅ FILE REQUIRED
-      if (!file) {
-        toast.error("Please select a resume file.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return;
-      }
-
-      // ✅ FILE SIZE CHECK (THIS FIXES YOUR ISSUE)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return; // ⛔ STOP — DO NOT HIT API
-      }
-
-      formData.append("customResume", file);
-    }
-
-    formData.append("jobId", jobId);
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      toast.success(res.data.message || "Applied successfully!");
-      if (companySlug) getCompanyDetails();
-
-      const modal = document.getElementById("exampleModal");
-      if (modal) {
-        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-        bootstrapModal?.hide();
-      }
-    } catch (error) {
-      console.error("Apply job error:", error);
-
-      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.data?.message) {
-        toast.error(error.response.data.message, {
-          autoClose: 2000,
-          theme: "colored",
-        });
-      } else if (
-        error?.response?.status === 413 ||
-        error?.message?.includes("413")
-      ) {
-        toast.error("Uploaded file is too large. Max size is 2MB.", {
-          autoClose: 2000,
-          theme: "colored",
-        });
-      } else {
-        toast.error("Something went wrong!");
-      }
-    } finally {
-      setIsApplying(false); // 🔥 Stop loader
-    }
-  };
-
-  function decodeHtml(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
 
   // ✅ Decode the careerDetail content
   const decodedCareerDetail = decodeHtml(
@@ -1037,7 +922,7 @@ function CompanyDetailsPage() {
                                 >
                                   {job?.applicationStatus}
                                 </button>
-                              ) : (
+                              ) : job?.isAssessmentRequired ? (
                                 <Link
                                   to={`/job/${job.slug}`}
                                   state={{
@@ -1047,279 +932,46 @@ function CompanyDetailsPage() {
                                   style={{
                                     color: "rgb(251, 118, 26)",
                                     borderColor: "rgb(251, 118, 26)",
-                                    width: "150px", // 👈 force same width
+                                    width: "150px",
                                     textAlign: "center",
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  View Details
+                                  {t("header.view_details")}
                                 </Link>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-primary rounded-pill px-4"
+                                    style={{
+                                      color: "rgb(251, 118, 26)",
+                                      borderColor: "rgb(251, 118, 26)",
+                                      width: "150px",
+                                      textAlign: "center",
+                                    }}
+                                    onClick={(e) => openApplyModal(e, job._id)}
+                                  >
+                                    {t("header.apply_now")}
+                                  </button>
+                                  <Link
+                                    to={`/job/${job.slug}`}
+                                    state={{
+                                      JobId: job._id,
+                                    }}
+                                    className="btn btn-outline-primary rounded-pill px-4"
+                                    style={{
+                                      color: "rgb(251, 118, 26)",
+                                      borderColor: "rgb(251, 118, 26)",
+                                      width: "150px",
+                                      textAlign: "center",
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {t("header.view_details")}
+                                  </Link>
+                                </>
                               )}
-                              <div
-                                className="modal fade"
-                                id="exampleModal"
-                                tabIndex={-1}
-                                aria-labelledby="exampleModalLabel"
-                                aria-hidden="true"
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h1
-                                        className="modal-title fs-5"
-                                        id="exampleModalLabel"
-                                      >
-                                        Apply now
-                                      </h1>
-                                      <button
-                                        type="button"
-                                        className="btn-close"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close"
-                                      />
-                                    </div>
-                                    {/* NOTE: use className, not class */}
-                                    <div className="modal-body">
-                                      <div className="job-apply-defult-resume-custom-resume">
-                                        {/* RESUME LIST - inline hide */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(resumeList) &&
-                                            resumeList.map((resume) => {
-                                              const fileName = getFileName(
-                                                resume.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={resume._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedType ===
-                                                      "resume" &&
-                                                    selectedId === resume.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "resume",
-                                                      resume.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
-
-                                                  {selectedType === "resume" &&
-                                                    selectedId ===
-                                                      resume.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-
-                                        {/* OR DIVIDER for resume - inline hide */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>or</h4>
-                                        </div>
-
-                                        {/* COVER LETTER LIST - inline hide */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(coverLetterList) &&
-                                            coverLetterList.map((cover) => {
-                                              const fileName = getFileName(
-                                                cover.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={cover._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedType === "cover" &&
-                                                    selectedId === cover.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "cover",
-                                                      cover.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
-
-                                                  {selectedType === "cover" &&
-                                                    selectedId ===
-                                                      cover.url && (
-                                                      <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                    )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-
-                                        {/* OR DIVIDER for cover - inline hide */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>or</h4>
-                                        </div>
-
-                                        {/* CUSTOM FILE SECTION (show only if user uploaded file or always show upload button) */}
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{ display: "block" }}
-                                        >
-                                          {/* Show selected custom file if exists */}
-                                          <div
-                                            style={{
-                                              display: selectedCustomFile
-                                                ? "block"
-                                                : "none",
-                                            }}
-                                          >
-                                            <div
-                                              className={
-                                                "job-apply-custom-resume-info " +
-                                                (selectedType === "custom"
-                                                  ? "active"
-                                                  : "")
-                                              }
-                                              onClick={() =>
-                                                selectedCustomFile &&
-                                                handleSelect("custom")
-                                              }
-                                              style={{
-                                                cursor: selectedCustomFile
-                                                  ? "pointer"
-                                                  : "default",
-                                              }}
-                                            >
-                                              <span className="file-name-text">
-                                                <i className="fa-solid fa-file" />{" "}
-                                                {selectedCustomFile
-                                                  ? selectedCustomFile.name
-                                                  : ""}
-                                              </span>
-
-                                              {selectedType === "custom" && (
-                                                <i className="fa-solid fa-circle-check selected-check-icon" />
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          {/* Upload Button — prevent default and open file input */}
-                                          <div
-                                            className="job-apply-custom-resume-cover-letter-btn"
-                                            style={{ marginTop: 12 }}
-                                          >
-                                            <a
-                                              href="#"
-                                              className="default-btn btn"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                // ensure fileInputRef.current exists
-                                                if (
-                                                  fileInputRef &&
-                                                  fileInputRef.current
-                                                )
-                                                  fileInputRef.current.click();
-                                              }}
-                                            >
-                                              Custom resume with cover letter
-                                            </a>
-
-                                            <input
-                                              ref={fileInputRef}
-                                              type="file"
-                                              accept=".pdf,.doc,.docx"
-                                              onChange={handleFileUpload}
-                                              style={{ display: "none" }}
-                                            />
-                                          </div>
-                                        </div>
-
-                                        {/* Divider before apply button (always keep in DOM) */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder"
-                                          style={{ marginTop: 16 }}
-                                        />
-
-                                        {/* APPLY BUTTON - always present */}
-                                        <div
-                                          className="job-apply-defult-resume-btn"
-                                          style={{ marginTop: 12 }}
-                                        >
-                                          <button
-                                            className="default-btn btn w-100"
-                                            onClick={handleApplyJob}
-                                            disabled={
-                                              isApplying || !isSelectionMade()
-                                            }
-                                          >
-                                            {isApplying ? (
-                                              <>
-                                                <span
-                                                  className="spinner-border spinner-border-sm me-2"
-                                                  role="status"
-                                                  aria-hidden="true"
-                                                ></span>
-                                                Applying...
-                                              </>
-                                            ) : (
-                                              "Apply Now"
-                                            )}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>{" "}
-                                    {/* .modal-body */}
-                                  </div>
-                                </div>
-                              </div>
                               <i
                                 className={`fa-${
                                   job.isSaved ? "solid" : "regular"
@@ -1555,6 +1207,7 @@ function CompanyDetailsPage() {
           </div>
         </Modal.Body>
       </Modal>
+      <JobApplyModal {...getJobApplyModalProps(apply)} />
     </>
   );
 }

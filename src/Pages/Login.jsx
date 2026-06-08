@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { isRateLimitError } from "../utils/apiRateLimitHandler";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -106,7 +108,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}user/login`, {
+      const response = await postUserLogin({
         email: formData.email,
         password: formData.password,
         role: "JobSeeker",
@@ -114,7 +116,6 @@ function Login() {
 
       if (response.status === 200 && response.data.success) {
         const { token, user, profile } = response.data;
-        console.log(response.data);
         // Save login data
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -153,6 +154,7 @@ function Login() {
         } catch (profileErr) {
           console.error("Profile fetch error:", profileErr);
         }
+        setFormData((prev) => ({ ...prev, password: "" }));
         login(); // call your login context or auth function
         toast.success("Login successfully!");
         // Navigate based on profile completion
@@ -174,6 +176,12 @@ function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
+
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
+
       if (
         error.response?.data?.success === false &&
         error.response?.data?.action === "resendVerificationEmail"

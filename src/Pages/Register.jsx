@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios"
+import axios from "axios";
+import { postUserRegister, isInsecureTransportError } from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import Spinner from "../Conponets/Spinner"; // optional
 import { useAuth } from "../context/AuthContext"; // adjust path
 import ReCAPTCHA from "react-google-recaptcha";
@@ -66,7 +68,7 @@ function Register() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}user/register`, {
+      const response = await postUserRegister({
         email,
         password,
       });
@@ -74,6 +76,8 @@ function Register() {
       if (response.status === 200 && response.data.success) {
         const { token, user } = response.data;
 
+        setPassword("");
+        setConfirmPassword("");
         localStorage.setItem("token", token);
         localStorage.setItem("extract_id", user?.id);
         toast.success("Registration successful!");
@@ -85,6 +89,12 @@ function Register() {
       }
     } catch (error) {
       console.error("Register error:", error);
+
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
+
       toast.error(
         error.response?.data?.message || "Registration failed. Try again."
       );

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { putChangePassword, isInsecureTransportError } from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -24,18 +26,13 @@ const ChangePassword = () => {
       setLoading(true);
       const token = localStorage.getItem("token"); // adjust key as per your app
 
-      const response = await axios.put(
-        `${API_BASE_URL}/change-password`, // adjust endpoint
+      const response = await putChangePassword(
         {
           oldPassword,
           newPassword,
           confirmPassword,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        token,
       );
 
       toast.success(response.data?.message || "Password changed successfully");
@@ -43,6 +40,11 @@ const ChangePassword = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
+
       toast.error(error?.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);

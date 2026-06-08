@@ -43,6 +43,8 @@ const PUBLIC_COMPANY_DETAIL_FIELDS = new Set([
   "jobs",
   "status",
   "isVerified",
+  "verifiedByAdmin",
+  "companyId",
 ]);
 
 /**

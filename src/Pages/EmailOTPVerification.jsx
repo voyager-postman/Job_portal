@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { isRateLimitError } from "../utils/apiRateLimitHandler";
 
 import "react-toastify/dist/ReactToastify.css";
@@ -49,7 +51,7 @@ function EmailOTPVerification() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}user/login`, {
+      const response = await postUserLogin({
         email: formData.email,
         password: formData.password,
       });
@@ -57,6 +59,7 @@ function EmailOTPVerification() {
       if (response.status === 200 && response.data.success) {
         const { token, user } = response.data;
 
+        setFormData((prev) => ({ ...prev, password: "" }));
         // Save login data
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -80,6 +83,11 @@ function EmailOTPVerification() {
       }
     } catch (error) {
       console.error("Login error:", error);
+
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
 
       if (isRateLimitError(error)) {
         // Handled globally by installApiRateLimitHandler()

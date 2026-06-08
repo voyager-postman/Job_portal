@@ -24,6 +24,10 @@ import "swiper/css/pagination";
 import { ToastContainer, toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import JobApplyModal from "../components/JobApplyModal";
+import { useJobApply } from "../hooks/useJobApply";
+import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+
 const JobList = () => {
   const location = useLocation();
   const { t, i18n } = useTranslation("global");
@@ -37,14 +41,6 @@ const JobList = () => {
   console.log(userRole);
   // or from context:  user?.role
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
-  const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
-  const [selectedCoverLetterUrl, setSelectedCoverLetterUrl] = useState(null);
-  const [selectedCustomFile, setSelectedCustomFile] = useState(null);
-  const fileInputRef = useRef(null);
-  const [jobId, setJobId] = useState(null);
-  const [isApplying, setIsApplying] = useState(false);
-  const [resumeList, setResumeList] = useState([]);
-  const [coverLetterList, setCoverLetterList] = useState([]);
   const [showAlertOptions, setShowAlertOptions] = useState(false);
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [selectedSalaryRanges, setSelectedSalaryRanges] = useState([]);
@@ -463,48 +459,6 @@ const JobList = () => {
 
     fetchLocationSuggestions();
   }, [debouncedLocationSearch]);
-
-  useEffect(() => {
-    const fetchResume = async () => {
-      if (token) {
-        try {
-          const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          console.log("Resume Data:-", res.data.profile);
-          const profile = res.data.profile;
-          setResumeList(profile.resumeUrls || []);
-          setCoverLetterList(profile.coverLetter || []);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    };
-    fetchResume();
-  }, []);
-  const handleSelect = (type, id = null) => {
-    if (type === "resume") {
-      setSelectedResumeUrl(id);
-      setSelectedCustomFile(null);
-      if (fileInputRef?.current) fileInputRef.current.value = "";
-    } else if (type === "cover") {
-      setSelectedCoverLetterUrl(id);
-    }
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedCustomFile(file);
-      setSelectedResumeUrl(null);
-    }
-  };
-
-  const getFileName = (url) => {
-    return url?.split("/").pop();
-  };
 
   const handleSelectLocation = (city) => {
     if (!selectedLocations.some((loc) => loc._id === city._id)) {
@@ -945,99 +899,15 @@ const JobList = () => {
     getCategories();
   };
 
-  const isSelectionMade = () => {
-    return !!(selectedResumeUrl || selectedCustomFile);
-  };
-
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-  const resetApplyModal = () => {
-    setSelectedResumeUrl(null);
-    setSelectedCoverLetterUrl(null);
-    setSelectedCustomFile(null);
-    setIsApplying(false);
-
-    if (fileInputRef?.current) fileInputRef.current.value = "";
-  };
-  const handleApplyJob = async () => {
-    if (!jobId) {
-      console.error("❌ jobId is missing");
-      return;
-    }
-
-    if (!selectedResumeUrl && !selectedCustomFile) {
-      toast.error(t("header.Please_select_resume_file"), {
-        autoClose: 2000,
-        theme: "colored",
-      });
-      return;
-    }
-
-    setIsApplying(true);
-
-    const formData = new FormData();
-
-    if (selectedResumeUrl) {
-      formData.append("cv", selectedResumeUrl);
-    }
-
-    if (selectedCoverLetterUrl) {
-      formData.append("coverLetter", selectedCoverLetterUrl);
-    }
-
-    if (selectedCustomFile) {
-      if (selectedCustomFile.size > MAX_FILE_SIZE) {
-        toast.error(t("header.file_too_large"), {
-          autoClose: 2000,
-          theme: "colored",
-        });
-        setIsApplying(false);
-        return;
-      }
-      formData.append("customResume", selectedCustomFile);
-    }
-
-    formData.append("jobId", jobId);
-
-    try {
-      const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      toast.success(res.data.message || "Applied successfully!");
+  const apply = useJobApply({
+    t,
+    token,
+    onApplySuccess: () => {
       getAllJobList(pageSize, pageNumber);
       setIsPanelOpen(false);
-      const modal = document.getElementById("exampleModal");
-      if (modal) {
-        const bootstrapModal = window.bootstrap.Modal.getInstance(modal);
-        bootstrapModal?.hide();
-      }
-    } catch (error) {
-      console.error("Apply job error:", error);
-
-      // 🔒 BACKUP SAFETY (in case proxy still throws 413)
-      if (error?.response?.data?.message) {
-        toast.error(error.response.data.message, {
-          autoClose: 2000,
-          theme: "colored",
-        });
-      } else if (
-        error?.response?.status === 413 ||
-        error?.message?.includes("413")
-      ) {
-        toast.error(t("header.file_too_large"), {
-          autoClose: 2000,
-          theme: "colored",
-        });
-      } else {
-        toast.error(t("header.something_wrong"));
-      }
-    } finally {
-      setIsApplying(false); // 🔥 Stop loader
-    }
-  };
+    },
+  });
+  const { setJobId } = apply;
 
   // const handleApplyJob = async () => {
   //   if (!jobId) {
@@ -2623,255 +2493,6 @@ const JobList = () => {
                                   </div>
                                 </div>
                               ))}
-                              <div
-                                className="modal fade"
-                                id="exampleModal"
-                                tabIndex={-1}
-                                aria-labelledby="exampleModalLabel"
-                                aria-hidden="true"
-                              >
-                                <div className="modal-dialog">
-                                  <div className="modal-content">
-                                    <div className="modal-header">
-                                      <h1
-                                        className="modal-title fs-5"
-                                        id="exampleModalLabel"
-                                      >
-                                        {t("header.apply_now")}
-                                      </h1>
-                                      <button
-                                        type="button"
-                                        className="btn-close"
-                                        data-bs-dismiss="modal"
-                                        aria-label="Close"
-                                        onClick={resetApplyModal}
-                                      />
-                                    </div>
-                                    {/* NOTE: use className, not class */}
-                                    <div className="modal-body">
-                                      <div className="job-apply-defult-resume-custom-resume">
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(resumeList) &&
-                                            resumeList.map((resume) => {
-                                              const fileName = getFileName(
-                                                resume.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={resume._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedResumeUrl ===
-                                                    resume.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "resume",
-                                                      resume.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
-                                                  {selectedResumeUrl ===
-                                                    resume.url && (
-                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                  )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(resumeList) &&
-                                              resumeList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>or</h4>
-                                        </div>
-
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          {Array.isArray(coverLetterList) &&
-                                            coverLetterList.map((cover) => {
-                                              const fileName = getFileName(
-                                                cover.url,
-                                              );
-                                              return (
-                                                <div
-                                                  key={cover._id}
-                                                  className={
-                                                    "job-apply-custom-resume-info " +
-                                                    (selectedCoverLetterUrl ===
-                                                    cover.url
-                                                      ? "active"
-                                                      : "")
-                                                  }
-                                                  onClick={() =>
-                                                    handleSelect(
-                                                      "cover",
-                                                      cover.url,
-                                                    )
-                                                  }
-                                                  style={{ cursor: "pointer" }}
-                                                >
-                                                  <span className="file-name-text">
-                                                    <i className="fa-solid fa-file" />{" "}
-                                                    {fileName}
-                                                  </span>
-                                                  {selectedCoverLetterUrl ===
-                                                    cover.url && (
-                                                    <i className="fa-solid fa-circle-check selected-check-icon" />
-                                                  )}
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-
-                                        <div
-                                          className="defult-resume-custom-resume-divder-line"
-                                          style={{
-                                            display:
-                                              Array.isArray(coverLetterList) &&
-                                              coverLetterList.length > 0
-                                                ? "block"
-                                                : "none",
-                                          }}
-                                        >
-                                          <h4>{t("header.or")}</h4>
-                                        </div>
-
-                                        <div
-                                          className="job-apply-custom-resume-info-area"
-                                          style={{ display: "block" }}
-                                        >
-                                          <div
-                                            style={{
-                                              display: selectedCustomFile
-                                                ? "block"
-                                                : "none",
-                                            }}
-                                          >
-                                            <div
-                                              className={
-                                                "job-apply-custom-resume-info " +
-                                                (selectedCustomFile
-                                                  ? "active"
-                                                  : "")
-                                              }
-                                              style={{
-                                                cursor: selectedCustomFile
-                                                  ? "pointer"
-                                                  : "default",
-                                              }}
-                                            >
-                                              <span className="file-name-text">
-                                                <i className="fa-solid fa-file" />{" "}
-                                                {selectedCustomFile
-                                                  ? selectedCustomFile.name
-                                                  : ""}
-                                              </span>
-                                              {selectedCustomFile && (
-                                                <i className="fa-solid fa-circle-check selected-check-icon" />
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div
-                                            className="job-apply-custom-resume-cover-letter-btn"
-                                            style={{ marginTop: 12 }}
-                                          >
-                                            <a
-                                              href="#"
-                                              className="default-btn btn"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                if (
-                                                  fileInputRef &&
-                                                  fileInputRef.current
-                                                )
-                                                  fileInputRef.current.click();
-                                              }}
-                                            >
-                                              {t(
-                                                "header.Custom_resume_with_cover_letter",
-                                              )}
-                                            </a>
-                                            <input
-                                              ref={fileInputRef}
-                                              type="file"
-                                              accept=".pdf,.doc,.docx"
-                                              onChange={handleFileUpload}
-                                              style={{ display: "none" }}
-                                            />
-                                          </div>
-                                        </div>
-
-                                        {/* Divider before apply button (always keep in DOM) */}
-                                        <div
-                                          className="defult-resume-custom-resume-divder"
-                                          style={{ marginTop: 16 }}
-                                        />
-
-                                        {/* APPLY BUTTON - always present */}
-                                        <div
-                                          className="job-apply-defult-resume-btn"
-                                          style={{ marginTop: 12 }}
-                                        >
-                                          <button
-                                            className="default-btn btn w-100"
-                                            onClick={handleApplyJob}
-                                            disabled={
-                                              isApplying || !isSelectionMade()
-                                            }
-                                          >
-                                            {isApplying ? (
-                                              <>
-                                                <span
-                                                  className="spinner-border spinner-border-sm me-2"
-                                                  role="status"
-                                                  aria-hidden="true"
-                                                ></span>
-                                                {t("header.applying")}
-                                              </>
-                                            ) : (
-                                              t("header.apply_now")
-                                            )}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>{" "}
-                                    {/* .modal-body */}
-                                  </div>
-                                </div>
-                              </div>
                               {/* Show Swiper only if this chunk has 10 jobs */}
                               {chunk.length === 10 && (
                                 <section className="modern-company-carousel-section">
@@ -3016,6 +2637,7 @@ const JobList = () => {
                               )}
                             </React.Fragment>
                           ))}
+                          <JobApplyModal {...getJobApplyModalProps(apply)} />
                         </>
                       ) : (
                         <p className="text-center mt-3">

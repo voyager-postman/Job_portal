@@ -127,4 +127,22 @@ describe("sanitizePublicCompany", () => {
       homeResponse.data.sections.justJoinedUs[0].email,
     ).toBeUndefined();
   });
+
+  it("keeps verifiedByAdmin on GetCompanyDetails responses", () => {
+    const response = sanitizePublicApiResponse(
+      "https://api.example.com/GetCompanyDetails/abc123",
+      {
+        success: true,
+        company: {
+          _id: "abc123",
+          brandName: "Acme",
+          email: "secret@example.com",
+          verifiedByAdmin: true,
+        },
+      },
+    );
+
+    expect(response.company.verifiedByAdmin).toBe(true);
+    expect(response.company.email).toBeUndefined();
+  });
 });

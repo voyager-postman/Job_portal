@@ -1,0 +1,22 @@
+/** Shared props for JobApplyModal from useJobApply() */
+export const getJobApplyModalProps = (apply) => ({
+  resumeList: apply.resumeList,
+  coverLetterList: apply.coverLetterList,
+  selectedResumeUrl: apply.selectedResumeUrl,
+  selectedCoverLetterUrl: apply.selectedCoverLetterUrl,
+  selectedCustomFile: apply.selectedCustomFile,
+  isApplying: apply.isApplying,
+  isUploadingCv: apply.isUploadingCv,
+  isUploadingCover: apply.isUploadingCover,
+  fileInputRef: apply.fileInputRef,
+  cvUploadInputRef: apply.cvUploadInputRef,
+  coverUploadInputRef: apply.coverUploadInputRef,
+  onSelect: apply.handleSelect,
+  onFileUpload: apply.handleFileUpload,
+  onUploadCv: apply.handleCvUpload,
+  onUploadCover: apply.handleCoverUpload,
+  onApply: apply.handleApplyJob,
+  onClose: apply.resetApplyModal,
+  onClearCustom: apply.clearCustomFile,
+  isSelectionMade: apply.isSelectionMade(),
+});

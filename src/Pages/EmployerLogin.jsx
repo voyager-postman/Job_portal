@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
+import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { isRateLimitError } from "../utils/apiRateLimitHandler";
 
 import "react-toastify/dist/ReactToastify.css";
@@ -9,6 +11,10 @@ import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
+import {
+  isVerifiedByAdmin,
+  toVerifiedByAdminStorage,
+} from "../utils/employerVerification";
 
 function EmployerLogin() {
   const navigate = useNavigate();
@@ -45,18 +51,39 @@ function EmployerLogin() {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}user/login`, {
+      const response = await postUserLogin({
         email: formData.email,
         password: formData.password,
         role: "Recruiter",
       });
-      console.log(response);
       if (response.status === 200 && response.data.success) {
-        const { token, user } = response.data;
+        const { token, user: loginUser, company } = response.data;
+        const user =
+          loginUser ||
+          (company
+            ? {
+                id: company.recruiterId || company._id,
+                email: company.email,
+                role: "Company",
+                companyId: company.companyId || company._id,
+                is_completed: true,
+                verifiedByAdmin: company.verifiedByAdmin,
+                company,
+              }
+            : null);
+
+        if (!token || !user) {
+          toast.error(response.data?.message || "Invalid login response");
+          return;
+        }
+
+        const verifiedByAdmin = isVerifiedByAdmin(
+          user.verifiedByAdmin ?? company?.verifiedByAdmin,
+        );
         const shouldShowAdminVerifyMsg =
           user.role === "Company" &&
           user.is_completed &&
-          user.verifiedByAdmin === false;
+          !verifiedByAdmin;
         if (shouldShowAdminVerifyMsg) {
           await Swal.fire({
             title: "Account Not Verified",
@@ -74,10 +101,22 @@ function EmployerLogin() {
         localStorage.setItem("first_name", user.first_name);
         localStorage.setItem("last_name", user.last_name);
         localStorage.setItem("is_completed", user?.is_completed);
-        localStorage.setItem("companyId", user?.companyId);
-        localStorage.setItem("verifiedByAdmin", user?.verifiedByAdmin);
-        localStorage.setItem("profileImage", user?.company?.logo);
+        localStorage.setItem(
+          "companyId",
+          user?.companyId || company?.companyId || company?._id,
+        );
+        localStorage.setItem(
+          "verifiedByAdmin",
+          toVerifiedByAdminStorage(
+            user?.verifiedByAdmin ?? company?.verifiedByAdmin,
+          ),
+        );
+        localStorage.setItem(
+          "profileImage",
+          user?.company?.logo || company?.logo,
+        );
 
+        setFormData((prev) => ({ ...prev, password: "" }));
         login(); // call auth context
 
         toast.success("Login successfully!");
@@ -103,6 +142,11 @@ function EmployerLogin() {
       }
     } catch (error) {
       console.error("Login error:", error);
+
+      if (isInsecureTransportError(error)) {
+        toast.error(getInsecureTransportMessage());
+        return;
+      }
 
       if (isRateLimitError(error)) {
         // Handled globally by installApiRateLimitHandler()

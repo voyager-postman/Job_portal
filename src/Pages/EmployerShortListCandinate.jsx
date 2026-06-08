@@ -7,6 +7,8 @@ import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import { getCandidateCoverLetterSource } from "../utils/applicationDocuments";
+import { openProtectedDocument } from "../utils/protectedFile";
 
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
@@ -87,7 +89,7 @@ function EmployerShortListCandinate() {
     t("header.Professional_Degree"),
   ];
 
-  const handleDownloadCV = () => {
+  const handleDownloadCV = async () => {
     const resumes = candidateDetails?.resumeUrls;
 
     if (!resumes || resumes.length === 0) {
@@ -99,18 +101,18 @@ function EmployerShortListCandinate() {
     }
 
     const latestResume = resumes[resumes.length - 1];
-
-    const fileUrl = latestResume?.url?.startsWith("http")
-      ? latestResume.url
-      : `${API_IMAGE_URL}${latestResume.url}`;
-
-    window.open(fileUrl, "_blank");
+    await openProtectedDocument(latestResume?.url || latestResume, {
+      token: localStorage.getItem("token"),
+      toast,
+      context: "recruiter",
+      fileKind: "resumes",
+    });
   };
 
-  const handleDownloadCoverLetter = () => {
-    const coverLetters = candidateDetails?.coverLetter;
+  const handleDownloadCoverLetter = async () => {
+    const coverLetterSource = getCandidateCoverLetterSource(candidateDetails);
 
-    if (!coverLetters || coverLetters.length === 0) {
+    if (!coverLetterSource) {
       toast.info("No Cover Letter uploaded by candidate", {
         position: "top-right",
         autoClose: 3000,
@@ -118,13 +120,12 @@ function EmployerShortListCandinate() {
       return;
     }
 
-    const latestCoverLetter = coverLetters[coverLetters.length - 1];
-
-    const fileUrl = latestCoverLetter?.url?.startsWith("http")
-      ? latestCoverLetter.url
-      : `${API_IMAGE_URL}${latestCoverLetter.url}`;
-
-    window.open(fileUrl, "_blank");
+    await openProtectedDocument(coverLetterSource, {
+      token: localStorage.getItem("token"),
+      toast,
+      context: "recruiter",
+      fileKind: "coverLetters",
+    });
   };
   const handleMinChange = (e) => {
     const value = Math.min(Number(e.target.value), maxValue - 50);
@@ -167,11 +168,17 @@ function EmployerShortListCandinate() {
         return;
       }
 
-      // ✅ Unlock success
-      setCandidateDetails((prev) => ({
-        ...prev,
-        isUnlocked: true,
-      }));
+      const candidateId = candidateDetails?.userId?._id;
+      if (candidateId) {
+        await fetchCandidateDetails(candidateId);
+        setApplicants((prev) =>
+          prev.map((c) =>
+            String(c?.userId?._id) === String(candidateId)
+              ? { ...c, isUnlocked: true }
+              : c,
+          ),
+        );
+      }
     } catch (error) {
       const message = error.response?.data?.message;
       const exhausted = error.response?.data?.is_exhausted;

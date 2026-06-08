@@ -11,6 +11,12 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import Swal from "sweetalert2";
+import {
+  isVerifiedByAdmin,
+  readVerifiedByAdminFromStorage,
+  resolveEmployerCompanyId,
+  toVerifiedByAdminStorage,
+} from "../utils/employerVerification";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
@@ -45,30 +51,51 @@ function Header({ bgColor }) {
   }, []);
 
   const fetchCompanyProfile = async () => {
+    const role = localStorage.getItem("user_role");
+    if (role !== "Company" && role !== "Recruiter") {
+      return null;
+    }
+
     try {
       const token = localStorage.getItem("token");
-      const companyId = localStorage.getItem("companyId");
+      const companyId = resolveEmployerCompanyId();
+
+      if (!token || !companyId) {
+        return null;
+      }
+
       const response = await axios.get(
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      const updatedUser = response.data.company;
-      console.log(updatedUser, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      // Update localStorage with latest status
+
+      const company = response.data?.company;
+      if (!company) {
+        return null;
+      }
+
       localStorage.setItem(
         "verifiedByAdmin",
-        updatedUser.verifiedByAdmin ? "true" : "false",
+        toVerifiedByAdminStorage(company.verifiedByAdmin),
       );
-      return updatedUser;
+
+      if (!localStorage.getItem("companyId") && company._id) {
+        localStorage.setItem("companyId", company._id);
+      }
+
+      return company;
     } catch (error) {
       console.error(error);
+      return null;
     }
   };
 
   useEffect(() => {
-    fetchCompanyProfile();
+    if (isEmployer && resolveEmployerCompanyId()) {
+      fetchCompanyProfile();
+    }
   }, []);
 
   // Fetch notifications from API
@@ -795,8 +822,11 @@ function Header({ bgColor }) {
                                           localStorage.getItem("user_role");
                                         const updatedUser =
                                           await fetchCompanyProfile();
-                                        const verified =
-                                          updatedUser?.verifiedByAdmin;
+                                        const verified = updatedUser
+                                          ? isVerifiedByAdmin(
+                                              updatedUser.verifiedByAdmin,
+                                            )
+                                          : readVerifiedByAdminFromStorage();
                                         // If employer is not verified → show popup & block access
                                         if (
                                           (role === "Recruiter" ||
