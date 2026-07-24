@@ -12,16 +12,18 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { TbMessages } from "react-icons/tb";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
 import {
   getApplicantCoverLetterUrl,
   getApplicantCvSource,
   openApplicationFile,
 } from "../utils/applicationDocuments";
+import { getFetchAuthOptions, getRequestConfig } from "../utils/apiHeaders";
 
 function EmployerCandinateList() {
+  const { t } = useTranslation("global");
   const location = useLocation();
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
-  const token = localStorage.getItem("token");
   const [seniorityLevels, setSeniorityLevels] = useState([]);
   const jobId = location.state?.jobId;
   const jobTags = location.state?.tags || [];
@@ -58,17 +60,17 @@ function EmployerCandinateList() {
   });
 
   const degreeOptions = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
 
   const fetchCandidates = async (status = "") => {
@@ -90,9 +92,7 @@ function EmployerCandinateList() {
 
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      getFetchAuthOptions(),
     );
 
     const data = await res.json();
@@ -153,9 +153,7 @@ function EmployerCandinateList() {
     const queryString = `?${query.join("&")}`;
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      getFetchAuthOptions(),
     );
     const data = await res.json();
     console.log("Candidate Count Data:-", data.summary);
@@ -172,9 +170,7 @@ function EmployerCandinateList() {
     try {
       const res = await axios.get(
         `${API_BASE_URL}ats-score/${jobId}/${applicationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (res.data?.success) {
@@ -244,15 +240,11 @@ function EmployerCandinateList() {
           applicationId: selectedCandidate?._id,
           newStatus: value,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
 
       console.log("Status Updated", res.data);
-      toast.success(`Candidate status updated to ${value}`, {
+      toast.success(t("header.Candidate_status_updated_to", { value }), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -358,9 +350,7 @@ function EmployerCandinateList() {
     try {
       const res = await fetch(
         `${API_BASE_URL}applicant/details/${applicationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getFetchAuthOptions(),
       );
 
       const data = await res.json();
@@ -383,7 +373,7 @@ function EmployerCandinateList() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       // Show message from backend
@@ -397,7 +387,7 @@ function EmployerCandinateList() {
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
       } else {
-        toast.error("Failed to bookmark candidate!");
+        toast.error(t("jobs.failed_bookmark"));
       }
     }
   };
@@ -450,21 +440,21 @@ function EmployerCandinateList() {
           <div className="row">
             <div className="col-lg-12 col-sm-12">
               <div className="breadcrumb-main-list-area">
-                <h4>Applied Candidate List</h4>
+                <h4>{t("breadcrumbs.applied_candidate_list")}</h4>
                 <ul>
                   <li>
-                    <Link to="/">Home</Link>
+                    <Link to="/">{t("header.home")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/applied-jobs-list">Application Management</Link>
+                    <Link to="/applied-jobs-list">{t("header.Application_Management")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
-                  <li>Applied Candidate List</li>
+                  <li>{t("breadcrumbs.applied_candidate_list")}</li>
                 </ul>
               </div>
             </div>
@@ -483,7 +473,7 @@ function EmployerCandinateList() {
                   <input
                     className="form-control"
                     type="text"
-                    placeholder="Search By: Keywords, Job Title"
+                    placeholder={t("header.Search_By_Keywords_Job_Title")}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
@@ -509,7 +499,7 @@ function EmployerCandinateList() {
             <div className="col-lg-3 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Skills</h3>
+                  <h3>{t("jobs.skills_heading")}</h3>
 
                   <form>
                     <div className="form-group">
@@ -521,7 +511,7 @@ function EmployerCandinateList() {
                           setFilters({ ...filters, skills: e.target.value })
                         }
                       >
-                        <option value="">Choose A Skill</option>
+                        <option value="">{t("jobs.choose_skill")}</option>
 
                         {jobTags.length > 0 ? (
                           jobTags.map((skill, index) => (
@@ -530,7 +520,7 @@ function EmployerCandinateList() {
                             </option>
                           ))
                         ) : (
-                          <option disabled>No skills found</option>
+                          <option disabled>{t("jobs.no_skills_found")}</option>
                         )}
                       </select>
                     </div>
@@ -541,7 +531,7 @@ function EmployerCandinateList() {
             <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Experience level</h3>
+                  <h3>{t("breadcrumbs.experience_level")}</h3>
                   <form>
                     <div className="form-group">
                       <select
@@ -554,7 +544,7 @@ function EmployerCandinateList() {
                           })
                         }
                       >
-                        <option value="">Choose Experience level</option>
+                        <option value="">{t("breadcrumbs.choose_experience")}</option>
 
                         {seniorityLevels.map((level) => (
                           <option key={level._id} value={level.name}>
@@ -570,7 +560,7 @@ function EmployerCandinateList() {
             <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Education</h3>
+                  <h3>{t("header.Education")}</h3>
 
                   <div className="form-group">
                     <select
@@ -580,7 +570,7 @@ function EmployerCandinateList() {
                         setFilters({ ...filters, education: e.target.value })
                       }
                     >
-                      <option value="">Choose Education</option>
+                      <option value="">{t("jobs.choose_education")}</option>
 
                       {degreeOptions.map((degree, index) => (
                         <option key={index} value={degree}>
@@ -595,7 +585,7 @@ function EmployerCandinateList() {
             <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Salary Range</h3>
+                  <h3>{t("header.salary_range")}</h3>
 
                   <div className="form-group">
                     <select
@@ -605,7 +595,7 @@ function EmployerCandinateList() {
                         setFilters({ ...filters, salaryRange: e.target.value })
                       }
                     >
-                      <option value="">Choose Salary Range</option>
+                      <option value="">{t("jobs.choose_salary_range")}</option>
 
                       {salaryRanges.map((item) => (
                         <option key={item._id} value={item.range}>
@@ -621,13 +611,13 @@ function EmployerCandinateList() {
             <div className="col-lg-3 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
-                  <h3>Location</h3>
+                  <h3>{t("jobs.location_heading")}</h3>
                   <div className="form-group position-relative">
                     {/* Input */}
                     <input
                       className="form-control pe-5"
                       type="text"
-                      placeholder="Search Location"
+                      placeholder={t("header.search_location")}
                       value={locationSearchTerm}
                       onChange={handleLocationSearch}
                     />
@@ -813,8 +803,8 @@ function EmployerCandinateList() {
                                   <span className="candidate-active">
                                     {candidate?.userId?.candidateProfile
                                       ?.profileVisible === true
-                                      ? "Active"
-                                      : "Inactive"}
+                                      ? t("jobs.active")
+                                      : t("jobs.inactive")}
                                   </span>
                                 </li>
                                 <li>
@@ -1015,12 +1005,12 @@ function EmployerCandinateList() {
                             const fileUrl = getResumeUrl();
 
                             if (!fileUrl) {
-                              toast.error("No resume uploaded");
+                              toast.error(t("jobs.no_resume_uploaded"));
                               return;
                             }
 
                             openApplicationFile(fileUrl, () =>
-                              toast.error("No resume uploaded"),
+                              toast.error(t("jobs.no_resume_uploaded")),
                             );
                           }}
                         >
@@ -1043,7 +1033,7 @@ function EmployerCandinateList() {
                                   !selectedCandidate?.profile?.links?.linkedin
                                 ) {
                                   e.preventDefault();
-                                  toast.info("LinkedIn link not available");
+                                  toast.info(t("jobs.linkedin_not_available"));
                                 }
                                 e.stopPropagation(); // prevent parent click
                               }}
@@ -1064,7 +1054,7 @@ function EmployerCandinateList() {
                                   !selectedCandidate?.profile?.links?.github
                                 ) {
                                   e.preventDefault();
-                                  toast.info("GitHub link not available");
+                                  toast.info(t("jobs.github_not_available"));
                                 }
                                 e.stopPropagation();
                               }}
@@ -1086,7 +1076,7 @@ function EmployerCandinateList() {
                                   !selectedCandidate?.profile?.links?.portfolio
                                 ) {
                                   e.preventDefault();
-                                  toast.info("Portfolio link not available");
+                                  toast.info(t("jobs.portfolio_not_available"));
                                 }
                                 e.stopPropagation();
                               }}
@@ -1104,10 +1094,10 @@ function EmployerCandinateList() {
                           value={newApplicationStatus}
                           onChange={handleStatusUpdate}
                         >
-                          <option value="Applied">New</option>
-                          <option value="Shortlisted">Shortlisted</option>
-                          <option value="Rejected">Rejected</option>
-                          <option value="Hired">Hired</option>
+                          <option value="Applied">{t("jobs.new_status")}</option>
+                          <option value="Shortlisted">{t("jobs.shortlisted")}</option>
+                          <option value="Rejected">{t("jobs.rejected")}</option>
+                          <option value="Hired">{t("jobs.hired")}</option>
                         </select>
                       </div>
 
@@ -1153,23 +1143,23 @@ function EmployerCandinateList() {
                   {/* ================= PROFESSIONAL SUMMARY ================= */}
                   <div className="employer-candidate-detail-info-area">
                     <div className="employer-candidate-cv-heading">
-                      <h3>About Role</h3>
+                      <h3>{t("jobs.about_role_heading")}</h3>
                     </div>
 
                     <div className="employer-candidate-cv-details">
-                      <h5>Job Title</h5>
+                      <h5>{t("header.jobTitle")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole?.jobTitle ||
                           "NA"}
                       </p>
 
-                      <h5>Years of experience</h5>
+                      <h5>{t("jobs.years_of_experience")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole
                           ?.yearOfExperience || "NA"}
                       </p>
 
-                      <h5>Job category</h5>
+                      <h5>{t("jobs.job_category")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole?.jobCategory ||
                           "NA"}
@@ -1180,29 +1170,29 @@ function EmployerCandinateList() {
 
                     {/* ================= CAREER GOALS ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Career Goals</h3>
+                      <h3>{t("jobs.career_goals")}</h3>
                     </div>
 
                     <div className="employer-candidate-cv-details">
-                      <h5>Desired Job Title</h5>
+                      <h5>{t("jobs.desired_job_title")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredJobTitle || "NA"}
                       </p>
 
-                      <h5>Desired Employment Type</h5>
+                      <h5>{t("jobs.desired_employment_type")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredEmploymentType || "NA"}
                       </p>
 
-                      <h5>Desired Occupation Type</h5>
+                      <h5>{t("jobs.desired_occupation_type")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredOccupationType || "NA"}
                       </p>
 
-                      <h5>Minimum Desired Salary</h5>
+                      <h5>{t("jobs.minimum_desired_salary")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.MinimumDesiredSalary?.amount || "NA"}{" "}
@@ -1213,7 +1203,7 @@ function EmployerCandinateList() {
                           ?.MinimumDesiredSalary?.type || "NA"}
                       </p>
 
-                      <h5>Job Search Status</h5>
+                      <h5>{t("header.Job_Search_Status")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.jobSearchStatus || "NA"}
@@ -1224,7 +1214,7 @@ function EmployerCandinateList() {
 
                     {/* ================= SKILLS ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Skills</h3>
+                      <h3>{t("jobs.skills_heading")}</h3>
                     </div>
                     <div className="employer-candidate-profile-skill-info">
                       <ul>
@@ -1238,20 +1228,20 @@ function EmployerCandinateList() {
 
                     {/* ================= EDUCATION ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Education</h3>
+                      <h3>{t("header.Education")}</h3>
                     </div>
                     {selectedCandidate?.profile?.education?.map((edu) => (
                       <div
                         key={edu._id}
                         className="employer-candidate-cv-details"
                       >
-                        <h5>Degree</h5>
+                        <h5>{t("jobs.degree")}</h5>
                         <p>{edu.degree || "NA"}</p>
 
-                        <h5>University</h5>
+                        <h5>{t("jobs.university")}</h5>
                         <p>{edu.University || "NA"}</p>
 
-                        <h5>Start Date</h5>
+                        <h5>{t("jobs.start_date")}</h5>
                         <p>{new Date(edu.startDate).toLocaleDateString()}</p>
 
                         <h5>End Date</h5>

@@ -1,0 +1,141 @@
+.professional-two-page-template {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  background: #edf2f7;
+  padding: 20px;
+}
+
+.resume-page-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  padding: 28px;
+}
+
+.resume-page-header {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+}
+
+.resume-page-header img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2563eb;
+}
+
+.resume-page-header h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.resume-page-header h4 {
+  margin: 4px 0 8px;
+  color: #2563eb;
+  font-size: 18px;
+}
+
+.resume-page-header p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.resume-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 18px;
+}
+
+.resume-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: #f8fafc;
+}
+
+.resume-block h5 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+.resume-block ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.resume-block p,
+.resume-block li {
+  margin: 0 0 6px;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.resume-item {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.resume-item h6 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.resume-item span {
+  color: #475569;
+  font-size: 12px;
+}
+
+.resume-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.template-variant-two .resume-page-header img {
+  border-color: #0ea5e9;
+}
+
+.template-variant-two .resume-page-header h4 {
+  color: #0c4a6e;
+}
+
+.template-variant-three .resume-page-header img {
+  border-color: #7c3aed;
+}
+
+.template-variant-three .resume-page-header h4 {
+  color: #5b21b6;
+}
+
+@media (max-width: 992px) {
+  .resume-page-sheet {
+    width: 100%;
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .resume-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}

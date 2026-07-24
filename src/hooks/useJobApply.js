@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../Url/Url";
 import { canApplySelection } from "../utils/jobApplyHelpers";
+import { getAuthHeaders, isAuthReady } from "../utils/apiHeaders";
 import {
   MAX_APPLY_FILE_SIZE,
   fetchCandidateApplyDocuments,
@@ -11,7 +12,7 @@ import {
   appendApplyDocumentsToFormData,
 } from "../utils/jobApplyUpload";
 
-export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal" }) {
+export function useJobApply({ t, onApplySuccess, modalId = "exampleModal" }) {
   const [resumeList, setResumeList] = useState([]);
   const [coverLetterList, setCoverLetterList] = useState([]);
   const [selectedResumeUrl, setSelectedResumeUrl] = useState(null);
@@ -27,14 +28,25 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
   const coverUploadInputRef = useRef(null);
 
   const loadDocuments = useCallback(async () => {
-    const docs = await fetchCandidateApplyDocuments(token);
+    const role = localStorage.getItem("user_role");
+    if (!isAuthReady() || role !== "JobSeeker") {
+      setResumeList([]);
+      setCoverLetterList([]);
+      return;
+    }
+
+    const docs = await fetchCandidateApplyDocuments();
     setResumeList(docs.resumeList);
     setCoverLetterList(docs.coverLetterList);
-  }, [token]);
+  }, []);
 
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
+  const setApplyJobId = useCallback(
+    async (id) => {
+      setJobId(id);
+      await loadDocuments();
+    },
+    [loadDocuments],
+  );
 
   const resetApplyModal = useCallback(() => {
     setSelectedResumeUrl(null);
@@ -67,10 +79,17 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
   const handleFileUpload = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_APPLY_FILE_SIZE) {
+      toast.error(t("header.file_too_large"), { autoClose: 2000, theme: "colored" });
+      e.target.value = "";
+      return;
+    }
+
     setSelectedCustomFile(file);
     setSelectedResumeUrl(null);
     setSelectedCoverLetterUrl(null);
-  }, []);
+  }, [t]);
 
   const handleCvUpload = useCallback(
     async (e) => {
@@ -78,7 +97,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
       if (!file) return;
       e.target.value = "";
 
-      if (!token) {
+      if (!isAuthReady()) {
         toast.error(t("header.Please_login_first") || "Please login first.");
         return;
       }
@@ -95,7 +114,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
 
       setIsUploadingCv(true);
       try {
-        const entry = await uploadCvToProfile(file, token);
+        const entry = await uploadCvToProfile(file, t);
         setResumeList((prev) => [...prev, entry]);
         setSelectedResumeUrl(entry.url);
         clearCustomFile();
@@ -105,7 +124,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
         });
       } catch (error) {
         console.error("CV upload error:", error);
-        if (error?.response?.status === 413) {
+        if (error?.code === "FILE_TOO_LARGE" || error?.response?.status === 413) {
           toast.error(t("header.file_too_large"), { autoClose: 2000, theme: "colored" });
         } else {
           toast.error(t("header.cv_upload_failed") || "Failed to upload CV.", {
@@ -117,7 +136,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
         setIsUploadingCv(false);
       }
     },
-    [token, t, resumeList.length, clearCustomFile],
+    [t, resumeList.length, clearCustomFile],
   );
 
   const handleCoverUpload = useCallback(
@@ -126,7 +145,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
       if (!file) return;
       e.target.value = "";
 
-      if (!token) {
+      if (!isAuthReady()) {
         toast.error(t("header.Please_login_first") || "Please login first.");
         return;
       }
@@ -146,7 +165,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
 
       setIsUploadingCover(true);
       try {
-        const entry = await uploadCoverLetterToProfile(file, token);
+        const entry = await uploadCoverLetterToProfile(file, t);
         setCoverLetterList((prev) => [...prev, entry]);
         setSelectedCoverLetterUrl(entry.url);
         clearCustomFile();
@@ -156,7 +175,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
         );
       } catch (error) {
         console.error("Cover letter upload error:", error);
-        if (error?.response?.status === 413) {
+        if (error?.code === "FILE_TOO_LARGE" || error?.response?.status === 413) {
           toast.error(t("header.file_too_large"), { autoClose: 2000, theme: "colored" });
         } else {
           toast.error(
@@ -168,7 +187,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
         setIsUploadingCover(false);
       }
     },
-    [token, t, coverLetterList.length, clearCustomFile],
+    [t, coverLetterList.length, clearCustomFile],
   );
 
   const isSelectionMade = useCallback(
@@ -222,7 +241,8 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
 
     try {
       const res = await axios.post(`${API_BASE_URL}applyJob`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+        headers: getAuthHeaders(),
       });
       toast.success(res.data.message || "Applied successfully!");
       resetApplyModal();
@@ -257,7 +277,6 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
     selectedResumeUrl,
     selectedCoverLetterUrl,
     selectedCustomFile,
-    token,
     t,
     resetApplyModal,
     hideApplyModal,
@@ -274,7 +293,7 @@ export function useJobApply({ t, token, onApplySuccess, modalId = "exampleModal"
     isUploadingCv,
     isUploadingCover,
     jobId,
-    setJobId,
+    setJobId: setApplyJobId,
     fileInputRef,
     cvUploadInputRef,
     coverUploadInputRef,

@@ -1,26 +1,16 @@
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
-import { toast } from "react-toastify";
 import { handleRateLimitError } from "./apiRateLimitHandler";
+import { handleSessionExpired } from "./authInterceptor";
 
-// Create instance
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Request interceptor to attach token
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// ✅ Response interceptor to handle token expiration
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -31,20 +21,11 @@ axiosInstance.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401) {
-      // Clear auth-related storage
-      localStorage.clear();
-
-      // Show toast
-      toast.error("Session expired. Please login again.");
-
-      // Redirect to login
-      setTimeout(() => {
-        window.location.href = "/jobPortal";
-      }, 1000);
+      handleSessionExpired();
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

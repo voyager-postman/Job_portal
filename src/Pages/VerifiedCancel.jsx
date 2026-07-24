@@ -1,40 +1,26 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios"
+import { useLocation } from "react-router-dom";
+import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
+import { clearAuthStorage } from "../utils/apiHeaders";
 import { ToastContainer, toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const VerifiedCancel = () => {
+  const { t } = useTranslation("global");
   const location = useLocation();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  // Parse query params
   const queryParams = new URLSearchParams(location.search);
   const reason = queryParams.get("reason");
   const email = queryParams.get("email");
 
   useEffect(() => {
-    console.log("Reason:", reason);
-    console.log("Email:", email);
-  }, [reason, email]);
-
-  useEffect(() => {
-    // Clear old session if coming from email verification link
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("last_name");
-
-    console.log("Session cleared. Verification email:", email);
+    clearAuthStorage();
   }, [email]);
 
   const handleResendVerification = async () => {
     if (!email) {
-      toast.error("Email is required to resend verification.");
+      toast.error(t("verification.resend_email_required"));
       return;
     }
 
@@ -42,25 +28,20 @@ const VerifiedCancel = () => {
     try {
       const response = await axios.post(
         `${API_BASE_URL}resendVerificationEmail`,
-        { email }
+        { email },
       );
-
       const { success, message } = response.data;
-
       if (success) {
-        toast.success("Verification email resent successfully!");
+        toast.success(t("verification.resend_success"));
+      } else if (success === false) {
+        toast.success(message);
       } else {
-        if (success === false) {
-          toast.success(message);
-          // navigate("/"); // redirect to login/home
-        } else {
-          toast.error(message || "Failed to resend verification email.");
-        }
+        toast.error(message || t("verification.resend_failed"));
       }
     } catch (error) {
       console.error("Resend verification error:", error);
       toast.error(
-        error.response?.data?.message || "Error resending verification email."
+        error.response?.data?.message || t("verification.resend_failed"),
       );
     } finally {
       setLoading(false);
@@ -75,14 +56,18 @@ const VerifiedCancel = () => {
           <div className="icon-wrapper2">
             <span className="cross-icon">✖️</span>
           </div>
-          <h2>Verification Failed</h2>
+          <h1>{t("verification.verification_failed_title")}</h1>
           <p>
-            Sorry, <span className="username">{email}</span>
+            {t("verification.verification_failed_message")}{" "}
+            <span className="username">{email}</span>
           </p>
-          {reason && <p className="reason-text">Reason: {reason}</p>}
+          {reason && (
+            <p className="reason-text">
+              {t("verification.reason_label")} {reason}
+            </p>
+          )}
           <p className="message">
-            Sorry, the verification link has expired or is no longer valid.
-            Please click the button below to send a new verification email.
+            {t("verification.verification_failed_resend_prompt")}
           </p>
           <div className="personal-info-btn">
             <button
@@ -90,7 +75,9 @@ const VerifiedCancel = () => {
               onClick={handleResendVerification}
               disabled={loading}
             >
-              {loading ? "Resending..." : "Resend Verification Email"}
+              {loading
+                ? t("verification.resending")
+                : t("verification.resend_verification")}
             </button>
           </div>
         </div>

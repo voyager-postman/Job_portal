@@ -26,13 +26,19 @@ import { useTranslation } from "react-i18next";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
+import { isJobHighlightedInListing } from "../utils/featuredJobDisplay";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+import { getRequestConfig } from "../utils/apiHeaders";
+import PageSEO from "../components/PageSEO";
+import { useJobsListingSeo } from "../hooks/useJobsListingSeo";
+import { buildJobCanonicalUrl } from "../utils/seo";
+import { resolveJobCoverUrl } from "../utils/companyLogo";
 
 const JobList = () => {
   const location = useLocation();
   const { t, i18n } = useTranslation("global");
   const { alert } = location.state || {};
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [remoteOptions, setRemoteOptions] = useState([]);
   const [selectedRemote, setSelectedRemote] = useState([]);
   console.log("Received Alert Data:", alert);
@@ -297,10 +303,6 @@ const JobList = () => {
   };
 
   const handleRemoveFilterJob = (key) => {
-    const updatedAppliedFilters = { ...appliedFilters };
-    delete updatedAppliedFilters[key];
-    setAppliedFilters(updatedAppliedFilters);
-
     let updatedFilters = { ...filters };
 
     if (key === "category") {
@@ -312,7 +314,29 @@ const JobList = () => {
 
     setFilters(updatedFilters);
 
-    // ✅ USE updatedFilters (NOT old filters)
+    const urlBackedKeys = ["keywords", "location", "category"];
+    if (urlBackedKeys.includes(key)) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete(key);
+      setSearchParams(nextParams, { replace: true });
+
+      setAppliedFilters((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+
+      getCategories({
+        keywords: updatedFilters.keywords,
+        location: updatedFilters.location,
+      });
+      return;
+    }
+
+    const updatedAppliedFilters = { ...appliedFilters };
+    delete updatedAppliedFilters[key];
+    setAppliedFilters(updatedAppliedFilters);
+
     getAllJobList(
       pageSize,
       pageNumber,
@@ -330,7 +354,6 @@ const JobList = () => {
       selectedRemote,
     );
 
-    // ✅ FIX: pass updated filters here
     getCategories(updatedFilters);
   };
 
@@ -384,9 +407,7 @@ const JobList = () => {
         payload.jobTitle = appliedFilters.keywords.trim();
       }
       console.log("📤 Sending Job Alert payload:", payload);
-      const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, getRequestConfig());
 
       console.log("✅ Alert Created:", res.data);
 
@@ -550,6 +571,7 @@ const JobList = () => {
   );
 
   const wrapperRef = useRef(null);
+  const lastFetchedParamsRef = useRef(null);
   const [jobTypes, setJobTypes] = useState([]); // 🔹 dynamic data
   const [selectedJobTypes, setSelectedJobTypes] = useState(
     alert?.jobType || [],
@@ -808,8 +830,30 @@ const JobList = () => {
     category = filters.category,
     locationFilter = "",
     salaryRangesAPI = [],
-    remoteArr = selectedRemote, // ✅ NEW
+    remoteArr = selectedRemote,
   ) => {
+    const currentParamsStr = JSON.stringify({
+      limit,
+      page,
+      jobTypesArr,
+      experience,
+      techStacks,
+      selectedCategoriesArr,
+      selectedCompaniesArr,
+      selectedIndustries,
+      keywords,
+      location,
+      category,
+      locationFilter,
+      salaryRangesAPI,
+      remoteArr,
+    });
+
+    if (lastFetchedParamsRef.current === currentParamsStr) {
+      return;
+    }
+    lastFetchedParamsRef.current = currentParamsStr;
+
     try {
       setIsLoadingJobs(true); // 🔵 START LOADER
       const params = {
@@ -832,10 +876,7 @@ const JobList = () => {
           .map((item) => item.replace(/\s*dh$/i, "").trim()) // ✅ remove "dh"
           .join(",");
       }
-      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
-        params,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, getRequestConfig({ params }));
 
       setJobList(res.data?.jobs || []);
       setTotalJobData(res.data);
@@ -847,9 +888,13 @@ const JobList = () => {
   };
   useEffect(() => {
     fetchIndustries();
-    getCategories();
-    getAllJobList(pageSize, pageNumber);
-  }, [pageNumber, pageSize]);
+  }, []);
+
+  useEffect(() => {
+    const keywordParam = searchParams.get("keywords") || "";
+    const locationParam = searchParams.get("location") || "";
+    getCategories({ keywords: keywordParam, location: locationParam });
+  }, [searchParams]);
 
   const totalPages = totalJobData?.totalPages;
   const jobChunks = [];
@@ -860,8 +905,18 @@ const JobList = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newFilters = {};
+    const nextParams = new URLSearchParams();
+    if (filters.keywords?.trim()) {
+      nextParams.set("keywords", filters.keywords.trim());
+    }
+    if (filters.location?.trim()) {
+      nextParams.set("location", filters.location.trim());
+    }
+    if (filters.category) {
+      nextParams.set("category", filters.category);
+    }
 
+    const newFilters = {};
     if (filters.keywords) newFilters.keywords = filters.keywords;
     if (filters.location) newFilters.location = filters.location;
 
@@ -876,8 +931,10 @@ const JobList = () => {
     }
 
     setAppliedFilters(newFilters);
+    setSearchParams(nextParams, { replace: true });
+    getCategories({ keywords: filters.keywords, location: filters.location });
 
-    // ✅ CALL BOTH APIs WITH FILTERS
+    // 🔄 Execute search directly with all active criteria to ensure order of application doesn't matter
     getAllJobList(
       pageSize,
       pageNumber,
@@ -887,23 +944,34 @@ const JobList = () => {
       selectedCategories,
       selectedCompanies,
       selected,
-      filters.keywords, // ✅ pass keyword
-      filters.location, // ✅ pass location
+      (filters.keywords || "").trim(),
+      (filters.location || "").trim(),
       filters.category,
       selectedLocations.map((l) => l.name).join(","),
       selectedSalaryRanges,
       selectedRemote,
     );
-
-    // ✅ NEW: call category API with same filters
-    getCategories();
   };
 
   const apply = useJobApply({
     t,
-    token,
     onApplySuccess: () => {
-      getAllJobList(pageSize, pageNumber);
+      getAllJobList(
+        pageSize,
+        pageNumber,
+        selectedJobTypes,
+        selectedSeniority,
+        selectedTechStacks,
+        selectedCategories,
+        selectedCompanies,
+        selected,
+        searchParams.get("keywords") || filters.keywords,
+        searchParams.get("location") || filters.location,
+        searchParams.get("category") || filters.category,
+        selectedLocations.map((l) => l.name).join(","),
+        selectedSalaryRanges,
+        selectedRemote,
+      );
       setIsPanelOpen(false);
     },
   });
@@ -954,11 +1022,6 @@ const JobList = () => {
   //     setIsApplying(false); // 🔥 Stop loader
   //   }
   // };
-  useEffect(() => {
-    getCategories();
-    getAllJobList(pageSize, pageNumber);
-  }, [pageNumber, pageSize]);
-
   const clearAll = () => {
     const clearedIndustries = [];
 
@@ -1221,7 +1284,7 @@ const JobList = () => {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
+      const res = await axios.get(`${API_BASE_URL}getHighlightedCompanyDetailsList`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -1243,42 +1306,67 @@ const JobList = () => {
     }));
   }, [searchParams]);
   useEffect(() => {
+    const categoryParam = searchParams.get("category") || "";
+    if (!categoryParam) {
+      setAppliedFilters((prev) => {
+        const next = { ...prev };
+        delete next.category;
+        return next;
+      });
+      return;
+    }
     if (!categories.length) return;
 
-    const newFilters = {};
+    const selectedCat = categories.find((c) => c._id === categoryParam);
+    if (!selectedCat) return;
 
-    if (filters.keywords) newFilters.keywords = filters.keywords;
-    if (filters.location) newFilters.location = filters.location;
+    setAppliedFilters((prev) => ({
+      ...prev,
+      category: {
+        id: selectedCat._id,
+        name: selectedCat.name,
+      },
+    }));
+  }, [categories, searchParams]);
 
-    if (filters.category) {
-      const selectedCat = categories.find((c) => c._id === filters.category);
+  useEffect(() => {
+    if (alert) return;
 
-      if (selectedCat) {
-        newFilters.category = {
-          id: selectedCat._id,
-          name: selectedCat.name,
-        };
-      }
-    }
+    const keywordParam = searchParams.get("keywords") || "";
+    const locationParam = searchParams.get("location") || "";
+    const categoryParam = searchParams.get("category") || "";
 
-    setAppliedFilters(newFilters);
+    setAppliedFilters((prev) => {
+      const next = { ...prev };
+      if (keywordParam) next.keywords = keywordParam;
+      else delete next.keywords;
+      if (locationParam) next.location = locationParam;
+      else delete next.location;
+      return next;
+    });
 
-    // 🔥 Call job list API with URL filters
-    getAllJobList(pageSize, pageNumber);
-  }, [categories, pageNumber, pageSize]);
+    getAllJobList(
+      pageSize,
+      pageNumber,
+      selectedJobTypes,
+      selectedSeniority,
+      selectedTechStacks,
+      selectedCategories,
+      selectedCompanies,
+      selected,
+      keywordParam,
+      locationParam,
+      categoryParam,
+      selectedLocations.map((l) => l.name).join(","),
+      selectedSalaryRanges,
+      selectedRemote,
+    );
+  }, [searchParams, pageNumber, pageSize, alert]);
   const handleViewCompany = (company) => {
     navigate(`/${company.slug}`, {
       state: { companyId: company._id },
     });
   };
-  const JobListLoader = () => (
-    <div className="loader-overlay">
-      <div className="loader-box">
-        <div className="custom-spinner"></div>
-        <p className="brand-text">NADDI.MA</p>
-      </div>
-    </div>
-  );
   const hasAnyFilter =
     selectedJobTypes.length > 0 ||
     selectedRemote.length > 0 || // ✅ ADD THIS
@@ -1289,11 +1377,35 @@ const JobList = () => {
     selectedLocations.length > 0 ||
     selectedTechStacks.length > 0 ||
     Object.keys(appliedFilters).length > 0; // 🔥 key line
+  const jobsCanonical =
+    pageNumber > 1 ? `/jobs?page=${pageNumber}` : "/jobs";
+  const jobsPaginationPrev =
+    pageNumber > 1
+      ? pageNumber === 2
+        ? "/jobs"
+        : `/jobs?page=${pageNumber - 1}`
+      : undefined;
+  const jobsPaginationNext =
+    totalPages && pageNumber < totalPages
+      ? `/jobs?page=${pageNumber + 1}`
+      : undefined;
+  const { pageTitle, pageSeoProps } = useJobsListingSeo({
+    pageNumber,
+    jobsCanonical,
+    paginationPrev: jobsPaginationPrev,
+    paginationNext: jobsPaginationNext,
+    jobList,
+  });
+
   return (
     <>
+      <PageSEO {...pageSeoProps} />
       <ToastContainer />
       <section className="job-card-list-info-area">
         <div className="container">
+          <div className="job-list-page-header mb-3">
+            <h1 className="job-list-page-title">{pageTitle}</h1>
+          </div>
           <div className="row">
             <div className="col-lg-12 col-sm-12">
               <div className="manage-jobs-box">
@@ -1361,12 +1473,13 @@ const JobList = () => {
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
                               onClick={handleClearTechStacks}
                             >
                               {t("header.Clear")}
-                            </h4>
+                            </button>
                           </div>
                         </div>
 
@@ -1464,12 +1577,13 @@ const JobList = () => {
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
                               onClick={handleClearFilters}
                             >
                               {t("header.Clear")}
-                            </h4>
+                            </button>
                           </div>
                         </div>
 
@@ -1549,12 +1663,13 @@ const JobList = () => {
                           </div>
 
                           <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
-                              onClick={handleClearFilters1} // separate clear for remote
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
+                              onClick={handleClearFilters1}
                             >
                               {t("header.Clear")}
-                            </h4>
+                            </button>
                           </div>
                         </div>
 
@@ -1628,12 +1743,13 @@ const JobList = () => {
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
                               onClick={handleClearSeniority}
                             >
                               {t("header.Clear")}
-                            </h4>
+                            </button>
                           </div>
                         </div>
 
@@ -1721,12 +1837,13 @@ const JobList = () => {
                             </h4>
                           </div>
                           <div className="job-filter-cancel-heading">
-                            <h4
-                              style={{ cursor: "pointer" }}
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
                               onClick={handleClearSalaryFilters}
                             >
                               {t("header.Clear")}
-                            </h4>
+                            </button>
                           </div>
                         </div>
 
@@ -1805,11 +1922,14 @@ const JobList = () => {
                               </h4>
                             </div>
 
-                            <div
-                              className="job-filter-cancel-heading"
-                              onClick={clearAll}
-                            >
-                              <h4>{t("header.Clear")}</h4>
+                            <div className="job-filter-cancel-heading">
+                              <button
+                                type="button"
+                                className="job-filter-clear-btn"
+                                onClick={clearAll}
+                              >
+                                {t("header.Clear")}
+                              </button>
                             </div>
                           </div>
 
@@ -1898,11 +2018,14 @@ const JobList = () => {
                             </h4>
                           </div>
 
-                          <div
-                            className="job-filter-cancel-heading"
-                            onClick={handleClearCompanies}
-                          >
-                            <h4>{t("header.Clear")}</h4>
+                          <div className="job-filter-cancel-heading">
+                            <button
+                              type="button"
+                              className="job-filter-clear-btn"
+                              onClick={handleClearCompanies}
+                            >
+                              {t("header.Clear")}
+                            </button>
                           </div>
                         </div>
 
@@ -1989,12 +2112,12 @@ const JobList = () => {
                         {/* Top Header */}
                         <div className="modern-header-top">
                           <div className="available-job-posts-heading1">
-                            <h4>
+                            <h2 className="available-job-posts-count">
                               <span className="modern-count-badge">
                                 {totalJobData?.total || 0}
                               </span>{" "}
                               {t("header.available_job_posts")}
-                            </h4>
+                            </h2>
                           </div>
 
                           {/* Alert Button */}
@@ -2205,9 +2328,7 @@ const JobList = () => {
                           ))}
                         </div>
                       </div>
-                      {isLoadingJobs ? (
-                        <JobListLoader />
-                      ) : jobList.length > 0 ? (
+                      {isLoadingJobs ? null : jobList.length > 0 ? (
                         <>
                           {jobChunks.map((chunk, chunkIndex) => (
                             <React.Fragment key={chunkIndex}>
@@ -2228,7 +2349,7 @@ const JobList = () => {
                                         <div className="modern-logo-container">
                                           <img
                                             crossOrigin="anonymous"
-                                            alt="logo"
+                                            alt={`${job?.brandName || job?.companyName || t("companies.company_logo")} logo`}
                                             className="modern-company-logo"
                                             src={
                                               job?.logo
@@ -2239,9 +2360,9 @@ const JobList = () => {
                                         </div>
 
                                         <div className="modern-company-details">
-                                          <h4 className="modern-company-name">
+                                          <p className="modern-company-name">
                                             {job?.brandName}
-                                          </h4>
+                                          </p>
 
                                           <span className="modern-post-date">
                                             <i className="fa-regular fa-clock me-1"></i>
@@ -2253,7 +2374,7 @@ const JobList = () => {
                                       {/* Right Actions */}
                                       <div className="modern-job-actions">
                                         {/* Featured */}
-                                        {job?.isFeatured && (
+                                        {isJobHighlightedInListing(job) && (
                                           <span
                                             className="modern-status-badge featured"
                                             style={{
@@ -2549,11 +2670,10 @@ const JobList = () => {
                                                     }
                                                     className="modern-company-cover-img"
                                                     crossOrigin="anonymous"
-                                                    src={
-                                                      company?.coverPhoto
-                                                        ? `${API_IMAGE_URL}${company.coverPhoto}`
-                                                        : "/jobPortal/assets/images/company/company-img-1.jpg"
-                                                    }
+                                                    src={resolveJobCoverUrl(
+                                                      company,
+                                                      company?._id,
+                                                    )}
                                                   />
 
                                                   <div className="modern-company-cover-overlay"></div>
@@ -2561,7 +2681,7 @@ const JobList = () => {
                                                   {/* Logo */}
                                                   <div className="modern-company-logo-badge">
                                                     <img
-                                                      alt="logo"
+                                                      alt={`${company?.brandName || company?.companyName || t("companies.company_logo")} logo`}
                                                       crossOrigin="anonymous"
                                                       src={
                                                         company?.logo
@@ -2695,9 +2815,9 @@ const JobList = () => {
         <div className="modal-dialog ">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">
+              <h2 className="modal-title fs-5" id="exampleModalLabel">
                 {t("header.Notify_me_every")}
-              </h1>
+              </h2>
               <button
                 type="button"
                 className="btn-close"
@@ -2757,7 +2877,7 @@ const JobList = () => {
               <div className="header-company-info">
                 <img
                   crossOrigin="anonymous"
-                  alt="logo"
+                  alt={`${selectedJob?.brandName || t("companies.company_logo")} logo`}
                   className="side-panel-logo"
                   src={
                     selectedJob?.logo
@@ -2970,13 +3090,7 @@ const JobList = () => {
               </div>
               <div className="side-panel-description">
                 <div className="side-panel-tags mb-4">
-                  <h4 className="mb-2">
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Tags
-                      </font>
-                    </font>
-                  </h4>
+                  <p className="side-panel-subtitle mb-2">{t("header.tags", { defaultValue: "Tags" })}</p>
                   <div className="modern-tag-list">
                     {Array.isArray(selectedJob?.tags) &&
                     selectedJob.tags.length > 0 ? (
@@ -2990,13 +3104,9 @@ const JobList = () => {
                     )}
                   </div>
                 </div>
-                <h4>
-                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      Description of the offer
-                    </font>
-                  </font>
-                </h4>
+                <h3 className="side-panel-subtitle">
+                  {t("jobs.offer_description", { defaultValue: "Description of the offer" })}
+                </h3>
                 <div>
                   <p>
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>

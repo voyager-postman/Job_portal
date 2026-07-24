@@ -1,7 +1,10 @@
 import React from "react";
 import { API_IMAGE_URL } from "../../Url/Url";
+import { useTranslation } from "react-i18next";
+import "./TemplateOne.css";
 
 const TemplateOne = ({ data }) => {
+  const { t } = useTranslation("global");
   if (!data) return null;
 
   const personal = data.personal || {};
@@ -10,256 +13,152 @@ const TemplateOne = ({ data }) => {
   const skills = data.skills || [];
   const languages = data.languages || [];
   const certificates = data.certificates || [];
+  const fullName = `${personal.first_name || ""} ${personal.last_name || ""}`.trim();
+  const profileImage = personal?.profileImage
+    ? personal?.profileImage.startsWith("http")
+      ? personal?.profileImage
+      : `${API_IMAGE_URL}${personal?.profileImage}`
+    : "assets/images/freelancers/freelancers-img-1.jpg";
+
   return (
-    <>
-      {/* <!-- Second Resume Template Design start here --> */}
-      <section className="first-resume-template-area">
-        <div className="container">
-          <div className="row">
-            <div className="resume-template-content-area">
-              {/* <!-- LEFT SIDE --> */}
-              <div className="second-resume-template-left-side">
-                <div className="resume-template-user-Img">
-                  <img
-                    crossOrigin="anonymous"
-                    src={
-                      personal?.profileImage
-                        ? personal?.profileImage.startsWith("http")
-                          ? personal?.profileImage
-                          : `${API_IMAGE_URL}${personal?.profileImage}`
-                        : "assets/images/freelancers/freelancers-img-1.jpg"
-                    }
-                    alt="Profile"
-                  />
-                </div>
+    <section className="professional-two-page-template">
+      <div className="resume-page-sheet">
+        <header className="resume-page-header">
+          <img crossOrigin="anonymous" src={profileImage} alt="Profile" />
+          <div>
+            <h2>{fullName || "Candidate Name"}</h2>
+            <h4>{personal?.career_goals?.DesiredJobTitle || "Professional Title"}</h4>
+            <p>{personal.professionalSummary || "Professional summary not available."}</p>
+          </div>
+        </header>
 
-                <div className="second-resume-candidate-short-details">
-                  <h4>
-                    {personal.first_name} {personal.last_name}
-                  </h4>
-                  <h4>{personal?.career_goals?.DesiredJobTitle}</h4>
-                </div>
-
-                <div className="second-resume-candidate-contact">
-                  <h4>Contact</h4>
-                  <p>
-                    <i className="fa-solid fa-phone"></i>{" "}
-                    {personal.phone || " +91 9885252855"}
-                  </p>
-                  <p>
-                    <i className="fa-solid fa-envelope"></i> {personal.email}
-                  </p>
-                  <p>
-                    <i className="fa-solid fa-location-dot"></i>{" "}
-                    {personal.city || "Brooklyn, NY 11249"}
-                  </p>
-                  <p>
-                    <i className="fa-solid fa-globe"></i>{" "}
-                    {personal.Nationality || "United States"}
-                  </p>
-                  <p>
-                    <i className="fa-brands fa-linkedin"></i>{" "}
-                    {personal?.links?.linkedin}
-                  </p>
-                </div>
-
-                <div className="second-resume-candidate-contact">
-                  <h4>Skills</h4>
-                  {skills.map((skill) => (
-                    <p key={skill._id}>
-                      <i className="fa-solid fa-gear"></i> {skill}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="second-resume-candidate-contact">
-                  <h4>Certificates</h4>
-                  {certificates.map((certificate) => (
-                    <p key={certificate._id}>
-                      <i className="fa-solid fa-file"></i> {certificate.title}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="second-resume-candidate-contact">
-                  <h4>Languages</h4>
-                  {languages.map((language) => (
-                    <div key={language._id}>
-                      <p>
-                        <i className="fa-solid fa-language"></i>{" "}
-                        {language.language}: {language.proficiency}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="second-resume-candidate-contact">
-                  <h4>LinkedIn / Portfolio</h4>
-                  <p
-                    style={{
-                      wordWrap: "break-word",
-                    }}
-                  >
-                    <i className="fa-brands fa-linkedin"></i>
-                    <span>{personal?.links?.linkedin}</span>
-                  </p>
-                  <p
-                    style={{
-                      wordWrap: "break-word",
-                    }}
-                  >
-                    <i className="fa-brands fa-github"></i>{" "}
-                    <span>{personal?.links?.github}</span>
-                  </p>
-                  <p
-                    style={{
-                      wordWrap: "break-word",
-                    }}
-                  >
-                    <i className="fa-solid fa-globe"></i>{" "}
-                    <span>{personal?.links?.portfolio}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* <!-- RIGHT SIDE --> */}
-              <div className="second-resume-template-right-side">
-                {/* <!-- PROFESSIONAL SUMMARY --> */}
-                <div className="resume-template-details">
-                  <h4>Professional Summary</h4>
-                  <div className="second-resume-template-line"></div>
-                  <p>{personal.professionalSummary}</p>
-                </div>
-
-                {/* <!-- CAREER GOALS --> */}
-                <div className="resume-template-details">
-                  <h4>Career Goals</h4>
-                  <div className="second-resume-template-line"></div>
-
-                  <div className="row">
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Desired Job Title</h5>
-                      <p>{personal?.career_goals?.DesiredJobTitle}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Employment Type</h5>
-                      <p>{personal?.career_goals?.DesiredEmploymentType}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Occupation Type</h5>
-                      <p>{personal?.career_goals?.DesiredOccupationType}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Eligible to Work In</h5>
-                      <p>{personal?.eligibleToWorkInFrance === true ? "Yes" : "No"}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Minimum Salary</h5>
-                      <p>
-                        {personal?.career_goals?.MinimumDesiredSalary?.currency}{" "}
-                        – {personal?.career_goals?.MinimumDesiredSalary?.amount}{" "}
-                        / {personal?.career_goals?.MinimumDesiredSalary?.type}
-                      </p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Job Availability</h5>
-                      <p>{personal?.career_goals?.jobSearchStatus}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* <!-- ROLE DETAILS --> */}
-                {/* <div className="resume-template-details">
-                  <h4>About Your Role</h4>
-                  <div className="second-resume-template-line"></div>
-
-                  <div className="row">
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Job Title</h5>
-                      <p>{personal?.aboutRole?.jobTitle}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Years of Experience</h5>
-                      <p>{personal?.aboutRole?.yearOfExperience}</p>
-                    </div>
-                    <div className="col-lg-4 col-md-6">
-                      <h5>Job Category</h5>
-                      <p>{personal?.aboutRole?.jobCategory}</p>
-                    </div>
-                  </div>
-                </div> */}
-
-                {/* <!-- WORK EXPERIENCE --> */}
-                <div className="resume-template-details">
-                  <h4>Work Experience</h4>
-                  <div className="second-resume-template-line"></div>
-                  {experience.map((exp, index) => (
-                    <>
-                      <div className="row" key={index}>
-                        <div className="col-lg-8 col-md-6">
-                          <div className="work-experience-area">
-                            <h5>{exp.jobTitle}</h5>
-                            <h6>{exp.companyName}</h6>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="work-experience-area">
-                            <p>
-                              {new Date(exp.startDate).toLocaleDateString()} –
-                              {exp.currentlyWorkingHere
-                                ? "Present"
-                                : new Date(exp.endDate).toLocaleDateString()}
-                            </p>
-                            <p>{exp.workLocation}</p>
-                          </div>
-                        </div>
-                        <div class="second-resume-template-line"></div>
-                        <div class="col-lg-12 col-md-12">
-                          <div class="description-achievements-area">
-                            <h5>Achievements</h5>
-                            <p>{exp?.Description}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="first-resume-template-line"></div>
-                    </>
-                  ))}
-                </div>
-
-                {/* <!-- EDUCATION --> */}
-                <div className="resume-template-details">
-                  <h4>Education</h4>
-                  <div className="second-resume-template-line"></div>
-                  {education.map((educ) => (
-                    <>
-                      <div className="row" key={educ._id}>
-                        <div className="col-lg-4 col-md-6">
-                          <h5>Degree</h5>
-                          <p>{educ.degree}</p>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <h5>University</h5>
-                          <p>{educ.University}</p>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <h5>Date</h5>
-                          <p>
-                            {new Date(educ.startDate).toLocaleDateString()} -{" "}
-                            {new Date(educ.endDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="first-resume-template-line"></div>
-                    </>
-                  ))}
-                </div>
-              </div>
+        <div className="resume-page-grid">
+          <aside>
+            <div className="resume-block">
+              <h5>{t("resume.contact")}</h5>
+              <p>{personal.phone || "-"}</p>
+              <p>{personal.email || "-"}</p>
+              <p>{personal.city || "-"}</p>
+              <p>{personal.Nationality || "-"}</p>
             </div>
+            <div className="resume-block">
+              <h5>{t("resume.skills")}</h5>
+              <ul>
+                {skills.map((skill, index) => (
+                  <li key={`${skill}-${index}`}>{skill}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="resume-block">
+              <h5>{t("resume.language_skills")}</h5>
+              <ul>
+                {languages.map((language, index) => (
+                  <li key={`${language.language}-${index}`}>
+                    {language.language}: {language.proficiency}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+
+          <main>
+            <div className="resume-block">
+              <h5>{t("header.Work_Experience")}</h5>
+              {experience.slice(0, 3).map((exp, index) => (
+                <div className="resume-item" key={`${exp.companyName}-${index}`}>
+                  <h6>{exp.jobTitle || "Role"}</h6>
+                  <p>{exp.companyName || "-"}</p>
+                  <span>
+                    {exp.startDate ? new Date(exp.startDate).toLocaleDateString() : "-"} -{" "}
+                    {exp.currentlyWorkingHere
+                      ? "Present"
+                      : exp.endDate
+                      ? new Date(exp.endDate).toLocaleDateString()
+                      : "-"}
+                  </span>
+                  <p>{exp.Description || "-"}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="resume-block">
+              <h5>{t("resume.education")}</h5>
+              {education.slice(0, 3).map((educ, index) => (
+                <div className="resume-item" key={`${educ.University}-${index}`}>
+                  <h6>{educ.degree || "-"}</h6>
+                  <p>{educ.University || "-"}</p>
+                  <span>
+                    {educ.startDate ? new Date(educ.startDate).toLocaleDateString() : "-"} -{" "}
+                    {educ.endDate ? new Date(educ.endDate).toLocaleDateString() : "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <div className="resume-page-sheet">
+        <div className="resume-block">
+          <h5>Career Goals</h5>
+          <div className="resume-meta-grid">
+            <p>
+              <strong>Desired Job Title:</strong>{" "}
+              {personal?.career_goals?.DesiredJobTitle || "-"}
+            </p>
+            <p>
+              <strong>Employment Type:</strong>{" "}
+              {personal?.career_goals?.DesiredEmploymentType || "-"}
+            </p>
+            <p>
+              <strong>Occupation Type:</strong>{" "}
+              {personal?.career_goals?.DesiredOccupationType || "-"}
+            </p>
+            <p>
+              <strong>Job Availability:</strong>{" "}
+              {personal?.career_goals?.jobSearchStatus || "-"}
+            </p>
           </div>
         </div>
-      </section>
-      {/* <!--Second Resume Template Design end here --> */}
-    </>
+
+        <div className="resume-block">
+          <h5>Certificates</h5>
+          {certificates.length ? (
+            certificates.map((certificate, index) => (
+              <div className="resume-item" key={`${certificate.title}-${index}`}>
+                <h6>{certificate.title || "-"}</h6>
+                <span>
+                  {certificate.issueDate
+                    ? new Date(certificate.issueDate).toLocaleDateString()
+                    : "-"}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p>No certificates added.</p>
+          )}
+        </div>
+
+        <div className="resume-block">
+          <h5>Professional Links</h5>
+          <p>{personal?.links?.linkedin || "-"}</p>
+          <p>{personal?.links?.github || "-"}</p>
+          <p>{personal?.links?.portfolio || "-"}</p>
+        </div>
+
+        <div className="resume-block">
+          <h5>Additional Experience</h5>
+          {experience.slice(3).map((exp, index) => (
+            <div className="resume-item" key={`${exp.companyName}-extra-${index}`}>
+              <h6>{exp.jobTitle || "Role"}</h6>
+              <p>{exp.companyName || "-"}</p>
+              <p>{exp.Description || "-"}</p>
+            </div>
+          ))}
+          {!experience.slice(3).length && <p>Additional information will appear here.</p>}
+        </div>
+      </div>
+    </section>
   );
 };
 

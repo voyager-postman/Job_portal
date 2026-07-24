@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
@@ -10,32 +11,40 @@ import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { cleanupBootstrapModal } from "../utils/cleanupBootstrapModal";
 import { openProtectedDocument } from "../utils/protectedFile";
+import { getAuthHeaders, getRequestConfig } from "../utils/apiHeaders";
+import {
+  MAX_DOCUMENT_SIZE_BYTES,
+  MAX_IMAGE_SIZE_BYTES,
+  validateDocumentFile,
+  validateImageFile,
+} from "../utils/fileUploadLimits";
 
 function CandidateProfile() {
+  const { t } = useTranslation("global");
   const containerRef = useRef(null);
   const navigate = useNavigate();
   const degreeOptions = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
   const [globalCurrency, setGlobalCurrency] = useState({
     code: "MAD",
     symbol: "DH",
   });
   const jobTypeOptions = [
-    { value: "Immediate", label: "Immediate" },
-    { value: "Temporary", label: "Temporary" },
-    { value: "Freelance", label: "Freelance" },
-    { value: "Permanent", label: "Permanent" },
+    { value: "Immediate", label: t("profile.immediate") },
+    { value: "Temporary", label: t("profile.temporary") },
+    { value: "Freelance", label: t("profile.freelance") },
+    { value: "Permanent", label: t("profile.permanent") },
   ];
   const [salaryRanges, setSalaryRanges] = useState([]);
   const [isEditingLinks, setIsEditingLinks] = useState(false);
@@ -67,11 +76,11 @@ function CandidateProfile() {
   const [certificateEditMode, setCertificateEditMode] = useState(false);
 
   const PROFICIENCY_LEVELS = [
-    { label: "Basic", code: "Basic" },
-    { label: "Limited working", code: "Limited working" },
-    { label: "Professional working", code: "Professional working" },
-    { label: "Full professional", code: "Full professional" },
-    { label: "Native / Bilingual", code: "Native / Bilingual" },
+    { label: t("profile.proficiency_basic"), code: "Basic" },
+    { label: t("profile.proficiency_limited"), code: "Limited working" },
+    { label: t("profile.proficiency_professional"), code: "Professional working" },
+    { label: t("profile.proficiency_full"), code: "Full professional" },
+    { label: t("profile.proficiency_native"), code: "Native / Bilingual" },
   ];
   const fetchGlobalCurrency = async () => {
     try {
@@ -131,14 +140,10 @@ function CandidateProfile() {
   const handleFileChange1 = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      const allowedTypes = [
-        "application/pdf",
-        "application/msword", // .doc
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-      ];
-
-      if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Only PDF, DOC, and DOCX files are allowed.");
+      const validation = validateDocumentFile(selectedFile, t);
+      if (!validation.ok) {
+        setError(validation.message);
+        e.target.value = "";
         return;
       }
       setError("");
@@ -153,6 +158,14 @@ function CandidateProfile() {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message);
+      e.target.value = "";
+      return;
+    }
+
     const imageUrl = URL.createObjectURL(file);
     setImage(imageUrl);
     const formData = new FormData();
@@ -177,12 +190,12 @@ function CandidateProfile() {
         updateProfileImage(fullUrl); // ✅ update header image instantly
       } else {
         setImage(DEFAULT_IMAGE);
-        toast.error(res.data.message || "Something went wrong!");
+        toast.error(res.data.message || t("header.something_wrong"));
       }
     } catch (err) {
       console.error("Upload failed:", err);
       setImage(DEFAULT_IMAGE);
-      toast.error("Upload failed. Please try again.");
+      toast.error(t("profile.upload_failed_try_again"));
     } finally {
       setIsLoadingJobs(false); // 🔵 STOP LOADER
     }
@@ -190,7 +203,7 @@ function CandidateProfile() {
   const JobListLoader = () => (
     <div className="text-center py-5">
       <div className="spinner-border text-primary mb-3" role="status" />
-      <p>Loading Image, please wait...</p>
+      <p>{t("profile.loading_image")}</p>
     </div>
   );
 
@@ -298,13 +311,10 @@ function CandidateProfile() {
   console.log(profileData.eligibleToWorkInFrance);
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}candidate/profile`,
+        getRequestConfig(),
+      );
 
       console.log("Profile data:", res.data);
 
@@ -325,9 +335,7 @@ function CandidateProfile() {
       } else {
         setImage(DEFAULT_IMAGE); // fallback
       }
-      const resLang = await axios.get(`${API_BASE_URL}getLanguage`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const resLang = await axios.get(`${API_BASE_URL}getLanguage`, getRequestConfig());
       console.log("GetLanguage API response:", resLang.data);
       setMasterLanguages(resLang.data.languages || []); // ✅ ensure array
     } catch (error) {
@@ -433,11 +441,11 @@ function CandidateProfile() {
   const userLanguages = profileData.languages || [];
   const handleSaveLanguage = async () => {
     if (!languageForm.language) {
-      toast.error("Please select a language");
+      toast.error(t("profile.select_language_error"));
       return;
     }
     if (!languageForm.proficiency) {
-      toast.error("Please select proficiency");
+      toast.error(t("profile.select_proficiency_error"));
       return;
     }
     try {
@@ -450,9 +458,7 @@ function CandidateProfile() {
         comment: languageForm.comment,
       };
 
-      const res = await axios.post(`${API_BASE_URL}updateLanguages`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.post(`${API_BASE_URL}updateLanguages`, payload, getRequestConfig());
 
       if (res.status === 200) {
         // ✅ use backend returned language object with correct _id
@@ -465,15 +471,15 @@ function CandidateProfile() {
 
         const updated = languageForm.language_id
           ? profileData.languages.map((l) =>
-              l._id === languageForm.language_id ? newLang : l,
-            )
+            l._id === languageForm.language_id ? newLang : l,
+          )
           : [...(profileData.languages || []), newLang];
 
         setProfileData((prev) => ({ ...prev, languages: updated }));
         await fetchProfile();
 
         toast.success(
-          languageForm.language_id ? "Language updated!" : "Language added!",
+          languageForm.language_id ? t("profile.language_updated") : t("profile.language_added"),
         );
         setLanguageForm({
           language_id: "",
@@ -485,7 +491,7 @@ function CandidateProfile() {
       }
     } catch (err) {
       console.error("Error saving language:", err);
-      toast.error("Failed to save language");
+      toast.error(t("profile.failed_save_language"));
     }
   };
 
@@ -495,19 +501,22 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}DeleteLanguage`,
         { language_id: id },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (res.status === 200) {
         setProfileData((prev) => ({
           ...prev,
-          languages: prev.languages.filter((l) => l._id !== id),
+          languages: (prev.languages || []).filter(
+            (l) => String(l._id) !== String(id),
+          ),
         }));
-        toast.success("Language deleted!");
+        await fetchProfile();
+        toast.success(t("profile.language_deleted"));
       }
     } catch (err) {
       console.error("Error deleting language:", err);
-      toast.error("Failed to delete language");
+      toast.error(t("profile.failed_delete_language"));
     }
   };
 
@@ -550,12 +559,12 @@ function CandidateProfile() {
   console.log(profileData);
   const handleDelete = async () => {
     if (!reason) {
-      toast.error("Please select a reason");
+      toast.error(t("profile.select_reason"));
       return;
     }
 
     if (!comments.trim()) {
-      toast.error("Please enter comments");
+      toast.error(t("profile.enter_comments"));
       return;
     }
 
@@ -576,13 +585,13 @@ function CandidateProfile() {
       const modalInstance = window.bootstrap.Modal.getInstance(modal);
       modalInstance.hide();
 
-      toast.success("Your account has been deleted successfully!");
+      toast.success(t("profile.account_deleted"));
       setTimeout(() => {
         logout();
         navigate("/");
       }, 1500);
     } catch (error) {
-      toast.error("Failed to delete account.");
+      toast.error(t("profile.failed_delete_account"));
     }
   };
 
@@ -593,7 +602,7 @@ function CandidateProfile() {
     // ✅ Max 3 cover letters allowed
     if (coverLetters.length >= 3) {
       toast.error(
-        "You can upload only up to 3 cover letters. Please delete one first.",
+        t("profile.max_cover_letters"),
         { autoClose: 2000, theme: "colored" },
       );
       return;
@@ -605,8 +614,8 @@ function CandidateProfile() {
       if (coverLetters.length >= 3) break;
 
       // ✅ FILE SIZE CHECK (prevents 413)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File "${file.name}" is too large. Max size is 2MB.`, {
+      if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
+        toast.error(t("profile.file_too_large_named_simple", { name: file.name }), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -620,7 +629,7 @@ function CandidateProfile() {
         const response = await axios.put(
           `${API_BASE_URL}updateCoverLetter`,
           formData,
-          { headers: { Authorization: `Bearer ${token}` } },
+          getRequestConfig(),
         );
 
         if (response.status === 200) {
@@ -635,7 +644,7 @@ function CandidateProfile() {
 
           await fetchProfile();
 
-          toast.success("Cover letter uploaded successfully!", {
+          toast.success(t("profile.cover_letter_uploaded"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -645,12 +654,12 @@ function CandidateProfile() {
 
         // ✅ HANDLE 413 ERROR PROPERLY
         if (error.response?.status === 413) {
-          toast.error(`File "${file.name}" is too large for upload.`, {
+          toast.error(t("profile.file_too_large_upload", { name: file.name }), {
             autoClose: 2000,
             theme: "colored",
           });
         } else {
-          toast.error("Failed to upload cover letter", {
+          toast.error(t("profile.failed_upload_cover_letter"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -669,14 +678,13 @@ function CandidateProfile() {
     setOpen(false);
   };
 
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
   const handleUploadCv = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
 
     // ✅ Max 3 CVs allowed
     if (cvFiles.length >= 3) {
-      toast.error("You can upload only up to 3 CVs. Please delete one first.", {
+      toast.error(t("profile.max_cvs"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -689,8 +697,8 @@ function CandidateProfile() {
       if (cvFiles.length >= 3) break;
 
       // ✅ FILE SIZE CHECK (prevents 413)
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File "${file.name}" is too large. Max size is 2MB.`, {
+      if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
+        toast.error(t("profile.file_too_large_named_simple", { name: file.name }), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -704,7 +712,7 @@ function CandidateProfile() {
         const response = await axios.put(
           `${API_BASE_URL}updateResumeUrl`,
           formData,
-          { headers: { Authorization: `Bearer ${token}` } },
+          getRequestConfig(),
         );
 
         if (response.status === 200) {
@@ -719,7 +727,7 @@ function CandidateProfile() {
 
           await fetchProfile();
 
-          toast.success("CV uploaded successfully!", {
+          toast.success(t("profile.cv_uploaded"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -729,12 +737,12 @@ function CandidateProfile() {
 
         // ✅ HANDLE 413 ERROR PROPERLY
         if (error.response?.status === 413) {
-          toast.error(`File "${file.name}" is too large for upload.`, {
+          toast.error(t("profile.file_too_large_upload", { name: file.name }), {
             autoClose: 2000,
             theme: "colored",
           });
         } else {
-          toast.error("Failed to upload CV", {
+          toast.error(t("profile.failed_upload_cv"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -750,26 +758,31 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteCoverLetter`,
         { coverLetterId: String(clId) },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
-        setCoverLetters((prev) => prev.filter((cl) => cl._id !== clId));
-        toast.success("Cover letter deleted successfully!", {
+        setCoverLetters((prev) =>
+          prev.filter((cl, index) =>
+            cl._id != null
+              ? String(cl._id) !== String(clId)
+              : index !== clId,
+          ),
+        );
+        await fetchProfile();
+        toast.success(t("profile.cover_letter_deleted"), {
           autoClose: 2000,
           theme: "colored",
         });
       } else {
-        toast.error("Failed to delete cover letter", {
+        toast.error(t("profile.failed_delete_cover_letter"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Delete cover letter error:", error);
-      toast.error("Failed to delete cover letter", {
+      toast.error(t("profile.failed_delete_cover_letter"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -786,26 +799,29 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteResume`,
         { resumeId: String(cvId) }, // ✅ ensure string
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
-        setCvFiles((prev) => prev.filter((cv) => cv._id !== cvId));
-        toast.success("CV deleted successfully!", {
+        setCvFiles((prev) =>
+          prev.filter((cv, index) =>
+            cv._id != null ? String(cv._id) !== String(cvId) : index !== cvId,
+          ),
+        );
+        await fetchProfile();
+        toast.success(t("profile.cv_deleted"), {
           autoClose: 2000,
           theme: "colored",
         });
       } else {
-        toast.error("Failed to delete CV", {
+        toast.error(t("profile.failed_delete_cv"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Delete CV error:", error);
-      toast.error("Failed to delete CV", { autoClose: 2000, theme: "colored" });
+      toast.error(t("profile.failed_delete_cv"), { autoClose: 2000, theme: "colored" });
     }
 
     setMenuOpenId(null);
@@ -839,7 +855,7 @@ function CandidateProfile() {
         !careerGoalsData.desiredJobTitle ||
         careerGoalsData.desiredJobTitle.length === 0
       ) {
-        toast.error("Please enter a Desired Job Title", {
+        toast.error(t("profile.enter_desired_job_title"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -850,7 +866,7 @@ function CandidateProfile() {
         !careerGoalsData.employmentType ||
         careerGoalsData.employmentType.length === 0
       ) {
-        toast.error("Please select a Job Type", {
+        toast.error(t("profile.select_job_type"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -861,7 +877,7 @@ function CandidateProfile() {
         !careerGoalsData.DesiredJobCategory ||
         careerGoalsData.DesiredJobCategory.length === 0
       ) {
-        toast.error("Please select a Job Category", {
+        toast.error(t("profile.select_job_category_error"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -869,7 +885,7 @@ function CandidateProfile() {
       }
 
       if (!careerGoalsData.availabilityToJoin) {
-        toast.error("Please select availability to join", {
+        toast.error(t("profile.select_availability_error"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -879,7 +895,7 @@ function CandidateProfile() {
       // ✅ TJM validation
       if (isFreelanceSelected) {
         if (!careerGoalsData.TJM) {
-          toast.error("Please enter TJM (Taux Journalier Moyen)", {
+          toast.error(t("profile.enter_tjm_error"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -888,7 +904,7 @@ function CandidateProfile() {
       }
 
       if (!careerGoalsData.salaryCurrency) {
-        toast.error("Please select a Salary Currency", {
+        toast.error(t("profile.select_salary_currency"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -896,7 +912,7 @@ function CandidateProfile() {
       }
 
       if (!careerGoalsData.lookingForJob) {
-        toast.error("Please select a job opportunity", {
+        toast.error(t("profile.select_job_opportunity"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -935,7 +951,7 @@ function CandidateProfile() {
       const response = await axios.put(
         `${API_BASE_URL}updateCareerGoals`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -958,14 +974,14 @@ function CandidateProfile() {
 
         toast.success(
           profileData.career_goals
-            ? "Career Goals updated successfully!"
-            : "Career Goals added successfully!",
+            ? t("profile.career_goals_updated")
+            : t("profile.career_goals_added"),
           { autoClose: 2000, theme: "colored" },
         );
       }
     } catch (error) {
       console.error("Error saving career goals:", error);
-      toast.error("Failed to save Career Goals", {
+      toast.error(t("profile.failed_save_career_goals"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1045,7 +1061,7 @@ function CandidateProfile() {
   const handleSave = async () => {
     try {
       if (!summary?.trim()) {
-        toast.error("Professional Summary is required", {
+        toast.error(t("profile.professional_summary_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1079,12 +1095,12 @@ function CandidateProfile() {
         // ✅ exit edit mode
         setEditCareerGoals(false);
         if (profileData?.professionalSummary) {
-          toast.success("Professional Summary updated successfully!", {
+          toast.success(t("profile.summary_updated"), {
             autoClose: 2000,
             theme: "colored",
           });
         } else {
-          toast.success("Professional Summary added successfully!", {
+          toast.success(t("profile.summary_added"), {
             autoClose: 2000,
             theme: "colored",
           });
@@ -1092,7 +1108,7 @@ function CandidateProfile() {
       }
     } catch (error) {
       console.error("Error saving professional summary:", error);
-      toast.error("Failed to save Professional Summary", {
+      toast.error(t("profile.failed_save_summary"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1108,7 +1124,7 @@ function CandidateProfile() {
   const handleSaveEducation = async () => {
     try {
       if (!educationForm.degree) {
-        toast.error("Please enter a valid Degree", {
+        toast.error(t("profile.enter_valid_degree"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1118,14 +1134,14 @@ function CandidateProfile() {
         !educationForm.diplomaTitle ||
         educationForm.diplomaTitle.trim() === ""
       ) {
-        toast.error("Please enter Titre de Diplôme", {
+        toast.error(t("profile.enter_diploma_title_error"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!educationForm.University) {
-        toast.error("Please enter a valid University", {
+        toast.error(t("profile.enter_valid_university"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1133,7 +1149,7 @@ function CandidateProfile() {
       }
 
       if (!educationForm.startDate) {
-        toast.error("Please select a Start Date", {
+        toast.error(t("profile.select_start_date"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1141,7 +1157,7 @@ function CandidateProfile() {
       }
 
       if (!educationForm.endDate && !educationForm.currentlyStudyingHere) {
-        toast.error("Please select an End Date", {
+        toast.error(t("profile.select_end_date"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1156,7 +1172,7 @@ function CandidateProfile() {
 
       // ✅ Start date should not be in the future
       if (startDate > today) {
-        toast.error("Start Date cannot be in the future", {
+        toast.error(t("profile.start_date_future"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1169,7 +1185,7 @@ function CandidateProfile() {
         endDate &&
         startDate > endDate
       ) {
-        toast.error("End Date cannot be before Start Date", {
+        toast.error(t("profile.end_date_before_start"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1195,20 +1211,20 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateEducation`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
         const updatedEducationList = educationForm.education_id
           ? educationList.map((edu) =>
-              edu._id === educationForm.education_id
-                ? { ...edu, ...educationForm }
-                : edu,
-            )
+            edu._id === educationForm.education_id
+              ? { ...edu, ...educationForm }
+              : edu,
+          )
           : [
-              ...educationList,
-              { ...educationForm, _id: response.data.education_id },
-            ];
+            ...educationList,
+            { ...educationForm, _id: response.data.education_id },
+          ];
 
         setEducationList(updatedEducationList);
         setIsEditing(false);
@@ -1224,8 +1240,8 @@ function CandidateProfile() {
         await fetchProfile();
         toast.success(
           educationForm.education_id
-            ? "Education updated successfully!"
-            : "Education added successfully!",
+            ? t("profile.education_updated")
+            : t("profile.education_added"),
           { autoClose: 2000, theme: "colored" },
         );
       }
@@ -1234,7 +1250,7 @@ function CandidateProfile() {
       await fetchProfile();
     } catch (error) {
       console.error("Error saving education:", error);
-      toast.error("Failed to save education", {
+      toast.error(t("profile.failed_save_education"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1249,21 +1265,22 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteEducation`,
         { education_id },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
         setEducationList((prev) =>
-          prev.filter((edu) => edu._id !== education_id),
+          prev.filter((edu) => String(edu._id) !== String(education_id)),
         );
-        toast.success("Education deleted successfully!", {
+        await fetchProfile();
+        toast.success(t("profile.education_deleted"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error deleting education:", error);
-      toast.error("Failed to delete education", {
+      toast.error(t("profile.failed_delete_education"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1293,21 +1310,21 @@ function CandidateProfile() {
   const handleSavePersonal = async () => {
     try {
       if (!personalDetails.firstName?.trim()) {
-        toast.error("First name is required", {
+        toast.error(t("profile.first_name_required"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!personalDetails.lastName?.trim()) {
-        toast.error("Last name is required", {
+        toast.error(t("profile.last_name_required"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!personalDetails.birthYear) {
-        toast.error("Date of birth is required", {
+        toast.error(t("profile.dob_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1315,7 +1332,7 @@ function CandidateProfile() {
       }
 
       if (!isAge18OrAbove(personalDetails.birthYear)) {
-        toast.error("You must be at least 18 years old", {
+        toast.error(t("profile.must_be_18"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1323,14 +1340,14 @@ function CandidateProfile() {
       }
 
       if (!personalDetails.gender) {
-        toast.error("Gender is required", {
+        toast.error(t("profile.gender_required"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!personalDetails.countryCode) {
-        toast.error("Country code is required", {
+        toast.error(t("profile.country_code_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1338,7 +1355,7 @@ function CandidateProfile() {
       }
 
       if (!personalDetails.phone?.trim()) {
-        toast.error("Phone number is required", {
+        toast.error(t("profile.phone_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1348,7 +1365,7 @@ function CandidateProfile() {
       // ✅ Phone number validation (10 digits, you can adjust regex for your format)
       const phoneRegex = /^[0-9]{10}$/;
       if (!phoneRegex.test(personalDetails.phone)) {
-        toast.error("Please enter a valid 10-digit phone number", {
+        toast.error(t("profile.valid_phone_10"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1371,9 +1388,7 @@ function CandidateProfile() {
       const response = await axios.put(
         `${API_BASE_URL}updatePersonalDetails`,
         payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -1408,14 +1423,14 @@ function CandidateProfile() {
           personalDetails: 1,
         }));
         setEditPersonal(false);
-        toast.success("Personal details saved successfully!", {
+        toast.success(t("profile.personal_details_saved"), {
           containerId: "verify-email-toast",
           autoClose: 2000,
         });
       }
     } catch (error) {
       console.error("Error saving personal details:", error);
-      toast.error("Failed to save personal details", {
+      toast.error(t("profile.failed_save_personal"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1423,10 +1438,28 @@ function CandidateProfile() {
   };
   const uploadResume = async () => {
     const userId = localStorage.getItem("extract_id");
+    const loggedInUserId = localStorage.getItem("user_id");
+    const userRole = localStorage.getItem("user_role");
     const file = formData1?.attachment;
 
-    if (!userId) {
-      toast.error("User not found. Please login again.", {
+    if (!userId || !loggedInUserId) {
+      toast.error(t("profile.user_not_found"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (userRole !== "JobSeeker") {
+      toast.error(t("profile.login_as_jobseeker"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (String(userId) !== String(loggedInUserId)) {
+      toast.error(t("profile.resume_upload_own_user"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1434,15 +1467,15 @@ function CandidateProfile() {
     }
 
     if (!file) {
-      toast.error("Please select a resume file.", {
+      toast.error(t("profile.select_resume"), {
         autoClose: 2000,
         theme: "colored",
       });
       return;
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("Uploaded file is too large. Max size is 2MB.", {
+    if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
+      toast.error(t("header.file_too_large"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1459,7 +1492,9 @@ function CandidateProfile() {
         `${API_BASE_URL}extractResume/${userId}`,
         data,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: getAuthHeaders({
+            "Content-Type": "multipart/form-data",
+          }),
         },
       );
 
@@ -1467,17 +1502,19 @@ function CandidateProfile() {
         setIsExtracting(true); // ✅ extraction loader
         fetchExtractedData(res.data.jobId);
       } else {
-        toast.error("Upload succeeded but jobId missing.");
+        toast.error(t("profile.upload_jobid_missing"));
         setIsUploading(false);
       }
     } catch (err) {
       console.error("Resume upload error:", err);
       setIsUploading(false);
 
-      if (err?.response?.status === 413) {
-        toast.error("Uploaded file is too large. Max size is 2MB.");
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        toast.error(t("profile.session_expired"));
+      } else if (err?.response?.status === 413) {
+        toast.error(t("header.file_too_large"));
       } else {
-        toast.error("Failed to upload resume.");
+        toast.error(t("profile.failed_upload_resume"));
       }
     }
   };
@@ -1485,23 +1522,33 @@ function CandidateProfile() {
   const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
-      const { state, result } = res.data;
+      const { state, result, success, message } = res.data;
+
+      // ❌ Failed (e.g. state: "failed", success: false)
+      if (success === false || state === "failed") {
+        setIsUploading(false);
+        setIsExtracting(false);
+        toast.error(message || t("profile.extraction_failed"));
+        return;
+      }
 
       // ⏳ Still processing
       if (state === "active") {
         if (attempt < 10) {
           setTimeout(() => fetchExtractedData(jobId, attempt + 1), 2000);
         } else {
+          setIsUploading(false);
           setIsExtracting(false);
-          toast.error("Resume extraction taking too long.");
+          toast.error(t("profile.extraction_too_long"));
         }
         return;
       }
 
-      // ❌ Failed
+      // ❌ Completed but extraction unsuccessful
       if (state === "completed" && !result?.success) {
+        setIsUploading(false);
         setIsExtracting(false);
-        toast.error("Resume extraction failed.");
+        toast.error(result?.message || message || t("profile.extraction_failed"));
         return;
       }
 
@@ -1512,13 +1559,20 @@ function CandidateProfile() {
         setIsUploading(false);
         setIsExtracting(false);
         setShowModal(false);
-        toast.success("Resume extracted successfully!");
+        toast.success(t("profile.resume_extracted_success"));
+        return;
       }
+
+      // Unexpected response shape
+      setIsUploading(false);
+      setIsExtracting(false);
+      toast.error(message || t("profile.extraction_failed"));
     } catch (err) {
       console.error("Extraction Error:", err);
       setIsUploading(false);
       setIsExtracting(false);
-      toast.error("Error fetching resume data.");
+      const apiMessage = err?.response?.data?.message;
+      toast.error(apiMessage || t("profile.error_fetch_resume"));
     }
   };
   const handleSaveLocation = async () => {
@@ -1538,9 +1592,7 @@ function CandidateProfile() {
       const response = await axios.put(
         `${API_BASE_URL}updatePersonalDetails`,
         payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -1550,14 +1602,14 @@ function CandidateProfile() {
         }));
         setEditLocation(false);
 
-        toast.success("Location details saved successfully!", {
+        toast.success(t("profile.location_saved"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error saving location details:", error);
-      toast.error("Failed to save location details", {
+      toast.error(t("profile.failed_save_location"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1566,21 +1618,21 @@ function CandidateProfile() {
   const handleSaveAboutRole = async () => {
     try {
       if (!aboutRole.jobTitle) {
-        toast.error("Job title is required", {
+        toast.error(t("profile.job_title_required"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!aboutRole.yearsOfExperience) {
-        toast.error("Years of experience is required", {
+        toast.error(t("profile.experience_required"), {
           autoClose: 2000,
           theme: "colored",
         });
         return;
       }
       if (!aboutRole.jobCategory || aboutRole.jobCategory.length === 0) {
-        toast.error("Job category is required", {
+        toast.error(t("profile.job_category_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1596,9 +1648,7 @@ function CandidateProfile() {
       const response = await axios.put(
         `${API_BASE_URL}updateAboutRole`,
         payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.data.success) {
@@ -1616,7 +1666,7 @@ function CandidateProfile() {
         fetchProfile();
         // ✅ Success toast
         toast.success(
-          response.data.message || "About role updated successfully!",
+          response.data.message || t("profile.about_role_updated"),
           {
             autoClose: 2000,
             theme: "colored",
@@ -1628,7 +1678,7 @@ function CandidateProfile() {
 
       // ❌ Error toast
       toast.error(
-        error.response?.data?.message || "Failed to update About Role",
+        error.response?.data?.message || t("profile.failed_update_about_role"),
         {
           autoClose: 2000,
           theme: "colored",
@@ -1675,22 +1725,22 @@ function CandidateProfile() {
 
       // ✅ VALIDATION SECTION
       if (!jobTitle?.trim()) {
-        toast.error("Please enter Job Title", { theme: "colored" });
+        toast.error(t("profile.enter_job_title"), { theme: "colored" });
         return;
       }
 
       if (!companyName?.trim()) {
-        toast.error("Please enter Company Name", { theme: "colored" });
+        toast.error(t("profile.enter_company_name"), { theme: "colored" });
         return;
       }
 
       if (!startDate) {
-        toast.error("Please select Start Date", { theme: "colored" });
+        toast.error(t("profile.select_start_date_work"), { theme: "colored" });
         return;
       }
 
       if (!currentlyWorkingHere && !endDate) {
-        toast.error("Please select End Date or mark 'Currently Working Here'", {
+        toast.error(t("profile.select_end_date_or_current"), {
           theme: "colored",
         });
         return;
@@ -1708,30 +1758,30 @@ function CandidateProfile() {
 
       // ✅ Start Date cannot be in the future
       if (start > today) {
-        toast.error("Start Date cannot be a future date", { theme: "colored" });
+        toast.error(t("profile.start_date_future_work"), { theme: "colored" });
         return;
       }
 
       // ✅ End Date cannot be before Start Date
       if (start && end && end < start) {
-        toast.error("End Date cannot be earlier than Start Date", {
+        toast.error(t("profile.end_date_earlier"), {
           theme: "colored",
         });
         return;
       }
 
       if (!EmploymentType?.trim()) {
-        toast.error("Please select Job Type", { theme: "colored" });
+        toast.error(t("profile.select_job_type_work"), { theme: "colored" });
         return;
       }
 
       if (!workLocation?.trim()) {
-        toast.error("Please enter Work Location", { theme: "colored" });
+        toast.error(t("profile.enter_work_location"), { theme: "colored" });
         return;
       }
 
       if (!salaryType) {
-        toast.error("Please select Payroll Frequency", { theme: "colored" });
+        toast.error(t("profile.select_payroll_frequency"), { theme: "colored" });
         return;
       }
 
@@ -1765,7 +1815,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateWorkHistory`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -1783,14 +1833,14 @@ function CandidateProfile() {
 
         setEditWork(false);
         await fetchProfile();
-        toast.success("Work experience saved successfully!", {
+        toast.success(t("profile.work_experience_saved"), {
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error saving work experience:", error);
       const backendError = error.response?.data?.errors?.[0];
-      toast.error(backendError || "Failed to save work experience", {
+      toast.error(backendError || t("profile.failed_save_work_experience"), {
         theme: "colored",
       });
     }
@@ -1804,7 +1854,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteExperience`,
         { experience_id },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -1818,20 +1868,21 @@ function CandidateProfile() {
           // ✅ API returns only success, remove manually
           setProfileData((prev) => ({
             ...prev,
-            workHistory: prev.workHistory.filter(
-              (exp) => exp._id !== experience_id,
+            workHistory: (prev.workHistory || []).filter(
+              (exp) => String(exp._id) !== String(experience_id),
             ),
           }));
         }
 
-        toast.success("Work experience deleted successfully!", {
+        await fetchProfile();
+        toast.success(t("profile.work_experience_deleted"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error deleting work experience:", error);
-      toast.error("Failed to delete work experience", {
+      toast.error(t("profile.failed_delete_work_experience"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -1845,7 +1896,7 @@ function CandidateProfile() {
         !portfolioLinks.github &&
         !portfolioLinks.linkedin
       ) {
-        toast.error("Please add at least one portfolio link", {
+        toast.error(t("profile.add_portfolio_link"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -1869,9 +1920,7 @@ function CandidateProfile() {
 
       const token = localStorage.getItem("token");
 
-      const response = await axios.post(`${API_BASE_URL}updateLinks`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(`${API_BASE_URL}updateLinks`, payload, getRequestConfig());
 
       if (response.status === 200) {
         const updatedLinks = {
@@ -1900,7 +1949,7 @@ function CandidateProfile() {
         // ✅ exit edit mode
         setIsEditingLinks(false);
 
-        toast.success("Portfolio links updated successfully!", {
+        toast.success(t("profile.portfolio_updated"), {
           position: "top-right",
           autoClose: 2000,
         });
@@ -1956,7 +2005,7 @@ function CandidateProfile() {
   //         linkedin: portfolioLinks.linkedin,
   //       },
   //       {
-  //         headers: { Authorization: `Bearer ${token}` },
+  //         ...getRequestConfig().headers,
   //       }
   //     );
 
@@ -1987,7 +2036,7 @@ function CandidateProfile() {
   //       setEditPortfolioLinks(false);
 
   //       // ✅ success toast
-  //       toast.success("Portfolio links updated successfully!", {
+  //       toast.success(t("profile.portfolio_updated"), {
   //         position: "top-right",
   //         autoClose: 2000,
   //       });
@@ -2010,9 +2059,7 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateProfileVisibility`,
         { profileVisible: newValue },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -2025,7 +2072,7 @@ function CandidateProfile() {
       fetchProfile();
     } catch (error) {
       console.error("Error updating profile visibility:", error);
-      toast.error("Failed to update profile visibility", {
+      toast.error(t("profile.failed_update_visibility"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -2035,7 +2082,7 @@ function CandidateProfile() {
   const handleSaveCertificate = async () => {
     try {
       if (!formData.title?.trim()) {
-        toast.error("Certificate title is required", {
+        toast.error(t("profile.certificate_title_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -2043,7 +2090,7 @@ function CandidateProfile() {
       }
 
       if (!formData.issueDate) {
-        toast.error("Issue date is required", {
+        toast.error(t("profile.issue_date_required"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -2057,7 +2104,7 @@ function CandidateProfile() {
       issueDate.setHours(0, 0, 0, 0);
 
       if (issueDate > today) {
-        toast.error("Issue date cannot be a future date", {
+        toast.error(t("profile.issue_date_future"), {
           autoClose: 2000,
           theme: "colored",
         });
@@ -2069,19 +2116,19 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}updateCertificates`,
         formData,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
         // ✅ Update profileData state
         const updatedCertificates = formData.certificate_id
           ? profileData.certificates.map((c) =>
-              c._id === formData.certificate_id ? { ...c, ...formData } : c,
-            )
+            c._id === formData.certificate_id ? { ...c, ...formData } : c,
+          )
           : [
-              ...profileData.certificates,
-              { ...formData, _id: response.data.certificate_id },
-            ];
+            ...profileData.certificates,
+            { ...formData, _id: response.data.certificate_id },
+          ];
 
         setProfileData((prev) => ({
           ...prev,
@@ -2095,14 +2142,14 @@ function CandidateProfile() {
         await fetchProfile();
         toast.success(
           formData.certificate_id
-            ? "Certificate updated successfully!"
-            : "Certificate added successfully!",
+            ? t("profile.certificate_updated")
+            : t("profile.certificate_added"),
           { autoClose: 2000, theme: "colored" },
         );
       }
     } catch (error) {
       console.error("Error saving certificate:", error);
-      toast.error("Failed to save Certificate", {
+      toast.error(t("profile.failed_save_certificate"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -2116,26 +2163,27 @@ function CandidateProfile() {
       const response = await axios.post(
         `${API_BASE_URL}DeleteCertificate`,
         { certificate_id },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
         // ✅ Remove deleted certificate from state
         setProfileData((prev) => ({
           ...prev,
-          certificates: prev.certificates.filter(
-            (c) => c._id !== certificate_id,
+          certificates: (prev.certificates || []).filter(
+            (c) => String(c._id) !== String(certificate_id),
           ),
         }));
 
-        toast.success("Certificate deleted successfully!", {
+        await fetchProfile();
+        toast.success(t("profile.certificate_deleted"), {
           autoClose: 2000,
           theme: "colored",
         });
       }
     } catch (error) {
       console.error("Error deleting certificate:", error);
-      toast.error("Failed to delete Certificate", {
+      toast.error(t("profile.failed_delete_certificate_toast"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -2146,13 +2194,13 @@ function CandidateProfile() {
     const trimmedSkill = newSkill.trim();
 
     if (!trimmedSkill) {
-      toast.error("Please enter a skill", { theme: "colored" });
+      toast.error(t("profile.enter_skill"), { theme: "colored" });
       return;
     }
 
     // 🚫 Prevent duplicate
     if (skills.includes(trimmedSkill)) {
-      toast.warning("Skill already added", { theme: "colored" });
+      toast.warning(t("profile.skill_already_added"), { theme: "colored" });
       return;
     }
 
@@ -2160,7 +2208,7 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}updateSkills`,
         { skills: [...skills, trimmedSkill] },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (res.status === 200) {
@@ -2170,11 +2218,11 @@ function CandidateProfile() {
         // ✅ mark section completed
         setCheckStatus((prev) => ({ ...prev, skills: 1 }));
         await fetchProfile();
-        toast.success("Skill added successfully!", { theme: "colored" });
+        toast.success(t("profile.skill_added"), { theme: "colored" });
       }
     } catch (error) {
       console.error("Error adding skill:", error);
-      toast.error("Failed to add skill", { theme: "colored" });
+      toast.error(t("profile.failed_add_skill"), { theme: "colored" });
     }
   };
 
@@ -2184,7 +2232,7 @@ function CandidateProfile() {
       const res = await axios.post(
         `${API_BASE_URL}deleteSkill`,
         { skill },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (res.status === 200) {
@@ -2197,11 +2245,11 @@ function CandidateProfile() {
           setCheckStatus((prev) => ({ ...prev, skills: 0 }));
         }
         await fetchProfile();
-        toast.success("Skill deleted successfully!", { theme: "colored" });
+        toast.success(t("profile.skill_deleted"), { theme: "colored" });
       }
     } catch (error) {
       console.error("Error deleting skill:", error);
-      toast.error("Failed to delete skill", { theme: "colored" });
+      toast.error(t("profile.failed_delete_skill"), { theme: "colored" });
     }
   };
   const cleanImageUrl = (url) => {
@@ -2229,7 +2277,7 @@ function CandidateProfile() {
 
   console.log(image);
   const formatEmail = (email, maxLength = 35) => {
-    if (!email) return "N/A";
+    if (!email) return t("profile.not_available");
 
     if (email.length <= maxLength) return email;
 
@@ -2258,18 +2306,18 @@ function CandidateProfile() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>My Profile</h1>
+            <h1>{t("profile.my_profile")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/"> Home </Link>
+                <Link to="/"> {t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/candidate-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> My Profile
+                <i className="fa-solid fa-angle-right" /> {t("profile.my_profile")}
               </li>
             </ol>
           </div>
@@ -2308,7 +2356,7 @@ function CandidateProfile() {
                     {/* Camera Edit Button */}
                     <div
                       className="saas-avatar-edit-btn"
-                      title="Upload Photo"
+                      title={t("profile.upload_photo")}
                       onClick={() => fileInputRef.current.click()}
                       style={{ cursor: "pointer" }}
                     >
@@ -2325,28 +2373,33 @@ function CandidateProfile() {
                       <span className="stat-value">
                         {profileDetails?.experienceCount || 0}
                       </span>
-                      <span className="stat-label">Exp</span>
+                      <span className="stat-label">{t("profile.exp")}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-value">
                         {profileDetails?.educationCount || 0}
                       </span>
-                      <span className="stat-label">Edu</span>
+                      <span className="stat-label">{t("profile.edu")}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-value">
                         {profileDetails?.skillsCount || 0}
                       </span>
-                      <span className="stat-label">Skills</span>
+                      <span className="stat-label">{t("profile.skills")}</span>
                     </div>
                   </div>
                   <div className="completion-bar-container">
                     <div className="progress-label">
-                      <span>Profile Completion</span>
-                      <span>85%</span>
+                      <span>{t("profile.profile_completion")}</span>
+                      <span>{profileDetails?.strength ?? 0}%</span>
                     </div>
                     <div className="progress-track">
-                      <div className="progress-fill" style={{ width: "85%" }} />
+                      <div
+                        className="progress-fill"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, Number(profileDetails?.strength) || 0))}%`,
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="visibility-toggle-wrapper justify-content-center mt-3 mb-4">
@@ -2361,11 +2414,11 @@ function CandidateProfile() {
 
                     <span className="visibility-label ml-2">
                       <i className="fa-regular fa-eye mr-1" />
-                      {profileVisible ? "Public" : "Private"}
+                      {profileVisible ? t("profile.public") : t("profile.private")}
                     </span>
                   </div>
                   <button className="saas-btn-primary sticky-save-btn">
-                    <i className="fas fa-save" /> Save All Changes
+                    <i className="fas fa-save" /> {t("profile.save_all_changes")}
                   </button>
                   <div className="mt-3 w-100">
                     <button
@@ -2374,7 +2427,7 @@ function CandidateProfile() {
                         setShowModal(true);
                       }}
                     >
-                      <i className="fas fa-file-pdf" /> CV Auto Extractor
+                      <i className="fas fa-file-pdf" /> {t("profile.cv_auto_extractor")}
                     </button>
 
                     <input
@@ -2389,7 +2442,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-user" /> Personal Information
+                      <i className="fas fa-user" /> {t("profile.personal_information")}
                     </h4>
 
                     {editPersonal ? (
@@ -2397,7 +2450,7 @@ function CandidateProfile() {
                         className="btn btn-sm btn-link"
                         onClick={() => setEditPersonal(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
@@ -2411,8 +2464,8 @@ function CandidateProfile() {
                             countryCode: profileData?.countryCode || "",
                             birthYear: profileData?.date_of_birth
                               ? new Date(profileData.date_of_birth)
-                                  .toISOString()
-                                  .split("T")[0]
+                                .toISOString()
+                                .split("T")[0]
                               : "",
                             gender: profileData?.gender || "",
                             city: profileData?.city || "",
@@ -2421,7 +2474,7 @@ function CandidateProfile() {
                           setEditPersonal(true);
                         }}
                       >
-                        <i className="fas fa-pencil-alt" /> Edit
+                        <i className="fas fa-pencil-alt" /> {t("profile.edit")}
                       </button>
                     )}
                   </div>
@@ -2430,7 +2483,7 @@ function CandidateProfile() {
                     /* ================= EDIT FORM ================= */
                     <form className="saas-form-grid row">
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">First Name</label>
+                        <label className="saas-label">{t("profile.first_name")}</label>
                         <input
                           className="saas-input"
                           type="text"
@@ -2445,7 +2498,7 @@ function CandidateProfile() {
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Last Name</label>
+                        <label className="saas-label">{t("profile.last_name")}</label>
                         <input
                           className="saas-input"
                           type="text"
@@ -2460,7 +2513,7 @@ function CandidateProfile() {
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Email</label>
+                        <label className="saas-label">{t("profile.email")}</label>
                         <input
                           className="saas-input"
                           type="email"
@@ -2471,7 +2524,7 @@ function CandidateProfile() {
 
                       {/* Phone */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Phone</label>
+                        <label className="saas-label">{t("profile.phone")}</label>
 
                         <div className="d-flex gap-2">
                           <div style={{ width: "140px" }}>
@@ -2507,7 +2560,7 @@ function CandidateProfile() {
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Date of Birth</label>
+                        <label className="saas-label">{t("profile.date_of_birth")}</label>
                         <input
                           className="saas-input"
                           type="date"
@@ -2522,7 +2575,7 @@ function CandidateProfile() {
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Gender</label>
+                        <label className="saas-label">{t("profile.gender")}</label>
                         <select
                           className="saas-select"
                           value={personalDetails.gender}
@@ -2533,15 +2586,15 @@ function CandidateProfile() {
                             })
                           }
                         >
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
+                          <option value="">{t("profile.select_gender")}</option>
+                          <option value="Male">{t("profile.male")}</option>
+                          <option value="Female">{t("profile.female")}</option>
+                          <option value="Other">{t("profile.other")}</option>
                         </select>
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Country</label>
+                        <label className="saas-label">{t("profile.country")}</label>
                         <select
                           className="saas-select"
                           value={personalDetails.nationality}
@@ -2552,7 +2605,7 @@ function CandidateProfile() {
                             })
                           }
                         >
-                          <option value="">Select Country</option>
+                          <option value="">{t("profile.select_country")}</option>
                           {countries?.map((c, idx) => (
                             <option key={idx} value={c.name || c}>
                               {c.name || c}
@@ -2562,7 +2615,7 @@ function CandidateProfile() {
                       </div>
 
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">City</label>
+                        <label className="saas-label">{t("profile.city")}</label>
                         <input
                           className="saas-input"
                           type="text"
@@ -2582,7 +2635,7 @@ function CandidateProfile() {
                           className="btn btn-primary"
                           onClick={handleSavePersonal}
                         >
-                          Save Changes
+                          {t("settings.save_changes")}
                         </button>
                       </div>
                     </form>
@@ -2590,28 +2643,28 @@ function CandidateProfile() {
                     /* ================= VIEW MODE ================= */
                     <div className="row">
                       <div className="col-md-6 mb-3">
-                        <label className="text-muted small">Full Name</label>
+                        <label className="text-muted small">{t("profile.full_name")}</label>
                         <p className="fw-bold">
                           {profileData.first_name} {profileData.last_name}
                         </p>
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <label className="text-muted small">Email</label>
+                        <label className="text-muted small">{t("profile.email")}</label>
                         <p className="fw-bold">{profileData.email}</p>
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <label className="text-muted small">Phone</label>
+                        <label className="text-muted small">{t("profile.phone")}</label>
                         <p className="fw-bold">
                           {profileData?.phone
                             ? `+${profileData?.countryCode} ${profileData?.phone}`
-                            : "N/A"}
+                            : t("profile.not_available")}
                         </p>
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <label className="text-muted small">Location</label>
+                        <label className="text-muted small">{t("profile.location")}</label>
                         <p className="fw-bold">
                           {profileData?.city && profileData?.Nationality
                             ? `${profileData.city}, ${profileData.Nationality}`
@@ -2626,15 +2679,15 @@ function CandidateProfile() {
                         <p className="fw-bold">
                           {profileData.date_of_birth
                             ? new Date(profileData.date_of_birth)
-                                .toISOString()
-                                .split("T")[0]
-                            : "N/A"}
+                              .toISOString()
+                              .split("T")[0]
+                            : t("profile.not_available")}
                         </p>
                       </div>
 
                       <div className="col-md-6 mb-3">
-                        <label className="text-muted small">Gender</label>
-                        <p className="fw-bold">{profileData.gender || "N/A"}</p>
+                        <label className="text-muted small">{t("profile.gender")}</label>
+                        <p className="fw-bold">{profileData.gender || t("profile.not_available")}</p>
                       </div>
                     </div>
                   )}
@@ -2642,7 +2695,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-file-alt" /> Professional Summary
+                      <i className="fas fa-file-alt" /> {t("profile.professional_summary")}
                     </h4>
 
                     {editSummary ? (
@@ -2650,7 +2703,7 @@ function CandidateProfile() {
                         className="btn btn-sm btn-link"
                         onClick={() => setEditSummary(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
@@ -2665,7 +2718,7 @@ function CandidateProfile() {
                           "Add"
                         ) : (
                           <>
-                            <i className="fas fa-pencil-alt"></i> Edit
+                            <i className="fas fa-pencil-alt"></i> {t("profile.edit")}
                           </>
                         )}{" "}
                       </button>
@@ -2679,7 +2732,7 @@ function CandidateProfile() {
                         <textarea
                           className="saas-textarea"
                           rows={6}
-                          placeholder="Write a brief bio or professional summary..."
+                          placeholder={t("profile.write_bio_placeholder")}
                           value={summary}
                           onChange={(e) => setSummary(e.target.value)}
                         />
@@ -2706,7 +2759,7 @@ function CandidateProfile() {
                             setEditSummary(false); // close after save
                           }}
                         >
-                          Save Summary
+                          {t("profile.save_summary")}
                         </button>
                       </div>
                     </div>
@@ -2722,7 +2775,7 @@ function CandidateProfile() {
                             {expanded
                               ? profileData.professionalSummary
                               : profileData.professionalSummary.slice(0, 200) +
-                                "..."}
+                              "..."}
                           </p>
 
                           {profileData.professionalSummary.length > 200 && (
@@ -2736,7 +2789,7 @@ function CandidateProfile() {
                           )}
                         </>
                       ) : (
-                        <p>No professional summary added yet.</p>
+                        <p>{t("profile.no_professional_summary")}</p>
                       )}
                     </div>
                   )}
@@ -2745,7 +2798,7 @@ function CandidateProfile() {
                   {/* CARD HEADER */}
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-bullseye" /> Career Goals
+                      <i className="fas fa-bullseye" /> {t("profile.career_goals")}
                     </h4>
 
                     {editMode ? (
@@ -2753,7 +2806,7 @@ function CandidateProfile() {
                         className="btn btn-link shadow-none text-decoration-underline p-0 m-0"
                         onClick={() => setEditMode(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
@@ -2810,7 +2863,7 @@ function CandidateProfile() {
                           setEditMode(true);
                         }}
                       >
-                        <i className="fas fa-pencil-alt" /> Edit
+                        <i className="fas fa-pencil-alt" /> {t("profile.edit")}
                       </button>
                     )}
                   </div>
@@ -2826,7 +2879,7 @@ function CandidateProfile() {
 
                         <CreatableSelect
                           isMulti
-                          placeholder="Type a title and press enter"
+                          placeholder={t("profile.type_title_enter")}
                           value={careerGoalsData.desiredJobTitle}
                           onChange={(selected) => {
                             if (selected.length <= 3) {
@@ -2841,7 +2894,7 @@ function CandidateProfile() {
                       </div>
                       {/* Employment Type */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Job Type (Max 3)</label>
+                        <label className="saas-label">{t("profile.job_type_max_3")}</label>
 
                         <Select
                           isMulti
@@ -2859,13 +2912,13 @@ function CandidateProfile() {
                             }
                           }}
                           classNamePrefix="react-select"
-                          placeholder="Select types"
+                          placeholder={t("profile.select_types")}
                         />
                       </div>
 
                       {/* Job Type */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Job Category</label>
+                        <label className="saas-label">{t("profile.job_category")}</label>
 
                         <Select
                           isMulti
@@ -2873,7 +2926,7 @@ function CandidateProfile() {
                             value: category.name,
                             label: category.name,
                           }))}
-                          placeholder="Select Job Category"
+                          placeholder={t("profile.select_job_category")}
                           value={careerGoalsData.DesiredJobCategory}
                           onChange={(selected) =>
                             setCareerGoalsData({
@@ -2896,30 +2949,30 @@ function CandidateProfile() {
                             name="TJM"
                             value={careerGoalsData.TJM}
                             onChange={handleCareerGoalsChange}
-                            placeholder="Enter TJM"
+                            placeholder={t("profile.enter_tjm")}
                           />
                         </div>
                       )}
                       {/* Available to Join */}
                       <div className="col-md-6 saas-form-group">
-                        <label className="saas-label">Available to Join</label>
+                        <label className="saas-label">{t("profile.available_to_join")}</label>
                         <select
                           className="saas-select"
                           name="availabilityToJoin"
                           value={careerGoalsData.availabilityToJoin}
                           onChange={handleCareerGoalsChange}
                         >
-                          <option value="">Select Availability</option>
-                          <option value="Immediate">Immediate</option>
+                          <option value="">{t("profile.select_availability")}</option>
+                          <option value="Immediate">{t("profile.immediate")}</option>
                           <option value="1 month">1 month</option>
                           <option value="1-3 months">1-3 months</option>
-                          <option value="More">More</option>
+                          <option value="More">{t("profile.more")}</option>
                         </select>
                       </div>
 
                       <div className="col-md-6 saas-form-group">
                         <label className="saas-label">
-                          Minimum Salary ({globalCurrency.code} / Monthly)
+                          Minimum Salary ({globalCurrency.code} / {t("profile.monthly")})
                         </label>
 
                         <div className="d-flex gap-2">
@@ -2929,7 +2982,7 @@ function CandidateProfile() {
                             value={careerGoalsData.salaryAmount}
                             onChange={handleCareerGoalsChange}
                           >
-                            <option value="">Select Range</option>
+                            <option value="">{t("profile.select_range")}</option>
 
                             {salaryRanges?.map((range) => (
                               <option key={range._id} value={range.range}>
@@ -2960,7 +3013,7 @@ function CandidateProfile() {
                             checked={careerGoalsData.eligibleToWork}
                             onChange={handleCareerGoalsChange}
                           />
-                          <span>I am eligible to work in France</span>
+                          <span>{t("profile.eligible_work_france")}</span>
                         </label>
                       </div>
 
@@ -3001,7 +3054,7 @@ function CandidateProfile() {
                           className="btn btn-primary"
                           onClick={handleSaveGoals}
                         >
-                          Save Goals
+                          {t("profile.save_goals")}
                         </button>
                       </div>
                     </form>
@@ -3018,24 +3071,24 @@ function CandidateProfile() {
                               profileData?.career_goals?.DesiredJobTitle,
                             )
                               ? profileData.career_goals.DesiredJobTitle.join(
-                                  ", ",
-                                )
+                                ", ",
+                              )
                               : profileData?.career_goals?.DesiredJobTitle ||
-                                "-"}
+                              "-"}
                           </p>
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="text-muted small">Job Type</label>
+                          <label className="text-muted small">{t("profile.job_type_max_3")}</label>
                           <p className="fw-bold">
                             {Array.isArray(
                               profileData?.career_goals?.DesiredEmploymentType,
                             )
                               ? profileData.career_goals.DesiredEmploymentType.join(
-                                  ", ",
-                                )
+                                ", ",
+                              )
                               : profileData?.career_goals
-                                  ?.DesiredEmploymentType || "-"}
+                                ?.DesiredEmploymentType || "-"}
                           </p>
                         </div>
 
@@ -3048,29 +3101,29 @@ function CandidateProfile() {
                               profileData?.career_goals?.DesiredJobCategory,
                             )
                               ? profileData.career_goals.DesiredJobCategory.join(
-                                  ", ",
-                                )
+                                ", ",
+                              )
                               : profileData?.career_goals?.DesiredJobCategory ||
-                                "-"}
+                              "-"}
                           </p>
                         </div>
                         {profileData?.career_goals?.DesiredEmploymentType?.includes(
                           "Freelance",
                         ) && (
-                          <div className="col-md-6 mb-3">
-                            <label className="text-muted small">
-                              TJM (Taux Journalier Moyen)
-                            </label>
-                            <p className="fw-bold">
-                              {profileData?.career_goals?.TJM
-                                ? typeof profileData.career_goals.TJM ===
-                                  "object"
-                                  ? `${profileData.career_goals.TJM.amount} ${profileData.career_goals.TJM.currency}`
-                                  : `${profileData.career_goals.TJM} ${globalCurrency.code}`
-                                : "-"}
-                            </p>
-                          </div>
-                        )}
+                            <div className="col-md-6 mb-3">
+                              <label className="text-muted small">
+                                TJM (Taux Journalier Moyen)
+                              </label>
+                              <p className="fw-bold">
+                                {profileData?.career_goals?.TJM
+                                  ? typeof profileData.career_goals.TJM ===
+                                    "object"
+                                    ? `${profileData.career_goals.TJM.amount} ${profileData.career_goals.TJM.currency}`
+                                    : `${profileData.career_goals.TJM} ${globalCurrency.code}`
+                                  : "-"}
+                              </p>
+                            </div>
+                          )}
 
                         <div className="col-md-6 mb-3">
                           <label className="text-muted small">
@@ -3118,7 +3171,7 @@ function CandidateProfile() {
                 <div className="saas-card mb-4" id="aboutRole">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-user-tie" /> About your role
+                      <i className="fas fa-user-tie" /> {t("profile.about_your_role")}
                     </h4>
 
                     {editAboutRole || checkStatus.aboutRole === 0 ? null : (
@@ -3134,9 +3187,9 @@ function CandidateProfile() {
                               profileData?.aboutRole?.yearOfExperience || "",
                             jobCategory: Array.isArray(categories)
                               ? categories.map((item) => ({
-                                  value: item,
-                                  label: item,
-                                }))
+                                value: item,
+                                label: item,
+                              }))
                               : categories
                                 ? [{ value: categories, label: categories }]
                                 : [],
@@ -3144,7 +3197,7 @@ function CandidateProfile() {
                           setEditAboutRole(true);
                         }}
                       >
-                        <i className="fas fa-pencil-alt" /> Edit
+                        <i className="fas fa-pencil-alt" /> {t("profile.edit")}
                       </button>
                     )}
                   </div>
@@ -3154,7 +3207,7 @@ function CandidateProfile() {
                       /* ================= FORM ================= */
                       <form className="saas-form-grid row">
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Job Title</label>
+                          <label className="saas-label">{t("profile.job_title")}</label>
                           <input
                             className="saas-input"
                             type="text"
@@ -3203,7 +3256,7 @@ function CandidateProfile() {
                                 jobCategory: selected,
                               })
                             }
-                            placeholder="Select Category"
+                            placeholder={t("profile.select_category")}
                             classNamePrefix="react-select"
                           />
                         </div>
@@ -3214,7 +3267,7 @@ function CandidateProfile() {
                             className="btn btn-link shadow-none text-decoration-underline text-secondary p-0 m-0 me-3"
                             onClick={() => setEditAboutRole(false)}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
 
                           <button
@@ -3222,7 +3275,7 @@ function CandidateProfile() {
                             className="btn btn-primary"
                             onClick={handleSaveAboutRole}
                           >
-                            Save
+                            {t("profile.save")}
                           </button>
                         </div>
                       </form>
@@ -3261,7 +3314,7 @@ function CandidateProfile() {
                               )
                                 ? profileData.aboutRole.jobCategory.join(", ")
                                 : profileData?.aboutRole?.jobCategory ||
-                                  "Not provided"}
+                                "Not provided"}
                             </p>
                           </div>
                         </div>
@@ -3272,7 +3325,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-briefcase" /> Work Experience
+                      <i className="fas fa-briefcase" /> {t("profile.work_experience")}
                     </h4>
 
                     {editWork ? (
@@ -3280,7 +3333,7 @@ function CandidateProfile() {
                         className="btn btn-sm btn-link"
                         onClick={() => setEditWork(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
@@ -3304,7 +3357,7 @@ function CandidateProfile() {
                           setEditWork(true);
                         }}
                       >
-                        <i className="fas fa-plus" /> Add
+                        <i className="fas fa-plus" /> {t("profile.add")}
                       </button>
                     )}
                   </div>
@@ -3314,7 +3367,7 @@ function CandidateProfile() {
                     <div className="saas-form-content">
                       <form className="saas-form-grid row">
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Job Title</label>
+                          <label className="saas-label">{t("profile.job_title")}</label>
                           <input
                             className="saas-input"
                             type="text"
@@ -3325,7 +3378,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Company</label>
+                          <label className="saas-label">{t("profile.company")}</label>
                           <input
                             className="saas-input"
                             type="text"
@@ -3336,14 +3389,14 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Job Type</label>
+                          <label className="saas-label">{t("profile.job_type_max_3")}</label>
                           <select
                             className="saas-input"
                             name="EmploymentType"
                             value={workExperienceData.EmploymentType}
                             onChange={handleChangeOfWork}
                           >
-                            <option value="">Select type</option>
+                            <option value="">{t("profile.select_type")}</option>
                             {jobTypes?.map((job) => (
                               <option key={job._id} value={job.name}>
                                 {job.name}
@@ -3367,7 +3420,7 @@ function CandidateProfile() {
                           />
                         </div>
                         <div className="col-md-2 saas-form-group">
-                          <label className="saas-label">Currency</label>
+                          <label className="saas-label">{t("profile.currency")}</label>
                           <select
                             className="saas-input"
                             name="salaryCurrency"
@@ -3382,11 +3435,11 @@ function CandidateProfile() {
 
                         <div className="col-md-6 saas-form-group">
                           <div className="form-group position-relative">
-                            <label>Work Location</label>
+                            <label>{t("profile.work_location")}</label>
                             <input
                               className="form-control"
                               type="text"
-                              placeholder="City,Country"
+                              placeholder={t("profile.work_location_placeholder")}
                               name="workLocation"
                               value={workExperienceData.workLocation}
                               onChange={handleWorkLocationSearch} // 👈 new handler
@@ -3395,7 +3448,7 @@ function CandidateProfile() {
 
                             {/* Suggestions Dropdown */}
                             {loading && (
-                              <div className="suggestion-box">Searching...</div>
+                              <div className="suggestion-box">{t("profile.searching")}</div>
                             )}
                             {!loading && citySuggestions.length > 0 && (
                               <ul
@@ -3425,7 +3478,7 @@ function CandidateProfile() {
                         </div>
                         <div className="col-md-6 saas-form-group"></div>
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">Start Date</label>
+                          <label className="saas-label">{t("profile.start_date")}</label>
                           <input
                             className="saas-input"
                             type="date"
@@ -3436,7 +3489,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 saas-form-group">
-                          <label className="saas-label">End Date</label>
+                          <label className="saas-label">{t("profile.end_date")}</label>
                           <input
                             className="saas-input"
                             type="date"
@@ -3455,7 +3508,7 @@ function CandidateProfile() {
                               checked={workExperienceData.currentlyWorkingHere}
                               onChange={handleChangeOfWork}
                             />
-                            <span>I currently work here</span>
+                            <span>{t("profile.currently_work_here")}</span>
                           </label>
                         </div>
                         <div className="col-6 mb-3">
@@ -3492,7 +3545,7 @@ function CandidateProfile() {
                             className="btn btn-outline-secondary me-2"
                             onClick={() => setEditWork(false)}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
                           <button
                             type="button"
@@ -3501,7 +3554,7 @@ function CandidateProfile() {
                               handleSaveWorkExperience();
                             }}
                           >
-                            Save
+                            {t("profile.save")}
                           </button>
                         </div>
                       </form>
@@ -3543,14 +3596,14 @@ function CandidateProfile() {
 
                                 <p className="mb-1 text-muted">
                                   {exp.companyName} •{" "}
-                                  {exp.workLocation || "N/A"} •{" "}
+                                  {exp.workLocation || t("profile.not_available")} •{" "}
                                   {`Job Type: ${exp.EmploymentType || "Full Time"}`}
                                 </p>
 
                                 <p className="small text-muted mb-1">
                                   {exp.startDate?.split("T")[0]} -{" "}
                                   {exp.currentlyWorkingHere
-                                    ? "Present"
+                                    ? t("profile.present")
                                     : exp.endDate?.split("T")[0]}
                                 </p>
 
@@ -3661,7 +3714,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-graduation-cap" /> Education
+                      <i className="fas fa-graduation-cap" /> {t("profile.education")}
                     </h4>
 
                     {editEducation ? (
@@ -3680,7 +3733,7 @@ function CandidateProfile() {
                           });
                         }}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
@@ -3698,7 +3751,7 @@ function CandidateProfile() {
                           setEditEducation(true);
                         }}
                       >
-                        <i className="fas fa-plus" /> Add
+                        <i className="fas fa-plus" /> {t("profile.add")}
                       </button>
                     )}
                   </div>
@@ -3708,25 +3761,25 @@ function CandidateProfile() {
                     <div className="saas-form-content">
                       <form className="row">
                         <div className="col-md-6 mb-3">
-                          <label className="saas-label">Titre de Diplôme</label>
+                          <label className="saas-label">{t("profile.diploma_title")}</label>
                           <input
                             type="text"
                             className="saas-input"
                             name="diplomaTitle"
                             value={educationForm.diplomaTitle}
                             onChange={handleInputChange}
-                            placeholder="Enter diploma title"
+                            placeholder={t("profile.enter_diploma_title")}
                           />
                         </div>
                         <div className="col-md-6 mb-3">
-                          <label className="saas-label">Degree</label>
+                          <label className="saas-label">{t("profile.degree")}</label>
                           <select
                             className="saas-input"
                             name="degree"
                             value={educationForm.degree}
                             onChange={handleInputChange}
                           >
-                            <option value="">Select Degree</option>
+                            <option value="">{t("profile.select_degree")}</option>
                             {degreeOptions.map((degree, index) => (
                               <option key={index} value={degree}>
                                 {degree}
@@ -3737,12 +3790,12 @@ function CandidateProfile() {
 
                         <div className="col-md-12 mb-3">
                           <label className="saas-label">
-                            Institution / University
+                            {t("profile.institution_university")}
                           </label>
                           <input
                             type="text"
                             className="saas-input"
-                            placeholder="Faculté Science, Université Mohamed V, Rabat"
+                            placeholder={t("profile.university_placeholder")}
                             name="University"
                             value={educationForm.University}
                             onChange={handleInputChange}
@@ -3750,7 +3803,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="saas-label">Start Date</label>
+                          <label className="saas-label">{t("profile.start_date")}</label>
                           <input
                             type="date"
                             className="saas-input"
@@ -3761,7 +3814,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="saas-label">End Date</label>
+                          <label className="saas-label">{t("profile.end_date")}</label>
                           <input
                             type="date"
                             className="saas-input"
@@ -3780,7 +3833,7 @@ function CandidateProfile() {
                               checked={educationForm.currentlyStudyingHere}
                               onChange={handleInputChange}
                             />
-                            <span>I am currently studying here</span>
+                            <span>{t("profile.currently_studying")}</span>
                           </label>
                         </div>
 
@@ -3801,7 +3854,7 @@ function CandidateProfile() {
                               });
                             }}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
 
                           <button
@@ -3812,7 +3865,7 @@ function CandidateProfile() {
                               // setEditEducation(false);
                             }}
                           >
-                            Save
+                            {t("profile.save")}
                           </button>
                         </div>
                       </form>
@@ -3856,7 +3909,7 @@ function CandidateProfile() {
                                 <p className="small text-muted mb-0">
                                   {edu.startDate?.slice(0, 10)} -{" "}
                                   {edu.currentlyStudyingHere
-                                    ? "Present"
+                                    ? t("profile.present")
                                     : edu.endDate?.slice(0, 10)}
                                 </p>
                               </div>
@@ -3922,7 +3975,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-lightbulb" /> Skills & Technologies
+                      <i className="fas fa-lightbulb" /> {t("profile.skills_technologies")}
                     </h4>
 
                     {editSkills ? (
@@ -3930,14 +3983,14 @@ function CandidateProfile() {
                         className="btn btn-sm btn-link"
                         onClick={() => setEditSkills(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     ) : (
                       <button
                         className="btn btn-sm btn-link"
                         onClick={() => setEditSkills(true)}
                       >
-                        {skills.length === 0 ? "Add" : "Edit"}
+                        {skills.length === 0 ? t("profile.add") : t("profile.edit")}
                       </button>
                     )}
                   </div>
@@ -3949,7 +4002,7 @@ function CandidateProfile() {
                         <div className="d-flex gap-2 mb-3">
                           <input
                             className="saas-input"
-                            placeholder="Add a skill (e.g. React, Node.js)"
+                            placeholder={t("profile.add_skill_placeholder")}
                             type="text"
                             value={newSkill}
                             onChange={(e) => setNewSkill(e.target.value)}
@@ -3980,7 +4033,7 @@ function CandidateProfile() {
                               </span>
                             ))
                           ) : (
-                            <p className="text-muted">No skills added yet.</p>
+                            <p className="text-muted">{t("profile.no_skills_yet")}</p>
                           )}
                         </div>
 
@@ -4000,7 +4053,7 @@ function CandidateProfile() {
                               </span>
                             ))
                           ) : (
-                            <p className="text-muted">No skills added yet.</p>
+                            <p className="text-muted">{t("profile.no_skills_yet")}</p>
                           )}
                         </div>
                       </>
@@ -4010,7 +4063,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-globe" /> Languages
+                      <i className="fas fa-globe" /> {t("profile.languages")}
                     </h4>
 
                     {!languageEditMode && (
@@ -4029,7 +4082,7 @@ function CandidateProfile() {
                       /* ================= FORM MODE ================= */
                       <div className="saas-form-content">
                         <div className="saas-form-group">
-                          <label className="saas-label">Language</label>
+                          <label className="saas-label">{t("profile.language")}</label>
                           <select
                             className="saas-select"
                             value={languageForm.language}
@@ -4040,7 +4093,7 @@ function CandidateProfile() {
                               }))
                             }
                           >
-                            <option value="">Select Language</option>
+                            <option value="">{t("profile.select_language")}</option>
                             {Array.isArray(masterLanguages) &&
                               masterLanguages.map((lang) => (
                                 <option key={lang._id} value={lang.name}>
@@ -4051,16 +4104,15 @@ function CandidateProfile() {
                         </div>
 
                         <div className="saas-form-group">
-                          <label className="saas-label">Proficiency</label>
+                          <label className="saas-label">{t("profile.proficiency")}</label>
                           <div className="d-flex flex-wrap gap-2 mt-2">
                             {PROFICIENCY_LEVELS.map((lvl) => (
                               <div
                                 key={lvl.code}
-                                className={`badge p-2 border ${
-                                  languageForm.proficiency === lvl.code
+                                className={`badge p-2 border ${languageForm.proficiency === lvl.code
                                     ? "bg-primary text-white"
                                     : "bg-white text-dark"
-                                }`}
+                                  }`}
                                 style={{ cursor: "pointer" }}
                                 onClick={() =>
                                   setLanguageForm((prev) => ({
@@ -4080,7 +4132,7 @@ function CandidateProfile() {
                           </label>
                           <input
                             className="saas-input"
-                            placeholder="Add comments or certificates"
+                            placeholder={t("profile.add_comments_certificates")}
                             type="text"
                             value={languageForm.comment}
                             onChange={(e) =>
@@ -4096,13 +4148,13 @@ function CandidateProfile() {
                             className="btn btn-outline-secondary me-2"
                             onClick={() => setLanguageEditMode(false)}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
                           <button
                             className="btn btn-primary"
                             onClick={handleSaveLanguage}
                           >
-                            {editingLanguageId ? "Update" : "Save"}
+                            {editingLanguageId ? t("profile.edit") : t("profile.save")}
                           </button>
                         </div>
                       </div>
@@ -4145,7 +4197,7 @@ function CandidateProfile() {
                             </div>
                           ))
                         ) : (
-                          <p className="text-muted">No languages added yet.</p>
+                          <p className="text-muted">{t("profile.no_languages_yet")}</p>
                         )}
                       </div>
                     )}
@@ -4154,7 +4206,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-certificate" /> Certificates
+                      <i className="fas fa-certificate" /> {t("profile.certificates")}
                     </h4>
 
                     {!certificateEditMode && (
@@ -4169,7 +4221,7 @@ function CandidateProfile() {
                           setCertificateEditMode(true);
                         }}
                       >
-                        <i className="fas fa-plus" /> Add
+                        <i className="fas fa-plus" /> {t("profile.add")}
                       </button>
                     )}
                   </div>
@@ -4180,7 +4232,7 @@ function CandidateProfile() {
                       <div className="row">
                         <div className="col-md-6 mb-3">
                           <label className="saas-label">
-                            Certificate Title
+                            {t("profile.certificate_title")}
                           </label>
                           <input
                             type="text"
@@ -4192,7 +4244,7 @@ function CandidateProfile() {
                         </div>
 
                         <div className="col-md-6 mb-3">
-                          <label className="saas-label">Issue Date</label>
+                          <label className="saas-label">{t("profile.issue_date")}</label>
                           <input
                             type="date"
                             className="saas-input"
@@ -4207,14 +4259,14 @@ function CandidateProfile() {
                             className="btn btn-outline-secondary me-2"
                             onClick={() => setCertificateEditMode(false)}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </button>
 
                           <button
                             className="btn btn-primary"
                             onClick={handleSaveCertificate}
                           >
-                            Save
+                            {t("profile.save")}
                           </button>
                         </div>
                       </div>
@@ -4302,7 +4354,7 @@ function CandidateProfile() {
                   <div className="saas-card">
                     <div className="saas-card-header">
                       <h4 className="saas-card-title">
-                        <i className="fas fa-link" /> Portfolio & Social Links
+                        <i className="fas fa-link" /> {t("profile.portfolio_social_links")}
                       </h4>
 
                       <button
@@ -4318,7 +4370,7 @@ function CandidateProfile() {
                           setIsEditingLinks(true);
                         }}
                       >
-                        {profileData?.links ? "Edit" : "Add"}
+                        {profileData?.links ? t("profile.edit") : t("profile.add")}
                       </button>
                     </div>
 
@@ -4330,7 +4382,7 @@ function CandidateProfile() {
                           rel="noreferrer"
                           className="btn btn-outline-secondary btn-sm"
                         >
-                          <i class="fas fa-globe me-1"></i>Website
+                          <i class="fas fa-globe me-1"></i>{t("profile.website")}
                         </a>
                       )}
 
@@ -4341,7 +4393,7 @@ function CandidateProfile() {
                           rel="noreferrer"
                           className="btn btn-outline-secondary btn-sm"
                         >
-                          <i class="fab fa-linkedin me-1"></i> LinkedIn
+                          <i class="fab fa-linkedin me-1"></i> {t("profile.linkedin")}
                         </a>
                       )}
 
@@ -4352,11 +4404,11 @@ function CandidateProfile() {
                           rel="noreferrer"
                           className="btn btn-outline-secondary btn-sm"
                         >
-                          <i class="fab fa-github me-1"></i> GitHub
+                          <i class="fab fa-github me-1"></i> {t("profile.github")}
                         </a>
                       )}
 
-                      {!profileData?.links && <p>No links added yet.</p>}
+                      {!profileData?.links && <p>{t("profile.no_links_yet")}</p>}
                     </div>
                   </div>
                 ) : (
@@ -4364,21 +4416,21 @@ function CandidateProfile() {
                   <div className="saas-card">
                     <div className="saas-card-header">
                       <h4 className="saas-card-title">
-                        <i className="fas fa-link" /> Portfolio & Social Links
+                        <i className="fas fa-link" /> {t("profile.portfolio_social_links")}
                       </h4>
 
                       <button
                         className="btn btn-sm btn-link"
                         onClick={() => setIsEditingLinks(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     </div>
 
                     <div className="saas-form-grid row">
                       <div className="col-md-6 saas-form-group">
                         <label className="saas-label">
-                          <i className="fas fa-globe me-1" /> Personal Website
+                          <i className="fas fa-globe me-1" /> {t("profile.personal_website")}
                         </label>
                         <input
                           className="saas-input"
@@ -4395,7 +4447,7 @@ function CandidateProfile() {
 
                       <div className="col-md-6 saas-form-group">
                         <label className="saas-label">
-                          <i className="fab fa-linkedin me-1" /> LinkedIn
+                          <i className="fab fa-linkedin me-1" /> {t("profile.linkedin")}
                         </label>
                         <input
                           className="saas-input"
@@ -4412,7 +4464,7 @@ function CandidateProfile() {
 
                       <div className="col-md-6 saas-form-group">
                         <label class="saas-label">
-                          <i class="fab fa-github me-1"></i> GitHub
+                          <i class="fab fa-github me-1"></i> {t("profile.github")}
                         </label>
                         <input
                           className="saas-input"
@@ -4434,7 +4486,7 @@ function CandidateProfile() {
                             handleSavePortfolioLinks();
                           }}
                         >
-                          Save Links
+                          {t("profile.save_links")}
                         </button>
                       </div>
                     </div>
@@ -4443,7 +4495,7 @@ function CandidateProfile() {
                 <div className="saas-card">
                   <div className="saas-card-header d-flex justify-content-between align-items-center">
                     <h4 className="saas-card-title">
-                      <i className="fas fa-folder-open" /> Documents
+                      <i className="fas fa-folder-open" /> {t("profile.documents")}
                     </h4>
 
                     <span className="badge bg-light text-dark">
@@ -4524,7 +4576,7 @@ function CandidateProfile() {
                           <div className="upload-box text-center p-3 border border-dashed rounded bg-white mt-2">
                             <label style={{ cursor: "pointer" }}>
                               <i className="fas fa-cloud-upload-alt text-primary mb-1" />
-                              <p className="small text-muted mb-0">Upload CV</p>
+                              <p className="small text-muted mb-0">{t("profile.upload_cv")}</p>
                               <input
                                 type="file"
                                 accept=".pdf,.doc,.docx"
@@ -4538,7 +4590,7 @@ function CandidateProfile() {
 
                         {cvFiles.length >= 3 && (
                           <p className="text-danger small">
-                            Max 3 CVs allowed. Delete one to upload new.
+                            {t("profile.max_cvs_hint")}
                           </p>
                         )}
                       </div>
@@ -4547,7 +4599,7 @@ function CandidateProfile() {
                     {/* ================= COVER LETTER SECTION ================= */}
                     <div className="col-md-6 ps-md-4">
                       <h6 className="text-muted mb-3 text-uppercase small fw-bold mt-3 mt-md-0">
-                        Cover Letters
+                        {t("profile.cover_letters")}
                       </h6>
 
                       <div className="d-flex flex-column gap-2">
@@ -4607,7 +4659,7 @@ function CandidateProfile() {
                           })
                         ) : (
                           <p className="small text-muted">
-                            No Cover Letters uploaded yet.
+                            {t("profile.no_cover_letters")}
                           </p>
                         )}
 
@@ -4617,7 +4669,7 @@ function CandidateProfile() {
                             <label style={{ cursor: "pointer" }}>
                               <i className="fas fa-cloud-upload-alt text-primary mb-1" />
                               <p className="small text-muted mb-0">
-                                Upload Cover Letter
+                                {t("profile.upload_cover_letter")}
                               </p>
                               <input
                                 type="file"
@@ -4632,7 +4684,7 @@ function CandidateProfile() {
 
                         {coverLetters.length >= 3 && (
                           <p className="text-danger small">
-                            Max 3 Cover Letters allowed.
+                            {t("profile.max_cover_letters_hint")}
                           </p>
                         )}
                       </div>
@@ -4652,16 +4704,16 @@ function CandidateProfile() {
                     <span className="copy">© </span>
                     <span id="year" />
                     <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>
@@ -4675,7 +4727,7 @@ function CandidateProfile() {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Upload CV</h5>
+                <h5 className="modal-title">{t("profile.upload_cv_modal")}</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -4720,7 +4772,7 @@ function CandidateProfile() {
                     }}
                   >
                     <label htmlFor="file-upload" className="fw-bold">
-                      Upload Your File (PDF/DOC/DOCX)
+                      {t("profile.upload_file_label")}
                     </label>
 
                     <input
@@ -4744,7 +4796,7 @@ function CandidateProfile() {
                         }}
                       />
                       <br />
-                      Click to Upload or drag & drop
+                      {t("profile.click_or_drag_upload")}
                     </label>
 
                     {error && (
@@ -4754,7 +4806,7 @@ function CandidateProfile() {
                     )}
                     {file && (
                       <div className="mt-2 text-success">
-                        Selected: {file.name}
+                        {t("profile.selected_file", { name: file.name })}
                       </div>
                     )}
                   </div>

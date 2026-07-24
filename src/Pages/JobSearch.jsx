@@ -28,7 +28,9 @@ import { useTranslation } from "react-i18next";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
+import { isJobHighlightedInListing } from "../utils/featuredJobDisplay";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function JobSearch() {
   const location = useLocation();
@@ -94,7 +96,7 @@ function JobSearch() {
     e.preventDefault();
 
     if (!url) {
-      toast.error("Link not available yet");
+      toast.error(t("jobs.link_not_available"));
       return;
     }
 
@@ -105,7 +107,7 @@ function JobSearch() {
       toast.success("Link copied!");
     } catch (err) {
       console.error("Failed to copy text:", err);
-      toast.error("Copy failed");
+      toast.error(t("jobs.copy_failed"));
     }
   };
   const fetchRemoteOptions = async () => {
@@ -410,9 +412,7 @@ function JobSearch() {
         payload.jobTitle = appliedFilters.keywords.trim();
       }
       console.log("📤 Sending Job Alert payload:", payload);
-      const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.post(`${API_BASE_URL}saveJobAlert`, payload, getRequestConfig());
 
       console.log("✅ Alert Created:", res.data);
 
@@ -635,7 +635,7 @@ function JobSearch() {
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Server error");
+      toast.error(err.response?.data?.message || t("header.server_error"));
     }
   };
   const handleSelectCompany = (company) => {
@@ -856,10 +856,7 @@ function JobSearch() {
           .join(",");
       }
 
-      const res = await axios.get(`${API_BASE_URL}getAllJob`, {
-        params,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}getAllJob`, getRequestConfig({ params }));
 
       setJobList(res.data?.jobs || []);
       setTotalJobData(res.data);
@@ -872,7 +869,6 @@ function JobSearch() {
 
   const apply = useJobApply({
     t,
-    token,
     onApplySuccess: () => {
       getAllJobList(pageSize, pageNumber);
       setIsPanelOpen(false);
@@ -1225,7 +1221,7 @@ function JobSearch() {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
+      const res = await axios.get(`${API_BASE_URL}getHighlightedCompanyDetailsList`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -1239,14 +1235,6 @@ function JobSearch() {
       state: { companyId: company._id },
     });
   };
-  const JobListLoader = () => (
-    <div className="loader-overlay">
-      <div className="loader-box">
-        <div className="custom-spinner"></div>
-        <p className="brand-text">NADDI.MA</p>
-      </div>
-    </div>
-  );
   const hasAnyFilter =
     selectedJobTypes.length > 0 ||
     selectedRemote.length > 0 || // ✅ ADD THIS
@@ -1293,7 +1281,7 @@ function JobSearch() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="Keywords / Job Title"
+                        placeholder={t("header.keywords")}
                         value={filters.keywords}
                         onChange={(e) =>
                           setFilters({ ...filters, keywords: e.target.value })
@@ -1307,7 +1295,7 @@ function JobSearch() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="City Or Postcode"
+                        placeholder={t("header.location_city")}
                         value={filters.location}
                         onChange={(e) =>
                           setFilters({ ...filters, location: e.target.value })
@@ -1377,7 +1365,7 @@ function JobSearch() {
                             <input
                               type="search"
                               className="form-control"
-                              placeholder="Search..."
+                              placeholder={t("header.search")}
                               value={searchTech}
                               onChange={(e) => setSearchTech(e.target.value)}
                             />
@@ -2041,7 +2029,7 @@ function JobSearch() {
 
                           return (
                             <span key={id} className="modern-filter-pill">
-                              {jobType?.name || "Job Type"}
+                              {jobType?.name || t("header.job_type")}
 
                               <i
                                 className="fa-solid fa-xmark"
@@ -2186,9 +2174,7 @@ function JobSearch() {
                         ))}
                       </div>
                     </div>
-                    {isLoadingJobs ? (
-                      <JobListLoader />
-                    ) : jobList.length > 0 ? (
+                    {isLoadingJobs ? null : jobList.length > 0 ? (
                       <>
                         {jobChunks.map((chunk, chunkIndex) => (
                           <React.Fragment key={chunkIndex}>
@@ -2234,7 +2220,7 @@ function JobSearch() {
                                     {/* Right Actions */}
                                     <div className="modern-job-actions">
                                       {/* Featured */}
-                                      {job?.isFeatured && (
+                                      {isJobHighlightedInListing(job) && (
                                         <span
                                           className="modern-status-badge featured"
                                           style={{
@@ -2262,10 +2248,10 @@ function JobSearch() {
                                         >
                                           {job?.assessmentResult?.status ===
                                           "passed"
-                                            ? "Test Passed"
+                                            ? t("header.test_passed")
                                             : job?.assessmentResult?.status ===
                                                 "failed"
-                                              ? "Test Failed"
+                                              ? t("header.test_failed")
                                               : t("header.Test_Required")}
                                         </span>
                                       )}
@@ -2273,7 +2259,7 @@ function JobSearch() {
                                       {/* Save */}
                                       <button
                                         className="modern-action-icon"
-                                        title="Save Job"
+                                        title={t("jobs.save_job")}
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
@@ -2344,7 +2330,7 @@ function JobSearch() {
 
                                     <span className="modern-meta-tag">
                                       <i className="fa-solid fa-signal me-1"></i>
-                                      {job?.experienceLevel || "All Levels"}
+                                      {job?.experienceLevel || t("jobs.all_levels")}
                                     </span>
 
                                     <span className="modern-meta-tag">
@@ -2541,7 +2527,7 @@ function JobSearch() {
                                                 <div className="modern-company-header-row">
                                                   <h4 className="modern-company-card-name">
                                                     {company?.brandName ||
-                                                      "Unnamed Company"}
+                                                      t("companies.unnamed_company")}
                                                   </h4>
 
                                                   <span className="modern-job-count-badge">
@@ -2726,7 +2712,7 @@ function JobSearch() {
                 onClick={handleCreateAlert}
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create Alert"}
+                {loading ? t("header.Creating") : t("header.Create_Alert")}
               </button>
               <button
                 type="button"
@@ -3002,7 +2988,7 @@ function JobSearch() {
               {selectedJob?.isApplied ? (
                 // 🔒 Already Applied
                 <button className="modern-apply-btn w-100" disabled>
-                  {selectedJob?.applicationStatus || "Applied"}
+                  {selectedJob?.applicationStatus || t("jobs.applied")}
                 </button>
               ) : !selectedJob?.isAssessmentRequired ? (
                 // ✅ Normal Apply (NO assessment)
@@ -3056,7 +3042,7 @@ function JobSearch() {
                     className="side-panel-social-link"
                     onClick={(e) => handleCopy(e, selectedJob?.linkUrl)}
                     title={
-                      selectedJob?.jobLink ? "Copy link" : "Link not available"
+                      selectedJob?.jobLink ? t("jobs.copy_link") : t("jobs.link_not_available")
                     }
                     style={{
                       cursor: selectedJob?.jobLink ? "pointer" : "not-allowed",

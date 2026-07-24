@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { getRequestConfig } from "../utils/apiHeaders";
 import { useState, useEffect } from "react";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import ReactApexChart from "react-apexcharts";
@@ -23,6 +24,16 @@ function EmployerDashboard() {
   const userRole = localStorage.getItem("user_role");
   const fName = localStorage.getItem("first_name");
   const lName = localStorage.getItem("last_name");
+  const recruiterDepartment = (() => {
+    const stored = localStorage.getItem("department");
+    if (stored) return stored;
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.department || "";
+    } catch {
+      return "";
+    }
+  })();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS);
   const [createdAt, setCreatedAt] = useState(-1);
@@ -103,7 +114,6 @@ function EmployerDashboard() {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const companyId = user?.companyId;
-      const token = localStorage.getItem("token");
 
       if (!companyId) {
         toast.error(t("header.Company_ID_not_found"));
@@ -112,11 +122,7 @@ function EmployerDashboard() {
 
       const response = await axios.get(
         `${API_BASE_URL}GetCompanyById/${companyId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
       console.log(response.data.company);
       setProfileData(response.data.company);
@@ -164,7 +170,6 @@ function EmployerDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("token");
         const params = { filter };
 
         if (filter === "custom") {
@@ -175,10 +180,7 @@ function EmployerDashboard() {
 
         const response = await axios.get(
           `${API_BASE_URL}recruiter/dashboardStats`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            params,
-          },
+          getRequestConfig({ params }),
         );
         // console.log("Dashboard Stats:", response.data);
         setStats(response.data);
@@ -196,12 +198,9 @@ function EmployerDashboard() {
   useEffect(() => {
     const fetchInsight = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}getCandidateEngagementInsights`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          getRequestConfig(),
         );
 
         const { uniqueMessageSentPercentage = 0, uniqueReplyPercentage = 0 } =
@@ -260,20 +259,16 @@ function EmployerDashboard() {
   useEffect(() => {
     const fetchJobList = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}getCompanyJobOverview`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          getRequestConfig({
             params: {
               page,
               limit,
               search: debouncedSearch,
               createdAt,
             },
-          },
+          }),
         );
         console.log("Job Overview Data:-", response.data.data);
         setActivity(response.data.data);
@@ -333,6 +328,9 @@ function EmployerDashboard() {
                     {t("header.Hello")}, {fName} {lName}
                   </h3>
                   <p>{userRole}</p>
+                  {recruiterDepartment && (
+                    <p className="recruiter-department-text">{recruiterDepartment}</p>
+                  )}
                 </div>
               )}
             </div>

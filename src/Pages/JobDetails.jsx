@@ -6,6 +6,7 @@ import moment from "moment";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
+import { isAuthReady } from "../utils/apiHeaders";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useState, useRef, useEffect } from "react";
@@ -17,6 +18,21 @@ import "./JobDetailsModern.css";
 import { useTranslation } from "react-i18next";
 import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
+import PageSEO from "../components/PageSEO";
+import {
+  absoluteUrl,
+  buildJobCanonicalPath,
+  buildJobCanonicalUrl,
+  buildJobPostingSchema,
+  buildBreadcrumbSchema,
+  stripHtml,
+  SITE,
+} from "../utils/seo";
+import { fetchJobRecord } from "../utils/jobRoutes";
+import {
+  resolveHeroCoverUrl,
+  resolveJobCoverUrl,
+} from "../utils/companyLogo";
 
 function JobDetails() {
   const { t } = useTranslation("global");
@@ -33,7 +49,7 @@ function JobDetails() {
   });
   const [categoryCount, setCategoryCount] = useState([]);
   console.log("Job Status:", jobStatus);
-  const token = localStorage.getItem("token"); // 🔹 assuming JWT is stored here
+  const token = localStorage.getItem("token");
   const { jobSlug } = useParams();
 
   const id = location.state?.JobId;
@@ -45,19 +61,21 @@ function JobDetails() {
   const [job, setJob] = useState(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const [heroBgImage, setHeroBgImage] = useState(null);
+  const [heroReady, setHeroReady] = useState(false);
   console.log(id);
   const from = location.state?.from;
   console.log(from);
 
   const breadcrumbLabel = from?.includes("/manage-job-application")
-    ? "Manage Job Application"
+    ? t("applications.manage_job_application")
     : from?.includes("/job-search")
-      ? "Job Search"
+      ? t("jobs.job_search_title")
       : from?.includes("/applied-jobs-list")
-        ? "Application Management"
+        ? t("header.Application_Management")
         : from?.includes("/jobs")
           ? "Jobs"
-          : "Candidate Dashboard";
+          : t("breadcrumbs.candidate_dashboard");
 
   const fetchGlobalCurrency = async () => {
     try {
@@ -81,21 +99,18 @@ function JobDetails() {
   useEffect(() => {
     fetchGlobalCurrency();
   }, []);
-  const fetchJobDetails = async () => {
+  const loadJob = async () => {
+    const lookup = id || jobSlug;
+    if (!lookup) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-
-      const res = await axios.get(`${API_BASE_URL}getJobById/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      const responseData = res.data?.data;
+      const responseData = await fetchJobRecord(lookup, token);
       const jobDetails = responseData?.jobDetails;
 
-      console.log(jobDetails?.confidentialJobPost);
-      console.log(userRole);
-
-      // ✅ Block JobSeeker for confidential jobs
       if (
         userRole === "JobSeeker" &&
         jobDetails?.confidentialJobPost === true
@@ -104,7 +119,6 @@ function JobDetails() {
           "This confidential job is no longer available for candidate access.",
         );
 
-        // ❌ Do not navigate anywhere
         setJob(null);
         setAssessmentDetails(null);
         setLinkUrl("");
@@ -115,7 +129,6 @@ function JobDetails() {
         return;
       }
 
-      // ✅ Recruiter / Admin / Others can access
       setJob(responseData);
       setLinkUrl(jobDetails?.jobLink || "");
       setAssessmentDetails(responseData?.assessmentResult || null);
@@ -154,9 +167,8 @@ function JobDetails() {
     isSelectionMade,
   } = useJobApply({
     t,
-    token,
     onApplySuccess: () => {
-      if (id) fetchJobDetails();
+      loadJob();
     },
   });
 
@@ -177,16 +189,64 @@ function JobDetails() {
     ],
   };
   useEffect(() => {
-    if (id) {
-      fetchJobDetails();
-    }
-  }, [id]);
+    loadJob();
+  }, [id, jobSlug]);
+
+  // Prefetch cover before paint so the default never flashes under the company image
+  useEffect(() => {
+    let cancelled = false;
+    const coverSeed = job?.jobDetails?._id || job?._id || id || jobSlug;
+    const passedCover = location.state?.coverImage;
+
+    const applyCover = async () => {
+      // Wait for job payload unless we already have a cover from navigation
+      if (!job && loading) {
+        if (passedCover) {
+          try {
+            const optimistic = await resolveHeroCoverUrl(
+              { companyCoverPhoto: passedCover, coverPhoto: passedCover },
+              coverSeed,
+            );
+            if (!cancelled && optimistic) {
+              setHeroBgImage(optimistic);
+              setHeroReady(true);
+            }
+          } catch {
+            // keep skeleton until job loads
+          }
+        }
+        return;
+      }
+
+      // Keep any optimistic cover visible while we resolve the final URL
+      try {
+        const url = await resolveHeroCoverUrl(
+          job || { companyCoverPhoto: passedCover },
+          coverSeed,
+        );
+        if (cancelled) return;
+        setHeroBgImage(url);
+        setHeroReady(true);
+      } catch {
+        if (cancelled) return;
+        setHeroBgImage(resolveJobCoverUrl(job, coverSeed));
+        setHeroReady(true);
+      }
+    };
+
+    applyCover();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [job, jobSlug, id, loading, location.state?.coverImage]);
+
   console.log(linkUrl);
 
   const handleSaveJob = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
-      if (!token) {
+      if (!isAuthReady()) {
         toast.warning("⚠️ Please login first to save jobs!");
         // optionally redirect to login page:
         // navigate("/login");
@@ -208,7 +268,7 @@ function JobDetails() {
       if (res.data.success) {
         const { message } = res.data;
 
-        fetchJobDetails();
+        loadJob();
 
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
@@ -229,7 +289,7 @@ function JobDetails() {
   const handleSaveJob1 = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
-      if (!token) {
+      if (!isAuthReady()) {
         toast.warning("⚠️ Please login first to save jobs!");
         // optionally redirect to login page:
         // navigate("/login");
@@ -253,7 +313,7 @@ function JobDetails() {
       if (res.data.success) {
         const { message } = res.data;
 
-        fetchJobDetails();
+        loadJob();
 
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
@@ -276,7 +336,7 @@ function JobDetails() {
     e.preventDefault();
 
     if (!url) {
-      toast.error("Link not available yet");
+      toast.error(t("jobs.link_not_available"));
       return;
     }
 
@@ -287,7 +347,7 @@ function JobDetails() {
       toast.success("Link copied!");
     } catch (err) {
       console.error("Failed to copy text:", err);
-      toast.error("Copy failed");
+      toast.error(t("jobs.copy_failed"));
     }
   };
   const fetchAssessmentDetails = async (assessmentId) => {
@@ -309,7 +369,7 @@ function JobDetails() {
       console.error("Failed to load assessment", error);
 
       toast.error(
-        error?.response?.data?.message || "Unable to load assessment",
+        error?.response?.data?.message || t("jobs.unable_load_assessment"),
       );
     } finally {
       setLoadingAssessment(false);
@@ -319,7 +379,7 @@ function JobDetails() {
   const handleSaveJob2 = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
-      if (!token) {
+      if (!isAuthReady()) {
         toast.warning("⚠️ Please login first to save jobs!");
         // optionally redirect to login page:
         // navigate("/login");
@@ -350,7 +410,7 @@ function JobDetails() {
         // );
 
         if (id) {
-          fetchJobDetails();
+          loadJob();
         }
         if (message.toLowerCase().includes("saved")) {
           toast.success(message + " ❤️");
@@ -428,13 +488,13 @@ function JobDetails() {
 
       // 🔴 Retake blocked
       if (apiResponse?.status === "FAILED_BLOCKED") {
-        toast.error("You cannot retake this assessment after failing");
+        toast.error(t("jobs.cannot_retake_assessment"));
         return;
       }
 
       // 🟠 Already submitted
       if (apiResponse?.message === "Assessment already submitted") {
-        toast.error("You have already submitted this assessment");
+        toast.error(t("jobs.assessment_already_submitted"));
 
         return;
       }
@@ -479,8 +539,56 @@ function JobDetails() {
 
   const isRetryBlocked = canRetryLater || cannotRetry;
 
+  const canonicalPath = job
+    ? buildJobCanonicalPath(job) || `/job/${jobSlug}`
+    : `/job/${jobSlug}`;
+  const canonicalUrl = job
+    ? buildJobCanonicalUrl(job) || absoluteUrl(`/job/${jobSlug}`)
+    : absoluteUrl(`/job/${jobSlug}`);
+  const jobTitle = job?.jobDetails?.jobTitle || (jobSlug ? jobSlug.replace(/-/g, " ") : t("breadcrumbs.job_details"));
+  const companyName = job?.jobDetails?.companyId?.brandName;
+  const jobCity = Array.isArray(job?.jobDetails?.city) && job.jobDetails.city.length > 0
+    ? job.jobDetails.city.join(", ")
+    : job?.jobDetails?.companyId?.city;
+
+  const cleanTitleParts = [jobTitle, companyName, jobCity]
+    .map((part) => String(part || "").trim())
+    .filter(
+      (part) =>
+        part &&
+        part.toLowerCase() !== "n/a" &&
+        part.toLowerCase() !== "null" &&
+        part.toLowerCase() !== "undefined",
+    );
+
+  const seoTitle = cleanTitleParts.join(" - ");
+
+  const seoDescription = job?.jobDetails
+    ? stripHtml(
+        job.jobDetails.shortDescription || job.jobDetails.jobDescription,
+      )
+    : SITE.defaultDescription;
+  const jobSchemas = [
+    job?.jobDetails
+      ? buildJobPostingSchema(job, canonicalUrl)
+      : null,
+    buildBreadcrumbSchema([
+      { name: t("header.home"), path: "/" },
+      { name: t("header.jobs"), path: "/jobs" },
+      { name: job?.jobDetails?.jobTitle || jobTitle, path: canonicalPath },
+    ]),
+  ];
+
   return (
     <>
+      <PageSEO
+        title={seoTitle}
+        description={seoDescription}
+        canonical={canonicalPath}
+        image={heroBgImage || SITE.defaultImage}
+        ogType="website"
+        jsonLd={jobSchemas}
+      />
       <ToastContainer />
       {from !== "/" && (
         <section className="inner-breadcrumb-main-area ">
@@ -488,15 +596,15 @@ function JobDetails() {
             <div className="row">
               <div className="col-lg-12 col-sm-12">
                 <div className="breadcrumb-main-list-area ">
-                  <h4>Job Details</h4>
+                  <p className="breadcrumb-page-label">{t("breadcrumbs.job_details")}</p>
                   <ul>
                     <li>
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                       <i className="fa-solid fa-angle-right"></i>
                     </li>
                     {from !== "/jobs" && (
                       <li>
-                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <Link to="/candidate-dashboard">{t("header.dashboard")}</Link>
                         <i className="fa-solid fa-angle-right"></i>
                       </li>
                     )}
@@ -514,7 +622,7 @@ function JobDetails() {
                         ? "Loading..."
                         : job?.jobDetails?.jobTitle ||
                           job?.jobTitle ||
-                          "Job Details"}
+                          t("breadcrumbs.job_details")}
                     </li>
                   </ul>
                 </div>
@@ -531,7 +639,19 @@ function JobDetails() {
           aria-relevant="additions text"
           aria-label="Notifications Alt+T"
         />
-        <section className="job-hero-section">
+        <section
+          className={`job-hero-section${heroReady ? " is-ready" : " is-loading"}`}
+        >
+          {heroBgImage ? (
+            <img
+              className={`job-hero-cover${heroReady ? " is-visible" : ""}`}
+              alt=""
+              src={heroBgImage}
+              {...(String(heroBgImage || "").startsWith("http")
+                ? { crossOrigin: "anonymous" }
+                : {})}
+            />
+          ) : null}
           <div className="job-hero-pattern" />
         </section>
         <div className="container">
@@ -541,7 +661,7 @@ function JobDetails() {
                 <div className="job-company-logo-small">
                   <img
                     crossOrigin="anonymous"
-                    alt="Company 1"
+                    alt={`${job?.jobDetails?.companyId?.brandName || t("jobs.unknown_company")} logo`}
                     src={
                       job?.jobDetails?.companyId?.logo
                         ? `${API_IMAGE_URL}${job.jobDetails.companyId.logo}`
@@ -605,7 +725,7 @@ function JobDetails() {
                     </span>
                   </span>
                 </div>
-                <div className="fact-pill" title="Employment Type">
+                <div className="fact-pill" title={t("jobs.employment_type")}>
                   <i className="fa-solid fa-file-contract" />
                   <span>
                     {job?.jobDetails?.employmentType?.length > 0
@@ -615,7 +735,7 @@ function JobDetails() {
                       : "N/A"}
                   </span>
                 </div>
-                <div className="fact-pill" title="Remote Status">
+                <div className="fact-pill" title={t("jobs.remote_status")}>
                   <i className="fa-solid fa-house-laptop" />
                   <span>{job?.jobDetails?.remote?.name || "N/A"}</span>
                 </div>
@@ -630,7 +750,7 @@ function JobDetails() {
                     <font dir="auto" style={{ verticalAlign: "inherit" }}>
                       <font dir="auto" style={{ verticalAlign: "inherit" }}>
                         {job?.jobDetails?.privatJobDetails?.salaryNegotiable ? (
-                          "Salary negotiable"
+                          t("jobs.salary_negotiable")
                         ) : job?.jobDetails?.privatJobDetails?.minSalary ||
                           job?.jobDetails?.privatJobDetails?.maxSalary ? (
                           <>
@@ -640,7 +760,7 @@ function JobDetails() {
                             {globalCurrency?.code || "$"}
                           </>
                         ) : (
-                          "Salary negotiable"
+                          t("jobs.salary_negotiable")
                         )}
                       </font>
                     </font>
@@ -728,7 +848,8 @@ function JobDetails() {
 
                   {/* CONTENT */}
                   <div>
-                    <h4
+                    <p
+                      className="assessment-card-title"
                       style={{
                         marginBottom: "6px",
                         fontWeight: "600",
@@ -741,7 +862,7 @@ function JobDetails() {
                       }}
                     >
                       Skills Assessment Required
-                    </h4>
+                    </p>
 
                     {/* MESSAGE */}
                     <p
@@ -840,13 +961,13 @@ function JobDetails() {
               )}
               <section className="job-modern-card main-content-card">
                 <div className="modern-content-block first">
-                  <h2>About the role</h2>
+                  <h2>{t("jobs.about_role")}</h2>
                   <div className="rich-text-content">
                     <p>{job?.jobDetails?.shortDescription}</p>
                   </div>
                 </div>
                 <div className="modern-content-block">
-                  <h2>Job Description</h2>
+                  <h2>{t("header.Job_Description")}</h2>
 
                   <div
                     className="rich-text-content"
@@ -902,7 +1023,7 @@ function JobDetails() {
                   </div>
                 )}
                 <div className="modern-content-block last">
-                  <h2>Related Tags</h2>
+                  <h2>{t("jobs.related_tags")}</h2>
 
                   <div className="job-tags-list">
                     {job?.jobDetails?.tags && job.jobDetails.tags.length > 0 ? (
@@ -920,7 +1041,7 @@ function JobDetails() {
               {job?.similarJobs?.length > 0 && (
                 <section className="job-modern-card">
                   <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="mb-0">Similar Jobs</h2>
+                    <h2 className="mb-0">{t("jobs.similar_jobs")}</h2>
                     <div className="d-flex gap-2">
                       <button
                         onClick={() => sliderRef.current.slickPrev()}
@@ -1016,7 +1137,7 @@ function JobDetails() {
                                 />
                               </div>
                               <div className="card-header-text">
-                                <h4
+                                <p
                                   className="company-name mb-1"
                                   style={{
                                     "font-size": "0.95rem",
@@ -1027,8 +1148,8 @@ function JobDetails() {
                                 >
                                   {" "}
                                   {item?.companyId?.brandName ||
-                                    "Unknown Company"}
-                                </h4>
+                                    t("jobs.unknown_company")}
+                                </p>
                                 <span
                                   className="post-date"
                                   style={{
@@ -1046,7 +1167,7 @@ function JobDetails() {
                                     >
                                       {item?.createdAt
                                         ? moment(item.createdAt).fromNow()
-                                        : "Recently posted"}
+                                        : t("jobs.recently_posted")}
                                     </font>
                                   </font>
                                 </span>
@@ -1062,7 +1183,7 @@ function JobDetails() {
                                   margin: "0px",
                                 }}
                               >
-                                {item.jobTitle || "Job Title"}
+                                {item.jobTitle || t("header.jobTitle")}
                               </h3>
                             </div>
                             <div className="card-tags-grid d-flex flex-wrap gap-2">
@@ -1081,7 +1202,7 @@ function JobDetails() {
                                   ? item.jobCategory
                                       .map((c) => c.name)
                                       .join(", ")
-                                  : "Category"}
+                                  : t("header.category")}
                               </span>
                               <span
                                 className="card-tag-pill"
@@ -1108,7 +1229,7 @@ function JobDetails() {
                                       ? item.employmentType
                                           .map((t) => t.name)
                                           .join(", ")
-                                      : "Full Time"}
+                                      : t("jobs.full_time")}
                                   </font>
                                 </font>
                               </span>
@@ -1124,7 +1245,7 @@ function JobDetails() {
                                 }}
                               >
                                 <i className="fa-solid fa-location-dot me-1" />{" "}
-                                {item?.companyId?.city || "Location"}
+                                {item?.companyId?.city || t("header.location")}
                               </span>
                               <span
                                 className="card-tag-pill"
@@ -1176,7 +1297,7 @@ function JobDetails() {
                   {/* 🔒 Already Applied */}
                   {job?.jobDetails?.isApplied ? (
                     <button className="btn-modern-primary w-100" disabled>
-                      {job?.jobDetails?.applicationStatus || "Applied"}
+                      {job?.jobDetails?.applicationStatus || t("jobs.applied")}
                     </button>
                   ) : (
                     <>
@@ -1276,20 +1397,20 @@ function JobDetails() {
                         color: job?.jobDetails?.isSaved ? "#ff0000" : "",
                       }}
                     />
-                    <span>Save</span>
+                    <span>{t("jobs.save")}</span>
                   </button>
                   <button
                     className="tool-item"
-                    title={linkUrl ? "Copy link" : "Link not available"}
+                    title={linkUrl ? t("jobs.copy_link") : t("jobs.link_not_available")}
                     onClick={(e) => handleCopy(e, linkUrl)}
                     style={{ cursor: linkUrl ? "pointer" : "not-allowed" }}
                   >
                     <i className="fa-solid fa-link" />
-                    <span>Share</span>
+                    <span>{t("jobs.share")}</span>
                   </button>
                   <a href="#" className="tool-item text-decoration-none">
                     <i className="fa-solid fa-flag" />
-                    <span>Report</span>
+                    <span>{t("jobs.report")}</span>
                   </a>
                 </div>
                 <div className="share-links mt-3">
@@ -1340,23 +1461,23 @@ function JobDetails() {
                   </a>
                 </div>
                 <div className="sidebar-company-integrated mt-5 pt-5 border-top">
-                  <h3 className="sidebar-sub-title">About the Company</h3>
-                  <h4 className="sidebar-company-name">
+                  <h3 className="sidebar-sub-title">{t("jobs.about_company")}</h3>
+                  <p className="sidebar-company-name">
                     <Link
                       className="job-company-link-minimal text-decoration-none"
                       to={`/${job?.jobDetails?.companyId?.slug}`}
                       state={{ companyId: job?.jobDetails?.companyId?._id }}
                     >
                       {job?.jobDetails?.companyId?.brandName ||
-                        "Unknown Company"}
+                        t("jobs.unknown_company")}
                     </Link>
-                  </h4>
+                  </p>
                   <div className="side-company-description rich-text-content company-description-clamped mt-3">
                     <p
                       dangerouslySetInnerHTML={{
                         __html:
                           job?.jobDetails?.companyId?.aboutCompany ||
-                          "No company description available",
+                          t("jobs.no_company_description"),
                       }}
                     />
                     <font
@@ -1394,7 +1515,7 @@ function JobDetails() {
                     <font dir="auto" style={{ "vertical-align": "inherit" }}>
                       <font dir="auto" style={{ "vertical-align": "inherit" }}>
                         {job?.jobDetails?.companyId?.brandName ||
-                          "Unknown Company"}
+                          t("jobs.unknown_company")}
                       </font>
                     </font>
                   </h3>
@@ -1420,7 +1541,7 @@ function JobDetails() {
                               border: "1px solid rgb(226, 232, 240)",
                             }}
                           >
-                            <h5
+                            <p
                               className="compact-job-title text-capitalize"
                               style={{
                                 fontSize: "0.95rem",
@@ -1430,7 +1551,7 @@ function JobDetails() {
                               }}
                             >
                               {item?.jobTitle || "Job Title"}
-                            </h5>
+                            </p>
 
                             <div
                               className="compact-job-meta d-flex justify-content-between align-items-center"
@@ -1455,14 +1576,14 @@ function JobDetails() {
                               >
                                 {item?.published_date
                                   ? moment(item.published_date).fromNow()
-                                  : "Recently posted"}
+                                  : t("jobs.recently_posted")}
                               </span>
                             </div>
                           </div>
                         </Link>
                       ))
                     ) : (
-                      <p className="text-muted">No jobs available</p>
+                      <p className="text-muted">{t("header.no_jobs")}</p>
                     )}
                   </div>
                 </div>
@@ -1504,9 +1625,9 @@ function JobDetails() {
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h1 className="modal-title" id="skillAssessmentModalLabel">
+                <span className="modal-title fs-5 fw-bold" id="skillAssessmentModalLabel">
                   <i className="fa-solid fa-file"></i>Test Required
-                </h1>
+                </span>
                 <button
                   type="button"
                   className="btn-close"
@@ -1521,7 +1642,9 @@ function JobDetails() {
                     skills assessment
                   </p>
                   <div className="skill-assessment-javaScript-fundamental">
-                    <h6>{assessment?.assessmentName}</h6>
+                    <p className="assessment-subtitle fw-semibold">
+                      {assessment?.assessmentName}
+                    </p>
                     {/* <span>Java Questions:10</span> */}
                     {categoryCount?.map((cat) => (
                       <span key={cat.categoryName}>
@@ -1551,7 +1674,7 @@ function JobDetails() {
                     </ul>
                   </div>
                   <div className="skill-assessment-important-area">
-                    <h6>Important</h6>
+                    <p className="assessment-note fw-semibold">{t("jobs.important")}</p>
                     <p>
                       once started, the timer cannot be paused. Make sure you
                       have enough time to complete the test.
@@ -1608,7 +1731,7 @@ function JobDetails() {
                       </span>
                     </div>
                     <div className="skill-assessment-test-question-option active">
-                      <h6>What is the output of typeof null in javaScript?</h6>
+                      <p className="assessment-question">What is the output of typeof null in javaScript?</p>
                       <label>
                         <input type="radio" name="q6" checked />
                         Class
@@ -1627,7 +1750,7 @@ function JobDetails() {
                       </label>
                     </div>
                     <div className="skill-assessment-test-question-option">
-                      <h6>Are is the output of typeof null in javaScript?</h6>
+                      <p className="assessment-question">Are is the output of typeof null in javaScript?</p>
                       <label>
                         <input type="radio" name="q6" checked />
                         Array
@@ -1646,7 +1769,7 @@ function JobDetails() {
                       </label>
                     </div>
                     <div className="skill-assessment-test-question-option">
-                      <h6>Why is the output of typeof null in javaScript?</h6>
+                      <p className="assessment-question">Why is the output of typeof null in javaScript?</p>
                       <label>
                         <input type="radio" name="q6" />
                         List
@@ -1665,7 +1788,7 @@ function JobDetails() {
                       </label>
                     </div>
                     <div className="skill-assessment-test-question-option">
-                      <h6>This is the output of typeof null in javaScript?</h6>
+                      <p className="assessment-question">This is the output of typeof null in javaScript?</p>
                       <label>
                         <input type="radio" name="q6" />
                         List
@@ -1684,9 +1807,9 @@ function JobDetails() {
                       </label>
                     </div>
                     <div className="skill-assessment-test-question-option">
-                      <h6>
+                      <p className="assessment-question">
                         React.js is the output of typeof null in javaScript?
-                      </h6>
+                      </p>
                       <label>
                         <input type="radio" name="q6" checked />
                         Class
@@ -1741,7 +1864,7 @@ function JobDetails() {
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-body">
-                  <h5>Finish Test?</h5>
+                  <p className="modal-section-title">Finish Test?</p>
                   <p>You have answered 5 of 5 questions.</p>
                 </div>
                 <div class="modal-footer">

@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import Swal from "sweetalert2";
 import { API_BASE_URL } from "../Url/Url";
+import { buildPaymentSuccessState } from "../utils/paymentSuccessState";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
@@ -8,13 +11,21 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "./CheckoutForm";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { getPaymentRequestConfig, getRequestConfig } from "../utils/apiHeaders";
+import {
+  formatSearchBoostLabel,
+  formatFeaturedLocationLabels,
+  isCompanyProfileHighlightEnabled,
+} from "../utils/featuredJobDisplay";
 const AddPlan = () => {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [stripePromise, setStripePromise] = useState(null);
   const [plans, setPlans] = useState([]);
+  const [currentPlan, setCurrentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentGateways, setPaymentGateways] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -33,12 +44,22 @@ const AddPlan = () => {
     contactPhone: "",
     message: "",
   });
+  const [contactPlanError, setContactPlanError] = useState("");
+  const paymentSubmittingRef = useRef(false);
+
+  const getApiErrorMessage = (error, fallback) =>
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback ||
+    t("wallet.failedToSendRequest");
 
   const handleChange = (e) => {
     setContactForm({
       ...contactForm,
       [e.target.name]: e.target.value,
     });
+    if (contactPlanError) setContactPlanError("");
   };
   const handleSubmit = async () => {
     if (
@@ -46,23 +67,26 @@ const AddPlan = () => {
       !contactForm.contactEmail ||
       !contactForm.contactPhone
     ) {
-      toast.error("Please fill all required fields");
+      toast.error(t("header.Please_fill_all_required_fields"));
       return;
     }
 
     if (!selectedPlan?._id) {
-      toast.error("Plan not selected");
+      toast.error(t("wallet.planNotSelected"));
       return;
     }
 
     try {
       setPaymentLoading(true);
+      setContactPlanError("");
 
       // ✅ Validate pack first
       const validation = await validatePack(selectedPlan._id);
 
       if (!validation.success) {
-        setPaymentLoading(false);
+        const message = validation.message || t("wallet.packValidationFailed");
+        setContactPlanError(message);
+        toast.error(message);
         return;
       }
 
@@ -87,10 +111,11 @@ const AddPlan = () => {
         },
       );
 
-      if (response.data.success) {
-        toast.success(response.data.message || "Request sent successfully");
+      if (response.data?.success) {
+        toast.success(response.data.message || t("wallet.requestSentSuccess"));
 
         setShowContactModal(false);
+        setContactPlanError("");
 
         setContactForm({
           contactPersonName: "",
@@ -98,12 +123,18 @@ const AddPlan = () => {
           contactPhone: "",
           message: "",
         });
-      } else {
-        toast.error(response.data.message || "Request failed");
+        return;
       }
+
+      const message =
+        response.data?.message || t("wallet.unableToSendInquiry");
+      setContactPlanError(message);
+      toast.error(message);
     } catch (error) {
       console.error("Contact pack error:", error);
-      toast.error(error.response?.data?.message || "Failed to send request");
+      const message = getApiErrorMessage(error);
+      setContactPlanError(message);
+      toast.error(message);
     } finally {
       setPaymentLoading(false);
     }
@@ -175,6 +206,7 @@ const AddPlan = () => {
       });
 
       if (res.data.success) {
+        setCurrentPlan(res.data.currentPlan || null);
         setPlans(res.data.data || []);
       }
     } catch (error) {
@@ -190,9 +222,37 @@ const AddPlan = () => {
     setPaymentMethod("");
     setSelectedPlan(null);
   };
-  const handleBuyNow = (plan) => {
-    // If no gateway → switch to Contact Us
-    if (!hasActiveGateway) {
+  const showPackProcessError = (message) => {
+    Swal.fire({
+      title: t("header.Process_Error"),
+      text: message || t("wallet.activePackCannotPurchase"),
+      icon: "error",
+      confirmButtonText: t("header.OK"),
+    });
+  };
+
+  const opensContactFlow = (plan) =>
+    plan?.showButton === "Contact Us" ||
+    plan?.canPurchaseOnline === false ||
+    plan?.creditApprovalType === "Manual" ||
+    !hasActiveGateway;
+
+  const handleBuyNow = async (plan) => {
+    if (!plan?.canPurchase) {
+      showPackProcessError(
+        plan?.purchaseBlockedReason ||
+          t("wallet.cannotPurchasePlan"),
+      );
+      return;
+    }
+
+    const validation = await validatePack(plan._id);
+    if (!validation.success) {
+      showPackProcessError(validation.message);
+      return;
+    }
+
+    if (opensContactFlow(plan)) {
       setSelectedPlan(plan);
       setShowContactModal(true);
       return;
@@ -213,26 +273,30 @@ const AddPlan = () => {
   //   setShowPaymentModal(true);
   // };
   const handleDemoPayment = async () => {
+    if (paymentSubmittingRef.current || paymentLoading) return;
+
     try {
       await new Promise((res) => setTimeout(res, 1000));
-      // toast.success(`Demo Payment Successful via ${paymentMethod}`);
       await purchasePack();
       resetPaymentState();
     } catch {
-      toast.error("Demo payment failed");
+      toast.error(t("wallet.demoPaymentFailed"));
     }
   };
   const handleProceed = async () => {
     if (paymentLoading) return;
 
     if (!paymentMethod) {
-      toast.error("Please select payment method");
+      toast.error(t("wallet.selectPaymentMethodRequired"));
       return;
     }
 
     const result = await validatePack(selectedPlan._id);
 
-    if (!result.success) return;
+    if (!result.success) {
+      showPackProcessError(result.message);
+      return;
+    }
 
     setStartPayment(true);
   };
@@ -241,9 +305,7 @@ const AddPlan = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${API_BASE_URL}getActivePaymentGateways`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}getActivePaymentGateways`, getRequestConfig());
 
       if (res.data.success) {
         const active = res.data.data.filter((g) => g.isActive);
@@ -322,42 +384,60 @@ const AddPlan = () => {
   //   }
   // };
   const purchasePack = async (paymentData = {}) => {
+    if (paymentSubmittingRef.current) {
+      return { success: false, duplicate: true };
+    }
+
+    paymentSubmittingRef.current = true;
+
     try {
       setPaymentLoading(true);
 
-      const token = localStorage.getItem("token");
-
       if (!selectedPlan?._id) {
-        toast.error("No plan selected");
+        toast.error(t("wallet.noPlanSelected"));
         return { success: false };
       }
 
+      const { paymentMethod, paymentMode, ...rest } = paymentData;
       const res = await axios.post(
         `${API_BASE_URL}company/purchase-pack`,
         {
           packId: selectedPlan._id,
-          paymentMethod: paymentData.paymentMethod,
-          ...paymentData,
+          paymentMethod: paymentMethod ?? paymentMode,
+          ...rest,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getPaymentRequestConfig(),
       );
 
       if (res.data.success) {
         toast.success(res.data.message);
         resetPaymentState();
-        return { success: true };
-      } else {
-        toast.error(res.data.message || "Purchase failed");
+        return {
+          success: true,
+          message: res.data.message,
+          data: res.data.data,
+        };
+      }
+
+      const packMessage = res.data.message || t("checkout.purchaseFailed");
+      if (/active pack|cannot purchase another/i.test(packMessage)) {
+        showPackProcessError(packMessage);
         return { success: false };
       }
+
+      toast.error(packMessage);
+      return { success: false };
     } catch (error) {
-      toast.error(error.response?.data?.message || "Purchase failed");
+      const packMessage = error.response?.data?.message || t("checkout.purchaseFailed");
+      if (/active pack|cannot purchase another/i.test(packMessage)) {
+        showPackProcessError(packMessage);
+        return { success: false };
+      }
+
+      toast.error(packMessage);
       return { success: false };
     } finally {
+      paymentSubmittingRef.current = false;
       setPaymentLoading(false);
     }
   };
@@ -379,11 +459,15 @@ const AddPlan = () => {
         return { success: true, data: res.data.data };
       }
 
-      toast.error(res.data.message || "Pack validation failed");
-      return { success: false };
+      return {
+        success: false,
+        message: res.data.message || t("wallet.packValidationFailed"),
+      };
     } catch (error) {
-      toast.error(error.response?.data?.message || "Validation failed");
-      return { success: false };
+      return {
+        success: false,
+        message: error.response?.data?.message || t("wallet.validationFailed"),
+      };
     }
   };
   const paypalGateway = paymentGateways.find(
@@ -394,7 +478,7 @@ const AddPlan = () => {
   const handleManualRequest = async () => {
     try {
       if (!manualType) {
-        toast.error("Please select credit type");
+        toast.error(t("wallet.selectCreditType"));
         return;
       }
 
@@ -420,7 +504,7 @@ const AddPlan = () => {
       );
 
       if (res.data.success) {
-        toast.success("Manual recharge request submitted successfully");
+        toast.success(t("wallet.manualRechargeSuccess"));
 
         setShowManualModal(false);
         setManualCvCredits("");
@@ -428,11 +512,11 @@ const AddPlan = () => {
         setManualReason("");
         setManualType("");
       } else {
-        toast.error(res.data.message || "Request failed");
+        toast.error(res.data.message || t("wallet.requestFailed"));
       }
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to submit manual request",
+        error.response?.data?.message || t("wallet.failedToSubmitManual"),
       );
     } finally {
       setActionLoading(false);
@@ -453,12 +537,12 @@ const AddPlan = () => {
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <div className="inner-page-banner-title">
-                  <h2>Add Plan</h2>
+                  <h1>{t("wallet.addPlan")}</h1>
                   <ul>
                     <li className="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>Add Plan</li>
+                    <li>{t("wallet.addPlan")}</li>
                   </ul>
                 </div>
               </div>
@@ -479,22 +563,22 @@ const AddPlan = () => {
             </div> */}
             <div className="col-lg-12 mb-3">
               <div className="section-title">
-                <h2>Transparent Pricing Plan For You</h2>
-                <p>Select the best plan that fits your needs</p>
+                <h2>{t("wallet.transparentPricing")}</h2>
+                <p>{t("wallet.selectBestPlan")}</p>
               </div>
             </div>
 
             {/* Loading */}
             {loading && (
               <div className="col-12 text-center">
-                <p>Loading plans...</p>
+                <p>{t("wallet.loadingPlans")}</p>
               </div>
             )}
 
             {/* No Plans */}
             {!loading && plans.length === 0 && (
               <div className="col-12 text-center">
-                <p>No active plans available</p>
+                <p>{t("wallet.noActivePlans")}</p>
               </div>
             )}
 
@@ -510,14 +594,14 @@ const AddPlan = () => {
                   <div className="col-lg-4 col-md-4" key={plan._id}>
                     <div className="enterprise-card mt-2">
                       <div className="enterprise-top">
-                        <span className="enterprise-badge">Enterprise</span>
+                        <span className="enterprise-badge">{t("wallet.enterprise")}</span>
                         <h3>{plan.packName}</h3>
                         <h2>
                           {plan.amount
                             ? `${plan.currency} ${plan.amount}`
-                            : "Custom Pricing"}
+                            : t("wallet.customPricing")}
                         </h2>
-                        <p>Tailored solutions for large companies</p>
+                        <p>{t("wallet.tailoredSolutions")}</p>
                       </div>
 
                       <div className="enterprise-features">
@@ -528,9 +612,9 @@ const AddPlan = () => {
                             showValue(plan.weeklyJobPostingLimit) ||
                             showValue(plan.monthlyJobPostingLimit)) && (
                             <li>
-                              ✔ Job Posting:{" "}
+                              ✔ {t("wallet.jobPosting")}:{" "}
                               {plan.jobPostingCredits === -1
-                                ? "Unlimited"
+                                ? t("wallet.unlimited")
                                 : plan.jobPostingCredits}
                             </li>
                           )}
@@ -541,38 +625,63 @@ const AddPlan = () => {
                             showValue(plan.weeklyProfileViewingLimit) ||
                             showValue(plan.monthlyProfileViewingLimit)) && (
                             <li>
-                              ✔ Profile Viewing:{" "}
+                              ✔ {t("wallet.profileViewing")}:{" "}
                               {plan.profileViewingCredits === -1
-                                ? "Unlimited"
+                                ? t("wallet.unlimited")
                                 : plan.profileViewingCredits}
                             </li>
                           )}
 
                           {/* Featured Jobs */}
-                          {plan.maxFeaturedJobs > 0 && (
+                          {plan.featuredJobsAvailable && plan.maxFeaturedJobs > 0 && (
                             <li>
-                              ✔ Featured Jobs: {plan.maxFeaturedJobs} (
-                              {plan.featuredJobDurationDays} Days)
+                              ✔ {t("wallet.featuredJobsDays", {
+                                count: plan.maxFeaturedJobs,
+                                days: plan.featuredJobDurationDays,
+                              })}
                             </li>
                           )}
+
+                          {plan.featuredJobsAvailable &&
+                            plan.maxActiveFeaturedJobs > 0 && (
+                              <li>
+                                ✔ {t("wallet.maxActiveFeaturedJobs", {
+                                  count: plan.maxActiveFeaturedJobs,
+                                })}
+                              </li>
+                            )}
 
                           {/* Featured Locations */}
                           {plan.featuredJobLocations?.length > 0 && (
                             <li>
-                              ✔ Locations:{" "}
-                              {plan.featuredJobLocations.join(", ")}
+                              ✔ {t("wallet.locations")}:{" "}
+                              {formatFeaturedLocationLabels(plan.featuredJobLocations)}
                             </li>
                           )}
 
+                          {plan.featuredJobsAvailable &&
+                            plan.searchBoostScore > 1 &&
+                            plan.featuredJobLocations?.includes(
+                              "SearchResults",
+                            ) && (
+                              <li>
+                                ✔ {t("wallet.searchBoostScore", {
+                                  boost: formatSearchBoostLabel(
+                                    plan.searchBoostScore,
+                                  ),
+                                })}
+                              </li>
+                            )}
+
                           {/* Company Highlight */}
-                          {plan.companyProfileHighlightEnabled && (
-                            <li>✔ Company Profile Highlight</li>
+                          {isCompanyProfileHighlightEnabled(plan) && (
+                            <li>✔ {t("wallet.companyProfileHighlight")}</li>
                           )}
 
                           {/* Validity */}
                           {plan.validityValue && (
                             <li>
-                              ✔ Validity: {plan.validityValue}{" "}
+                              ✔ {t("wallet.validity")}: {plan.validityValue}{" "}
                               {plan.validityUnit}
                             </li>
                           )}
@@ -582,19 +691,25 @@ const AddPlan = () => {
                       <div className="enterprise-btn">
                         <button
                           className="plan-price-btn default-btn btn"
+                          disabled={
+                            plan?.showButton === "Current Plan" ||
+                            (plan?.canPurchase === false &&
+                              !opensContactFlow(plan))
+                          }
+                          title={plan?.purchaseBlockedReason || ""}
                           onClick={() => {
-                            if (plan?.creditApprovalType === "Manual") {
+                            if (opensContactFlow(plan)) {
                               setSelectedPlan(plan);
                               setShowContactModal(true);
-                            } else {
-                              handleBuyNow(plan);
+                              return;
                             }
+                            handleBuyNow(plan);
                           }}
                         >
-                          {plan?.creditApprovalType === "Manual" ||
-                          !hasActiveGateway
-                            ? "Contact Us"
-                            : "Buy Now"}
+                          {plan?.showButton ||
+                            (opensContactFlow(plan)
+                              ? t("header.contactUs")
+                              : t("wallet.buyNow"))}
                         </button>
                       </div>
                     </div>
@@ -626,48 +741,98 @@ const AddPlan = () => {
                     <div className="plan-price-detail-info">
                       <ul>
                         {plan.jobPostingCredits > 0 && (
-                          <li>Job Post Credit: {plan.jobPostingCredits}</li>
+                          <li>{t("wallet.jobPostCredit")}: {plan.jobPostingCredits}</li>
                         )}
                         {plan.dailyJobPostingLimit > 0 && (
                           <li>
-                            Daily Job Posting Limit: {plan.dailyJobPostingLimit}
+                            {t("wallet.dailyJobPostingLimit")}: {plan.dailyJobPostingLimit}
                           </li>
                         )}
                         {plan.profileViewingCredits > 0 && (
                           <li>
-                            CV Viewing Credit: {plan.profileViewingCredits}
+                            {t("wallet.cvViewingCredit")}: {plan.profileViewingCredits}
                           </li>
                         )}
                         {plan.dailyProfileViewingLimit > 0 && (
                           <li>
-                            Daily Profile Viewing Limit:{" "}
+                            {t("wallet.dailyProfileViewingLimit")}:{" "}
                             {plan.dailyProfileViewingLimit}
                           </li>
                         )}
                         {plan.validityValue > 0 && (
                           <li>
-                            Valid for {plan.validityValue} {plan.validityUnit}
+                            {t("wallet.validFor", {
+                              value: plan.validityValue,
+                              unit: plan.validityUnit,
+                            })}
                           </li>
+                        )}
+                        {plan.featuredJobsAvailable && plan.maxFeaturedJobs > 0 && (
+                          <li>
+                            {t("wallet.featuredJobsDays", {
+                              count: plan.maxFeaturedJobs,
+                              days: plan.featuredJobDurationDays,
+                            })}
+                          </li>
+                        )}
+                        {plan.featuredJobsAvailable &&
+                          plan.maxActiveFeaturedJobs > 0 && (
+                            <li>
+                              {t("wallet.maxActiveFeaturedJobs", {
+                                count: plan.maxActiveFeaturedJobs,
+                              })}
+                            </li>
+                          )}
+                        {plan.featuredJobLocations?.length > 0 && (
+                          <li>
+                            {t("wallet.locations")}:{" "}
+                            {formatFeaturedLocationLabels(plan.featuredJobLocations)}
+                          </li>
+                        )}
+                        {plan.featuredJobsAvailable &&
+                          plan.searchBoostScore > 1 &&
+                          plan.featuredJobLocations?.includes(
+                            "SearchResults",
+                          ) && (
+                            <li>
+                              {t("wallet.searchBoostScore", {
+                                boost: formatSearchBoostLabel(
+                                  plan.searchBoostScore,
+                                ),
+                              })}
+                            </li>
+                          )}
+                        {isCompanyProfileHighlightEnabled(plan) && (
+                          <li>{t("wallet.companyProfileHighlight")}</li>
                         )}
                       </ul>
                     </div>
 
                     <div className="plan-price-btn-info">
+                      {plan?.isCurrentPlan && (
+                        <span className="badge bg-success text-white mb-2">
+                          {t("wallet.currentPlan")}
+                        </span>
+                      )}
                       <button
                         className="plan-price-btn default-btn btn"
+                        disabled={
+                          plan?.showButton === "Current Plan" ||
+                          (plan?.canPurchase === false &&
+                            !opensContactFlow(plan))
+                        }
+                        title={plan?.purchaseBlockedReason || ""}
                         onClick={() => {
-                          if (plan?.creditApprovalType === "Manual") {
+                          if (opensContactFlow(plan)) {
                             setSelectedPlan(plan);
                             setShowContactModal(true);
-                          } else {
-                            handleBuyNow(plan);
+                            return;
                           }
+                          handleBuyNow(plan);
                         }}
                       >
-                        {plan?.creditApprovalType === "Manual" ||
-                        !hasActiveGateway
-                          ? "Contact Us"
-                          : "Buy Now"}
+                        {plan?.showButton ||
+                          (opensContactFlow(plan) ? t("header.contactUs") : t("wallet.buyNow"))}
                       </button>
                     </div>
                   </div>
@@ -685,7 +850,7 @@ const AddPlan = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Select Payment Method</h5>
+                <h5 className="modal-title">{t("checkout.selectPaymentMethod")}</h5>
                 <button className="btn-close" onClick={resetPaymentState} />
               </div>
 
@@ -694,7 +859,7 @@ const AddPlan = () => {
                   <>
                     {paymentGateways.length === 0 && (
                       <p className="text-danger">
-                        No payment gateways available
+                        {t("checkout.noPaymentGateways")}
                       </p>
                     )}
 
@@ -729,6 +894,7 @@ const AddPlan = () => {
                       <CheckoutForm
                         selectedPlan={selectedPlan}
                         purchasePack={purchasePack}
+                        submitting={paymentLoading}
                       />
                     </Elements>
                   )}
@@ -747,6 +913,7 @@ const AddPlan = () => {
                     >
                       <PayPalButtons
                         style={{ layout: "vertical" }}
+                        disabled={paymentLoading}
                         createOrder={(data, actions) => {
                           return actions.order.create({
                             intent: "CAPTURE",
@@ -762,6 +929,8 @@ const AddPlan = () => {
                           });
                         }}
                         onApprove={async (data, actions) => {
+                          if (paymentSubmittingRef.current) return;
+
                           try {
                             const details = await actions.order.capture();
 
@@ -771,7 +940,7 @@ const AddPlan = () => {
 
                             if (!capture || capture.status !== "COMPLETED") {
                               navigate("/payment-failed", {
-                                state: { error: "Payment not completed." },
+                                state: { error: t("checkout.paymentNotCompleted") },
                               });
                               return;
                             }
@@ -789,39 +958,39 @@ const AddPlan = () => {
                             if (result?.success) {
                               navigate("/payment-success", {
                                 state: {
-                                  payment: {
-                                    orderID: details.id,
-                                    captureId: capture.id,
-                                    amount: capture.amount?.value,
-                                    currency: capture.amount?.currency_code,
-                                    payerEmail: details.payer?.email_address,
-                                    status: capture.status,
-                                  },
+                                  payment: buildPaymentSuccessState(
+                                    result.message,
+                                    result.data,
+                                    {
+                                      amount: capture.amount?.value,
+                                      currency: capture.amount?.currency_code,
+                                      planName: selectedPlan?.packName,
+                                    },
+                                  ),
                                 },
                               });
                             } else {
                               navigate("/payment-failed", {
-                                state: { error: "Plan activation failed." },
+                                state: { error: t("checkout.planActivationFailed") },
                               });
                             }
                           } catch (err) {
                             navigate("/payment-failed", {
                               state: {
-                                error: "Payment failed during capture.",
+                                error: t("checkout.paymentFailedCapture"),
                               },
                             });
                           }
                         }}
                         onCancel={() => {
                           navigate("/payment-failed", {
-                            state: { error: "Payment cancelled by user." },
+                            state: { error: t("checkout.paymentCancelledByUser") },
                           });
                         }}
                         onError={() => {
                           navigate("/payment-failed", {
                             state: {
-                              error:
-                                "Payment error occurred. Please try again.",
+                              error: t("checkout.paymentErrorTryAgain"),
                             },
                           });
                         }}
@@ -834,8 +1003,11 @@ const AddPlan = () => {
                   <button
                     className="btn btn-success w-100"
                     onClick={handleDemoPayment}
+                    disabled={paymentLoading}
                   >
-                    Pay with CMI
+                    {paymentLoading
+                      ? t("checkout.processing")
+                      : t("checkout.payWithCmi")}
                   </button>
                 )}
               </div>
@@ -850,10 +1022,10 @@ const AddPlan = () => {
                     {paymentLoading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2"></span>
-                        Processing...
+                        {t("checkout.processing")}
                       </>
                     ) : (
-                      "Proceed"
+                      t("checkout.proceed")
                     )}
                   </button>
                 ) : (
@@ -861,7 +1033,7 @@ const AddPlan = () => {
                     className="btn btn-secondary"
                     onClick={() => setStartPayment(false)}
                   >
-                    Back
+                    {t("checkout.back")}
                   </button>
                 )}
               </div>
@@ -877,16 +1049,25 @@ const AddPlan = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Contact Us</h5>
+                <h5 className="modal-title">{t("header.contactUs")}</h5>
                 <button
                   className="btn-close"
-                  onClick={() => setShowContactModal(false)}
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setContactPlanError("");
+                  }}
                 />
               </div>
 
               <div className="modal-body">
+                {contactPlanError && (
+                  <div className="alert alert-danger py-2 px-3 small" role="alert">
+                    <i className="fa-solid fa-circle-exclamation me-2" />
+                    {contactPlanError}
+                  </div>
+                )}
                 <div className="form-group mb-3">
-                  <label>Contact Person Name *</label>
+                  <label>{t("wallet.contactPersonName")}</label>
                   <input
                     type="text"
                     className="form-control"
@@ -896,7 +1077,7 @@ const AddPlan = () => {
                 </div>
 
                 <div className="form-group mb-3">
-                  <label>Email *</label>
+                  <label>{t("header.email")} *</label>
                   <input
                     type="email"
                     className="form-control"
@@ -906,7 +1087,7 @@ const AddPlan = () => {
                 </div>
 
                 <div className="form-group mb-3">
-                  <label>Phone *</label>
+                  <label>{t("header.phone")} *</label>
                   <input
                     type="text"
                     className="form-control"
@@ -916,7 +1097,7 @@ const AddPlan = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Message</label>
+                  <label>{t("header.message")}</label>
                   <textarea
                     className="form-control"
                     name="message"
@@ -929,9 +1110,12 @@ const AddPlan = () => {
               <div className="modal-footer">
                 <button
                   className="btn btn-secondary"
-                  onClick={() => setShowContactModal(false)}
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setContactPlanError("");
+                  }}
                 >
-                  Cancel
+                  {t("header.Cancel")}
                 </button>
 
                 <button
@@ -942,10 +1126,10 @@ const AddPlan = () => {
                   {paymentLoading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
-                      Sending...
+                      {t("wallet.sending")}
                     </>
                   ) : (
-                    "Send Request"
+                    t("wallet.sendRequest")
                   )}
                 </button>
               </div>
@@ -961,7 +1145,7 @@ const AddPlan = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Request Custom Credits</h5>
+                <h5 className="modal-title">{t("wallet.requestCustomCredits")}</h5>
                 <button
                   className="btn-close"
                   onClick={() => setShowManualModal(false)}
@@ -970,29 +1154,29 @@ const AddPlan = () => {
 
               <div className="modal-body">
                 <div className="mb-3">
-                  <label>Credit Type</label>
+                  <label>{t("wallet.creditType")}</label>
                   <select
                     className="form-control"
                     value={manualType}
                     onChange={(e) => setManualType(e.target.value)}
                   >
-                    <option value="">Select Credits Type</option>
-                    <option value="cv">CV Credits Only</option>
-                    <option value="job">Job Posting Credits Only</option>
-                    <option value="both">Both (CV + Job Posting)</option>
+                    <option value="">{t("wallet.selectCreditsType")}</option>
+                    <option value="cv">{t("wallet.cvCreditsOnly")}</option>
+                    <option value="job">{t("wallet.jobCreditsOnly")}</option>
+                    <option value="both">{t("wallet.bothCredits")}</option>
                   </select>
                 </div>
 
                 {/* CV FIELD */}
                 {(manualType === "cv" || manualType === "both") && (
                   <div className="mb-3">
-                    <label>CV Credits</label>
+                    <label>{t("wallet.cvCredits")}</label>
                     <input
                       type="number"
                       className="form-control"
                       value={manualCvCredits}
                       onChange={(e) => setManualCvCredits(e.target.value)}
-                      placeholder="Enter CV credits"
+                      placeholder={t("wallet.enterCvCredits")}
                     />
                   </div>
                 )}
@@ -1000,25 +1184,25 @@ const AddPlan = () => {
                 {/* JOB FIELD */}
                 {(manualType === "job" || manualType === "both") && (
                   <div className="mb-3">
-                    <label>Job Posting Credits</label>
+                    <label>{t("wallet.jobPostingCredits")}</label>
                     <input
                       type="number"
                       className="form-control"
                       value={manualJobCredits}
                       onChange={(e) => setManualJobCredits(e.target.value)}
-                      placeholder="Enter Job credits"
+                      placeholder={t("wallet.enterJobCredits")}
                     />
                   </div>
                 )}
 
                 <div className="mb-3">
-                  <label>Reason</label>
+                  <label>{t("wallet.reason")}</label>
                   <textarea
                     className="form-control"
                     rows="3"
                     value={manualReason}
                     onChange={(e) => setManualReason(e.target.value)}
-                    placeholder="Explain why you need custom credits"
+                    placeholder={t("wallet.explainCustomCredits")}
                   />
                 </div>
               </div>
@@ -1028,14 +1212,14 @@ const AddPlan = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowManualModal(false)}
                 >
-                  Cancel
+                  {t("header.Cancel")}
                 </button>
                 <button
                   className="btn btn-primary"
                   // onClick={handleManualRequest}
                   disabled={actionLoading}
                 >
-                  {actionLoading ? "Submitting..." : "Submit Request"}
+                  {actionLoading ? t("wallet.submitting") : t("wallet.submitRequest")}
                 </button>
               </div>
             </div>
@@ -1046,14 +1230,14 @@ const AddPlan = () => {
                 className="btn btn-outline-dark"
                 onClick={() => setShowManualModal(true)}
               >
-                Request Custom Credits (Enterprise)
+                {t("wallet.requestCustomCreditsEnterprise")}
               </button>
             </div>
           </div>
           <div className="col-lg-12">
             <div className="section-title">
-              <h2>Transparent Pricing Plan For You</h2>
-              <p>Select the best plan that fits your needs</p>
+              <h2>{t("wallet.transparentPricing")}</h2>
+              <p>{t("wallet.selectBestPlan")}</p>
             </div>
           </div>
         </div>

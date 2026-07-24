@@ -1,0 +1,201 @@
+/* Recruiter management pages */
+
+.recruiters-page-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  padding: 32px 36px;
+}
+
+.recruiters-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.recruiters-card-header-text h3 {
+  color: #1a2b4a;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.recruiters-card-header-text p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.recruiters-add-btn {
+  align-items: center;
+  background-color: #fb761a;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 600;
+  gap: 8px;
+  padding: 12px 22px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.recruiters-add-btn:hover {
+  background-color: #e06512;
+  box-shadow: 0 5px 15px rgba(251, 118, 26, 0.35);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.recruiters-form-section-title {
+  color: #1a2b4a;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.recruiters-form-section-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0 0 28px;
+}
+
+.recruiters-form-actions {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.recruiters-form-actions .default-btn.btn {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.recruiters-cancel-link {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.recruiters-cancel-link:hover {
+  color: #1a2b4a;
+}
+
+.recruiters-breadcrumb {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  gap: 6px;
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.recruiters-breadcrumb li {
+  align-items: center;
+  color: #94a3b8;
+  display: flex;
+  gap: 6px;
+}
+
+.recruiters-breadcrumb a {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.recruiters-breadcrumb a:hover {
+  color: #fb761a;
+}
+
+.recruiters-breadcrumb .current {
+  color: #64748b;
+}
+
+.recruiters-table-wrap .table thead th {
+  background: #eef2f7;
+  border-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.recruiters-table-wrap .table td {
+  border-color: #e2e8f0;
+  color: #334155;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.recruiter-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recruiter-name-cell .name {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.recruiter-name-cell .email {
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.recruiter-department-cell {
+  color: #475569;
+}
+
+.recruiters-page-card .profile-form label {
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.recruiters-page-card .profile-form .form-control {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  padding: 11px 16px;
+}
+
+.recruiters-page-card .profile-form .form-control:focus {
+  border-color: #fb761a;
+  box-shadow: 0 0 0 3px rgba(251, 118, 26, 0.12);
+}
+
+@media (max-width: 768px) {
+  .recruiters-page-card {
+    padding: 20px;
+  }
+
+  .recruiters-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recruiters-add-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}

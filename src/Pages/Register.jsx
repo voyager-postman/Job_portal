@@ -1,66 +1,54 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
 import { postUserRegister, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
-import Spinner from "../Conponets/Spinner"; // optional
-import { useAuth } from "../context/AuthContext"; // adjust path
+import { extractLoginToken, persistAuthToken } from "../utils/apiHeaders";
+import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
+import { SITE } from "../utils/seo";
+import { useTranslation } from "react-i18next";
 
-import { API_BASE_URL } from "../Url/Url";
 function Register() {
+  const { t } = useTranslation("global");
   const [email, setEmail] = useState("");
-  const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
+  const [captchaVerified, setCaptchaVerified] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("header.required_fields"));
       return false;
     }
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("header.valid_email"));
       return false;
     }
-
-    // Validate password length
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("header.password_length"));
       return false;
     }
-
-    // Validate password match
     if (password !== confirmPassword) {
-      toast.error("Password and confirm password do not match");
+      toast.error(t("header.password_mismatch"));
       return false;
     }
-
-    // Validate captcha
     if (!captchaVerified) {
-      toast.error("Please verify the captcha!");
+      toast.error(t("auth.verify_captcha"));
       return false;
     }
-
-    // Validate terms & conditions
     if (!agree) {
-      toast.error("You must accept the terms and conditions");
+      toast.error(t("header.accept_terms_conditions"));
       return false;
     }
-
-    return true; // All validations passed
+    return true;
   };
 
   const handleRegister = async () => {
@@ -68,35 +56,32 @@ function Register() {
 
     setLoading(true);
     try {
-      const response = await postUserRegister({
-        email,
-        password,
-      });
+      const response = await postUserRegister({ email, password });
 
       if (response.status === 200 && response.data.success) {
-        const { token, user } = response.data;
-
+        const { user } = response.data;
+        const token = extractLoginToken(response.data);
         setPassword("");
         setConfirmPassword("");
-        localStorage.setItem("token", token);
+        persistAuthToken(token);
+        localStorage.setItem("user_email", email);
         localStorage.setItem("extract_id", user?.id);
-        toast.success("Registration successful!");
+        toast.success(t("header.registration_success"));
         login();
-        // ✅ Navigate to verification page and pass email
-        navigate("/verification", { state: { email, token, showToast: true } });
+        navigate(`/verification?email=${encodeURIComponent(email)}`, {
+          state: { email, token, showToast: true },
+        });
       } else {
-        toast.error("Something went wrong, please try again.");
+        toast.error(t("auth.something_wrong_try_again"));
       }
     } catch (error) {
       console.error("Register error:", error);
-
       if (isInsecureTransportError(error)) {
         toast.error(getInsecureTransportMessage());
         return;
       }
-
       toast.error(
-        error.response?.data?.message || "Registration failed. Try again."
+        error.response?.data?.message || t("header.registration_failed"),
       );
     } finally {
       setLoading(false);
@@ -115,28 +100,28 @@ function Register() {
                   <img
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
-                    alt="logo"
+                    alt={`${SITE.name} logo`}
                   />
                 </div>
                 <div className="container">
                   <div className="register">
-                    <h3>JobSeeker Sign Up</h3>
+                    <h1>{t("auth.jobseeker_signup_title")}</h1>
                     <div className="form-group">
-                      <label>Email Address*</label>
+                      <label>{t("auth.email_label")}</label>
                       <input
                         type="email"
                         className="form-control"
-                        placeholder="Email Address*"
+                        placeholder={t("auth.email_placeholder")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
-                    <div className="form-group  eye-icon-postion">
-                      <label>Password*</label>
+                    <div className="form-group eye-icon-postion">
+                      <label>{t("auth.password_label")}</label>
                       <input
                         type={showPassword ? "text" : "password"}
                         className="form-control"
-                        placeholder="Password*"
+                        placeholder={t("auth.password_placeholder")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
@@ -149,11 +134,11 @@ function Register() {
                       />
                     </div>
                     <div className="form-group eye-icon-postion">
-                      <label>Confirm password*</label>
+                      <label>{t("auth.confirm_password_label")}</label>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         className="form-control"
-                        placeholder="Confirm Password*"
+                        placeholder={t("auth.confirm_password_placeholder")}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
@@ -169,11 +154,10 @@ function Register() {
                     </div>
                     <div className="form-group mb-3">
                       <ReCAPTCHA
-                        sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Google test key
+                        sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
                         onChange={() => setCaptchaVerified(true)}
                       />
                     </div>
-
                     <div className="register-terms-Policy-box">
                       <input
                         type="checkbox"
@@ -181,8 +165,8 @@ function Register() {
                         checked={agree}
                         onChange={(e) => setAgree(e.target.checked)}
                       />
-                      <label htmlFor="vehicle1">
-                        I accept the{" "}
+                      <label htmlFor="terms">
+                        {t("header.I_agree_to_the")}{" "}
                         <Link
                           to="/terms-condition"
                           target="_blank"
@@ -192,9 +176,9 @@ function Register() {
                             textDecoration: "underline",
                           }}
                         >
-                          Terms &amp; Conditions
+                          {t("auth.terms_conditions")}
                         </Link>{" "}
-                        and{" "}
+                        {t("header.and")}{" "}
                         <Link
                           to="/privacy-policy"
                           target="_blank"
@@ -204,7 +188,7 @@ function Register() {
                             textDecoration: "underline",
                           }}
                         >
-                          Privacy Policy
+                          {t("auth.privacy_policy")}
                         </Link>
                       </label>
                     </div>
@@ -215,15 +199,17 @@ function Register() {
                           onClick={handleRegister}
                           className="default-btn btn"
                         >
-                          {loading ? "Registering..." : "Register"}
+                          {loading
+                            ? t("auth.registering")
+                            : t("auth.register_btn")}
                         </button>
                       </div>
                       <div className="register-login-text-btn">
                         <p>
-                          Already have an account?{" "}
+                          {t("auth.already_have_account")}{" "}
                           <Link to="/login">
                             <i className="fa-solid fa-user" />
-                            Sign in
+                            {t("auth.sign_in_link")}
                           </Link>
                         </p>
                       </div>
@@ -236,7 +222,7 @@ function Register() {
               <div className="register-img-info-area">
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
-                  alt="register-img"
+                  alt={t("auth.jobseeker_signup_title")}
                 />
               </div>
             </div>

@@ -17,8 +17,7 @@ import Pagination from "@mui/material/Pagination"; // MUI one
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { API_BASE_URL } from "../Url/Url";
-import { API_IMAGE_URL } from "../Url/Url";
+import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -26,7 +25,13 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
+import { isJobHighlightedInListing } from "../utils/featuredJobDisplay";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+import {
+  handleCompanyLogoError,
+  resolveJobCompanyLogoUrl,
+} from "../utils/companyLogo";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function CandidateDashboard() {
   const { t, i18n } = useTranslation("global");
@@ -56,7 +61,6 @@ function CandidateDashboard() {
   const [unreadChat, setUnreadChat] = useState([]);
 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const fetchGlobalCurrency = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
@@ -98,15 +102,15 @@ function CandidateDashboard() {
   }, []);
   const getAllJobList = async (limit, page) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}RecentAddedJobList`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          limit,
-          page,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}RecentAddedJobList`,
+        getRequestConfig({
+          params: {
+            limit,
+            page,
+          },
+        }),
+      );
       console.log(res);
       setJobList(res.data?.jobs || []);
       setTotalJobData(res.data);
@@ -117,7 +121,6 @@ function CandidateDashboard() {
 
   const apply = useJobApply({
     t,
-    token,
     onApplySuccess: () => {
       getAllJobList(pageSize, pageNumber);
       setIsPanelOpen(false);
@@ -146,11 +149,10 @@ function CandidateDashboard() {
 
   const getUnreadChatList = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getJobseekerUnreadChatList`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}getJobseekerUnreadChatList`,
+        getRequestConfig(),
+      );
 
       console.log(res.data);
 
@@ -174,12 +176,9 @@ function CandidateDashboard() {
   useEffect(() => {
     const fetchDashboardAnalytics = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}getDashboardAnalytics`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          getRequestConfig(),
         );
         // console.log("Dashboard Count Data:", response.data.counts);
         setCount(response.data.counts);
@@ -193,10 +192,10 @@ function CandidateDashboard() {
   useEffect(() => {
     const fetchStrength = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${API_BASE_URL}profile/strength`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${API_BASE_URL}profile/strength`,
+          getRequestConfig(),
+        );
         console.log("Dashboard Profile Strength", response.data);
         setProfileData(response.data);
       } catch (err) {
@@ -208,7 +207,7 @@ function CandidateDashboard() {
 
   const fetchCompaniesSlider = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
+      const res = await axios.get(`${API_BASE_URL}getHighlightedCompanyDetailsList`);
       if (res.data.success) {
         setCompanies(res.data);
       }
@@ -227,14 +226,10 @@ function CandidateDashboard() {
     setProfileVisible(newValue); // update UI instantly
 
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.post(
         `${API_BASE_URL}updateProfileVisibility`,
         { profileVisible: newValue },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (response.status === 200) {
@@ -257,11 +252,10 @@ function CandidateDashboard() {
 
   const fetchResume = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}candidate/profile`,
+        getRequestConfig(),
+      );
       console.log("Resume Data:-", res.data.profile);
       const profile = res.data.profile;
       setProfileVisible(profile?.profileVisible);
@@ -281,15 +275,10 @@ function CandidateDashboard() {
 
   const handleJobClick = async (jobId) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_BASE_URL}jobs/${jobId}/click`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
       console.log(response.data);
     } catch (error) {
@@ -358,11 +347,7 @@ function CandidateDashboard() {
       const res = await axios.post(
         `${API_BASE_URL}savedJob`,
         { job_id: jobId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
 
       if (res.data.success) {
@@ -581,11 +566,8 @@ function CandidateDashboard() {
                                       crossOrigin="anonymous"
                                       alt="logo"
                                       className="modern-company-logo"
-                                      src={
-                                        job?.logo
-                                          ? `${API_IMAGE_URL}${job.logo}`
-                                          : "assets/images/dashboard/images1.png"
-                                      }
+                                      src={resolveJobCompanyLogoUrl(job)}
+                                      onError={handleCompanyLogoError}
                                     />
                                   </div>
 
@@ -603,7 +585,7 @@ function CandidateDashboard() {
 
                                 <div className="modern-job-actions">
                                   {/* Featured */}
-                                  {job?.isFeatured && (
+                                  {isJobHighlightedInListing(job) && (
                                     <span className="modern-status-badge featured me-2">
                                       <i className="fa-solid fa-star me-1"></i>
                                       {t("header.Featured")}
@@ -1082,11 +1064,8 @@ function CandidateDashboard() {
                   crossOrigin="anonymous"
                   alt="logo"
                   className="side-panel-logo"
-                  src={
-                    selectedJob?.logo
-                      ? `${API_IMAGE_URL}${selectedJob.logo}`
-                      : "assets/images/dashboard/images1.png"
-                  }
+                  src={resolveJobCompanyLogoUrl(selectedJob)}
+                  onError={handleCompanyLogoError}
                 />
                 <div>
                   <h2 className="side-panel-title">

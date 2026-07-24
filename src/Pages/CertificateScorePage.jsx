@@ -1,30 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 function CertificateScorePage() {
+  const { t } = useTranslation("global");
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Certificates Scores</h1>
+            <h1>{t("assessment.certificates_scores")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Certificates Scores
+                <i className="fa-solid fa-angle-right" /> {t("assessment.certificates_scores")}
               </li>
             </ol>
           </div>
-          {/* End Breadcrumb Area */}
-          {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Certificate of completion</h3>
+              <h3>{t("assessment.certificate_of_completion")}</h3>
               <div className="profile-form">
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
@@ -37,38 +37,26 @@ function CertificateScorePage() {
                         />
                       </div>
                       <div className="certificates-scores-detail">
-                        <h2>Certificate of completion</h2>
-                        <p>This certifies that</p>
+                        <h2>{t("assessment.certificate_of_completion")}</h2>
+                        <p>{t("assessment.certifies_that")}</p>
                         <h3>Andy Smith</h3>
-                        <p>
-                          has completed the necessary courses of study and
-                          passed
-                        </p>
-                        <p>
-                          the Connect Work.ma' SQL exams and is hereby declared
-                          a
-                        </p>
-                        <h3>Certified SQL Developer</h3>
-                        <p>
-                          with fundamental knowledge of SQL development using
-                          SQL query.
-                        </p>
-                        <h6>Issued May 25, 2025</h6>
+                        <p>{t("assessment.has_completed")}</p>
+                        <p>{t("assessment.sql_exams")}</p>
+                        <h3>{t("assessment.certified_sql_developer")}</h3>
+                        <p>{t("assessment.fundamental_knowledge")}</p>
+                        <h6>{t("assessment.issued_date", { date: "May 25, 2025" })}</h6>
                       </div>
                       <div className="website-name-signature-info">
                         <div className="website-name-info">
-                          <h6>Verify completion at</h6>
-                          <a href="#">Connect Work.ma</a>
+                          <h6>{t("assessment.verify_completion")}</h6>
+                          <a href="#">{t("header.Connect_Work")}</a>
                         </div>
                         <div className="authorized-signature-info">
                           <div className="authorized-signature-img">
-                            <img
-                              src="assets/images/company/signatureImg.png"
-                              alt="authorized-signature"
-                            />
+                            <img src="assets/images/company/signatureImg.png" alt="authorized-signature" />
                           </div>
                           <h6>Thomas Thorsell Arntsen</h6>
-                          <h6>For Connect Work.ma</h6>
+                          <h6>{t("assessment.for_connect_work")}</h6>
                         </div>
                       </div>
                       <div className="certificates-download-icon">
@@ -77,39 +65,36 @@ function CertificateScorePage() {
                           target="_blank"
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
-                          aria-label="Download Certificate"
-                          data-bs-original-title="Download Certificate"
+                          aria-label={t("assessment.download_certificate")}
+                          data-bs-original-title={t("assessment.download_certificate")}
                         >
                           <i className="fa-solid fa-cloud-arrow-down" />
                         </a>
                       </div>
                     </div>
                   </div>
-                
                 </div>
               </div>
             </div>
           </div>
-          {/*End My Profile Area*/}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-left-content">
                   <p>
-                    {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name"> {t("header.Connect_Work")} </span>
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>

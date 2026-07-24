@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import PageSEO from "../components/PageSEO";
+import { absoluteUrl, buildFaqPageSchema, buildBreadcrumbSchema } from "../utils/seo";
 
 const Faq = () => {
   const { t, i18n } = useTranslation("global");
@@ -37,20 +39,40 @@ const Faq = () => {
   };
 
   return (
-    <div>
-      {/* Banner */}
+    <>
+      <PageSEO
+        title={formData.heading || "FAQ"}
+        description={
+          formData.description ||
+          "Frequently asked questions about using Connect Work.ma."
+        }
+        canonical={`/faq/${type}`}
+        image="/assets/images/faq-img.png"
+        jsonLd={[
+          formData.faqs?.length
+            ? buildFaqPageSchema(
+                formData.faqs,
+                absoluteUrl(`/faq/${type}`),
+              )
+            : null,
+          buildBreadcrumbSchema([
+            { name: t("header.home"), path: "/" },
+            { name: t("header.FAQ"), path: `/faq/${type}` },
+          ]),
+        ]}
+      />
       <section className="inner-banners-info-area">
         <div className="inner-banners-img-area">
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-            alt="breadcrumb Img"
+            alt={formData.heading || t("header.FAQ")}
           />
         </div>
 
         <div className="inner-banners-title-info">
           <div className="container">
             <div className="inner-page-banner-title">
-              <h2>{formData.heading}</h2>
+              <h1>{formData.heading}</h1>
               <ul>
                 <li className="menu-divide-arrow">
                   <Link to="/">{t("header.home")}</Link>
@@ -68,7 +90,11 @@ const Faq = () => {
           <div className="row align-items-center">
             <div className="col-lg-6">
               <div className="faq-img">
-                <img src="/jobPortal/assets/images/faq-img.png" alt="faq" />
+                <img
+                  src="/jobPortal/assets/images/faq-img.png"
+                  alt={formData.subHeading || t("header.FAQ")}
+                  loading="lazy"
+                />
               </div>
             </div>
 
@@ -82,16 +108,20 @@ const Faq = () => {
                 <div className="accordion">
                   {formData.faqs?.map((faq, index) => (
                     <div className="accordion-item" key={faq._id}>
-                      <div
-                        className={`accordion-title ${activeIndex === index ? "active" : ""}`}
-                        onClick={() => toggleAccordion(index)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <i
-                          className={`fa-solid ${activeIndex === index ? "fa-minus" : "fa-plus"}`}
-                        ></i>{" "}
-                        {faq.question}
-                      </div>
+                      <h3 className="accordion-title">
+                        <button
+                          type="button"
+                          className={`accordion-trigger ${activeIndex === index ? "active" : ""}`}
+                          onClick={() => toggleAccordion(index)}
+                          aria-expanded={activeIndex === index}
+                        >
+                          <i
+                            className={`fa-solid ${activeIndex === index ? "fa-minus" : "fa-plus"}`}
+                            aria-hidden="true"
+                          />{" "}
+                          {faq.question}
+                        </button>
+                      </h3>
 
                       {activeIndex === index && (
                         <div className="accordion-content show">
@@ -106,7 +136,7 @@ const Faq = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

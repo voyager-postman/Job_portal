@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {isAuthReady, getRequestConfig } from "../utils/apiHeaders";
 import { API_BASE_URL } from "../Url/Url";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { Modal, Typography, Card, Divider, Box } from "@mui/material";
 import { API_IMAGE_URL } from "../Url/Url";
 import Swal from "sweetalert2";
@@ -58,7 +59,7 @@ function YourJobPosts() {
       const response = await axios.post(
         `${API_BASE_URL}createJob`,
         { jobTitle: tempTitle, jobCategory: tempCategory },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       console.log("Job Created:", response.data);
@@ -229,7 +230,7 @@ function YourJobPosts() {
   //     const res = await axios.get(
   //       `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}`,
   //       {
-  //         headers: { Authorization: `Bearer ${token}` },
+  //         ...getRequestConfig().headers,
   //       },
   //     );
   //     setJobs(res.data.jobs || []);
@@ -257,9 +258,7 @@ function YourJobPosts() {
 
       const res = await axios.get(
         `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}&search=${search}&sort=${sort}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       setJobs(res.data.jobs || []);
@@ -323,7 +322,7 @@ function YourJobPosts() {
   const copyDraft = async (id, title, category) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      if (!isAuthReady()) {
         toast.error(t("You_need_to_log_in_first"));
         return;
       }
@@ -337,9 +336,7 @@ function YourJobPosts() {
       const response = await axios.post(
         `${API_BASE_URL}jobs/${id}/copy-as-draft`,
         data,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
       // ✅ Show success message
       toast.success(
@@ -358,16 +355,14 @@ function YourJobPosts() {
   const archiveData = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      if (!isAuthReady()) {
         toast.error("You need to log in first.");
         return;
       }
       const response = await axios.post(
         `${API_BASE_URL}jobs/${id}/archived`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
       // ✅ Show success message
       toast.success(
@@ -397,16 +392,14 @@ function YourJobPosts() {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
-          if (!token) {
+          if (!isAuthReady()) {
             toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
           const response = await axios.post(
             `${API_BASE_URL}deleteJob/${id}`,
             {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
+            getRequestConfig(),
           );
           if (response.data.success) {
             toast.success(response.data.message);
@@ -421,14 +414,10 @@ function YourJobPosts() {
 
   const fetchJobDashboardStats = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const res = await axios.get(`${API_BASE_URL}get/jobDashboardStats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}get/jobDashboardStats`,
+        getRequestConfig(),
+      );
 
       setDashboardStats(res.data.data); // adjust key if needed
     } catch (error) {
@@ -444,14 +433,8 @@ function YourJobPosts() {
 
   // Handle Particular Data
   const handleView = (id) => {
-    const token = localStorage.getItem("token");
     axios
-      .get(`${API_BASE_URL}getJobById/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      })
+      .get(`${API_BASE_URL}getJobById/${id}`, getRequestConfig())
       .then((response) => {
         setViewData(response.data.data);
         console.log(response.data.data);
@@ -474,7 +457,6 @@ function YourJobPosts() {
 
   return (
     <>
-      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}

@@ -4,19 +4,29 @@ import axios from "axios";
 import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { isRateLimitError } from "../utils/apiRateLimitHandler";
+import {
+  getRequestConfig,
+  persistLoginSession,
+  getPostLoginPath,
+  resolveEmployerLoginUser,
+  isLoginResponseValid,
+} from "../utils/apiHeaders";
 
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
+import { SITE } from "../utils/seo";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 import {
   isVerifiedByAdmin,
   toVerifiedByAdminStorage,
 } from "../utils/employerVerification";
 
 function EmployerLogin() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const { login, login: authLogin } = useAuth();
 
@@ -36,11 +46,11 @@ function EmployerLogin() {
   const validateForm = () => {
     const { email, password } = formData;
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error(t("header.email_password_required"));
       return false;
     }
     if (!captchaVerified) {
-      toast.error("Please verify captcha!");
+      toast.error(t("header.captcha_required"));
       return false;
     }
     return true;
@@ -57,23 +67,11 @@ function EmployerLogin() {
         role: "Recruiter",
       });
       if (response.status === 200 && response.data.success) {
-        const { token, user: loginUser, company } = response.data;
-        const user =
-          loginUser ||
-          (company
-            ? {
-                id: company.recruiterId || company._id,
-                email: company.email,
-                role: "Company",
-                companyId: company.companyId || company._id,
-                is_completed: true,
-                verifiedByAdmin: company.verifiedByAdmin,
-                company,
-              }
-            : null);
+        const { token, company } = response.data;
+        const user = resolveEmployerLoginUser(response.data);
 
-        if (!token || !user) {
-          toast.error(response.data?.message || "Invalid login response");
+        if (!isLoginResponseValid(response.data) || !user) {
+          toast.error(response.data?.message || t("auth.invalid_login_response"));
           return;
         }
 
@@ -86,59 +84,35 @@ function EmployerLogin() {
           !verifiedByAdmin;
         if (shouldShowAdminVerifyMsg) {
           await Swal.fire({
-            title: "Account Not Verified",
-            text: "Your account is not verified by the admin. Please contact support.",
+            title: t("auth.account_not_verified_title"),
+            text: t("auth.account_not_verified_text"),
             icon: "error",
-            confirmButtonText: "OK",
+            confirmButtonText: t("header.ok"),
           });
         }
-        // Save login data correctly
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("user_id", user.id);
-        localStorage.setItem("user_email", user.email);
-        localStorage.setItem("user_role", user.role);
-        localStorage.setItem("first_name", user.first_name);
-        localStorage.setItem("last_name", user.last_name);
-        localStorage.setItem("is_completed", user?.is_completed);
-        localStorage.setItem(
-          "companyId",
-          user?.companyId || company?.companyId || company?._id,
-        );
-        localStorage.setItem(
-          "verifiedByAdmin",
-          toVerifiedByAdminStorage(
-            user?.verifiedByAdmin ?? company?.verifiedByAdmin,
-          ),
-        );
-        localStorage.setItem(
-          "profileImage",
-          user?.company?.logo || company?.logo,
-        );
+        persistLoginSession({
+          token,
+          user,
+          data: response.data,
+          extras: {
+            companyId: user?.companyId || company?.companyId || company?._id,
+            verifiedByAdmin: toVerifiedByAdminStorage(
+              user?.verifiedByAdmin ?? company?.verifiedByAdmin,
+            ),
+            profileImage: user?.company?.logo || company?.logo || "",
+          },
+        });
 
         setFormData((prev) => ({ ...prev, password: "" }));
-        login(); // call auth context
+        login();
 
-        toast.success("Login successfully!");
-        if (user?.is_completed) {
-          if (user.role == "Recruiter" || user.role == "Company") {
-            navigate("/employer-dashboard");
-          } else {
-            navigate("/candidate-profile");
-          }
-        } else {
-          if (user.role == "Recruiter" || user.role == "Company") {
-            navigate("/employer-basic-info");
-          } else {
-            navigate("/profile-basic-info");
-          }
-        }
         if (shouldShowAdminVerifyMsg) {
           navigate("/");
           return;
         }
+        navigate(getPostLoginPath(user), { state: { loginSuccess: true } });
       } else {
-        toast.error(response.data?.message || "Invalid credentials");
+        toast.error(response.data?.message || t("header.invalid_credentials"));
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -163,7 +137,7 @@ function EmployerLogin() {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
         toast.error(
-          error.response?.data?.message || "Login failed. Please try again.",
+          error.response?.data?.message || t("header.login_failed"),
         );
       }
     } finally {
@@ -356,8 +330,6 @@ function EmployerLogin() {
   };
   return (
     <>
-      <ToastContainer />
-
       <section className="login-area-info-area">
         <div className="container-fluid">
           <div className="row">
@@ -367,32 +339,32 @@ function EmployerLogin() {
                   <img
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
-                    alt="logo"
+                    alt={`${SITE.name} logo`}
                   />
                 </div>
                 <div className="container">
                   <div className="login">
-                    <h3>Employer Log In</h3>
+                    <h1>{t("auth.employer_login_title")}</h1>
                     <form>
                       <div className="form-group">
-                        <label>Email Address*</label>
+                        <label>{t("auth.email_label")}</label>
                         <input
                           type="email"
                           id="email"
                           className="form-control"
-                          placeholder="Username Or Email Address*"
+                          placeholder={t("auth.username_email_placeholder")}
                           value={formData.email}
                           onChange={handleChange}
                         />
                       </div>
                       <div className="form-group eye-icon-postion">
-                        <label>Password*</label>
+                        <label>{t("auth.password_label")}</label>
                         <div style={{ position: "relative" }}>
                           <input
-                            type={showPassword ? "text" : "password"} // ✅ toggle here
+                            type={showPassword ? "text" : "password"}
                             id="password"
                             className="form-control"
-                            placeholder="Password*"
+                            placeholder={t("auth.password_placeholder")}
                             value={formData.password}
                             onChange={handleChange}
                           />
@@ -424,8 +396,8 @@ function EmployerLogin() {
                           to="/recovery-password"
                           state={{ role: "employer" }}
                         >
-                          <i className="fa-solid fa-lock" /> Forgot your
-                          password?
+                          <i className="fa-solid fa-lock" />{" "}
+                          {t("auth.forgot_password_link")}
                         </Link>
                       </div>
                       <div className="login-btn-recover-password">
@@ -435,26 +407,27 @@ function EmployerLogin() {
                             className="default-btn btn"
                             onClick={handleLogin}
                           >
-                            {loading ? "Logging in..." : "Login"}
+                            {loading
+                              ? t("auth.logging_in")
+                              : t("auth.login_btn")}
                           </button>
                         </div>
                         <div className="login-singup-bottom-content">
                           <p>
-                            Don't have an account yet?
+                            {t("auth.no_account_yet")}
                             <Link to="/employer-register">
-                              <i className="fa-solid fa-square-plus" /> Create
-                              an account
+                              <i className="fa-solid fa-square-plus" />{" "}
+                              {t("auth.create_an_account")}
                             </Link>
                           </p>
                         </div>
                       </div>
                     </form>
                     <div className="recruiter-login-content-area">
-                      <p>
-                        Are you a Job seeker ? Log in via our dedicated portal
-                      </p>
+                      <p>{t("auth.jobseeker_login_prompt")}</p>
                       <Link to="/login">
-                        <i className="fa-solid fa-users" /> Seeker Login
+                        <i className="fa-solid fa-users" />{" "}
+                        {t("auth.seeker_login_link")}
                       </Link>
                     </div>
                     <div className="linkeding-login-register-btn-info">
@@ -463,7 +436,7 @@ function EmployerLogin() {
                         onClick={handleLinkedinLogin}
                       >
                         <img src="assets/images/icon/linkedin-icon.png" />
-                        Linkedin Login
+                        {t("auth.linkedin_login")}
                       </button>
                     </div>
                   </div>
@@ -474,7 +447,7 @@ function EmployerLogin() {
               <div className="login-img-info-area">
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
-                  alt="register-img"
+                  alt={t("auth.employer_login_title")}
                 />
               </div>
             </div>

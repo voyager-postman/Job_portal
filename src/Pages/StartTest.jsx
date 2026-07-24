@@ -4,8 +4,11 @@ import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useTranslation } from "react-i18next";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 const StartTest = () => {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const { state } = useLocation();
   console.log(state);
@@ -36,7 +39,7 @@ const StartTest = () => {
 
       const res = await axios.get(
         `${API_BASE_URL}assessments/${id}/questions`,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       const { assessment, questions } = res.data;
@@ -48,7 +51,7 @@ const StartTest = () => {
       const timeRes = await fetchLiveRemainingTime(assessmentId, state?.jobId);
 
       if (!timeRes.success) {
-        alert("Unable to fetch remaining time");
+        alert(t("assessment.unable_fetch_time"));
         return;
       }
 
@@ -155,7 +158,7 @@ const StartTest = () => {
       const res = await axios.post(
         `${API_BASE_URL}submitAssessment/${assessmentId}`,
         payload,
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       const { success, message, result, canReattempt } = res.data;
@@ -200,12 +203,12 @@ const StartTest = () => {
       const apiMessage = error?.response?.data?.message;
 
       if (apiMessage === "Assessment already submitted") {
-        alert("⚠️ You have already submitted this assessment.");
+        alert(t("assessment.already_submitted"));
         navigate("/job-search");
         return;
       }
 
-      toast.error(apiMessage || "Something went wrong");
+      toast.error(apiMessage || t("header.something_wrong"));
     }
   };
 
@@ -214,9 +217,7 @@ const StartTest = () => {
 
     const res = await axios.get(
       `${API_BASE_URL}getLiveRemainingTime/${assessmentId}/${jobId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      getRequestConfig(),
     );
 
     return res.data;
@@ -235,7 +236,7 @@ const StartTest = () => {
               <div className="skill-assessment-test-name-timer">
                 <span>{assessment?.assessmentName}</span>
                 <span className="test-start-timer-area">
-                  <i className="fa-solid fa-clock" /> Time Left:{" "}
+                  <i className="fa-solid fa-clock" /> {t("assessment.time_left")}{" "}
                   {formatTime(timeLeft)}
                 </span>
               </div>
@@ -248,7 +249,7 @@ const StartTest = () => {
                     data-bs-target="#submitTestModal"
                     onClick={() => setSubmitMode("submit")}
                   >
-                    Submit
+                    {t("assessment.submit")}
                   </span>
                 )}
 
@@ -257,7 +258,7 @@ const StartTest = () => {
                   data-bs-toggle="modal"
                   data-bs-target="#quitTestModal"
                 >
-                  Quit
+                  {t("assessment.quit")}
                 </span>
               </div>
             </div>
@@ -267,16 +268,13 @@ const StartTest = () => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-body text-center">
-                  <h5>Quit Test?</h5>
-                  <p>
-                    If you quit now, all your answers will be lost and the test
-                    will end.
-                  </p>
+                  <h5>{t("assessment.quit_test_title")}</h5>
+                  <p>{t("assessment.quit_test_message")}</p>
                 </div>
 
                 <div className="modal-footer justify-content-center">
                   <button className="default-btn btn" data-bs-dismiss="modal">
-                    Continue Test
+                    {t("assessment.continue_test")}
                   </button>
 
                   <button
@@ -292,7 +290,7 @@ const StartTest = () => {
                       submitAssessment(false, true); // 👈 autoSubmitted=false, isQuit=true
                     }}
                   >
-                    Quit Test
+                    {t("assessment.quit_test")}
                   </button>
                 </div>
               </div>
@@ -303,15 +301,13 @@ const StartTest = () => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-body text-center">
-                  <h5>Submit Test?</h5>
-                  <p>
-                    Once you submit, you won’t be able to change your answers.
-                  </p>
+                  <h5>{t("assessment.submit_test_title")}</h5>
+                  <p>{t("assessment.submit_test_message")}</p>
                 </div>
 
                 <div className="modal-footer justify-content-center">
                   <button className="default-btn btn" data-bs-dismiss="modal">
-                    Cancel
+                    {t("header.Cancel")}
                   </button>
 
                   <button
@@ -321,7 +317,7 @@ const StartTest = () => {
                       submitAssessment(false);
                     }}
                   >
-                    Yes, Submit
+                    {t("assessment.yes_submit")}
                   </button>
                 </div>
               </div>
@@ -332,11 +328,14 @@ const StartTest = () => {
 
           <div className="skill-assessment-test-num-level">
             <span>
-              Question {currentQuestion + 1} of {assessment?.totalQuestions}
+              {t("assessment.question_of", {
+                current: currentQuestion + 1,
+                total: assessment?.totalQuestions,
+              })}
             </span>
             <span className="skill-assessment-test-level">
               {" "}
-              Level {currentQ?.level}
+              {t("assessment.level", { level: currentQ?.level })}
             </span>
           </div>
 
@@ -429,7 +428,7 @@ const StartTest = () => {
               disabled={currentQuestion === 0}
               onClick={() => setCurrentQuestion((q) => q - 1)}
             >
-              Previous
+              {t("assessment.previous")}
             </button>
 
             {currentQuestion < questions.length - 1 ? (
@@ -437,7 +436,7 @@ const StartTest = () => {
                 className="default-btn btn"
                 onClick={() => setCurrentQuestion((q) => q + 1)}
               >
-                Next
+                {t("assessment.next")}
               </button>
             ) : (
               <button
@@ -446,7 +445,7 @@ const StartTest = () => {
                 data-bs-target="#finishTestModal"
                 onClick={() => setSubmitMode("finish")}
               >
-                Finish Test
+                {t("assessment.finish_test")}
               </button>
             )}
           </div>
@@ -462,16 +461,18 @@ const StartTest = () => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-body text-center">
-                  <h5>Finish Test?</h5>
+                  <h5>{t("assessment.finish_test_title")}</h5>
                   <p>
-                    You have answered {totalQuestions} of {totalQuestions}{" "}
-                    questions.
+                    {t("assessment.finish_test_message", {
+                      answered: totalQuestions,
+                      total: totalQuestions,
+                    })}
                   </p>
                 </div>
 
                 <div className="modal-footer justify-content-center">
                   <button className="default-btn btn" data-bs-dismiss="modal">
-                    Cancel
+                    {t("header.Cancel")}
                   </button>
 
                   <button
@@ -494,7 +495,7 @@ const StartTest = () => {
                       });
                     }}
                   >
-                    Submit Test
+                    {t("assessment.submit_test")}
                   </button>
                 </div>
               </div>

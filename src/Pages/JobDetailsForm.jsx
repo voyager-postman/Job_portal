@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
+import {getAuthHeaders, isAuthReady, getRequestConfig } from "../utils/apiHeaders";
 import { useLocation, useParams } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,7 +16,24 @@ import axios from "axios";
 // ===============================
 
 import Select from "react-select";
+import { useTranslation } from "react-i18next";
+import {
+  getPackDaysLeft,
+  hasNoPackExpiry,
+  hasUnlimitedCredits,
+} from "../utils/packCreditDisplay";
+import {
+  canEnableFeaturedJob,
+  formatSearchBoostLabel,
+  getFeaturedJobsUsedCount,
+  getFeaturedLimitMessage,
+  getFeaturedPackBenefitItems,
+  normalizePackFeaturedInfo,
+} from "../utils/featuredJobDisplay";
+import "./JobDetailsForm.css";
+
 function JobDetailsForm() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -34,7 +52,8 @@ function JobDetailsForm() {
     usedToday: 0,
     remainingToday: 0,
     packName: "",
-    daysLeft: 0,
+    daysLeft: null,
+    cancelExpiry: false,
 
     // Full Credit
     fullCredit: {
@@ -50,7 +69,11 @@ function JobDetailsForm() {
     maxFeaturedJobs: 0,
     featuredJobsUsed: 0,
     maxActiveFeaturedJobs: 0,
+    activeFeaturedJobs: 0,
     featuredJobDurationDays: 0,
+    featuredJobLocations: [],
+    searchBoostScore: 1,
+    companyProfileHighlightEnabled: false,
   });
   const [loading, setLoading] = useState(false);
   const [globalCurrency, setGlobalCurrency] = useState({
@@ -204,9 +227,7 @@ function JobDetailsForm() {
     if (!jobFromState._id && id) {
       const token = localStorage.getItem("token");
       axios
-        .get(`${API_BASE_URL}getJobById/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        .get(`${API_BASE_URL}getJobById/${id}`, getRequestConfig())
         .then((res) => {
           const job = res.data?.data || res.data?.job || res.data;
           if (!job) return;
@@ -349,26 +370,39 @@ function JobDetailsForm() {
       if (response.data.success) {
         const data = response.data.data;
 
-        const pack = data?.purchasedPack?.active
+        const pack = data?.hasPurchasedPack
           ? data.purchasedPack
-          : data.welcomePack;
+          : data?.hasWelcomePack
+            ? data.welcomePack
+            : null;
 
-        const feature = pack?.features || {};
+        const featuredInfo = normalizePackFeaturedInfo(pack);
+        const jobsToday = data?.remainingUsage?.jobsToday || "";
+        const jobsTodayUsed = Number.parseInt(
+          String(jobsToday).split("/")[0],
+          10,
+        );
+
+        const unlimitedCredits = hasUnlimitedCredits(pack);
 
         setCreditInfo({
-          totalJobCredits: pack?.jobCreditsTotal || 0,
-          remainingJobCredits: pack?.jobCreditsRemaining || 0,
+          totalJobCredits: unlimitedCredits ? -1 : pack?.jobCreditsTotal || 0,
+          remainingJobCredits: unlimitedCredits
+            ? -1
+            : pack?.jobCreditsRemaining || 0,
 
-          // ✅ Daily Limit
           dailyLimit: pack?.dailyJobLimit || 0,
 
-          // ✅ Used Today
-          usedToday: data?.usageToday?.jobPostingUsed || 0,
+          usedToday: jobsTodayUsed || data?.usageToday?.jobPostingUsed || 0,
 
-          remainingToday: data?.remainingToday?.jobPostingRemaining || 0,
+          remainingToday:
+            data?.remainingToday?.jobPostingRemaining ||
+            pack?.dailyJobLimit ||
+            0,
 
-          packName: pack?.packName || "Welcome Pack",
-          daysLeft: pack?.daysLeft || 0,
+          packName: pack?.packName || t("jobs.no_active_plan"),
+          cancelExpiry: hasNoPackExpiry(pack),
+          daysLeft: getPackDaysLeft(pack),
 
           // ✅ Full Credit
           fullCredit: data?.fullCredit || {
@@ -379,12 +413,17 @@ function JobDetailsForm() {
             },
           },
 
-          // Featured Jobs
-          featuredJobsAvailable: feature?.featuredJobsAvailable || false,
-          maxFeaturedJobs: feature?.maxFeaturedJobs || 0,
-          featuredJobsUsed: feature?.featuredJobsUsed || 0,
-          maxActiveFeaturedJobs: feature?.maxActiveFeaturedJobs || 0,
-          featuredJobDurationDays: feature?.featuredJobDurationDays || 0,
+          // Featured Jobs — driven by purchased / welcome pack only
+          featuredJobsAvailable: featuredInfo.featuredJobsAvailable,
+          maxFeaturedJobs: featuredInfo.maxFeaturedJobs,
+          featuredJobsUsed: featuredInfo.featuredJobsUsed,
+          maxActiveFeaturedJobs: featuredInfo.maxActiveFeaturedJobs,
+          activeFeaturedJobs: featuredInfo.activeFeaturedJobs,
+          featuredJobDurationDays: featuredInfo.featuredJobDurationDays,
+          featuredJobLocations: featuredInfo.featuredJobLocations,
+          searchBoostScore: featuredInfo.searchBoostScore,
+          companyProfileHighlightEnabled:
+            featuredInfo.companyProfileHighlightEnabled,
         });
       }
     } catch (error) {
@@ -633,7 +672,7 @@ function JobDetailsForm() {
 
     // prevent duplicate skill
     if (formData.tags.includes(skill)) {
-      toast.error("Skill already added");
+      toast.error(t("jobs.skill_already_added"));
       return;
     }
 
@@ -787,7 +826,7 @@ function JobDetailsForm() {
   ) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      if (!isAuthReady()) {
         console.error("❌ No token found");
         return;
       }
@@ -795,38 +834,38 @@ function JobDetailsForm() {
       const maxSalary = Number(data.maxSalary || 0);
 
       if (data.minSalary && !data.maxSalary) {
-        toast.error("Please enter Maximum salary");
+        toast.error(t("jobs.enter_max_salary_error"));
         return;
       }
 
       if (!data.minSalary && data.maxSalary) {
-        toast.error("Please enter Minimum salary");
+        toast.error(t("jobs.enter_min_salary_error"));
         return;
       }
 
       if (data.minSalary && data.maxSalary) {
         if (minSalary <= 0 || maxSalary <= 0) {
-          toast.error("Salary must be greater than 0");
+          toast.error(t("jobs.salary_gt_zero"));
           return;
         }
 
         if (minSalary > maxSalary) {
-          toast.error("Minimum salary cannot be greater than Maximum salary");
+          toast.error(t("jobs.min_gt_max_error"));
           return;
         }
 
         if (minSalary === maxSalary) {
-          toast.error("Minimum salary and Maximum salary cannot be the same");
+          toast.error(t("jobs.min_max_same_error"));
           return;
         }
       }
       if (Number(data.TJM) < 0) {
-        toast.error("TJM cannot be negative");
+        toast.error(t("jobs.tjm_negative_error"));
         return;
       }
 
       if (Number(data.availablePosts) <= 0) {
-        toast.error("Available jobs must be greater than 0");
+        toast.error(t("jobs.available_jobs_gt_zero"));
         return;
       }
       const today = new Date();
@@ -838,7 +877,7 @@ function JobDetailsForm() {
       selectedExpiry.setHours(0, 0, 0, 0);
       if (statusType === "published") {
         if (!selectedExpiry || selectedExpiry < today) {
-          toast.error("Expiry date cannot be in the past");
+          toast.error(t("jobs.expiry_past_error"));
           return;
         }
       }
@@ -847,28 +886,28 @@ function JobDetailsForm() {
       );
 
       if (!data.jobTitle?.trim()) {
-        toast.error("Please enter Job Title");
+        toast.error(t("jobs.enter_job_title_error"));
         return;
       }
 
       if (!data.jobCategory || data.jobCategory.length === 0) {
-        toast.error("Please select Job Category");
+        toast.error(t("jobs.select_category_error"));
         return;
       }
       if (!data.remote) {
-        toast.error("Please select Remote type");
+        toast.error(t("jobs.select_remote_error"));
         return;
       }
       if (!data.minimumLevel) {
-        toast.error("Please select Minimum level");
+        toast.error(t("jobs.select_level_error"));
         return;
       }
       if (isFreelanceSelected && !data.TJM) {
-        toast.error("Please enter TJM");
+        toast.error(t("jobs.enter_tjm_error"));
         return;
       }
       if (data.isAssessmentRequired && !data.assessment) {
-        toast.error("Please select an assessment");
+        toast.error(t("jobs.select_assessment_error"));
         return;
       }
 
@@ -970,7 +1009,7 @@ function JobDetailsForm() {
       const message = error.response?.data?.message;
       const exhausted = error.response?.data?.is_exhausted;
 
-      toast.error(message || "Something went wrong while publishing the job.");
+      toast.error(message || t("jobs.publish_error"));
 
       if (exhausted === 1) {
         setTimeout(() => {
@@ -988,6 +1027,31 @@ function JobDetailsForm() {
   const totalCredits = simpleJobCredit + featuredJobCredit;
   const totalCredits1 = simpleJobCredit;
 
+  const featuredJobsUsedCount = getFeaturedJobsUsedCount(
+    creditInfo.featuredJobsUsed,
+  );
+  const featuredJobsRemaining = Math.max(
+    0,
+    creditInfo.maxFeaturedJobs - featuredJobsUsedCount,
+  );
+  const featuredPackBenefits = getFeaturedPackBenefitItems(creditInfo, t);
+
+  const handleFeaturedToggle = (checked) => {
+    if (!checked) {
+      setFormData((prev) => ({ ...prev, enableFeaturedJob: false }));
+      return;
+    }
+
+    const validation = canEnableFeaturedJob(creditInfo, formData.enableFeaturedJob);
+
+    if (!validation.allowed) {
+      toast.error(getFeaturedLimitMessage(validation.reason, t, creditInfo));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, enableFeaturedJob: true }));
+  };
+
   // top of component (before return)
   const today = new Date();
   console.log(expiresAt);
@@ -1001,18 +1065,16 @@ function JobDetailsForm() {
   const generateJobDescription = async () => {
     try {
       if (!formData.jobTitle?.trim()) {
-        toast.error("Please enter Job Title");
+        toast.error(t("jobs.enter_job_title_error"));
         return;
       }
 
       if (!formData.jobCategory || formData.jobCategory.length === 0) {
-        toast.error("Please select Job Category");
+        toast.error(t("jobs.select_category_error"));
         return;
       }
 
       setAiLoading(true);
-
-      const token = localStorage.getItem("token");
 
       const payload = {
         jobTitle: formData.jobTitle || "",
@@ -1040,11 +1102,7 @@ function JobDetailsForm() {
       const response = await axios.post(
         `${API_BASE_URL}generate-job-description`,
         payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        { headers: getAuthHeaders() },
       );
 
       if (response.data.success) {
@@ -1053,13 +1111,13 @@ function JobDetailsForm() {
           jobDescription: response.data.description || "",
         }));
 
-        toast.success("Job Description Generated Successfully");
+        toast.success(t("jobs.description_generated"));
       } else {
-        toast.error("Failed to generate description");
+        toast.error(t("jobs.description_failed"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error(t("header.something_wrong"));
     } finally {
       setAiLoading(false);
     }
@@ -1071,10 +1129,10 @@ function JobDetailsForm() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Job Details Form</h1>
+            <h1>{t("breadcrumbs.job_details_form")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
@@ -1100,7 +1158,7 @@ function JobDetailsForm() {
               <div id="menu1" className="tab-pane fade show active">
                 <div className="job-details-form-area">
                   <div className="job-details-form-heading">
-                    <h3>Job Details</h3>
+                    <h3>{t("jobs.job_details")}</h3>
                   </div>
 
                   <form>
@@ -1108,21 +1166,21 @@ function JobDetailsForm() {
                       <div className="row">
                         <div className="col-lg-12 col-md-12">
                           <div className="form-group">
-                            Job Title<span className="text-danger">*</span>{" "}
+                            {t("header.jobTitle")}<span className="text-danger">*</span>{" "}
                             <input
                               className="form-control"
                               type="text"
                               name="jobTitle"
                               value={formData.jobTitle}
                               onChange={handleChange}
-                              placeholder="Enter Job Title"
+                              placeholder={t("jobs.enter_job_title")}
                             />
                           </div>
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
-                              Minimum level
+                              {t("jobs.minimum_level")}
                               <span className="text-danger">*</span>{" "}
                             </label>
                             <select
@@ -1132,7 +1190,7 @@ function JobDetailsForm() {
                               onChange={handleSeniorityChange}
                             >
                               <option value="" disabled>
-                                Select minimum level
+                                {t("jobs.select_minimum_level")}
                               </option>
 
                               {seniorityLevels.map((level) => (
@@ -1145,7 +1203,7 @@ function JobDetailsForm() {
                         </div>
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Employment Type</label>
+                            <label>{t("jobs.employment_type")}</label>
 
                             <Select
                               isMulti
@@ -1154,7 +1212,7 @@ function JobDetailsForm() {
                                 label: type.name, // show name
                                 name: type.name, // extra field if needed
                               }))}
-                              placeholder="Select employment type"
+                              placeholder={t("jobs.select_employment_type")}
                               value={formData.employmentType}
                               onChange={(selected) =>
                                 setFormData((prev) => ({
@@ -1180,7 +1238,7 @@ function JobDetailsForm() {
                                 name="TJM"
                                 value={formData.TJM}
                                 onChange={handleChange}
-                                placeholder="Enter TJM"
+                                placeholder={t("jobs.enter_tjm")}
                               />
                             </div>
                           </div>
@@ -1188,7 +1246,7 @@ function JobDetailsForm() {
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
-                              Remote<span className="text-danger">*</span>
+                              {t("jobs.remote")}<span className="text-danger">*</span>
                             </label>
 
                             <select
@@ -1197,7 +1255,7 @@ function JobDetailsForm() {
                               value={formData.remote}
                               onChange={handleChange}
                             >
-                              <option value="">Select remote type</option>
+                              <option value="">{t("jobs.select_remote_type")}</option>
 
                               {remoteList.map((item) => (
                                 <option key={item._id} value={item._id}>
@@ -1210,7 +1268,7 @@ function JobDetailsForm() {
 
                         {/* <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Job category</label>
+                            <label>{t("jobs.job_category")}</label>
                             <span className="text-danger">*</span>
                             <select
                               className="form-select form-control"
@@ -1233,7 +1291,7 @@ function JobDetailsForm() {
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
                             <label>
-                              Job category{" "}
+                              {t("jobs.job_category")}{" "}
                               <span className="text-danger">*</span>
                             </label>
 
@@ -1244,7 +1302,7 @@ function JobDetailsForm() {
                                 label: item.name,
                               }))}
                               value={formData.jobCategory}
-                              placeholder="Choose Categories"
+                              placeholder={t("jobs.choose_categories")}
                               onChange={(selected) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1257,10 +1315,10 @@ function JobDetailsForm() {
                         {/* Country Field */}
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Country</label>
+                            <label>{t("header.Country")}</label>
                             <select
                               className="form-select form-control"
-                              aria-label="Select Country"
+                              aria-label={t("header.Country")}
                               name="Country"
                               value={formData.Country}
                               onChange={handleCountryChange}
@@ -1285,7 +1343,7 @@ function JobDetailsForm() {
                         {/* City Selection (Searchable Multi-Select) */}
                         <div className="col-lg-6 col-md-6">
                           <div className="form-group">
-                            <label>Select City</label>
+                            <label>{t("jobs.select_city")}</label>
                             <div className="multi-select-container">
                               <div
                                 className="selected-items"
@@ -1329,7 +1387,7 @@ function JobDetailsForm() {
                                 {/* Search Input */}
                                 <input
                                   type="text"
-                                  placeholder="Search city..."
+                                  placeholder={t("jobs.search_city")}
                                   value={citySearchTerm}
                                   onChange={(e) =>
                                     setCitySearchTerm(e.target.value)
@@ -1416,11 +1474,11 @@ function JobDetailsForm() {
                 </div>
 
                 <div className="job-description-box-info">
-                  <h3>Short Description</h3>
+                  <h3>{t("header.Short_Description")}</h3>
                   <div className="form-group">
                     <textarea
                       className="form-control"
-                      placeholder="Enter a short description for this job post"
+                      placeholder={t("jobs.enter_short_description")}
                       rows={10}
                       name="shortDescription"
                       value={formData.shortDescription}
@@ -1431,7 +1489,7 @@ function JobDetailsForm() {
 
                 <div className="post-job-form-info-area">
                   <div className="input-info-edit-area form-heading-info">
-                    <h3>Tags</h3>
+                    <h3>{t("header.Tags")}</h3>
                     <span className="heading-small-description">
                       Add tags to your job post. This will help it appear in as
                       many relevant job posts as possible.
@@ -1446,7 +1504,7 @@ function JobDetailsForm() {
                             <input
                               className="form-control"
                               type="text"
-                              placeholder="Enter Skills"
+                              placeholder={t("jobs.enter_skills")}
                               value={tagInput}
                               onChange={(e) => setTagInput(e.target.value)}
                               onKeyDown={handleTagKeyDown}
@@ -1501,7 +1559,7 @@ function JobDetailsForm() {
                       "margin-bottom": "15px",
                     }}
                   >
-                    <h3 style={{ margin: "0px" }}>Job Description</h3>
+                    <h3 style={{ margin: "0px" }}>{t("header.Job_Description")}</h3>
                     <button
                       type="button"
                       className="btn default-btn"
@@ -1591,7 +1649,7 @@ function JobDetailsForm() {
                       "margin-bottom": "15px",
                     }}
                   >
-                    <h3 style={{ margin: "0px" }}>Processus de recrutement</h3>
+                    <h3 style={{ margin: "0px" }}>{t("jobs.recruitment_process")}</h3>
 
                     <button
                       type="button"
@@ -1642,12 +1700,12 @@ function JobDetailsForm() {
                 <div className="job-description-box-info">
                   <div id="menu2" class="job-details-form-area mb-1">
                     <div className="input-info-edit-area form-heading-info">
-                      <h3>Options</h3>
+                      <h3>{t("jobs.options")}</h3>
                       <hr></hr>
                     </div>
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>External Apply</h3>
+                        <h3>{t("jobs.external_apply")}</h3>
                         <span className="heading-small-description">
                           Add tags to your job post. This will help it appear in
                           as many relevant job posts as possible.
@@ -1656,7 +1714,7 @@ function JobDetailsForm() {
 
                       <div className="job-option-branding-content-switch">
                         <div className="job-option-branding-content">
-                          <p>Enable external apply</p>
+                          <p>{t("jobs.enable_external_apply")}</p>
                         </div>
                         <div className="job-option-branding-switch">
                           <label className="switch">
@@ -1673,7 +1731,7 @@ function JobDetailsForm() {
                       {formData.enableExternalApply && (
                         <div className="col-lg-12 col-md-12 mt-2">
                           <div className="form-group">
-                            <label>External Url</label>
+                            <label>{t("jobs.external_url")}</label>
                             <span className="text-danger">*</span>
                             <input
                               className="form-control mt-2"
@@ -1681,7 +1739,7 @@ function JobDetailsForm() {
                               name="ExternalApplyLink"
                               value={formData.ExternalApplyLink}
                               onChange={handleChange}
-                              placeholder="Enter the link"
+                              placeholder={t("jobs.enter_link")}
                             />
                           </div>
                         </div>
@@ -1690,7 +1748,7 @@ function JobDetailsForm() {
 
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Job Assessment</h3>
+                        <h3>{t("jobs.job_assessment")}</h3>
                         <span className="heading-small-description">
                           Select job assessments for your job post. This helps
                           your job appear in relevant searches and reach the
@@ -1699,7 +1757,7 @@ function JobDetailsForm() {
                       </div>
                       <div className="job-option-branding-content-switch">
                         <div className="job-option-branding-content">
-                          <p>Enable Job Assessment</p>
+                          <p>{t("jobs.enable_job_assessment")}</p>
                         </div>
                         <div className="job-option-branding-switch">
                           <label className="switch">
@@ -1718,7 +1776,7 @@ function JobDetailsForm() {
                         <>
                           <div className="col-lg-12 col-md-12 mt-2">
                             <div className="form-group">
-                              <label>Select Job Assessment</label>
+                              <label>{t("jobs.select_job_assessment")}</label>
                               <span className="text-danger">*</span>
                               <select
                                 className="form-select form-control mt-2"
@@ -1758,7 +1816,7 @@ function JobDetailsForm() {
 
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Allow Retry After Failure</h3>
+                        <h3>{t("jobs.allow_retry")}</h3>
                         <span className="heading-small-description">
                           Enable this to allow candidates to retry the
                           assessment if it fails.
@@ -1767,7 +1825,7 @@ function JobDetailsForm() {
 
                       <div className="job-option-branding-content-switch">
                         <div className="job-option-branding-content">
-                          <p>Enable Retry</p>
+                          <p>{t("jobs.enable_retry")}</p>
                         </div>
                         <div className="job-option-branding-switch">
                           <label className="switch">
@@ -1792,7 +1850,7 @@ function JobDetailsForm() {
                               name="retry_period_days"
                               value={formData.retry_period_days}
                               onChange={handleChange}
-                              placeholder="Enter retry cooldown days"
+                              placeholder={t("jobs.enter_retry_cooldown")}
                               min="1"
                               disabled={!formData.validation_required}
                             />
@@ -1806,7 +1864,7 @@ function JobDetailsForm() {
 
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Confidential job post</h3>
+                        <h3>{t("jobs.confidential_job_post")}</h3>
                         <span className="heading-small-description">
                           Enable this option to hide your company details from
                           the job post. (Anonymous Company)
@@ -1814,7 +1872,7 @@ function JobDetailsForm() {
                       </div>
                       <div className="job-option-branding-content-switch">
                         <div className="job-option-branding-content">
-                          <p>Enable confidential post</p>
+                          <p>{t("jobs.enable_confidential")}</p>
                         </div>
                         <div className="job-option-branding-switch">
                           <label className="switch">
@@ -1832,7 +1890,7 @@ function JobDetailsForm() {
 
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Reference ID</h3>
+                        <h3>{t("jobs.reference_id")}</h3>
                         <span className="heading-small-description">
                           You can give your job post a unique Reference ID. This
                           can help you distinguish it and find it easier.
@@ -1853,7 +1911,7 @@ function JobDetailsForm() {
                     </div>
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Number of Available Jobs </h3>
+                        <h3>{t("jobs.number_available_jobs")} </h3>
                         <span className="heading-small-description">
                           Specify how many positions are available for this job
                           role.
@@ -1865,7 +1923,7 @@ function JobDetailsForm() {
                             type="number"
                             className="form-control"
                             name="availablePosts"
-                            placeholder="Enter number of openings"
+                            placeholder={t("jobs.enter_openings")}
                             min="1"
                             value={formData.availablePosts}
                             onChange={handleChange}
@@ -1876,7 +1934,7 @@ function JobDetailsForm() {
                     </div>
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Email notification</h3>
+                        <h3>{t("jobs.email_notification")}</h3>
                         <span className="heading-small-description">
                           We can notify you via email when you receive a new
                           application for this job post.
@@ -1903,7 +1961,7 @@ function JobDetailsForm() {
 
                     <div className="job-option-branding-input-area">
                       <div className="job-option-branding-heading">
-                        <h3>Private job details</h3>
+                        <h3>{t("jobs.private_job_details")}</h3>
                         <span className="heading-small-description">
                           Private job details are non-visible to job seekers
                           that see your job post.
@@ -1923,7 +1981,7 @@ function JobDetailsForm() {
                                 type="number"
                                 name="minSalary"
                                 min="0"
-                                placeholder="Enter minimum salary"
+                                placeholder={t("jobs.enter_min_salary")}
                                 value={formData.minSalary}
                                 onChange={handleChange}
                               />
@@ -1941,7 +1999,7 @@ function JobDetailsForm() {
                                 type="number"
                                 name="maxSalary"
                                 min="0"
-                                placeholder="Enter maximum salary"
+                                placeholder={t("jobs.enter_max_salary")}
                                 value={formData.maxSalary}
                                 onChange={handleChange}
                               />
@@ -1955,24 +2013,23 @@ function JobDetailsForm() {
                 <div className="job-description-box-info">
                   <div id="menu2" class="job-details-form-area mb-1">
                     <div className="input-info-edit-area form-heading-info">
-                      <h3>Job Promotion</h3>
+                      <h3>{t("jobs.job_promotion")}</h3>
                       <hr></hr>
                     </div>
 
                     {creditInfo.featuredJobsAvailable && (
                       <>
-                        <h3>Featured Your Job</h3>
+                        <h3>{t("jobs.featured_your_job")}</h3>
                         <p className="text-muted small">
-                          Increase visibility of your job post with these
-                          promotion options.
+                          {t("jobs.promotion_description")}
                         </p>
 
                         {/* FEATURED JOB */}
                         <div className="job-option-branding-content-switch">
                           <div className="job-option-branding-content">
-                            <p>Featured Job</p>
+                            <p>{t("jobs.featured_job")}</p>
                             <span className="feature-desc">
-                              Priority placement — job appears at top of list
+                              {t("jobs.featured_desc")}
                             </span>
                           </div>
 
@@ -1983,40 +2040,73 @@ function JobDetailsForm() {
                                 name="enableFeaturedJob"
                                 checked={formData.enableFeaturedJob}
                                 onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    enableFeaturedJob: e.target.checked,
-                                  }))
+                                  handleFeaturedToggle(e.target.checked)
                                 }
                               />
                               <span className="slider round"></span>
                             </label>
                           </div>
                         </div>
-                        {/* {formData.isFeatured && ( */}
 
                         {formData.enableFeaturedJob && (
                           <div className="col-lg-12 mt-3">
                             <div className="card border-warning shadow-sm">
                               <div className="card-body">
                                 <h6 className="text-warning mb-3">
-                                  ⭐ Featured Job Benefits
+                                  ⭐ {t("jobs.featured_benefits")}
                                 </h6>
 
-                                <ul className="mb-0">
-                                  <li>
-                                    Job will appear on the{" "}
-                                    <strong>Homepage</strong>
-                                  </li>
-                                  <li>
-                                    Job will be highlighted in{" "}
-                                    <strong>Search Results</strong>
-                                  </li>
-                                  <li>
-                                    Job will appear in{" "}
-                                    <strong>Highlighted Listings</strong>
-                                  </li>
-                                </ul>
+                                {featuredPackBenefits.items.length > 0 ? (
+                                  <>
+                                    <ul className="mb-3">
+                                      {featuredPackBenefits.items.map(
+                                        (benefit) => (
+                                          <li key={benefit}>{benefit}</li>
+                                        ),
+                                      )}
+                                    </ul>
+                                    <div className="featured-benefits-meta">
+                                      {featuredPackBenefits.locationLabels && (
+                                        <div className="featured-benefits-row">
+                                          <span>{t("wallet.locations")}</span>
+                                          <strong>
+                                            {featuredPackBenefits.locationLabels}
+                                          </strong>
+                                        </div>
+                                      )}
+                                      {featuredPackBenefits.showSearchBoost && (
+                                        <div className="featured-benefits-row">
+                                          <span>
+                                            {t(
+                                              "jobs.featured_search_boost_label",
+                                            )}
+                                          </span>
+                                          <strong>
+                                            {formatSearchBoostLabel(
+                                              featuredPackBenefits.searchBoostScore,
+                                            )}
+                                          </strong>
+                                        </div>
+                                      )}
+                                      {featuredPackBenefits.showCompanyProfileHighlight && (
+                                        <div className="featured-benefits-row">
+                                          <span>
+                                            {t(
+                                              "wallet.companyProfileHighlight",
+                                            )}
+                                          </span>
+                                          <strong>
+                                            {t("jobs.featured_enabled")}
+                                          </strong>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <p className="mb-0 text-muted small">
+                                    {t("jobs.featured_locations_from_pack")}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -2025,7 +2115,7 @@ function JobDetailsForm() {
                       </>
                     )}
 
-                    <h5 className="mt-3">Set Job Expiry Date</h5>
+                    <h5 className="mt-3">{t("jobs.set_expiry_date")}</h5>
 
                     <p className="text-muted small">
                       Default expiry is set to 30 days. You can change it if
@@ -2045,7 +2135,7 @@ function JobDetailsForm() {
                         today.setHours(0, 0, 0, 0);
 
                         if (selected < today) {
-                          toast.error("Please select a future expiry date");
+                          toast.error(t("jobs.select_future_expiry"));
                           return;
                         }
 
@@ -2060,14 +2150,14 @@ function JobDetailsForm() {
                             onClick={() => handlePublishJob(formData, "draft")}
                             className="default-btn btn"
                           >
-                            Save Draft
+                            {t("jobs.save_draft")}
                           </button>
                         </div>
                         <div className="job-create-form-back-next-btn">
                           <button
                             onClick={() => {
                               if (!expiresAt) {
-                                toast.error("Please select an expiry date");
+                                toast.error(t("jobs.select_expiry_date"));
                                 return;
                               }
 
@@ -2080,7 +2170,7 @@ function JobDetailsForm() {
                             }}
                             className="default-btn btn"
                           >
-                            Publish Job
+                            {t("jobs.publish_job")}
                           </button>
                         </div>
                         <div className="job-create-form-back-next-btn">
@@ -2089,7 +2179,7 @@ function JobDetailsForm() {
                             onClick={() => setShowScheduleDate(true)}
                             className="default-btn btn"
                           >
-                            Schedule Job
+                            {t("jobs.schedule_job")}
                           </button>
                         </div>
                       </div>
@@ -2097,8 +2187,8 @@ function JobDetailsForm() {
                     {showScheduleDate && (
                       <div className="schedule-modal-overlay">
                         <div className="schedule-modal">
-                          <h3>Schedule Job Publishing</h3>
-                          <label className="mt-3">Select Schedule Date</label>
+                          <h3>{t("jobs.schedule_publishing")}</h3>
+                          <label className="mt-3">{t("jobs.select_schedule_date")}</label>
                           <input
                             type="date"
                             className="form-control mt-1"
@@ -2116,13 +2206,13 @@ function JobDetailsForm() {
                                 )
                               }
                             >
-                              Confirm Schedule
+                              {t("jobs.confirm_schedule")}
                             </button>
                             <button
                               className="default-btn btn btn-light"
                               onClick={() => setShowScheduleDate(false)}
                             >
-                              Cancel
+                              {t("header.Cancel")}
                             </button>
                           </div>
                         </div>
@@ -2137,7 +2227,7 @@ function JobDetailsForm() {
               {/* Header */}
               <div className="job-payment-detail-info mb-3">
                 <h4 style={{ fontWeight: "700", marginBottom: "0" }}>
-                  Payment Details
+                  {t("jobs.payment_details")}
                 </h4>
               </div>
 
@@ -2154,7 +2244,7 @@ function JobDetailsForm() {
                 <i className="fa-solid fa-circle-info me-2"></i>
                 Your job post will be active for{" "}
                 <strong>{diffDays > 0 ? diffDays : 30}</strong> days once
-                published. published.
+                published.
               </div>
               {/* Featured Job Details */}
 
@@ -2254,50 +2344,69 @@ function JobDetailsForm() {
                 </div>
               </div>
               {creditInfo.featuredJobsAvailable && (
-                <div
-                  className="mt-4 p-3"
-                  style={{
-                    background: "#fff8e1",
-                    borderRadius: "12px",
-                    border: "1px solid #ffe082",
-                  }}
-                >
-                  <h5
-                    style={{
-                      fontWeight: "700",
-                      marginBottom: "5px",
-                      fontSize: "16px",
-                      color: "#ff9800",
-                    }}
-                  >
-                    Featured Job Benefits
+                <div className="featured-benefits-panel">
+                  <h5 className="featured-benefits-title">
+                    {t("jobs.featured_benefits")}
                   </h5>
 
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Total Featured Jobs</span>
+                  {featuredPackBenefits.items.length > 0 ? (
+                    <ul className="featured-benefits-list mb-3">
+                      {featuredPackBenefits.items.map((benefit) => (
+                        <li key={benefit}>{benefit}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mb-3 text-muted small">
+                      {t("jobs.featured_locations_from_pack")}
+                    </p>
+                  )}
+
+                  {featuredPackBenefits.locationLabels && (
+                    <div className="featured-benefits-row featured-benefits-row--stacked">
+                      <span>{t("wallet.locations")}</span>
+                      <strong>{featuredPackBenefits.locationLabels}</strong>
+                    </div>
+                  )}
+
+                  {featuredPackBenefits.showSearchBoost && (
+                    <div className="featured-benefits-row">
+                      <span>{t("jobs.featured_search_boost_label")}</span>
+                      <strong>
+                        {formatSearchBoostLabel(
+                          featuredPackBenefits.searchBoostScore,
+                        )}
+                      </strong>
+                    </div>
+                  )}
+
+                  {featuredPackBenefits.showCompanyProfileHighlight && (
+                    <div className="featured-benefits-row">
+                      <span>{t("wallet.companyProfileHighlight")}</span>
+                      <strong>{t("jobs.featured_enabled")}</strong>
+                    </div>
+                  )}
+
+                  <div className="featured-benefits-row">
+                    <span>{t("jobs.featured_total_slots")}</span>
                     <strong>{creditInfo.maxFeaturedJobs}</strong>
                   </div>
 
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Used Featured Jobs</span>
-                    <strong>{creditInfo?.featuredJobsUsed?.length ?? 0}</strong>
+                  <div className="featured-benefits-row">
+                    <span>{t("jobs.featured_used_slots")}</span>
+                    <strong>{featuredJobsUsedCount}</strong>
                   </div>
 
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Remaining Featured Jobs</span>
+                  <div className="featured-benefits-row">
+                    <span>{t("jobs.featured_remaining_slots")}</span>
+                    <strong>{featuredJobsRemaining}</strong>
+                  </div>
+
+                  <div className="featured-benefits-row">
+                    <span>{t("jobs.featured_active_count")}</span>
                     <strong>
-                      {creditInfo.maxFeaturedJobs - creditInfo.featuredJobsUsed}
+                      {creditInfo.activeFeaturedJobs} /{" "}
+                      {creditInfo.maxActiveFeaturedJobs}
                     </strong>
-                  </div>
-
-                  <div className="d-flex justify-content-between mb-2">
-                    <span>Max Active Featured</span>
-                    <strong>{creditInfo.maxActiveFeaturedJobs}</strong>
-                  </div>
-
-                  <div className="d-flex justify-content-between">
-                    <span>Expiry Duration</span>
-                    <strong>{creditInfo.featuredJobDurationDays} Days</strong>
                   </div>
                 </div>
               )}

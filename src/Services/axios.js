@@ -1,10 +1,12 @@
 import axios from "axios";
+import { API_BASE_URL } from "../Url/Url";
 import { handleRateLimitError } from "../utils/apiRateLimitHandler";
+import { handleSessionExpired } from "../utils/authInterceptor";
 
 const api = axios.create({
-  baseURL: process.env.API_BASE_URL,
+  baseURL: API_BASE_URL,
+  withCredentials: true,
 });
-
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -25,23 +27,13 @@ api.interceptors.response.use(
       status === 403 && message?.toLowerCase().includes("insufficient role");
 
     if (isUnauthorized) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("first_name");
-      localStorage.removeItem("last_name");
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_email");
-      localStorage.removeItem("user_role");
-      localStorage.removeItem("profileImage");
-      //  DELAY ONLY HERE
-      setTimeout(() => {
-        window.location.href = "/jobPortal";
-      }, 2000); // 1.5 sec delay
+      handleSessionExpired({ silent: true });
+    } else if (isForbidden) {
+      // Role errors are handled by the global auth interceptor.
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

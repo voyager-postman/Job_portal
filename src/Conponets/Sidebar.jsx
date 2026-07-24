@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
 import {
   FaToolbox,
@@ -14,13 +14,62 @@ import { FaUserTie } from "react-icons/fa";
 import { AiFillMessage } from "react-icons/ai";
 import { SiReaddotcv } from "react-icons/si";
 import { TbMessages } from "react-icons/tb";
+import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 
 function Sidebar() {
+  const { t } = useTranslation("global");
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const userRole = localStorage.getItem("user_role");
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle("dashboard-sidebar-open", sidebarOpen);
+    return () => {
+      document.body.classList.remove("dashboard-sidebar-open");
+    };
+  }, [sidebarOpen]);
+
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
+    <>
+      {!sidebarOpen && (
+        <button
+          type="button"
+          className="dashboard-mobile-menu-btn"
+          aria-label={t("common.menu")}
+          onClick={() => setSidebarOpen(true)}
+        >
+          <i className="fa-solid fa-bars" />
+        </button>
+      )}
+
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="dashboard-sidebar-overlay"
+          aria-label={t("common.close")}
+          onClick={closeSidebar}
+        />
+      )}
+
     <div className="sidemenu-area">
       <div className="sidemenu-header">
-        <div className="responsive-burger-menu d-block">
+        <div
+          className="responsive-burger-menu d-block"
+          role="button"
+          tabIndex={0}
+          aria-label={t("common.close")}
+          onClick={closeSidebar}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") closeSidebar();
+          }}
+        >
           <i className="fa-solid fa-xmark" />
         </div>
       </div>
@@ -44,7 +93,7 @@ function Sidebar() {
                     <MdDashboard />
                   </i>
                 </span>
-                <span className="menu-title">Dashboard</span>
+                <span className="menu-title">{t("sidebar.dashboard")}</span>
               </NavLink>
             </li>
 
@@ -60,7 +109,7 @@ function Sidebar() {
                     <IoSearchSharp />
                   </i>
                 </span>
-                <span className="menu-title">Job Search</span>
+                <span className="menu-title">{t("sidebar.job_search")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -75,7 +124,7 @@ function Sidebar() {
                     <FaClipboardList  />
                   </i>
                 </span>
-                <span className="menu-title">Application Tracking</span>
+                <span className="menu-title">{t("sidebar.application_tracking")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -90,7 +139,7 @@ function Sidebar() {
                     <AiFillMessage />
                   </i>
                 </span>
-                <span className="menu-title">Messages</span>
+                <span className="menu-title">{t("sidebar.messages")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -105,7 +154,7 @@ function Sidebar() {
                     <FaUserTie />
                   </i>
                 </span>
-                <span className="menu-title">My Profile</span>
+                <span className="menu-title">{t("sidebar.my_profile")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -120,7 +169,7 @@ function Sidebar() {
                     <SiReaddotcv />
                   </i>
                 </span>
-                <span className="menu-title">Resume Builder</span>
+                <span className="menu-title">{t("sidebar.resume_builder")}</span>
               </NavLink>
             </li>
           </ul>
@@ -144,7 +193,7 @@ function Sidebar() {
                     <MdDashboard />
                   </i>
                 </span>
-                <span className="menu-title">Dashboard</span>
+                <span className="menu-title">{t("sidebar.dashboard")}</span>
               </NavLink>
             </li>
 
@@ -160,7 +209,7 @@ function Sidebar() {
                     <FaToolbox />
                   </i>
                 </span>
-                <span className="menu-title">Job Posts</span>
+                <span className="menu-title">{t("sidebar.job_posts")}</span>
               </NavLink>
             </li>
 
@@ -176,7 +225,7 @@ function Sidebar() {
                     <IoWalletSharp />
                   </i>
                 </span>
-                <span className="menu-title">Wallet</span>
+                <span className="menu-title">{t("sidebar.wallet")}</span>
               </NavLink>
             </li>
 
@@ -192,7 +241,7 @@ function Sidebar() {
                     <FaListCheck />
                   </i>
                 </span>
-                <span className="menu-title">Application Management</span>
+                <span className="menu-title">{t("sidebar.application_management")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -208,7 +257,7 @@ function Sidebar() {
                     <FaUsers />
                   </i>
                 </span>
-                <span className="menu-title">Applicant Management</span>
+                <span className="menu-title">{t("sidebar.applicant_management")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -223,7 +272,7 @@ function Sidebar() {
                     <IoBookmark />
                   </i>
                 </span>
-                <span className="menu-title">Bookmark Candidates</span>
+                <span className="menu-title">{t("sidebar.bookmark_candidates")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -238,7 +287,7 @@ function Sidebar() {
                     <IoSearchSharp />
                   </i>
                 </span>
-                <span className="menu-title">Candidate Search</span>
+                <span className="menu-title">{t("sidebar.candidate_search")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -253,7 +302,7 @@ function Sidebar() {
                     <FaUserTie />
                   </i>
                 </span>
-                <span className="menu-title">Profile</span>
+                <span className="menu-title">{t("sidebar.profile")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -268,7 +317,7 @@ function Sidebar() {
                     <FaClipboardCheck />
                   </i>
                 </span>
-                <span className="menu-title"> Manage Assessments</span>
+                <span className="menu-title">{t("sidebar.manage_assessments")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -283,7 +332,7 @@ function Sidebar() {
                     <AiFillMessage />
                   </i>
                 </span>
-                <span className="menu-title"> Massages</span>
+                <span className="menu-title">{t("sidebar.massages")}</span>
               </NavLink>
             </li>
             <li className="nav-item">
@@ -298,7 +347,7 @@ function Sidebar() {
                     <FaUsersGear />
                   </i>
                 </span>
-                <span className="menu-title">Manage Recruiters</span>
+                <span className="menu-title">{t("sidebar.manage_recruiters")}</span>
               </NavLink>
             </li>
 
@@ -314,7 +363,7 @@ function Sidebar() {
                     <AiFillMessage />
                   </i>
                 </span>
-                <span className="menu-title">Messages</span>
+                <span className="menu-title">{t("sidebar.messages")}</span>
               </NavLink>
             </li> */}
             {/* Repeat for other links as needed */}
@@ -322,6 +371,7 @@ function Sidebar() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

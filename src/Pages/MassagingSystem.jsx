@@ -7,14 +7,18 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
 import EmojiPicker from "emoji-picker-react";
-import { io } from "socket.io-client";
+import { connectSocket } from "../utils/socketAuth";
 import { useDebounce } from "../hooks/useDebounce";
 import { checkSearchRateLimit } from "../utils/searchRateLimit";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { getRequestConfig } from "../utils/apiHeaders";
+import { validateChatAttachmentFile } from "../utils/fileUploadLimits";
 
 const MESSAGING_SEARCH_DEBOUNCE_MS = 600;
 
 function MassagingSystem() {
-  const token = localStorage.getItem("token");
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   const candidateId = location.state?.candidateId;
@@ -93,14 +97,7 @@ function MassagingSystem() {
     return Math.max(0, Math.min(100, Math.round(rate)));
   };
   useEffect(() => {
-    const socket = io("https://sisccltd.com", {
-      path: "/job_portal/socket.io",
-      auth: {
-        token,
-      },
-      transports: ["websocket"],
-    });
-
+    const socket = connectSocket();
     socketRef.current = socket;
 
     socket.on("connect", () => {
@@ -110,8 +107,6 @@ function MassagingSystem() {
     socket.on("connect_error", (err) => {
       console.log("Socket Error:", err.message);
     });
-
-    // ================= NEW MESSAGE =================
 
     const handleNewMessage = (payload) => {
       console.log("📩 New message:", payload);
@@ -150,7 +145,7 @@ function MassagingSystem() {
             return {
               ...user,
 
-              lastMessage: payload.message.message || "📎 Attachment",
+              lastMessage: payload.message.message || t("messaging.attachment"),
 
               lastMessageAt: payload.message.created_at || new Date(),
 
@@ -240,13 +235,11 @@ function MassagingSystem() {
             : u,
         );
 
-        // realtime total unread
         const totalUnread = updatedUsers.reduce(
           (sum, item) => sum + (item.unreadCount || 0),
           0,
         );
 
-        // realtime overview sync
         setOverview((prev) => ({
           ...prev,
           notRead: totalUnread,
@@ -261,8 +254,8 @@ function MassagingSystem() {
       socket.off("message:new", handleNewMessage);
       socket.off("message:read");
       socket.off("unread:update");
-
       socket.disconnect();
+      socketRef.current = null;
     };
   }, []);
   // ================= GET IMAGE =================
@@ -332,12 +325,10 @@ function MassagingSystem() {
 
       console.log("FINAL PARAMS:", params);
 
-      const res = await axios.get(`${API_BASE_URL}chat/conversations`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params,
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}chat/conversations`,
+        getRequestConfig({ params }),
+      );
 
       setUsers(res.data?.chats || []);
       setOverview(res.data?.overview || {});
@@ -369,7 +360,7 @@ function MassagingSystem() {
       `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
       candidateData?.name ||
       candidateName ||
-      "Candidate";
+      t("messaging.candidate");
 
     return {
       fullName,
@@ -455,7 +446,7 @@ function MassagingSystem() {
       groupId: tempChat.groupId,
       name: profile.fullName,
       image: profile.profileImage,
-      online: "Offline",
+      online: t("messaging.offline"),
       isOnline: false,
       email: profile.email,
       phone: profile.phone,
@@ -474,11 +465,7 @@ function MassagingSystem() {
     try {
       const res = await axios.get(
         `${API_BASE_URL}chat/history/group/${groupId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
 
       const history = res.data?.data || [];
@@ -496,10 +483,10 @@ function MassagingSystem() {
 
   const findApplicantByUserId = async (userId) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { page: 1, limit: 200 },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}getAllApplicantsPerCompany`,
+        getRequestConfig({ params: { page: 1, limit: 200 } }),
+      );
 
       const applicants = res.data?.applicants || [];
       return applicants.find(
@@ -604,7 +591,7 @@ function MassagingSystem() {
 
       image: user?.otherUser?.profileImage || user?.otherUser?.image,
 
-      online: user?.otherUser?.isOnline ? "Online" : "Offline",
+      online: user?.otherUser?.isOnline ? t("messaging.online") : t("messaging.offline"),
 
       isOnline: user?.otherUser?.isOnline,
 
@@ -646,11 +633,7 @@ function MassagingSystem() {
         await axios.post(
           `${API_BASE_URL}chat/mark-read/${groupId}`,
           {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          getRequestConfig(),
         );
       }
     } catch (error) {
@@ -664,6 +647,13 @@ function MassagingSystem() {
     const file = e.target.files[0];
 
     if (!file) return;
+
+    const validation = validateChatAttachmentFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message);
+      e.target.value = "";
+      return;
+    }
 
     setSelectedFile(file);
 
@@ -683,12 +673,13 @@ function MassagingSystem() {
     formData.append("file", selectedFile);
 
     try {
-      const res = await axios.post(`${API_BASE_URL}chat/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await axios.post(
+        `${API_BASE_URL}chat/upload`,
+        formData,
+        getRequestConfig({
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+      );
 
       console.log("UPLOAD RESPONSE:", res.data);
 
@@ -855,16 +846,16 @@ function MassagingSystem() {
           {/* ================= BREADCRUMB ================= */}
 
           <div className="breadcrumb-area">
-            <h1>Messages</h1>
+            <h1>{t("messaging.title")}</h1>
 
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home</Link>
+                <Link to="/">{t("header.home")}</Link>
               </li>
 
               <li className="item">
                 <i className="fa-solid fa-angle-right" />
-                Messages
+                {t("messaging.title")}
               </li>
             </ol>
           </div>
@@ -878,7 +869,7 @@ function MassagingSystem() {
               <div className="chat-sidebar-overview">
                 <div className="overview-header-minimal">
                   <i className="fa-solid fa-chart-simple" />
-                  <span>Overview</span>
+                  <span>{t("messaging.overview")}</span>
                 </div>
 
                 <div className="modern-msg-stats-integrated">
@@ -886,7 +877,7 @@ function MassagingSystem() {
                     <span className="msg-stat-value-premium">
                       {overview?.total || 0}
                     </span>
-                    <span className="msg-stat-label-premium">Total</span>
+                    <span className="msg-stat-label-premium">{t("messaging.total")}</span>
                   </div>
 
                   <div className="msg-stat-item-premium unread">
@@ -894,7 +885,7 @@ function MassagingSystem() {
                       {overview?.notRead || 0}
                     </span>
 
-                    <span className="msg-stat-label-premium">Unread</span>
+                    <span className="msg-stat-label-premium">{t("messaging.unread")}</span>
                   </div>
 
                   <div className="msg-stat-item-premium rate">
@@ -902,7 +893,7 @@ function MassagingSystem() {
                       {overview?.answerRate || 0}%
                     </span>
 
-                    <span className="msg-stat-label-premium">Answer</span>
+                    <span className="msg-stat-label-premium">{t("messaging.answer")}</span>
                   </div>
                 </div>
               </div>
@@ -910,7 +901,7 @@ function MassagingSystem() {
               <div className="sidebar-divider-modern" />
 
               <div className="chat-sidebar-header-modern">
-                <h2>Conversations</h2>
+                <h2>{t("messaging.conversations")}</h2>
               </div>
 
               {/* ================= SEARCH ================= */}
@@ -921,7 +912,7 @@ function MassagingSystem() {
                 {filteredUsers.length === 0 ? (
                   <div className="no-messages-found">
                     <i className="fa-solid fa-comment-slash" />
-                    <p>Aucun message trouvé</p>
+                    <p>{t("messaging.no_messages_found")}</p>
                   </div>
                 ) : (
                   filteredUsers.map((u) => {
@@ -970,7 +961,7 @@ function MassagingSystem() {
 
                           <div className="contact-last-msg">
                             <span className="msg-text">
-                              {u?.lastMessage || "No messages"}
+                              {u?.lastMessage || t("messaging.no_messages")}
                             </span>
 
                             {u?.unreadCount > 0 && (
@@ -999,7 +990,7 @@ function MassagingSystem() {
                         setActiveFilter("all");
                       }}
                     >
-                      All
+                      {t("messaging.all")}
                     </div>
 
                     <div
@@ -1010,7 +1001,7 @@ function MassagingSystem() {
                         setActiveFilter("non-verbal");
                       }}
                     >
-                      Unread
+                      {t("messaging.unread")}
                     </div>
                   </div>
 
@@ -1024,7 +1015,7 @@ function MassagingSystem() {
                         setEndDate("");
                       }}
                     >
-                      All
+                      {t("messaging.all")}
                     </span>
 
                     {/* TODAY */}
@@ -1036,7 +1027,7 @@ function MassagingSystem() {
                         setEndDate("");
                       }}
                     >
-                      Today
+                      {t("messaging.today")}
                     </span>
 
                     {/* CUSTOM DATE */}
@@ -1065,7 +1056,7 @@ function MassagingSystem() {
                     <i className="fa-solid fa-magnifying-glass" />
 
                     <input
-                      placeholder="Search user..."
+                      placeholder={t("messaging.search_user")}
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -1130,7 +1121,7 @@ function MassagingSystem() {
                   <div className="chat-search-box">
                     <i className="fa-solid fa-magnifying-glass" />
                     <input
-                      placeholder="Rechercher un mot-clé dans ce chat..."
+                      placeholder={t("messaging.search_chat_keyword")}
                       type="text"
                       value={chatSearchTerm}
                       onChange={(e) => setChatSearchTerm(e.target.value)}
@@ -1162,7 +1153,7 @@ function MassagingSystem() {
                       }}
                     />
 
-                    <h2>Ready to trade?</h2>
+                    <h2>{t("messaging.ready_to_trade")}</h2>
                   </div>
                 ) : (
                   <>
@@ -1178,7 +1169,7 @@ function MassagingSystem() {
                       ).length === 0 ? (
                         <div className="no-messages-found">
                           <i className="fa-solid fa-comment-slash"></i>
-                          <p>No messages found</p>
+                          <p>{t("messaging.no_messages_found")}</p>
                         </div>
                       ) : (
                         (chatStore[activeUser?.groupId] || [])
@@ -1286,7 +1277,7 @@ function MassagingSystem() {
                                           href={getImageUrl(msg.fileUrl)}
                                           target="_blank"
                                         >
-                                          📄 Download File
+                                          📄 {t("messaging.download_file")}
                                         </a>
                                       )}
                                   </div>
@@ -1364,7 +1355,7 @@ function MassagingSystem() {
 
                     <textarea
                       className="chat-input-textarea"
-                      placeholder="Write your message..."
+                      placeholder={t("messaging.write_message")}
                       rows={1}
                       value={text}
                       onChange={(e) => setText(e.target.value)}
@@ -1383,7 +1374,7 @@ function MassagingSystem() {
                           type="button"
                           className={`input-tool-btn ${showEmojiPicker ? "active" : ""}`}
                           aria-expanded={showEmojiPicker}
-                          aria-label="Toggle emoji picker"
+                          aria-label={t("messaging.toggle_emoji_picker")}
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowEmojiPicker((prev) => !prev);
@@ -1400,7 +1391,7 @@ function MassagingSystem() {
                             <button
                               type="button"
                               className="emoji-picker-close"
-                              aria-label="Close emoji picker"
+                              aria-label={t("messaging.close_emoji_picker")}
                               onClick={() => setShowEmojiPicker(false)}
                             >
                               <i className="fa-solid fa-xmark" />
@@ -1439,11 +1430,11 @@ function MassagingSystem() {
 
                     <h4>{activeUser?.name}</h4>
 
-                    <span className="industry-tag">Candidate</span>
+                    <span className="industry-tag">{t("messaging.candidate")}</span>
                   </div>
 
                   <div className="info-section">
-                    <h5>Professional Summary</h5>
+                    <h5>{t("header.Professional_Summary")}</h5>
 
                     <p
                       className="info-description"
@@ -1452,36 +1443,36 @@ function MassagingSystem() {
                       }}
                     >
                       {activeUser?.professionParagraph ||
-                        "No professional summary available"}
+                        t("messaging.no_professional_summary")}
                     </p>
 
-                    <h5 style={{ marginTop: "20px" }}>Contact Details</h5>
+                    <h5 style={{ marginTop: "20px" }}>{t("messaging.contact_details")}</h5>
 
                     <div className="info-item">
                       <i className="fa-solid fa-envelope" />
-                      {activeUser?.email || "N/A"}
+                      {activeUser?.email || t("messaging.na")}
                     </div>
 
                     <div className="info-item">
                       <i className="fa-solid fa-phone" />
-                      {activeUser?.phone || "N/A"}
+                      {activeUser?.phone || t("messaging.na")}
                     </div>
 
                     <div className="info-item">
                       <i className="fa-solid fa-location-dot" />
-                      {activeUser?.city || "N/A"}
+                      {activeUser?.city || t("messaging.na")}
                     </div>
 
                     <div className="info-item">
                       <i className="fa-solid fa-flag" />
-                      {activeUser?.nationality || "N/A"}
+                      {activeUser?.nationality || t("messaging.na")}
                     </div>
 
                     <button
                       className="view-profile-btn"
                       onClick={handleViewFullProfile}
                     >
-                      View Full Profile
+                      {t("messaging.view_full_profile")}
                     </button>
                   </div>
                 </>

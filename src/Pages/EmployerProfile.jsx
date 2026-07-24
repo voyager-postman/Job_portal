@@ -1,5 +1,6 @@
 // import axios from "../Services/axios";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
@@ -13,14 +14,24 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useAuth } from "../context/AuthContext";
 import "./Main.css";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import {getAuthHeaders, getRequestConfig } from "../utils/apiHeaders";
+import {
+  MAX_IMAGE_SIZE_BYTES,
+  MAX_VIDEO_SIZE_BYTES,
+  validateImageFile,
+  filterValidImageFiles,
+  bytesToMb,
+  isFileWithinSizeLimit,
+} from "../utils/fileUploadLimits";
 
 function EmployerProfile() {
+  const { t } = useTranslation("global");
   const { updateProfileImage } = useAuth();
   const [careerDetail, setCareerDetail] = useState("");
   const [isCareerUpdating, setIsCareerUpdating] = useState(false);
   const [companyData, setCompanyData] = useState(null);
-  const [fileName, setFileName] = useState("No file selected");
-  const [fileName1, setFileName1] = useState("No file selected");
+  const [fileName, setFileName] = useState("");
+  const [fileName1, setFileName1] = useState("");
   const [preview, setPreview] = useState("assets/images/company/dummy-img.png");
   const [preview1, setPreview1] = useState(
     "assets/images/company/dummy-img.png",
@@ -147,27 +158,9 @@ function EmployerProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // ==========================
-    // Type Validation
-    // ==========================
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
-        containerId: "verify-email-toast",
-      });
-
-      e.target.value = "";
-      return;
-    }
-
-    // ==========================
-    // Size Validation
-    // ==========================
-    if (file.size > maxSize) {
-      toast.error("Image size must be less than 5MB", {
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
         containerId: "verify-email-toast",
       });
 
@@ -185,7 +178,7 @@ function EmployerProfile() {
 
     setTeamMembers([...updated]);
 
-    toast.success("Photo uploaded successfully", {
+    toast.success(t("profile.photo_uploaded"), {
       containerId: "verify-email-toast",
     });
 
@@ -238,27 +231,9 @@ function EmployerProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // ==========================
-    // Type Validation
-    // ==========================
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
-        containerId: "verify-email-toast",
-      });
-
-      e.target.value = "";
-      return;
-    }
-
-    // ==========================
-    // Size Validation
-    // ==========================
-    if (file.size > maxSize) {
-      toast.error("Image size must be less than 5MB", {
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
         containerId: "verify-email-toast",
       });
 
@@ -275,7 +250,7 @@ function EmployerProfile() {
       photoFile: file,
     }));
 
-    toast.success("Photo uploaded successfully", {
+    toast.success(t("profile.photo_uploaded"), {
       containerId: "verify-email-toast",
     });
 
@@ -352,27 +327,9 @@ function EmployerProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // ==========================
-    // Type Validation
-    // ==========================
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
-        containerId: "verify-email-toast",
-      });
-
-      e.target.value = "";
-      return;
-    }
-
-    // ==========================
-    // Size Validation
-    // ==========================
-    if (file.size > maxSize) {
-      toast.error("Image size must be less than 5MB", {
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
         containerId: "verify-email-toast",
       });
 
@@ -388,7 +345,7 @@ function EmployerProfile() {
     updated[index].photo = URL.createObjectURL(file);
     setReviews([...updated]);
 
-    toast.success("Photo uploaded successfully", {
+    toast.success(t("profile.photo_uploaded"), {
       containerId: "verify-email-toast",
     });
 
@@ -504,23 +461,9 @@ function EmployerProfile() {
 
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    // Type Validation
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, JPEG, PNG, WEBP images are allowed", {
-        containerId: "verify-email-toast",
-      });
-
-      e.target.value = "";
-      return;
-    }
-
-    // Size Validation
-    if (file.size > maxSize) {
-      toast.error("Image size must be less than 5MB", {
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
         containerId: "verify-email-toast",
       });
 
@@ -529,7 +472,7 @@ function EmployerProfile() {
     }
 
     // Success
-    toast.success("Image uploaded successfully", {
+    toast.success(t("profile.image_uploaded"), {
       containerId: "verify-email-toast",
     });
 
@@ -629,37 +572,37 @@ function EmployerProfile() {
   //     // ===============================
 
   //     if (!companyProfile.mainTitle.trim()) {
-  //       return toast.error("Please enter main title", {
+  //       return toast.error(t("profile.enter_main_title"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
 
   //     if (!companyProfile.subtitle.trim()) {
-  //       return toast.error("Please enter subtitle", {
+  //       return toast.error(t("profile.enter_subtitle"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
 
   //     if (!companyProfile.description1.trim()) {
-  //       return toast.error("Please enter description paragraph 1", {
+  //       return toast.error(t("profile.enter_description_1"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
 
   //     if (!companyProfile.description2.trim()) {
-  //       return toast.error("Please enter description paragraph 2", {
+  //       return toast.error(t("profile.enter_description_2"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
 
   //     if (!companyProfile.quote.trim()) {
-  //       return toast.error("Please enter quote", {
+  //       return toast.error(t("profile.enter_quote"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
 
   //     if (companyProfile.mediaType === "image" && !companyProfile.mediaImage) {
-  //       return toast.error("Please upload image", {
+  //       return toast.error(t("profile.upload_image_required"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
@@ -668,7 +611,7 @@ function EmployerProfile() {
   //       companyProfile.mediaType === "video" &&
   //       !companyProfile.videoUrl.trim()
   //     ) {
-  //       return toast.error("Please enter video url", {
+  //       return toast.error(t("profile.enter_video_url"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
@@ -727,12 +670,12 @@ function EmployerProfile() {
   //       },
   //     );
 
-  //     toast.success("Updated Successfully", {
+  //     toast.success(t("profile.updated_successfully"), {
   //       containerId: "verify-email-toast",
   //       autoClose: 3000,
   //     });
   //   } catch (error) {
-  //     toast.error(error.response?.data?.message || "Something went wrong", {
+  //     toast.error(error.response?.data?.message || t("header.something_wrong"), {
   //       containerId: "verify-email-toast",
   //       autoClose: 3000,
   //     });
@@ -770,11 +713,23 @@ function EmployerProfile() {
     });
   }
   const uploadImageToServer = async (file) => {
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
+        containerId: "verify-email-toast",
+      });
+      return "";
+    }
+
     try {
       const data = new FormData();
       data.append("image", file);
 
-      const res = await axios.post(`${API_BASE_URL}upload/Image`, data);
+      const res = await axios.post(`${API_BASE_URL}upload/Image`, data, {
+        headers: getAuthHeaders({
+          "Content-Type": "multipart/form-data",
+        }),
+      });
 
       return res.data.url; // ✅ correct
     } catch (error) {
@@ -788,37 +743,37 @@ function EmployerProfile() {
       // Validation
       // ===============================
       if (!companyProfile.mainTitle.trim()) {
-        return toast.error("Please enter main title", {
+        return toast.error(t("profile.enter_main_title"), {
           containerId: "verify-email-toast",
         });
       }
 
       if (!companyProfile.subtitle.trim()) {
-        return toast.error("Please enter subtitle", {
+        return toast.error(t("profile.enter_subtitle"), {
           containerId: "verify-email-toast",
         });
       }
 
       if (!companyProfile.description1.trim()) {
-        return toast.error("Please enter description paragraph 1", {
+        return toast.error(t("profile.enter_description_1"), {
           containerId: "verify-email-toast",
         });
       }
 
       if (!companyProfile.description2.trim()) {
-        return toast.error("Please enter description paragraph 2", {
+        return toast.error(t("profile.enter_description_2"), {
           containerId: "verify-email-toast",
         });
       }
 
       if (!companyProfile.quote.trim()) {
-        return toast.error("Please enter quote", {
+        return toast.error(t("profile.enter_quote"), {
           containerId: "verify-email-toast",
         });
       }
 
       if (companyProfile.mediaType === "image" && !companyProfile.mediaImage) {
-        return toast.error("Please upload image", {
+        return toast.error(t("profile.upload_image_required"), {
           containerId: "verify-email-toast",
         });
       }
@@ -827,7 +782,7 @@ function EmployerProfile() {
         companyProfile.mediaType === "video" &&
         !companyProfile.videoUrl.trim()
       ) {
-        return toast.error("Please enter video url", {
+        return toast.error(t("profile.enter_video_url"), {
           containerId: "verify-email-toast",
         });
       }
@@ -915,14 +870,14 @@ function EmployerProfile() {
         },
       );
 
-      toast.success("Updated Successfully", {
+      toast.success(t("profile.updated_successfully"), {
         containerId: "verify-email-toast",
         autoClose: 3000,
       });
 
       fetchCompanyDetails();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong", {
+      toast.error(error.response?.data?.message || t("header.something_wrong"), {
         containerId: "verify-email-toast",
         autoClose: 3000,
       });
@@ -967,17 +922,17 @@ function EmployerProfile() {
 
     // ✅ CKEditor validation
     if (isEditorEmpty1(formData.aboutCompany)) {
-      toast.error("About Company is required", TOAST_OPTIONS);
+      toast.error(t("profile.about_company_required"), TOAST_OPTIONS);
       return false;
     }
 
     if (isNaN(formData.phone_number)) {
-      toast.error("Phone number must be numeric", TOAST_OPTIONS);
+      toast.error(t("profile.phone_must_be_numeric"), TOAST_OPTIONS);
       return false;
     }
 
     if (isNaN(formData.country_code)) {
-      toast.error("Country code must be numeric", TOAST_OPTIONS);
+      toast.error(t("profile.country_code_must_be_numeric"), TOAST_OPTIONS);
       return false;
     }
 
@@ -990,7 +945,7 @@ function EmployerProfile() {
   //     const companyId = user?.companyId;
 
   //     if (!companyId) {
-  //       toast.error("Company ID not found!");
+  //       toast.error(t("profile.company_id_not_found"));
   //       return;
   //     }
 
@@ -1078,7 +1033,7 @@ function EmployerProfile() {
   //     }
   //   } catch (error) {
   //     console.error("GetCompanyDetails Error:", error);
-  //     toast.error("Error fetching company details");
+  //     toast.error(t("profile.error_fetch_company"));
   //   }
   // };
   // const fetchCompanyDetails = async () => {
@@ -1087,7 +1042,7 @@ function EmployerProfile() {
   //     const companyId = user?.companyId;
 
   //     if (!companyId) {
-  //       toast.error("Company ID not found!");
+  //       toast.error(t("profile.company_id_not_found"));
   //       return;
   //     }
 
@@ -1238,7 +1193,7 @@ function EmployerProfile() {
   //     }
   //   } catch (error) {
   //     console.error("GetCompanyDetails Error:", error);
-  //     toast.error("Error fetching company details");
+  //     toast.error(t("profile.error_fetch_company"));
   //   }
   // };
   const fetchCompanyDetails = async () => {
@@ -1247,7 +1202,7 @@ function EmployerProfile() {
       const companyId = user?.companyId;
 
       if (!companyId) {
-        toast.error("Company ID not found!");
+        toast.error(t("profile.company_id_not_found"));
         return;
       }
 
@@ -1422,7 +1377,7 @@ function EmployerProfile() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Error fetching company details");
+      toast.error(t("profile.error_fetch_company"));
     }
   };
   useEffect(() => {
@@ -1464,13 +1419,13 @@ function EmployerProfile() {
         localStorage.setItem("last_name", userDetails.last_name);
         localStorage.setItem("is_completed", userDetails?.is_completed);
         fetchCompanyDetails();
-        toast.success("Profile Updated Successfully!", {
+        toast.success(t("profile.profile_updated_success"), {
           containerId: "verify-email-toast",
           autoClose: 3000,
         });
         setActiveTab("menu2");
       } else {
-        toast.error(response.data?.message || "Failed to update profile");
+        toast.error(response.data?.message || t("profile.failed_update_profile"));
       }
     } catch (error) {
       console.error("Profile update error:", error);
@@ -1479,7 +1434,7 @@ function EmployerProfile() {
       } else {
         toast.error(
           error.response?.data?.message ||
-            "Profile update failed. Please try again.",
+            t("profile.profile_update_failed"),
         );
       }
     } finally {
@@ -1499,13 +1454,13 @@ function EmployerProfile() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
   const MAX_IMAGES = 5; // max images allowed per upload
-  const MAX_SIZE_MB = 2; // max size per image in MB
+  const MAX_IMAGE_SIZE_MB = bytesToMb(MAX_IMAGE_SIZE_BYTES);
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 
   const handleSubmitMultipleImage = async (e) => {
     e.preventDefault();
     if (images.length === 0) {
-      toast.error("No new images to upload", {
+      toast.error(t("profile.no_new_images"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1513,7 +1468,7 @@ function EmployerProfile() {
 
     // ✅ Frontend validation
     if (images.length > MAX_IMAGES) {
-      toast.error(`You can upload up to ${MAX_IMAGES} images at a time`, {
+      toast.error(t("profile.max_images_upload", { max: MAX_IMAGES }), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1522,13 +1477,13 @@ function EmployerProfile() {
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
       if (!ALLOWED_TYPES.includes(img.file.type)) {
-        toast.error(`Invalid file type: ${img.file.name}`, {
+        toast.error(t("profile.invalid_file_type", { name: img.file.name }), {
           containerId: "verify-email-toast",
         });
         return;
       }
-      if (img.file.size / 1024 / 1024 > MAX_SIZE_MB) {
-        toast.error(`File too large: ${img.file.name} (max ${MAX_SIZE_MB}MB)`, {
+      if (!isFileWithinSizeLimit(img.file, MAX_IMAGE_SIZE_BYTES)) {
+        toast.error(t("profile.file_too_large_named", { name: img.file.name, max: MAX_IMAGE_SIZE_MB }), {
           containerId: "verify-email-toast",
         });
         return;
@@ -1559,24 +1514,24 @@ function EmployerProfile() {
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Photos uploaded successfully!", {
+        toast.success(t("profile.photos_uploaded"), {
           containerId: "verify-email-toast",
         });
         setImages([]); // clear newly selected
         setActiveTab("menu4");
       } else {
-        toast.error(res.data.message || "Failed to upload photos", {
+        toast.error(res.data.message || t("profile.failed_upload_photos"), {
           containerId: "verify-email-toast",
         });
       }
     } catch (err) {
       console.error(err);
       if (err.response?.status === 413) {
-        toast.error("One or more files are too large for upload", {
+        toast.error(t("profile.files_too_large_upload"), {
           containerId: "verify-email-toast",
         });
       } else {
-        toast.error("Upload failed due to large file", {
+        toast.error(t("profile.upload_failed_large_file"), {
           containerId: "verify-email-toast",
         });
       }
@@ -1605,8 +1560,37 @@ function EmployerProfile() {
   // Handle video selection
   const handleVideoChange = (e) => {
     const files = Array.from(e.target.files);
+    e.target.value = "";
 
-    const newVideos = files.map((file) => ({
+    if (!files.length) return;
+
+    const validVideos = [];
+
+    for (const file of files) {
+      if (!file.type?.startsWith("video/")) {
+        toast.error(t("profile.invalid_file_type", { name: file.name }), {
+          containerId: "verify-email-toast",
+        });
+        continue;
+      }
+
+      if (!isFileWithinSizeLimit(file, MAX_VIDEO_SIZE_BYTES)) {
+        toast.error(
+          t("profile.file_too_large_named", {
+            name: file.name,
+            max: MAX_VIDEO_SIZE_MB,
+          }),
+          { containerId: "verify-email-toast" },
+        );
+        continue;
+      }
+
+      validVideos.push(file);
+    }
+
+    if (!validVideos.length) return;
+
+    const newVideos = validVideos.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       id: Math.random().toString(36).substr(2, 9),
@@ -1624,17 +1608,17 @@ function EmployerProfile() {
           await axios.post(
             `${API_BASE_URL}deleteCompanyVideo/${id}`,
             {},
-            { headers: { Authorization: `Bearer ${token}` } },
+            getRequestConfig(),
           );
 
           setExistingVideos((prev) => prev.filter((vid) => vid.id !== id));
           fetchCompanyDetails();
-          toast.success("Video deleted successfully!", {
+          toast.success(t("profile.video_deleted"), {
             containerId: "verify-email-toast",
           });
         } catch (err) {
           console.error("Delete video error:", err);
-          toast.error("Failed to delete video", {
+          toast.error(t("profile.failed_delete_video"), {
             containerId: "verify-email-toast",
           });
         }
@@ -1653,25 +1637,25 @@ function EmployerProfile() {
       await axios.post(
         `${API_BASE_URL}deleteCompanyVideo`,
         { companyId, videoId: id },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       setExistingVideos((prev) => prev.filter((v) => v.id !== id));
-      toast.success("Video deleted successfully!");
+      toast.success(t("profile.video_deleted"));
     } catch (err) {
       console.error("Delete failed:", err);
-      toast.error("Failed to delete video");
+      toast.error(t("profile.failed_delete_video"));
     }
   };
 
   const MAX_VIDEOS = 2; // max videos per upload
-  const MAX_VIDEO_SIZE_MB = 50; // max size per video in MB
+  const MAX_VIDEO_SIZE_MB = bytesToMb(MAX_VIDEO_SIZE_BYTES);
 
   const handleSubmitVideo = async (e) => {
     e.preventDefault();
 
     if (videos.length === 0) {
-      toast.error("No new videos to upload", {
+      toast.error(t("profile.no_new_videos"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1679,7 +1663,7 @@ function EmployerProfile() {
 
     // ✅ Frontend validation for number of videos
     if (videos.length > MAX_VIDEOS) {
-      toast.error(`You can upload up to ${MAX_VIDEOS} videos at a time`, {
+      toast.error(t("profile.max_videos_upload", { max: MAX_VIDEOS }), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1688,9 +1672,12 @@ function EmployerProfile() {
     // ✅ Frontend validation for file size
     for (let i = 0; i < videos.length; i++) {
       const vid = videos[i];
-      if (vid.file.size / 1024 / 1024 > MAX_VIDEO_SIZE_MB) {
+      if (!isFileWithinSizeLimit(vid.file, MAX_VIDEO_SIZE_BYTES)) {
         toast.error(
-          `Video too large: ${vid.file.name} (max ${MAX_VIDEO_SIZE_MB}MB)`,
+          t("profile.file_too_large_named", {
+            name: vid.file.name,
+            max: MAX_VIDEO_SIZE_MB,
+          }),
           { containerId: "verify-email-toast" },
         );
         return;
@@ -1721,13 +1708,13 @@ function EmployerProfile() {
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Videos uploaded successfully!", {
+        toast.success(t("profile.videos_uploaded"), {
           containerId: "verify-email-toast",
         });
         setVideos([]); // clear selected videos
         setActiveTab("menu5");
       } else {
-        toast.error(res.data.message || "Failed to upload videos", {
+        toast.error(res.data.message || t("profile.failed_upload_videos"), {
           containerId: "verify-email-toast",
         });
       }
@@ -1735,11 +1722,11 @@ function EmployerProfile() {
       console.error("Upload video error:", err);
 
       if (err.response?.status === 413) {
-        toast.error("One or more videos are too large for upload", {
+        toast.error(t("profile.files_too_large_upload"), {
           containerId: "verify-email-toast",
         });
       } else {
-        toast.error("Upload failed due to large file", {
+        toast.error(t("profile.upload_failed_large_file"), {
           containerId: "verify-email-toast",
         });
       }
@@ -1758,7 +1745,7 @@ function EmployerProfile() {
   // ===================== ADD VIDEO =====================
   const handleAddYoutubeVideo = () => {
     if (!youtubeUrl.trim()) {
-      toast.error("Veuillez entrer un lien YouTube valide", {
+      toast.error(t("profile.valid_youtube_link"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1767,7 +1754,7 @@ function EmployerProfile() {
     const videoId = getYoutubeId(youtubeUrl);
 
     if (!videoId) {
-      toast.error("Veuillez entrer un lien YouTube valide", {
+      toast.error(t("profile.valid_youtube_link"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1776,7 +1763,7 @@ function EmployerProfile() {
     const alreadyExists = youtubeVideos.some((item) => item.id === videoId);
 
     if (alreadyExists) {
-      toast.warning("Vidéo déjà ajoutée", {
+      toast.warning(t("profile.video_already_added"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -1812,7 +1799,7 @@ function EmployerProfile() {
       );
 
       if (res.data.success) {
-        toast.success("Video deleted successfully!", {
+        toast.success(t("profile.video_deleted"), {
           containerId: "verify-email-toast",
         });
 
@@ -1822,12 +1809,12 @@ function EmployerProfile() {
         // optional refresh
         fetchCompanyDetails();
       } else {
-        toast.error(res.data.message || "Failed to delete video", {
+        toast.error(res.data.message || t("profile.failed_delete_video"), {
           containerId: "verify-email-toast",
         });
       }
     } catch (error) {
-      toast.error("Something went wrong", {
+      toast.error(t("header.something_wrong"), {
         containerId: "verify-email-toast",
       });
     }
@@ -1858,18 +1845,18 @@ function EmployerProfile() {
   //     );
 
   //     if (res.data.success) {
-  //       toast.success("Videos saved successfully!", {
+  //       toast.success(t("profile.videos_saved"), {
   //         containerId: "verify-email-toast",
   //       });
 
   //       fetchCompanyDetails();
   //     } else {
-  //       toast.error(res.data.message || "Failed to save videos", {
+  //       toast.error(res.data.message || t("profile.failed_save_videos"), {
   //         containerId: "verify-email-toast",
   //       });
   //     }
   //   } catch (error) {
-  //     toast.error("Something went wrong", {
+  //     toast.error(t("header.something_wrong"), {
   //       containerId: "verify-email-toast",
   //     });
   //   } finally {
@@ -1882,7 +1869,7 @@ function EmployerProfile() {
   const handleSaveYoutubeVideos = async () => {
     try {
       if (!youtubeVideos || youtubeVideos.length === 0) {
-        return toast.error("Please add at least one video", {
+        return toast.error(t("profile.add_at_least_one_video"), {
           containerId: "verify-email-toast",
         });
       }
@@ -1899,7 +1886,7 @@ function EmployerProfile() {
         .map((item) => item.url);
 
       if (newVideos.length === 0) {
-        return toast.error("No new videos to save", {
+        return toast.error(t("profile.no_new_videos_save"), {
           containerId: "verify-email-toast",
         });
       }
@@ -1920,18 +1907,18 @@ function EmployerProfile() {
       );
 
       if (res.data.success) {
-        toast.success("Videos saved successfully!", {
+        toast.success(t("profile.videos_saved"), {
           containerId: "verify-email-toast",
         });
 
         fetchCompanyDetails();
       } else {
-        toast.error(res.data.message || "Failed to save videos", {
+        toast.error(res.data.message || t("profile.failed_save_videos"), {
           containerId: "verify-email-toast",
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong", {
+      toast.error(error.response?.data?.message || t("header.something_wrong"), {
         containerId: "verify-email-toast",
       });
     } finally {
@@ -1941,6 +1928,15 @@ function EmployerProfile() {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
+        containerId: "verify-email-toast",
+      });
+      e.target.value = "";
+      return;
+    }
 
     setPreview(URL.createObjectURL(file)); // show selected image immediately
     setFileName(file.name);
@@ -1972,20 +1968,20 @@ function EmployerProfile() {
         setPreview(logoUrl);
         fetchCompanyDetails();
         // toast.success("Logo updated successfully!");
-        toast.success("Logo updated successfully!", {
+        toast.success(t("profile.logo_updated"), {
           containerId: "verify-email-toast",
           autoClose: 2000,
         });
         // Update preview with server image if returned
         // if (res.data.logo) setPreview(`${API_IMAGE_URL}${res.data.logo}`);
       } else {
-        toast.error(res.data.message || "Failed to upload logo ", {
+        toast.error(res.data.message || t("profile.failed_upload_logo"), {
           containerId: "verify-email-toast",
         });
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to upload logo Due to large file", {
+      toast.error(t("profile.failed_upload_logo_large"), {
         containerId: "verify-email-toast",
       });
     }
@@ -1994,6 +1990,15 @@ function EmployerProfile() {
   const handleFileChangeCoverImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message, {
+        containerId: "verify-email-toast",
+      });
+      e.target.value = "";
+      return;
+    }
 
     setPreview1(URL.createObjectURL(file)); // show selected image immediately
     setFileName1(file.name);
@@ -2021,18 +2026,18 @@ function EmployerProfile() {
 
       if (res.data.success) {
         fetchCompanyDetails();
-        toast.success("Cover Photo updated successfully!", {
+        toast.success(t("profile.cover_updated"), {
           containerId: "verify-email-toast",
           autoClose: 2000,
         });
       } else {
-        toast.error(res.data.message || "Failed to upload Cover Photo", {
+        toast.error(res.data.message || t("profile.failed_upload_cover"), {
           containerId: "verify-email-toast",
         });
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to upload Cover Photo Due to large file", {
+      toast.error(t("profile.failed_upload_cover_large"), {
         containerId: "verify-email-toast",
       });
     }
@@ -2042,8 +2047,17 @@ function EmployerProfile() {
   // Handle file selection
   const handleFileChangeMultiple = (e) => {
     const files = Array.from(e.target.files);
+    e.target.value = "";
 
-    const newImages = files.map((file) => ({
+    if (!files.length) return;
+
+    const validFiles = filterValidImageFiles(files, t, (message) => {
+      toast.error(message, { containerId: "verify-email-toast" });
+    });
+
+    if (!validFiles.length) return;
+
+    const newImages = validFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       id: Math.random().toString(36).substr(2, 9), // unique temporary id
@@ -2063,18 +2077,18 @@ function EmployerProfile() {
           await axios.post(
             `${API_BASE_URL}deleteCompanyPhoto/${id}`,
             {},
-            { headers: { Authorization: `Bearer ${token}` } },
+            getRequestConfig(),
           );
 
           // ✅ Remove from local state after success
           setExistingPhotos((prev) => prev.filter((img) => img._id !== id));
           fetchCompanyDetails();
-          toast.success("Photo deleted successfully!", {
+          toast.success(t("profile.photo_deleted"), {
             containerId: "verify-email-toast",
           });
         } catch (err) {
           console.error("Delete photo error:", err);
-          toast.error("Failed to delete photo", {
+          toast.error(t("profile.failed_delete_photo"), {
             containerId: "verify-email-toast",
           });
         }
@@ -2098,7 +2112,7 @@ function EmployerProfile() {
 
   const handleUpdateCareerDetail = async () => {
     if (isEditorEmpty(careerDetail)) {
-      toast.error("Please enter career details");
+      toast.error(t("profile.enter_career_details"));
       return;
     }
 
@@ -2118,19 +2132,19 @@ function EmployerProfile() {
 
       if (response.data.success) {
         fetchCompanyDetails();
-        toast.success("Career detail updated successfully!", {
+        toast.success(t("profile.career_detail_updated"), {
           containerId: "verify-email-toast",
           autoClose: 3000,
         });
         setActiveTab("menu3");
       } else {
-        toast.error(response.data.message || "Failed to update career detail");
+        toast.error(response.data.message || t("profile.failed_update_career"));
       }
     } catch (error) {
       console.error("Update Career Detail error:", error);
       toast.error(
         error.response?.data?.message ||
-          "Something went wrong. Please try again.",
+          t("auth.something_wrong_try_again"),
       );
     } finally {
       setIsCareerUpdating(false);
@@ -2170,14 +2184,14 @@ function EmployerProfile() {
 
       console.log("Response:", response.data);
       fetchCompanyDetails();
-      toast.success("Social links submitted successfully!", {
+      toast.success(t("profile.social_links_submitted"), {
         containerId: "verify-email-toast",
         autoClose: 3000,
       });
       navigate("/employer-dashboard");
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || "Failed to submit social links";
+        error.response?.data?.message || t("profile.failed_submit_social_links");
 
       toast.error(errorMessage, {
         containerId: "verify-email-toast",
@@ -2189,6 +2203,14 @@ function EmployerProfile() {
     return {
       upload: async () => {
         const file = await loader.file;
+
+        const validation = validateImageFile(file, t);
+        if (!validation.ok) {
+          toast.error(validation.message, {
+            containerId: "verify-email-toast",
+          });
+          throw new Error(validation.message || "File too large");
+        }
 
         const imageUrl = await uploadImageToServer(file);
 
@@ -2218,14 +2240,14 @@ function EmployerProfile() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Company Profile</h1>
+            <h1>{t("profile.company_profile")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
@@ -2237,18 +2259,18 @@ function EmployerProfile() {
             </ol>
           </div>
           <div class="employer-dashboard-common-heading  pb-3">
-            <h2>Company Profile</h2>
+            <h2>{t("profile.company_profile")}</h2>
           </div>
           {/* End Breadcrumb Area */}
           {/*Start My Profile Area*/}
           <div className="my-profile-area-profile-page">
             <div className="profile-form-content-profile-page">
-              {/* <h3>Employer Profile</h3> */}
+              {/* <h3>{t("profile.employer_profile")}</h3> */}
               <div className="company-profile-management-info">
                 {/* Nav Tabs */}
                 <div className="company-profile-management-tab-profile-page">
                   <div class="profile-form-content-pp">
-                    <h3>Employer Profile</h3>
+                    <h3>{t("profile.employer_profile")}</h3>
                     <ul className="nav nav-tabs" role="tablist">
                       <li className="nav-item" role="presentation">
                         <a
@@ -2326,16 +2348,16 @@ function EmployerProfile() {
                     >
                       <div className="profile-form-profile-page">
                         <div class="profile-form-profile-page card-premium-style">
-                          <h4 class="section-title">Company Detail</h4>
+                          <h4 class="section-title">{t("profile.company_detail")}</h4>
                           <form>
                             <div className="row">
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group-profile-page">
-                                  <label>Company name</label>
+                                  <label>{t("profile.company_name")}</label>
                                   <input
                                     className="form-control"
                                     type="text"
-                                    placeholder="Company Name"
+                                    placeholder={t("profile.company_name")}
                                     name="brand_name"
                                     value={formData.brand_name}
                                     onChange={handleChange}
@@ -2344,14 +2366,14 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>Upload company Logo</label>
+                                  <label>{t("profile.upload_company_logo")}</label>
                                   <div className="upload-company-info-area">
                                     <div className="upload-company-img-preview">
                                       <img
                                         crossorigin="anonymous"
                                         src={preview}
                                         className="main-logo"
-                                        alt="Image Preview"
+                                        alt={t("profile.image_preview")}
                                       />
                                     </div>
                                     <div className="upload-company-input">
@@ -2365,7 +2387,7 @@ function EmployerProfile() {
                                     </div>
                                     <div className="upload-company-file-name">
                                       <span className="file-name">
-                                        {fileName}
+                                        {fileName || t("profile.no_file_selected")}
                                       </span>
                                     </div>
                                     <div className="upload-company-file-btn">
@@ -2373,7 +2395,7 @@ function EmployerProfile() {
                                         htmlFor="imageInput"
                                         className="custom-upload default-btn btn"
                                       >
-                                        Choose Img
+                                        {t("profile.choose_img")}
                                       </label>
                                     </div>
                                   </div>
@@ -2381,14 +2403,14 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>Upload Cover Photo</label>
+                                  <label>{t("profile.upload_cover_photo")}</label>
                                   <div className="upload-company-info-area">
                                     <div className="upload-company-img-preview">
                                       <img
                                         crossOrigin="anonymous"
                                         src={preview1}
                                         className="main-logo"
-                                        alt="Image Preview"
+                                        alt={t("profile.image_preview")}
                                       />
                                     </div>
                                     <div className="upload-company-input">
@@ -2402,7 +2424,7 @@ function EmployerProfile() {
                                     </div>
                                     <div className="upload-company-file-name">
                                       <span className="file-name">
-                                        {fileName1}
+                                        {fileName1 || t("profile.no_file_selected")}
                                       </span>
                                     </div>
                                     <div className="upload-company-file-btn">
@@ -2410,7 +2432,7 @@ function EmployerProfile() {
                                         htmlFor="imageInput1"
                                         className="custom-upload default-btn btn"
                                       >
-                                        Choose Img
+                                        {t("profile.choose_img")}
                                       </label>
                                     </div>
                                   </div>
@@ -2418,14 +2440,14 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Industry</label>
+                                  <label>{t("profile.industry")}</label>
                                   <select
                                     className="form-select form-control"
                                     name="industry"
                                     value={formData.industry}
                                     onChange={handleChange}
                                   >
-                                    <option value="">Select Industry</option>
+                                    <option value="">{t("profile.select_industry")}</option>
                                     {industries.map((ind) => (
                                       <option key={ind._id} value={ind._id}>
                                         {ind.name}
@@ -2436,7 +2458,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Number of Employees</label>
+                                  <label>{t("profile.number_of_employees")}</label>
                                   <select
                                     className="form-select form-control"
                                     name="number_of_employees"
@@ -2455,7 +2477,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-3 col-md-12">
                                 <div className="form-group">
-                                  <label>Country code</label>
+                                  <label>{t("profile.country_code")}</label>
                                   <select
                                     className="form-select form-control"
                                     name="country_code"
@@ -2479,11 +2501,11 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-9 col-md-12">
                                 <div className="form-group">
-                                  <label>Phone number</label>
+                                  <label>{t("profile.phone_number")}</label>
                                   <input
                                     className="form-control"
                                     type="text"
-                                    placeholder="Phone number"
+                                    placeholder={t("profile.phone_number")}
                                     name="phone_number"
                                     value={formData.phone_number}
                                     onChange={handleChange}
@@ -2492,11 +2514,11 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>City</label>
+                                  <label>{t("profile.city")}</label>
                                   <input
                                     className="form-control"
                                     type="text"
-                                    placeholder="Street Address"
+                                    placeholder={t("profile.street_address")}
                                     name="company_address"
                                     value={formData.company_address}
                                     onChange={handleCitySearch}
@@ -2534,8 +2556,7 @@ function EmployerProfile() {
 
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>State</label> (auto-generated from
-                                  location, or edit manually):
+                                  <label>{t("profile.state")}</label> {t("profile.state_auto_hint")}
                                   <input
                                     className="form-control"
                                     type="text"
@@ -2547,8 +2568,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Country</label> (auto-generated from
-                                  location, or edit manually):
+                                  <label>{t("profile.country")}</label> {t("profile.country_auto_hint")}
                                   <input
                                     className="form-control"
                                     type="text"
@@ -2560,21 +2580,21 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label> Street Address</label>
+                                  <label>{t("profile.street_address")}</label>
                                   <textarea
                                     className="form-control"
                                     name="city"
                                     value={formData.city}
                                     onChange={handleChange}
                                     rows={3}
-                                    placeholder="Enter street address"
+                                    placeholder={t("profile.enter_street_address")}
                                   ></textarea>
                                 </div>
                               </div>
 
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>About the Company</label>
+                                  <label>{t("profile.about_company")}</label>
                                   <CKEditor
                                     editor={ClassicEditor}
                                     data={formData.aboutCompany}
@@ -2591,7 +2611,7 @@ function EmployerProfile() {
 
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>Our Map Location</label>
+                                  <label>{t("profile.our_map_location")}</label>
                                   <div className="employer-our-map-location">
                                     {mapUrl ? (
                                       <iframe
@@ -2604,7 +2624,7 @@ function EmployerProfile() {
                                         referrerPolicy="no-referrer-when-downgrade"
                                       />
                                     ) : (
-                                      <p>No location selected</p>
+                                      <p>{t("profile.no_location_selected")}</p>
                                     )}
                                   </div>
                                 </div>
@@ -2616,7 +2636,7 @@ function EmployerProfile() {
                                   onClick={handleCreateRecruiterProfile}
                                   // disabled={loading}
                                 >
-                                  {loading ? "Submitting..." : "Submit"}
+                                  {loading ? t("profile.submitting") : t("profile.submit")}
                                 </button>
                               </div>
                             </div>
@@ -2634,11 +2654,11 @@ function EmployerProfile() {
                       <div className="profile-form-profile-page">
                         {/*                                <h4>Career Details</h4> */}
                         <div class="profile-form-profile-page card-premium-style">
-                          <h4 class="section-title">Career Details</h4>
+                          <h4 class="section-title">{t("profile.career_details")}</h4>
                           <div className="row">
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Career Details</label>
+                                <label>{t("profile.career_details")}</label>
                                 <CKEditor
                                   editor={ClassicEditor}
                                   data={careerDetail}
@@ -2694,8 +2714,8 @@ function EmployerProfile() {
                                 disabled={isCareerUpdating}
                               >
                                 {isCareerUpdating
-                                  ? "Updating..."
-                                  : "Update Career Detail"}
+                                  ? t("settings.updating")
+                                  : t("profile.update_career_detail")}
                               </button>
                             </div>
                           </div>
@@ -2711,7 +2731,7 @@ function EmployerProfile() {
                     >
                       <div className="profile-form-profile-page">
                         <div class="profile-form-profile-page card-premium-style">
-                          <h4 class="section-title">Office photos</h4>
+                          <h4 class="section-title">{t("profile.office_photos")}</h4>
                           <form>
                             <div className="row">
                               <div className="col-lg-12 col-md-12">
@@ -2731,7 +2751,7 @@ function EmployerProfile() {
                                       <span className="file-name">
                                         {images.length > 0
                                           ? `${images.length} file(s) selected`
-                                          : "No file selected"}
+                                          : t("profile.no_file_selected")}
                                       </span>
                                     </div>
                                     <div className="upload-company-file-btn">
@@ -2739,7 +2759,7 @@ function EmployerProfile() {
                                         htmlFor="officePhotos"
                                         className="custom-upload default-btn btn"
                                       >
-                                        Choose Images
+                                        {t("profile.choose_images")}
                                       </label>
                                     </div>
                                   </div>
@@ -2757,7 +2777,7 @@ function EmployerProfile() {
                                     htmlFor="officePhotos"
                                     className="Custom-Upload default-btn btn"
                                   >
-                                    Choose Images
+                                    {t("profile.choose_images")}
                                   </label> */}
                                     <div className="preview-container mt-3 d-flex flex-wrap">
                                       {images.map((img) => (
@@ -2807,8 +2827,8 @@ function EmployerProfile() {
                                     disabled={isUploading}
                                   >
                                     {isUploading
-                                      ? "Uploading..."
-                                      : "Submit"}{" "}
+                                      ? t("profile.uploading")
+                                      : t("profile.submit")}{" "}
                                   </button>
                                 </div>
 
@@ -2873,14 +2893,14 @@ function EmployerProfile() {
                     >
                       <div className="profile-form-profile-page">
                         <div className="profile-form-profile-page card-premium-style">
-                          <h4 className="section-title">Office videos</h4>
+                          <h4 className="section-title">{t("profile.office_videos")}</h4>
 
                           <div className="col-lg-12">
                             <h4
                               className="border-bottom pb-2 mb-4"
                               style={{ color: "rgb(251, 118, 26)" }}
                             >
-                              Vidéos de l'entreprise (YouTube)
+                              {t("profile.company_youtube_videos")}
                             </h4>
 
                             {/* ADD URL */}
@@ -2992,12 +3012,12 @@ function EmployerProfile() {
                       <div className="profile-form-profile-page">
                         {/* <h4>Links</h4> */}
                         <div class="profile-form-profile-page card-premium-style">
-                          <h4 class="section-title">Links</h4>
+                          <h4 class="section-title">{t("profile.links")}</h4>
                           <form onSubmit={handleSubmitOfSocial}>
                             <div className="row">
                               <div className="col-lg-12 col-md-12">
                                 <div className="form-group">
-                                  <label>Official website</label>
+                                  <label>{t("profile.official_website")}</label>
                                   <input
                                     className="form-control"
                                     type="url"
@@ -3010,7 +3030,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Linkedin</label>
+                                  <label>{t("profile.linkedin")}</label>
                                   <input
                                     className="form-control"
                                     type="url"
@@ -3023,7 +3043,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Facebook</label>
+                                  <label>{t("profile.facebook")}</label>
                                   <input
                                     className="form-control"
                                     type="url"
@@ -3036,7 +3056,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Twitter</label>
+                                  <label>{t("profile.twitter")}</label>
                                   <input
                                     className="form-control"
                                     type="url"
@@ -3049,7 +3069,7 @@ function EmployerProfile() {
                               </div>
                               <div className="col-lg-6 col-md-6">
                                 <div className="form-group">
-                                  <label>Instagram</label>
+                                  <label>{t("profile.instagram")}</label>
                                   <input
                                     className="form-control"
                                     type="url"
@@ -3065,7 +3085,7 @@ function EmployerProfile() {
                                   type="submit"
                                   className="default-btn btn"
                                 >
-                                  Submit
+                                  {t("settings.submit")}
                                 </button>
                               </div>
                             </div>
@@ -3084,7 +3104,7 @@ function EmployerProfile() {
                       <div className="profile-form-profile-page">
                         {/* <h4>Links</h4> */}
                         <div class="profile-form-profile-page card-premium-style">
-                          <h4 class="section-title">Company Profile</h4>
+                          <h4 class="section-title">{t("profile.company_profile")}</h4>
                           <div className="col-lg-12 mb-4">
                             <h4
                               className="border-bottom pb-2"
@@ -3176,8 +3196,8 @@ function EmployerProfile() {
                                   value={companyProfile.mediaType || "image"}
                                   onChange={handleCompanyChange}
                                 >
-                                  <option value="image">Image</option>
-                                  <option value="video">Vidéo (Lien)</option>
+                                  <option value="image">{t("profile.image")}</option>
+                                  <option value="video">{t("profile.video_link")}</option>
                                 </select>
                               </div>
 
@@ -3235,7 +3255,7 @@ function EmployerProfile() {
                               {companyProfile.mediaType === "video" && (
                                 <div className="col-md-8 mb-3">
                                   <label className="form-label fw-bold">
-                                    Lien Vidéo (YouTube Embed/URL)
+                                    {t("profile.video_link_youtube")}
                                   </label>
                                   <input
                                     className="form-control"
@@ -3560,7 +3580,7 @@ function EmployerProfile() {
                                   {/* Video URL */}
                                   <div className="col-md-12 mb-3">
                                     <label className="form-label fw-bold">
-                                      Lien Interview Vidéo (Optionnel)
+                                      {t("profile.video_interview_link")}
                                     </label>
 
                                     <input
@@ -3762,17 +3782,17 @@ function EmployerProfile() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name"> {t("header.Connect_Work")} </span>
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>

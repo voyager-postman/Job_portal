@@ -1,0 +1,155 @@
+/* Login / Register modals */
+
+.register-modal-info .modal {
+  top: 0 !important;
+}
+
+.register-modal-info .modal-dialog {
+  max-width: 440px;
+  margin: 1.75rem auto;
+}
+
+.register-modal-info .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(32, 33, 36, 0.18);
+  overflow: hidden;
+}
+
+.register-modal-info .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.register-modal-info .modal-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #202124;
+  line-height: 1.4;
+}
+
+.register-modal-info .btn-close {
+  margin: 0;
+  padding: 0.5rem;
+  opacity: 0.55;
+}
+
+.register-modal-info .modal-body {
+  padding: 24px 28px 28px;
+}
+
+.register-modal-info .sign-with-email-info .default-btn.btn {
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px !important;
+  font-size: 16px !important;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.register-modal-info .option-or-content {
+  margin: 24px 0 20px;
+}
+
+.register-modal-info .option-or-content p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+  display: inline-block;
+  padding: 0 12px;
+  background: #fff;
+  z-index: 1;
+}
+
+.register-modal-info .option-or-content p::before,
+.register-modal-info .option-or-content p::after {
+  bottom: 50%;
+  width: calc(50% - 24px);
+  border-bottom-color: #e8e8e8;
+}
+
+.register-modal-info .register-option-info-are {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.register-modal-info .register-option-info-are .default-btn.btn {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+  color: inherit !important;
+  border: 1px solid #ff6600 !important;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+
+.register-modal-info .register-option-info-are .default-btn.btn:hover {
+  background: #fff8f3 !important;
+  border-color: #ff6600 !important;
+}
+
+.register-modal-info .register-option-info-are .social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.register-modal-info .register-option-info-are .social-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.register-modal-info .already-have-account-content {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.register-modal-info .already-have-account-content p {
+  margin: 0 0 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.register-modal-info .already-have-account-content span {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f86ef !important;
+  cursor: pointer;
+}
+
+.register-modal-info .already-have-account-content span:hover {
+  color: #ff6600 !important;
+}
+
+@media (max-width: 575.98px) {
+  .register-modal-info .modal-dialog {
+    margin: 12px auto;
+    max-width: calc(100% - 24px);
+  }
+
+  .register-modal-info .modal-body {
+    padding: 20px 20px 24px;
+  }
+}

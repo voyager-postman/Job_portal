@@ -2,7 +2,7 @@ import Slider from "react-slick";
 import { FaStar, FaQuoteLeft, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import mixitup from "mixitup";
 import axios from "axios";
 import "odometer/themes/odometer-theme-default.css";
@@ -17,6 +17,14 @@ import OwlCarousel from "react-owl-carousel3";
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
+import {
+  handleCompanyLogoError,
+  handleJobCoverError,
+  resolveCompanyLogoUrl,
+  resolveJobCoverUrl,
+} from "../utils/companyLogo";
+import { SITE } from "../utils/seo";
+import "./HomeJobs.css";
 
 const NextArrow = ({ onClick }) => (
   <button className="custom-arrow next-arrow" onClick={onClick}>
@@ -29,6 +37,41 @@ const PrevArrow = ({ onClick }) => (
     <FaArrowLeft />
   </button>
 );
+
+const getJobPostedLabel = (job) =>
+  job?.posted ||
+  (job?.createdAt ? moment(job.createdAt).fromNow() : "N/A");
+
+const getJobLocation = (job) => job?.location || job?.city || "N/A";
+
+const getJobCompanyName = (job) => job?.companyName || job?.brandName || "N/A";
+
+const getJobCardCoverImage = (job) => resolveJobCoverUrl(job, job?._id);
+
+const isJobSalaryNegotiable = (job) =>
+  job?.salaryNegotiable === true ||
+  job?.privatJobDetails?.salaryNegotiable === true;
+
+const formatJobSalaryDisplay = (job, currencyCode = "MAD") => {
+  if (isJobSalaryNegotiable(job)) {
+    return "";
+  }
+
+  if (job?.salary) {
+    return `${String(job.salary).trim()} ${currencyCode}`;
+  }
+
+  const minSalary = job?.privatJobDetails?.minSalary;
+  const maxSalary = job?.privatJobDetails?.maxSalary;
+
+  if (minSalary || maxSalary) {
+    return `${minSalary || 0} - ${maxSalary || 0} ${currencyCode}`;
+  }
+
+  return "";
+};
+
+import { isJobFeaturedOnHomepage } from "../utils/featuredJobDisplay";
 
 function Home() {
   const { t, i18n } = useTranslation("global");
@@ -52,6 +95,36 @@ function Home() {
     category: "",
   });
   const [stats, setStats] = useState([]);
+  const [homePageStats, setHomePageStats] = useState(null);
+  const [globalCurrency, setGlobalCurrency] = useState({
+    code: "MAD",
+    symbol: "DH",
+  });
+
+  const fetchGlobalCurrency = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}getGlobalCurrency`);
+
+      if (res.data.success) {
+        setGlobalCurrency({
+          code: res.data.data?.code || "MAD",
+          symbol: res.data.data?.symbol || "DH",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching global currency:", error);
+    }
+  };
+
+  const parseJobStatsFromText = (text = "") => {
+    const liveMatch = text.match(/(\d[\d,]*)\s*jobs?\s*live/i);
+    const todayMatch = text.match(/(\d[\d,]*)\s*added\s*today/i);
+
+    return {
+      live: liveMatch ? Number(liveMatch[1].replace(/,/g, "")) : 0,
+      today: todayMatch ? Number(todayMatch[1].replace(/,/g, "")) : 0,
+    };
+  };
 
   const getStats = async () => {
     try {
@@ -59,27 +132,29 @@ function Home() {
 
       const data = res.data.data;
 
+      setHomePageStats(data);
+
       const formattedStats = [
         {
           icon: "flaticon-bag",
           count: data.jobsAdded || 0,
-          label: "Jobs Added",
+          label: t("header.jobsAdded"),
           showPlus: true,
         },
         {
           icon: "flaticon-office-building",
           count: data.companies || 0,
-          label: "Companies",
+          label: t("header.companies"),
         },
         {
           icon: "flaticon-cv",
           count: data.resumes || 0,
-          label: "Resume",
+          label: t("header.resume"),
         },
         {
           icon: "flaticon-member",
-          count: data.jobSeeker || 0,
-          label: "Members",
+          count: data.jobseeker ?? data.jobSeeker ?? 0,
+          label: t("header.candidates"),
         },
       ];
 
@@ -90,6 +165,7 @@ function Home() {
   };
   useEffect(() => {
     getStats();
+    fetchGlobalCurrency();
   }, []);
   useEffect(() => {
     const getTopJobCategories = async () => {
@@ -133,23 +209,20 @@ function Home() {
       console.error("Error fetching categories:", error);
     }
   };
-  const getAllJobList = async (limit = 6, page = 1) => {
+  const getAllJobList = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}getHomePageJobs`, {
-        params: { limit, page }, // ✅ send limit & page to API
+        params: { page: 1 },
       });
 
-      // ✅ If your API respects limit, it will return only 6 jobs
-      // But if not, we’ll still slice the data to show only 6
-      const jobs = res.data?.jobs || [];
-      setJobList(jobs.slice(0, limit));
+      setJobList(res.data?.jobs || []);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     }
   };
 
   useEffect(() => {
-    getAllJobList(6, 1); // ✅ Fetch only 6 jobs by default on first load
+    getAllJobList();
   }, []);
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -239,7 +312,7 @@ function Home() {
 
   const getCompanyList = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}getCompanyDetailsListSlider`);
+      const res = await axios.get(`${API_BASE_URL}getHighlightedCompanyDetailsList`);
 
       if (res.data.success) {
         setCompanies(res.data);
@@ -276,33 +349,44 @@ function Home() {
       });
     }
   }, []);
-  const options = {
-    margin: 20,
-    nav: true,
-    dots: false,
-    loop: true,
-    autoplay: true,
-    autoplayTimeout: 3000,
-    smartSpeed: 800,
-    navText: [
-      '<span class="custom-nav-arrow ">&#8249;</span>', // ‹
-      '<span class="custom-nav-arrow ">&#8250;</span>', // ›
-    ],
-    responsive: {
-      0: {
-        items: 1,
+  const companyList = companies?.companies || [];
+  const companyCount = companyList.length;
+
+  const companyCarouselOptions = useMemo(() => {
+    const count = Math.max(companyCount, 1);
+    const desktopItems = Math.min(count, 4);
+    const tabletItems = Math.min(count, 3);
+    const mobileItems = Math.min(count, 2);
+
+    return {
+      margin: 20,
+      nav: companyCount > 1,
+      dots: false,
+      loop: companyCount > desktopItems,
+      autoplay: companyCount > 1,
+      autoplayTimeout: 3000,
+      smartSpeed: 800,
+      navText: [
+        '<span class="custom-nav-arrow ">&#8249;</span>',
+        '<span class="custom-nav-arrow ">&#8250;</span>',
+      ],
+      responsive: {
+        0: {
+          items: Math.min(count, 1),
+        },
+        576: {
+          items: mobileItems,
+        },
+        768: {
+          items: tabletItems,
+        },
+        992: {
+          items: desktopItems,
+        },
       },
-      576: {
-        items: 2,
-      },
-      768: {
-        items: 3,
-      },
-      992: {
-        items: 4, // show 4 items at desktop width
-      },
-    },
-  };
+    };
+  }, [companyCount]);
+
   const settings4 = {
     dots: false,
     infinite: true,
@@ -334,14 +418,7 @@ function Home() {
     ],
   };
 
-  const logos = [
-    "partner-logo-1.png",
-    "partner-logo-2.png",
-    "partner-logo-3.png",
-    "partner-logo-4.png",
-    "partner-logo-5.png",
-    "partner-logo-6.png",
-  ];
+  const companyLogos = homeData?.sixthSection?.companyLogos || [];
 
   const settings1 = {
     dots: false,
@@ -427,21 +504,56 @@ function Home() {
     ],
   };
 
+  const heroHighlight = t("header.makeABetter");
   const titleParts =
-    homeData?.firstSection?.mainTitle?.split("Make A Better") || [];
+    homeData?.firstSection?.mainTitle?.split(heroHighlight) ||
+    homeData?.firstSection?.mainTitle?.split("Make A Better") ||
+    [];
   const title = homeData?.secondSection?.mainTitle || "";
   const words = title.split(" ");
   const thirdTitle = homeData?.thirdSection?.mainTitle || "";
   const thirdWords = thirdTitle.split(" ");
   const fourthTitle = homeData?.fourthSection?.mainTitle || "";
   const fourthWords = fourthTitle.trim().split(" ");
+  const parsedJobStats = parseJobStatsFromText(
+    homeData?.fourthSection?.shortParagraph || "",
+  );
+  const jobsLiveCount =
+    homePageStats?.totalJobs ??
+    homePageStats?.jobsLive ??
+    homePageStats?.liveJobs ??
+    parsedJobStats.live ??
+    0;
+  const jobsTodayCount =
+    homePageStats?.jobsAddedToday ??
+    homePageStats?.addedToday ??
+    homePageStats?.todayJobs ??
+    parsedJobStats.today ??
+    0;
   const fifthTitle = homeData?.fifthSection?.mainTitle || "";
   const fifthWords = fifthTitle.trim().split(" ");
+  const seventhTitle =
+    homeData?.seventhSection?.mainTitle ||
+    `${t("header.highestRated")} ${t("header.freelancers")}`;
+  const seventhWords = seventhTitle.trim().split(" ");
+  const eighthTitle =
+    homeData?.eighthSection?.mainTitle ||
+    `${t("header.readArticleTo")} ${t("header.getTricks")}`;
+  const eighthWords = eighthTitle.trim().split(" ");
+  const ninthTitle =
+    homeData?.ninthSection?.mainTitle ||
+    `${t("header.findNextGreat")} ${t("header.jobOpportunity")}`;
+  const ninthWords = ninthTitle.trim().split(" ");
 
   const fifthImages = homeData?.fifthSection?.images || [];
+  const heroAltLabel =
+    homeData?.firstSection?.shortTitle || SITE.name;
+  const cvSectionAlt =
+    homeData?.fifthSection?.mainTitle || t("header.uploadYourCV");
+
   return (
     <>
-      <div className="banner-area bg-f0f4fc">
+      <section className="banner-area bg-f0f4fc" aria-label="Hero">
         <div className="container-fluid">
           <div className="row align-items-center">
             <div className="col-lg-7">
@@ -452,12 +564,14 @@ function Home() {
                   </span>
                   <h1>
                     {titleParts[0]}
-                    <span className="oragneColor">Make A Better</span>
+                    <span className="oragneColor">{heroHighlight}</span>
                     {titleParts[1]}
                   </h1>
                 </div>
                 <div className="serech-over">
-                  <span>{homeData?.firstSection?.shortParagraph}</span>
+                  <span className="cw-home-section-paragraph">
+                    {homeData?.firstSection?.shortParagraph}
+                  </span>
                 </div>
                 <div className="banner-search-form">
                   <form onSubmit={handleSubmit}>
@@ -468,6 +582,7 @@ function Home() {
                             className="form-control"
                             type="text"
                             placeholder={t("header.jobTitle")}
+                            aria-label={t("header.jobTitle")}
                             value={filters.keywords}
                             onChange={(e) =>
                               setFilters({
@@ -485,6 +600,7 @@ function Home() {
                             className="form-control"
                             type="text"
                             placeholder={t("header.location")}
+                            aria-label={t("header.location")}
                             value={filters.location}
                             onChange={(e) =>
                               setFilters({
@@ -534,9 +650,13 @@ function Home() {
                     <li>
                       <span>{t("header.trendingKeywords")}:</span>
                     </li>
-                    {trendingKeywords.map((keyword, index) => (
-                      <li key={index}>
-                        <a href="/">{keyword}</a>
+                    {trendingKeywords.map((keyword) => (
+                      <li key={keyword}>
+                        <Link
+                          to={`/jobs?keywords=${encodeURIComponent(keyword)}`}
+                        >
+                          {keyword}
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -544,7 +664,8 @@ function Home() {
                 <div className="shape-1">
                   <img
                     src="/jobPortal/assets/images/banner/shape-1.png"
-                    alt="Image"
+                    alt=""
+                    aria-hidden="true"
                   />
                 </div>
               </div>
@@ -558,14 +679,16 @@ function Home() {
                         <img
                           crossorigin="anonymous"
                           src={`${API_IMAGE_URL}${img}`}
-                          alt="Banner"
+                          alt={`${heroAltLabel} - ${index + 1}`}
+                          loading={index > 1 ? "lazy" : "eager"}
                         />
 
                         <div className="shape-2">
                           <img
                             crossorigin="anonymous"
                             src="/jobPortal/assets/images/banner/shape-2.png"
-                            alt="Shape"
+                            alt=""
+                            aria-hidden="true"
                           />
                         </div>
                       </div>
@@ -581,7 +704,8 @@ function Home() {
                   <div className="icon">
                     <img
                       src="/jobPortal/assets/images/icon/icon-1.png"
-                      alt="Image"
+                      alt=""
+                      aria-hidden="true"
                     />
                   </div>
                   <h3>50K+</h3>
@@ -603,26 +727,35 @@ function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Companies of the Week */}
-      <section className="companies-week-slider-info">
-        <div className="container">
-          <div className="section-title text-center">
-            <h2>
-              {words.slice(0, words.length - 2).join(" ")}{" "}
-              <label className="oragneColor">
-                {words.slice(words.length - 2).join(" ")}
-              </label>
-            </h2>
-          </div>
+      {companyCount > 0 && (
+        <section className="companies-week-slider-info">
+          <div className="container">
+            <div className="section-title text-center cw-home-section-header">
+              <h2>
+                {words.slice(0, words.length - 2).join(" ")}{" "}
+                <span className="oragneColor">
+                  {words.slice(words.length - 2).join(" ")}
+                </span>
+              </h2>
+              {homeData?.secondSection?.shortParagraph && (
+                <p className="cw-home-section-paragraph">
+                  {homeData.secondSection.shortParagraph}
+                </p>
+              )}
+            </div>
 
-          <OwlCarousel className="owl-theme" {...options}>
-            {companies?.companies?.length > 0 ? (
-              companies.companies.map((item) => {
+            <OwlCarousel
+              key={`companies-week-${companyCount}`}
+              className="owl-theme"
+              {...companyCarouselOptions}
+            >
+              {companyList.map((item, index) => {
                 const company = item?.companyId;
                 return (
-                  <div className="item" key={company?._id}>
+                  <div className="item" key={company?._id || `company-${index}`}>
                     {item?.isHighlighted && (
                       <span
                         className="highlight-badge"
@@ -689,26 +822,26 @@ function Home() {
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="item">
-                <p className="text-center mt-4">{t("header.noCompanies")}</p>
-              </div>
-            )}
-          </OwlCarousel>
-        </div>
-      </section>
+              })}
+            </OwlCarousel>
+          </div>
+        </section>
+      )}
 
       {/* Most Demanded Jobs Categories */}
       <div className="job-categories-area ptb-100">
         <div className="container">
-          <div className="section-title">
+          <div className="section-title text-center cw-home-section-header">
             <h2>
               {thirdWords.slice(0, -1).join(" ")}{" "}
-              <label className="oragneColor">{thirdWords.slice(-1)}</label>
+              <span className="oragneColor">{thirdWords.slice(-1)}</span>
             </h2>
 
-            {/* <p>{homeData?.thirdSection?.shortParagraph}</p> */}
+            {homeData?.thirdSection?.shortParagraph && (
+              <p className="cw-home-section-paragraph">
+                {homeData.thirdSection.shortParagraph}
+              </p>
+            )}
           </div>
 
           <div className="category-slider-wrapper">
@@ -729,128 +862,138 @@ function Home() {
       </div>
 
       {/* Find Your Best Jobs */}
-      <div className="find-job-area pb-100">
+      <section className="cw-jobs-pro find-job-area">
         <div className="container">
-          <div className="section-title">
+          <div className="cw-jobs-pro-header section-title text-center cw-home-section-header">
             <h2>
               {fourthWords.slice(0, -1).join(" ")}{" "}
-              <label className="oragneColor">{fourthWords.slice(-1)}</label>
+              <span className="oragneColor">{fourthWords.slice(-1)}</span>
             </h2>
-
-            <p>{homeData?.fourthSection?.shortParagraph}</p>
+            {homeData?.fourthSection?.shortParagraph && (
+              <p className="cw-home-section-paragraph">
+                {homeData.fourthSection.shortParagraph}
+              </p>
+            )}
+            {(jobsLiveCount > 0 || jobsTodayCount > 0) && (
+              <div className="cw-jobs-pro-stats">
+                {jobsLiveCount > 0 && (
+                  <span className="cw-jobs-pro-stat is-live">
+                    <strong>{jobsLiveCount}</strong> {t("header.jobsLive")}
+                  </span>
+                )}
+                {jobsTodayCount > 0 && (
+                  <span className="cw-jobs-pro-stat">
+                    <strong>{jobsTodayCount}</strong> {t("header.addedToday")}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          <div className="shoting-btn"></div>
-          <div
-            id="Container"
-            className="row justify-content-center"
-            ref={containerRef}
-          >
+
+          <div id="Container" className="row g-4" ref={containerRef}>
             {jobList.length > 0 ? (
-              jobList.map((job, index) => (
-                <div
-                  key={job._id || index}
-                  className="col-lg-4 col-md-6 mix design service writing"
-                >
-                  <div className="single-job-card">
-                    {job?.badge && (
-                      <span
-                        className="featured-badge"
-                        title="This is a featured job listing"
-                      >
-                        <i className="fa-solid fa-star"></i> Featured
-                      </span>
-                    )}
-                    <div className="job-image">
+              jobList.map((job, index) => {
+                const salaryLabel = formatJobSalaryDisplay(
+                  job,
+                  globalCurrency.code,
+                );
+                const resolvedCoverImage = getJobCardCoverImage(job);
+                const coverImage = resolvedCoverImage.startsWith("http")
+                  ? resolvedCoverImage
+                  : resolvedCoverImage.startsWith("/jobPortal/")
+                    ? resolvedCoverImage
+                    : `${API_IMAGE_URL}${resolvedCoverImage}`;
+                const jobLinkState = {
+                  from: "/",
+                  JobId: job._id,
+                  coverImage,
+                };
+
+                return (
+                  <div
+                    key={job._id || index}
+                    className="col-lg-4 col-md-6 mix design service writing"
+                  >
+                    <article className="cw-job-pro-card">
                       <Link
                         to={`/job/${job.slug}`}
-                        state={{
-                          from: "/",
-                          JobId: job._id,
-                        }}
+                        state={jobLinkState}
+                        className="cw-job-pro-media"
                       >
                         <img
-                          crossorigin="anonymous"
-                          src={
-                            job?.JobCoverPhoto
-                              ? `${API_IMAGE_URL}${job.JobCoverPhoto}`
-                              : "/jobPortal/assets/images/job/job-img-6.jpg"
-                          }
-                          alt={job.title}
+                          crossOrigin="anonymous"
+                          src={coverImage}
+                          alt={job.jobTitle || job.title}
+                          onError={handleJobCoverError}
                         />
+                        {job.isUrgent && (
+                          <span className="cw-job-pro-urgent">Urgent</span>
+                        )}
+                        {isJobFeaturedOnHomepage(job) && (
+                          <span className="cw-job-pro-featured">Featured</span>
+                        )}
+                        <span className="cw-job-pro-type">
+                          {job.employmentType || "N/A"}
+                        </span>
                       </Link>
-                      {job.isUrgent && <span className="urgent">Urgent</span>}
-                    </div>
 
-                    <div className="job-content">
-                      <span className="time">
-                        {job.employmentType || "N/A"}
-                      </span>
-                      <h2>
-                        <Link
-                          to={`/job/${job.slug}`}
-                          state={{
-                            JobId: job._id,
-                            from: "/",
-                          }}
-                        >
-                          {job.jobTitle}
-                        </Link>
-                      </h2>
+                      <div className="cw-job-pro-body">
+                        <h2>
+                          <Link to={`/job/${job.slug}`} state={jobLinkState}>
+                            {job.jobTitle}
+                          </Link>
+                        </h2>
 
-                      <div className="info">
-                        <ul>
+                        <ul className="cw-job-pro-meta">
                           <li>
                             <i className="flaticon-time" />
-                            {moment(job?.createdAt).fromNow()}
+                            {getJobPostedLabel(job)}
                           </li>
                           <li>
                             <i className="flaticon-location" />
-                            {job?.city || "N/A"}{" "}
+                            {getJobLocation(job)}
                           </li>
                         </ul>
-                      </div>
-                      <div className="bottom-content">
-                        <ul className="d-flex justify-content-between">
-                          <li>
-                            <div className="left-content">
-                              <div className="icon">
-                                <img
-                                  crossorigin="anonymous"
-                                  src={
-                                    job?.companyLogo
-                                      ? `${API_IMAGE_URL}${job.companyLogo}`
-                                      : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
-                                  }
-                                  alt="Company Logo"
-                                />
-                              </div>
-                              <span>{job.brandName || "N/A"}</span>
+
+                        <div className="cw-job-pro-footer">
+                          <div className="cw-job-pro-company">
+                            <div className="cw-job-pro-company-logo">
+                              <img
+                                crossOrigin="anonymous"
+                                src={resolveCompanyLogoUrl(job?.companyLogo)}
+                                alt={getJobCompanyName(job)}
+                                onError={handleCompanyLogoError}
+                              />
                             </div>
-                          </li>
-                          <li>
-                            <h3>
-                              ${job?.privatJobDetails?.minSalary}
-                              <span>/{t("header.month")}</span>
-                            </h3>
-                          </li>
-                        </ul>
+                            <span>{getJobCompanyName(job)}</span>
+                          </div>
+                          <div className="cw-job-pro-salary">
+                            {isJobSalaryNegotiable(job) ? (
+                              <small>{t("jobs.salary_negotiable")}</small>
+                            ) : salaryLabel ? (
+                              <span>{salaryLabel}</span>
+                            ) : (
+                              <small>—</small>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </article>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-center">{t("header.noJobsAvailable")}</p>
             )}
           </div>
 
-          <div className="text-center">
+          <div className="text-center cw-jobs-pro-cta">
             <Link to="/jobs" className="default-btn btn">
               {t("header.browseAllJobs")}
             </Link>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* count section */}
       <div className="counter-area" ref={ref}>
@@ -863,14 +1006,14 @@ function Home() {
                     <div className="icon">
                       <i className={item.icon} />
                     </div>
-                    <h1>
+                    <h2 className="counter-value">
                       <Odometer
                         value={inView ? item.count : 0}
                         format="(,ddd)"
                         duration={2000}
                       />
                       {item.showPlus && <span className="target">+</span>}
-                    </h1>
+                    </h2>
                     <p>{item.label}</p>
                   </div>
                 </div>
@@ -898,7 +1041,8 @@ function Home() {
                         <img
                           crossorigin="anonymous"
                           src={`${API_IMAGE_URL}${img}`}
-                          alt="CV"
+                          alt={`${cvSectionAlt} - ${index + 1}`}
+                          loading="lazy"
                         />
                       </div>
                     </div>
@@ -910,12 +1054,16 @@ function Home() {
               <div className="cv-content pl-15">
                 <h2>
                   {fifthWords.slice(0, -3).join(" ")}{" "}
-                  <label className="oragneColor">
+                  <span className="oragneColor">
                     {fifthWords.slice(-3).join(" ")}
-                  </label>
+                  </span>
                 </h2>
 
-                <p>{homeData?.fifthSection?.mainTitleDescription}</p>
+                {homeData?.fifthSection?.mainTitleDescription && (
+                  <p className="cw-home-section-paragraph is-preline">
+                    {homeData.fifthSection.mainTitleDescription}
+                  </p>
+                )}
 
                 <div className="cv-btn">
                   <a
@@ -942,163 +1090,156 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="partner-area pb-100">
-        <div className="container">
-          <div className="partner-title">
-            <h3>
-              <label className="oragneColor">
-                {homeData?.sixthSection?.mainTitle}
-              </label>
-            </h3>
-          </div>
-          <Slider {...settings4} className="partner-slider">
-            {logos.map((logo, index) => (
-              <div key={index} className="parner-logo">
-                <a href="#">
-                  <img
-                    src={`/jobPortal/assets/images/partner-logo/${logo}`}
-                    alt={`Partner ${index + 1}`}
-                    style={{ maxWidth: "100%", height: "auto" }}
-                  />
-                </a>
-              </div>
-            ))}
-          </Slider>
-        </div>
-      </div>
-
-      <div className="freelancer-area pt-100 pb-70">
-        <div className="container">
-          <div className="freelancer-top-content">
-            <div className="row align-items-center">
-              <div className="col-lg-8 col-md-9">
-                <div className="section-title style2">
-                  <h2>
-                    {homeData?.seventhSection?.mainTitle
-                      ?.split(" ")
-                      .slice(0, -1)
-                      .join(" ")}{" "}
-                    <label className="oragneColor">
-                      {homeData?.seventhSection?.mainTitle
-                        ?.split(" ")
-                        .slice(-1)}
-                    </label>
-                  </h2>
+      {companyLogos.length > 0 && (
+        <div className="partner-area pb-100">
+          <div className="container">
+            <div className="partner-title text-center cw-home-section-header">
+              <h2>
+                <span className="oragneColor">
+                  {homeData?.sixthSection?.mainTitle}
+                </span>
+              </h2>
+              {homeData?.sixthSection?.mainTitleDescription && (
+                <p className="cw-home-section-paragraph">
+                  {homeData.sixthSection.mainTitleDescription}
+                </p>
+              )}
+            </div>
+            <Slider
+              {...settings4}
+              infinite={companyLogos.length > 5}
+              className="partner-slider"
+            >
+              {companyLogos.map((logo, index) => (
+                <div key={logo || index} className="parner-logo">
+                  <a href="#!">
+                    <img
+                      crossOrigin="anonymous"
+                      src={cleanImageUrl(logo)}
+                      alt={`${homeData?.sixthSection?.mainTitle || "Partner"} ${index + 1}`}
+                      style={{ maxWidth: "100%", height: "auto" }}
+                    />
+                  </a>
                 </div>
-              </div>
-              <div className="col-lg-4">
-                <div className="browse-btn">
-                  <Link
-                    to={
-                      userRole === "Recruiter" || userRole === "Company"
-                        ? "/candidates-search"
-                        : "/employer-login"
-                    }
-                  >
-                    {t("header.browseAllCandidates")}
-                  </Link>
+              ))}
+            </Slider>
+          </div>
+        </div>
+      )}
+
+      {candidates.length > 0 && (
+        <div className="freelancer-area pt-70 pb-40">
+          <div className="container">
+            <div className="freelancer-top-content">
+              <div className="row align-items-center">
+                <div className="col-lg-8 col-md-9">
+                  <div className="section-title style2">
+                    <h2>
+                      {seventhWords.slice(0, -1).join(" ")}{" "}
+                      <span className="oragneColor">
+                        {seventhWords.slice(-1)}
+                      </span>
+                    </h2>
+                    {homeData?.seventhSection?.paragraph && (
+                      <p className="cw-home-section-paragraph">
+                        {homeData.seventhSection.paragraph}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="col-lg-4 col-md-3 text-md-end">
+                  <div className="browse-btn">
+                    <Link
+                      to={
+                        userRole === "Recruiter" || userRole === "Company"
+                          ? "/candidates-search"
+                          : "/employer-login"
+                      }
+                    >
+                      {t("header.browseAllCandidates")}
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="row">
-            {candidates.map((candidate, index) => (
-              <div
-                className="col-lg-4 col-sm-6"
-                key={candidate.userId}
-                data-aos=""
-                data-aos-duration={1200}
-                data-aos-delay={200 + index * 200}
-              >
-                <div className="single-freelancer-card">
-                  <div className="row align-items-center">
-                    <div className="col-lg-4">
-                      <div className="freelancer-img">
-                        <img
-                          style={{
-                            width: "110px",
-                            height: "125px",
-                            objectFit: "cover",
-                          }}
-                          crossorigin="anonymous"
-                          src={
-                            cleanImageUrl(candidate.userImage) ||
-                            "/jobPortal/assets/images/freelancers/default.jpg"
-                          }
-                          alt={candidate.name}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-lg-8">
-                      <div className="freelancer-content">
-                        <h3>{candidate.name}</h3>
-                        <span>{candidate.jobTitle}</span>
-                        <div className="ratings">
-                          {Array(5)
-                            .fill(0)
-                            .map((_, i) => (
-                              <i
-                                key={i}
-                                className={`fa-solid fa-star ${i < candidate.avgRating ? "text-warning" : ""}`}
-                              />
-                            ))}
+            <div className="row freelancer-cards-row">
+              {candidates.map((candidate) => (
+                <div
+                  className="col-lg-4 col-md-6"
+                  key={candidate.userId}
+                >
+                  <div className="single-freelancer-card">
+                    <div className="row align-items-center">
+                      <div className="col-lg-4">
+                        <div className="freelancer-img">
+                          <img
+                            style={{
+                              width: "110px",
+                              height: "125px",
+                              objectFit: "cover",
+                            }}
+                            crossorigin="anonymous"
+                            src={
+                              cleanImageUrl(candidate.userImage) ||
+                              "/jobPortal/assets/images/userIcon.png"
+                            }
+                            alt={candidate.name}
+                          />
                         </div>
-                        <div className="info">
-                          <ul>
-                            <li>
-                              <i className="flaticon-coin" />
-                              {candidate.salary?.amount}{" "}
-                              {candidate.salary?.currency} /{" "}
-                              {candidate.salary?.type}
-                            </li>
-                            <li>
-                              <i className="flaticon-location" />
-                              {candidate.location}
-                            </li>
-                          </ul>
+                      </div>
+                      <div className="col-lg-8">
+                        <div className="freelancer-content">
+                          <h3>{candidate.name}</h3>
+                          <span>{candidate.jobTitle}</span>
+
+                          <div className="info">
+                            <ul>
+                              <li>
+                                <i className="flaticon-coin" />
+                                {candidate.salary?.amount}{" "}
+                                {candidate.salary?.currency} /{" "}
+                                {candidate.salary?.type}
+                              </li>
+                              <li>
+                                <i className="flaticon-location" />
+                                {candidate.location}
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Read Our Article To Get Tricks */}
-      <div className="blog-area pt-100 pb-70">
+      <div className="blog-area pt-50 pb-70">
         <div className="container">
           <div className="blog-top-content">
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
                   <h2>
-                    {homeData?.eighthSection?.mainTitle
-                      ?.split(" ")
-                      .slice(0, -2)
-                      .join(" ")}{" "}
-                    <label className="oragneColor">
-                      {homeData?.eighthSection?.mainTitle
-                        ?.split(" ")
-                        .slice(-2)
-                        .join(" ")}
-                    </label>
+                    {eighthWords.slice(0, -2).join(" ")}{" "}
+                    <span className="oragneColor">
+                      {eighthWords.slice(-2).join(" ")}
+                    </span>
                   </h2>
+                  {homeData?.eighthSection?.paragraph && (
+                    <p className="cw-home-section-paragraph">
+                      {homeData.eighthSection.paragraph}
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="col-lg-4">
+              <div className="col-lg-4 col-md-3 text-md-end">
                 <div className="browse-btn">
-                  <Link
-                    to={
-                      userRole === "Recruiter" || userRole === "Company"
-                        ? "/candidates-search"
-                        : "/employer-login"
-                    }
-                  >
-                    {t("header.browseAllCandidates")}
-                  </Link>
+                  <Link to="/blog">{t("header.blog_list")}</Link>
                 </div>
               </div>
             </div>
@@ -1120,7 +1261,8 @@ function Home() {
                           <img
                             crossorigin="anonymous"
                             src={cleanImageUrl(blog.bannerImage)}
-                            alt="Image"
+                            alt={blog.title || t("header.blog")}
+                            loading="lazy"
                           />
                         </Link>
                       </div>
@@ -1155,7 +1297,7 @@ function Home() {
                             to={`/blogDetails/${blog._id}`}
                             className="read-more default-btn btn"
                           >
-                            Read More
+                            {t("header.readMore")}
                           </Link>
                         </div>
                       </div>
@@ -1173,17 +1315,16 @@ function Home() {
             <div className="col-lg-8 col-md-9">
               <div className="contact-left-content">
                 <h2>
-                  {homeData?.ninthSection?.mainTitle
-                    ?.split(" ")
-                    .slice(0, -2)
-                    .join(" ")}{" "}
-                  <label className="oragneColor">
-                    {homeData?.ninthSection?.mainTitle
-                      ?.split(" ")
-                      .slice(-2)
-                      .join(" ")}
-                  </label>
+                  {ninthWords.slice(0, -2).join(" ")}{" "}
+                  <span className="oragneColor">
+                    {ninthWords.slice(-2).join(" ")}
+                  </span>
                 </h2>
+                {homeData?.ninthSection?.paragraph && (
+                  <p className="cw-home-section-paragraph">
+                    {homeData.ninthSection.paragraph}
+                  </p>
+                )}
               </div>
             </div>
             <div className="col-lg-4 col-md-3">

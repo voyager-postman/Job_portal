@@ -222,6 +222,10 @@
     padding: 20px;
   }
 
+  .change-password-page .profile-form-content {
+    padding: 20px;
+  }
+
   .company-profile-management-tab .nav-tabs {
     flex-wrap: nowrap;
     gap: 15px;
@@ -229,6 +233,46 @@
     padding-bottom: 5px;
     white-space: nowrap;
   }
+}
+
+.change-password-page {
+  background: transparent;
+  min-height: auto;
+  padding: 0 0 40px;
+}
+
+.change-password-card {
+  width: 100%;
+  max-width: none;
+  padding: 28px 32px;
+}
+
+.change-password-card .profile-form .form-group {
+  margin-bottom: 0;
+}
+
+.change-password-card-title {
+  color: #0f172a;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 24px;
+}
+
+.change-password-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 24px;
+}
+
+.notifications-page {
+  background: transparent;
+  min-height: auto;
+  padding: 0 0 40px;
+}
+
+.notifications-page-card {
+  padding: 24px 28px;
 }
 
 /*# sourceMappingURL=main.09084326.css.map*/

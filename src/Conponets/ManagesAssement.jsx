@@ -7,8 +7,11 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useTranslation } from "react-i18next";
+import { isAuthReady } from "../utils/apiHeaders";
 
 function ManagesAssement() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,8 +33,8 @@ function ManagesAssement() {
 
   const fetchTechStacks = async () => {
     try {
-      if (!token) {
-        toast.error("Token missing. Please login again.");
+      if (!isAuthReady()) {
+        toast.error(t("assessment.token_missing"));
         return;
       }
 
@@ -54,7 +57,7 @@ function ManagesAssement() {
     } catch (error) {
       console.error("Error fetching Skill Assessments:", error);
       toast.error(
-        error.response?.data?.message || "Failed to fetch assessments",
+        error.response?.data?.message || t("assessment.failed_fetch"),
       );
     } finally {
       setLoading(false);
@@ -67,34 +70,32 @@ function ManagesAssement() {
 
   const columns = [
     {
-      header: "Assessment Name",
+      header: t("assessment.assessment_name_col"),
       accessorKey: "assessmentName",
     },
     {
-      header: "Total Questions",
+      header: t("assessment.total_questions_col"),
       accessorKey: "totalQuestions",
     },
     {
-      header: "Total Duration (mins)",
+      header: t("assessment.total_duration_col"),
       accessorKey: "totalDuration",
     },
     {
-      header: "Passing %",
+      header: t("assessment.passing_col"),
       accessorKey: "passingPercentage",
       cell: ({ row }) => `${row.original.passingPercentage}%`,
     },
 
     {
       accessorKey: "action",
-      header: "Action",
+      header: t("header.Action"),
       cell: ({ row }) => {
-        const recruiter = row.original;
-
         return (
           <div className="action-icon-info">
             <i
               className="fa-solid fa-pencil"
-              title="Edit"
+              title={t("header.Edit")}
               onClick={() =>
                 navigate("/create-assessment", {
                   state: { assessmentId: row.original._id },
@@ -111,7 +112,7 @@ function ManagesAssement() {
             </Link>
             <i
               className="fa-solid fa-trash"
-              title="Delete"
+              title={t("header.Delete")}
               onClick={() => handleDelete(row.original._id)}
             />
           </div>
@@ -121,13 +122,13 @@ function ManagesAssement() {
   ];
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This assessment will be permanently deleted!",
-      icon: "warning",
+      title: t("header.Are_you_sure"),
+      text: t("assessment.delete_confirm_text"),
+      icon: t("header.warning"),
       showCancelButton: true,
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: t("header.Yes_delete_it"),
     });
 
     if (!result.isConfirmed) return;
@@ -139,15 +140,15 @@ function ManagesAssement() {
         },
       });
 
-      Swal.fire("Deleted!", "Assessment deleted successfully.", "success");
+      Swal.fire(t("header.Deleted"), t("assessment.deleted_success"), t("header.success"));
 
       setData((prev) => prev.filter((item) => item._id !== id));
     } catch (error) {
       console.error("Delete error:", error);
       Swal.fire(
-        "Error!",
-        error.response?.data?.message || "Failed to delete assessment.",
-        "error",
+        t("header.Failed"),
+        error.response?.data?.message || t("assessment.failed_save"),
+        t("header.error"),
       );
     }
   };
@@ -166,19 +167,19 @@ function ManagesAssement() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Manage Assessments</h1>
+            <h1>{t("sidebar.manage_assessments")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" />
-                Assessments
+                {t("assessment.assessments")}
               </li>
             </ol>
           </div>
@@ -186,17 +187,17 @@ function ManagesAssement() {
           {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content add-recruiters-btn-postion">
-              <h3>Assessments</h3>
+              <h3>{t("assessment.assessments")}</h3>
               <div className="add-recruiters-btn">
                 <Link to="/create-assessment" className="default-btn btn">
-                  + Add Assessment
+                  {t("assessment.add_assessment")}
                 </Link>
               </div>
               <div className="profile-form">
                 <div className="row">
                   <div className="col-lg-12 col-md-12">
                     {loading ? (
-                      <p>Loading...</p>
+                      <p>{t("header.Loading")}</p>
                     ) : (
                       <TableView columns={columns} data={data} />
                     )}

@@ -6,13 +6,17 @@ import {
   isInsecureTransportError,
 } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
+import { extractLoginToken, persistAuthToken } from "../utils/apiHeaders";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
+import { SITE } from "../utils/seo";
+import { useTranslation } from "react-i18next";
 
 function EmployerRegister() {
+  const { t } = useTranslation("global");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,38 +30,38 @@ function EmployerRegister() {
 
   const validateForm = () => {
     if (!email || !password || !confirmPassword) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("header.required_fields"));
       return false;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("header.valid_email"));
       return false;
     }
 
     // Validate password length
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("header.password_length"));
       return false;
     }
 
     // Validate password match
     if (password !== confirmPassword) {
-      toast.error("Password and confirm password do not match");
+      toast.error(t("header.password_mismatch"));
       return false;
     }
 
     // Validate captcha
     if (!captchaVerified) {
-      toast.error("Please verify the captcha!");
+      toast.error(t("auth.verify_captcha"));
       return false;
     }
 
     // Validate terms & conditions
     if (!agree) {
-      toast.error("You must accept the terms and conditions");
+      toast.error(t("header.accept_terms_conditions"));
       return false;
     }
 
@@ -75,18 +79,20 @@ function EmployerRegister() {
       });
 
       if (response.data.success) {
-        const { token, user } = response.data;
+        const { user } = response.data;
+        const token = extractLoginToken(response.data);
 
         setPassword("");
         setConfirmPassword("");
-        // ✅ store token and user details correctly
-        localStorage.setItem("token", token);
+        persistAuthToken(token);
+        localStorage.setItem("user_email", email);
 
-        toast.success("Registration successful!");
-        login(); // ✅ update auth context / global state
+        toast.success(t("header.registration_success"));
+        login();
 
-        // ✅ Navigate to verification page with email
-        navigate("/verification", { state: { email, token, showToast: true } });
+        navigate(`/verification?email=${encodeURIComponent(email)}`, {
+          state: { email, token, showToast: true },
+        });
       }
     } catch (error) {
       console.error("Register error:", error);
@@ -97,7 +103,7 @@ function EmployerRegister() {
       }
 
       toast.error(
-        error.response?.data?.message || "Registration failed. Try again."
+        error.response?.data?.message || t("header.registration_failed"),
       );
     } finally {
       setLoading(false);
@@ -123,28 +129,28 @@ function EmployerRegister() {
                     <img
                       src="assets/images/logo/connect-work-ma-login.png"
                       className="main-logo"
-                      alt="logo"
+                      alt={`${SITE.name} logo`}
                     />
                   </div>
                   <div className="container">
                     <div className="register">
-                      <h3>Employer Sign Up</h3>
+                      <h1>{t("auth.employer_signup_title")}</h1>
                       <div className="form-group">
-                        <label>Email Address*</label>
+                        <label>{t("auth.email_label")}</label>
                         <input
                           type="email"
                           className="form-control"
-                          placeholder="Email Address*"
+                          placeholder={t("auth.email_placeholder")}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
                       <div className="form-group  eye-icon-postion">
-                        <label>Password*</label>
+                        <label>{t("auth.password_label")}</label>
                         <input
                           type={showPassword ? "text" : "password"}
                           className="form-control"
-                          placeholder="Password*"
+                          placeholder={t("auth.password_placeholder")}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                         />
@@ -157,11 +163,11 @@ function EmployerRegister() {
                         />
                       </div>
                       <div className="form-group eye-icon-postion">
-                        <label>Confirm password*</label>
+                        <label>{t("auth.confirm_password_label")}</label>
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           className="form-control"
-                          placeholder="Confirm Password"
+                          placeholder={t("auth.confirm_password_placeholder")}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                         />
@@ -188,8 +194,8 @@ function EmployerRegister() {
                           checked={agree}
                           onChange={(e) => setAgree(e.target.checked)}
                         />
-                        <label htmlFor="vehicle1">
-                          I accept the{" "}
+                        <label htmlFor="terms">
+                          {t("header.I_agree_to_the")}{" "}
                           <Link
                             to="/terms-condition"
                             target="_blank"
@@ -199,9 +205,9 @@ function EmployerRegister() {
                               textDecoration: "underline",
                             }}
                           >
-                            Terms &amp; Condition
+                            {t("auth.terms_conditions")}
                           </Link>{" "}
-                          and{" "}
+                          {t("header.and")}{" "}
                           <Link
                             to="/privacy-policy"
                             target="_blank"
@@ -211,7 +217,7 @@ function EmployerRegister() {
                               textDecoration: "underline",
                             }}
                           >
-                            Privacy Policy
+                            {t("auth.privacy_policy")}
                           </Link>
                         </label>
                       </div>
@@ -222,15 +228,17 @@ function EmployerRegister() {
                             onClick={handleRegister}
                             className="default-btn btn"
                           >
-                            {loading ? "Registering..." : "Register"}
+                            {loading
+                              ? t("auth.registering")
+                              : t("auth.register_btn")}
                           </button>
                         </div>
                         <div className="register-login-text-btn">
                           <p>
-                            Already have an account?{" "}
+                            {t("auth.already_have_account")}{" "}
                             <Link to="/employer-login">
                               <i className="fa-solid fa-user" />
-                              Sign in
+                              {t("auth.sign_in_link")}
                             </Link>
                           </p>
                         </div>
@@ -240,7 +248,7 @@ function EmployerRegister() {
                             onClick={handleLinkedinLogin}
                           >
                             <img src="assets/images/icon/linkedin-icon.png" />
-                            Linkedin Register
+                            {t("header.linkedin_register")}
                           </button>
                         </div>
                       </div>
@@ -252,7 +260,7 @@ function EmployerRegister() {
                 <div className="register-img-info-area">
                   <img
                     src="assets/images/company/book-appointment-orignal.png"
-                    alt="register-img"
+                    alt={t("auth.employer_signup_title")}
                   />
                 </div>
               </div>

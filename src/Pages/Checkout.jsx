@@ -1,5 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { API_BASE_URL } from "../Url/Url";
+import CheckoutForm from "./CheckoutForm";
+import { buildPaymentSuccessState } from "../utils/paymentSuccessState";
+import { getPaymentRequestConfig, getRequestConfig } from "../utils/apiHeaders";
 
 const GATEWAY_CONFIG = {
   paypal: {
@@ -16,39 +27,276 @@ const GATEWAY_CONFIG = {
   },
 };
 
+const formatPaymentMethod = (method = "") => {
+  const normalized = String(method || "").trim().toLowerCase();
+  if (normalized === "stripe") return "Stripe";
+  if (normalized === "paypal") return "PayPal";
+  if (normalized === "cmi") return "CMI";
+  if (!method) return "Stripe";
+  return (
+    String(method).charAt(0).toUpperCase() + String(method).slice(1).toLowerCase()
+  );
+};
+
+const buildPackPaymentPayload = (paymentData = {}, selectedGateway = "") => {
+  const { paymentMethod, paymentMode, ...rest } = paymentData;
+
+  return {
+    paymentMethod: formatPaymentMethod(
+      paymentMethod ?? paymentMode ?? selectedGateway,
+    ),
+    ...rest,
+  };
+};
+
+const buildAddOnPaymentPayload = (paymentData = {}, selectedGateway = "") => {
+  const { paymentMethod, paymentMode, ...rest } = paymentData;
+
+  return {
+    paymentMode: formatPaymentMethod(
+      paymentMode ?? paymentMethod ?? selectedGateway,
+    ),
+    ...rest,
+  };
+};
+
 const Checkout = () => {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   const checkoutState = location.state || {};
-  const { paymentMethod = "stripe", pack } = checkoutState;
+  const {
+    paymentMethod = "stripe",
+    pack,
+    purchaseType = "pack",
+    packId,
+    returnTo = "/employer-wallet",
+  } = checkoutState;
+
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentGateways, setPaymentGateways] = useState([]);
+  const [stripePromise, setStripePromise] = useState(null);
+  const paymentSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (!pack) {
-      navigate("/employer-wallet", { replace: true });
+      navigate(returnTo, { replace: true });
     }
-  }, [pack, navigate]);
+  }, [pack, navigate, returnTo]);
+
+  useEffect(() => {
+    const fetchGateways = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}getActivePaymentGateways`, getRequestConfig());
+
+        if (res.data.success) {
+          const active = (res.data.data || []).filter((g) => g.isActive);
+          setPaymentGateways(active);
+
+          const stripeGateway = active.find(
+            (g) => g.gatewayName.toLowerCase() === "stripe",
+          );
+          if (stripeGateway?.publishableKey) {
+            setStripePromise(loadStripe(stripeGateway.publishableKey));
+          }
+        }
+      } catch (error) {
+        console.error("Gateway fetch error:", error);
+      }
+    };
+
+    fetchGateways();
+  }, []);
 
   if (!pack) return null;
 
   const gateway = GATEWAY_CONFIG[paymentMethod] || GATEWAY_CONFIG.stripe;
   const formattedTotal = `${pack.price} ${pack.currency}`;
+  const paypalGateway = paymentGateways.find(
+    (g) => g.gatewayName.toLowerCase() === "paypal",
+  );
+
+  const selectedPlanForCheckout = {
+    _id: pack.id,
+    packName: pack.name,
+    name: pack.name,
+    amount: pack.price,
+    price: pack.price,
+    currency: pack.currency || "MAD",
+  };
+
+  const completePurchase = async (paymentData = {}) => {
+    if (paymentSubmittingRef.current) {
+      return { success: false, message: t("checkout.processing") };
+    }
+
+    paymentSubmittingRef.current = true;
+
+    try {
+      setPaymentLoading(true);
+
+      if (purchaseType === "pack" && pack.id) {
+        const res = await axios.post(
+          `${API_BASE_URL}company/purchase-pack`,
+          {
+            packId: pack.id,
+            ...buildPackPaymentPayload(paymentData, paymentMethod),
+          },
+          getPaymentRequestConfig(),
+        );
+
+        if (res.data.success) {
+          try {
+            sessionStorage.setItem(
+              "employerWalletRefresh",
+              JSON.stringify({
+                message: res.data.message || t("checkout.purchaseCompleted"),
+                at: Date.now(),
+              }),
+            );
+          } catch {
+            // ignore
+          }
+          toast.success(res.data.message || t("checkout.purchaseCompleted"));
+          return {
+            success: true,
+            message: res.data.message,
+            data: res.data.data,
+          };
+        }
+
+        const packMessage = res.data.message || t("checkout.purchaseFailed");
+        if (/active pack|cannot purchase another/i.test(packMessage)) {
+          navigate(returnTo, { replace: true, state: { packError: packMessage } });
+          return { success: false, message: packMessage };
+        }
+
+        toast.error(packMessage);
+        return { success: false, message: packMessage };
+      }
+
+      if (purchaseType === "addon" && pack.id) {
+        const res = await axios.post(
+          `${API_BASE_URL}purchase-CompanyAddOn`,
+          {
+            addOnId: pack.id,
+            companyPackId: packId,
+            ...buildAddOnPaymentPayload(paymentData, paymentMethod),
+          },
+          getPaymentRequestConfig(),
+        );
+
+        if (res.data.success) {
+          try {
+            sessionStorage.setItem(
+              "employerWalletRefresh",
+              JSON.stringify({
+                message: res.data.message || t("checkout.purchaseCompleted"),
+                at: Date.now(),
+              }),
+            );
+          } catch {
+            // ignore
+          }
+          toast.success(res.data.message || t("checkout.purchaseCompleted"));
+          return {
+            success: true,
+            message: res.data.message,
+            data: res.data.data,
+          };
+        }
+
+        toast.error(res.data.message || t("checkout.purchaseFailed"));
+        return {
+          success: false,
+          message: res.data.message || t("checkout.purchaseFailed"),
+        };
+      }
+
+      const invalidItemMessage = t("checkout.invalidPurchaseItem");
+      toast.error(invalidItemMessage);
+      return { success: false, message: invalidItemMessage };
+    } catch (error) {
+      const packMessage = error.response?.data?.message || t("checkout.purchaseFailed");
+      if (
+        purchaseType === "pack" &&
+        /active pack|cannot purchase another/i.test(packMessage)
+      ) {
+        navigate(returnTo, { replace: true, state: { packError: packMessage } });
+        return { success: false, message: packMessage };
+      }
+
+      toast.error(packMessage);
+      return { success: false, message: packMessage };
+    } finally {
+      paymentSubmittingRef.current = false;
+      setPaymentLoading(false);
+    }
+  };
+
+  const redirectOnSuccess = (result) => {
+    if (result?.success) {
+      navigate("/payment-success", {
+        state: {
+          payment: buildPaymentSuccessState(result.message, result.data, {
+            amount: pack.price,
+            currency: pack.currency,
+            planName: pack.name,
+          }),
+        },
+      });
+    }
+    return result;
+  };
+
+  const purchasePackWithRedirect = async (paymentData = {}) => {
+    const result = await completePurchase(paymentData);
+    return redirectOnSuccess(result);
+  };
+
+  const handleDemoPayment = async () => {
+    if (paymentSubmittingRef.current || paymentLoading) return;
+    await purchasePackWithRedirect({ paymentMethod: "CMI" });
+  };
+
+  const handleChangeMethod = () => {
+    navigate(returnTo, {
+      state: {
+        reopenCheckoutPayment: {
+          pack,
+          purchaseType,
+        },
+      },
+    });
+  };
+
+  const method = paymentMethod.toLowerCase();
 
   return (
     <div className="checkout-page-wrapper">
+      <ToastContainer position="top-right" autoClose={4000} />
+      {paymentLoading && (
+        <div className="loader-overlay" role="status" aria-live="polite" aria-busy="true">
+          <div className="loader-box">
+            <div className="custom-spinner" />
+            <p className="brand-text">NADDI.MA</p>
+          </div>
+        </div>
+      )}
       <div className="container py-5">
         <div className="row g-5">
           <div className="col-lg-8">
             <div className="checkout-main-card">
               <div className="checkout-header mb-5">
-                <h2 className="fw-800 text-dark mb-2">Finalize Your Purchase</h2>
+                <h2 className="fw-800 text-dark mb-2">{t("checkout.finalizePurchase")}</h2>
                 <p className="text-muted">
-                  Complete your transaction to instantly boost your recruitment
-                  power.
+                  {t("checkout.finalizeSubtitle")}
                 </p>
               </div>
 
               <div className="payment-method-review mb-5">
-                <h5 className="section-title mb-4">Payment Method</h5>
+                <h5 className="section-title mb-4">{t("checkout.paymentMethod")}</h5>
                 <div className="selected-gateway-display">
                   <div className="gateway-icon-large">
                     <i className={`${gateway.icon} ${gateway.iconClass}`} />
@@ -58,22 +306,22 @@ const Checkout = () => {
                       {paymentMethod}
                     </span>
                     <span className="gateway-status">
-                      <i className="fa-solid fa-shield-halved me-1" /> Secure
-                      Connection
+                      <i className="fa-solid fa-shield-halved me-1" />{" "}
+                      {t("checkout.secureConnection")}
                     </span>
                   </div>
                   <button
                     type="button"
                     className="btn-change-method ms-auto"
-                    onClick={() => navigate("/employer-wallet")}
+                    onClick={handleChangeMethod}
                   >
-                    Change
+                    {t("checkout.change")}
                   </button>
                 </div>
               </div>
 
               <div className="order-items-review mb-5">
-                <h5 className="section-title mb-4">Items in Your Order</h5>
+                <h5 className="section-title mb-4">{t("checkout.itemsInOrder")}</h5>
                 <div className="review-item-card">
                   <div className="item-icon">
                     <i className="fa-solid fa-gem" />
@@ -84,13 +332,13 @@ const Checkout = () => {
                       {pack.jobCredits != null && (
                         <span>
                           <i className="fa-solid fa-briefcase me-1" />{" "}
-                          {pack.jobCredits} Jobs
+                          {t("checkout.jobsCount", { count: pack.jobCredits })}
                         </span>
                       )}
                       {pack.cvCredits != null && (
                         <span>
                           <i className="fa-solid fa-user-tie me-1" />{" "}
-                          {pack.cvCredits} CVs
+                          {t("checkout.cvsCount", { count: pack.cvCredits })}
                         </span>
                       )}
                     </div>
@@ -99,23 +347,141 @@ const Checkout = () => {
                 </div>
               </div>
 
+              <div className="checkout-payment-widget mb-4">
+                {method === "stripe" && stripePromise && (
+                  <Elements stripe={stripePromise}>
+                    <CheckoutForm
+                      selectedPlan={selectedPlanForCheckout}
+                      purchasePack={purchasePackWithRedirect}
+                      paymentMethodName={formatPaymentMethod(paymentMethod)}
+                      submitting={paymentLoading}
+                    />
+                  </Elements>
+                )}
+
+                {method === "paypal" && paypalGateway?.clientId && (
+                  <PayPalScriptProvider
+                    options={{
+                      "client-id": paypalGateway.clientId,
+                      currency: pack.currency || "MAD",
+                      intent: "capture",
+                      disableFunding: ["card"],
+                    }}
+                  >
+                    <PayPalButtons
+                      style={{ layout: "vertical" }}
+                      disabled={paymentLoading}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          intent: "CAPTURE",
+                          purchase_units: [
+                            {
+                              amount: {
+                                currency_code: pack.currency || "MAD",
+                                value: Number(pack.price).toFixed(2),
+                              },
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (data, actions) => {
+                        if (paymentSubmittingRef.current) return;
+
+                        try {
+                          const details = await actions.order.capture();
+                          const capture =
+                            details?.purchase_units?.[0]?.payments
+                              ?.captures?.[0];
+
+                          if (!capture || capture.status !== "COMPLETED") {
+                            navigate("/payment-failed", {
+                              state: { error: t("checkout.paymentNotCompleted") },
+                            });
+                            return;
+                          }
+
+                          const result = await completePurchase({
+                            paymentMethod: "PayPal",
+                            orderID: details.id,
+                            captureId: capture.id,
+                            amount: capture.amount?.value,
+                            currency: capture.amount?.currency_code,
+                            payerEmail: details.payer?.email_address,
+                            status: capture.status,
+                          });
+
+                          if (result?.success) {
+                            navigate("/payment-success", {
+                              state: {
+                                payment: buildPaymentSuccessState(
+                                  result.message,
+                                  result.data,
+                                  {
+                                    amount: capture.amount?.value,
+                                    currency: capture.amount?.currency_code,
+                                    planName: pack.name,
+                                  },
+                                ),
+                              },
+                            });
+                          } else {
+                            navigate("/payment-failed", {
+                              state: { error: t("checkout.planActivationFailed") },
+                            });
+                          }
+                        } catch {
+                          navigate("/payment-failed", {
+                            state: {
+                              error: t("checkout.paymentFailedCapture"),
+                            },
+                          });
+                        }
+                      }}
+                      onCancel={() => {
+                        navigate("/payment-failed", {
+                          state: { error: t("checkout.paymentCancelledByUser") },
+                        });
+                      }}
+                      onError={() => {
+                        navigate("/payment-failed", {
+                          state: {
+                            error: t("checkout.paymentErrorTryAgain"),
+                          },
+                        });
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                )}
+
+                {method === "cmi" && (
+                  <button
+                    type="button"
+                    className="btn-checkout-finalize w-100"
+                    onClick={handleDemoPayment}
+                    disabled={paymentLoading}
+                  >
+                    {paymentLoading ? t("checkout.processing") : t("checkout.confirmPayNow")}
+                  </button>
+                )}
+              </div>
+
               <div className="trust-badges row g-3 mt-4">
                 <div className="col-md-4">
                   <div className="trust-card">
                     <i className="fa-solid fa-lock" />
-                    <span>SSL Encrypted</span>
+                    <span>{t("checkout.sslEncrypted")}</span>
                   </div>
                 </div>
                 <div className="col-md-4">
                   <div className="trust-card">
                     <i className="fa-solid fa-shield-check" />
-                    <span>Safe Payment</span>
+                    <span>{t("checkout.safePayment")}</span>
                   </div>
                 </div>
                 <div className="col-md-4">
                   <div className="trust-card">
                     <i className="fa-solid fa-bolt" />
-                    <span>Instant Credits</span>
+                    <span>{t("checkout.instantCredits")}</span>
                   </div>
                 </div>
               </div>
@@ -125,36 +491,42 @@ const Checkout = () => {
           <div className="col-lg-4">
             <div className="order-summary-sticky">
               <div className="summary-card">
-                <h5 className="fw-bold mb-4">Order Summary</h5>
+                <h5 className="fw-bold mb-4">{t("checkout.orderSummary")}</h5>
                 <div className="summary-row">
-                  <span>Subtotal</span>
+                  <span>{t("checkout.subtotal")}</span>
                   <span>{formattedTotal}</span>
                 </div>
                 <div className="summary-row">
-                  <span>Taxes (VAT)</span>
+                  <span>{t("checkout.taxesVat")}</span>
                   <span>0.00 {pack.currency}</span>
                 </div>
                 <div className="summary-divider my-4" />
                 <div className="summary-total mb-4">
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className="total-label">Total Amount</span>
+                    <span className="total-label">{t("checkout.totalAmount")}</span>
                     <span className="total-val">{formattedTotal}</span>
                   </div>
                 </div>
-                <button type="button" className="btn-checkout-finalize w-100 mb-3">
-                  Confirm & Pay Now
-                </button>
+                {method !== "cmi" && method !== "paypal" && method !== "stripe" && (
+                  <button
+                    type="button"
+                    className="btn-checkout-finalize w-100 mb-3"
+                    disabled={paymentLoading}
+                  >
+                    {t("checkout.confirmPayNow")}
+                  </button>
+                )}
                 <p className="text-center xsmall text-muted mb-0">
-                  By clicking &quot;Confirm &amp; Pay Now&quot;, you agree to our{" "}
-                  <Link to="/terms-condition">Terms of Service</Link>.
+                  {t("checkout.termsAgreement")}{" "}
+                  <Link to="/terms-condition">{t("checkout.termsOfService")}</Link>.
                 </p>
               </div>
               <div className="back-link-wrap mt-4 text-center">
                 <Link
-                  to="/employer-wallet"
+                  to={returnTo}
                   className="text-decoration-none text-muted small"
                 >
-                  <i className="fa-solid fa-arrow-left me-2" /> Back to Wallet
+                  <i className="fa-solid fa-arrow-left me-2" /> {t("checkout.backToWallet")}
                 </Link>
               </div>
             </div>
@@ -302,6 +674,11 @@ const Checkout = () => {
           background: #0f172a;
           transform: translateY(-2px);
           box-shadow: 0 15px 30px rgba(30, 41, 59, 0.3);
+          color: white;
+        }
+        .btn-checkout-finalize:disabled {
+          opacity: 0.7;
+          transform: none;
         }
 
         .fw-800 { font-weight: 800; }

@@ -9,39 +9,10 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import PageSEO from "../components/PageSEO";
+import { absoluteUrl, buildOrganizationSchema, buildBreadcrumbSchema } from "../utils/seo";
 import { ToastContainer, toast } from "react-toastify";
-import { Helmet } from "react-helmet-async";
 import AOS from "aos";
-const steps = [
-  {
-    icon: "flaticon-bag",
-    number: 1,
-    title: "Find The Right Job",
-    description: "There many variations of dolor passages of Lorem Ipsum.",
-    delay: 200,
-  },
-  {
-    icon: "flaticon-company",
-    number: 2,
-    title: "Research Companies",
-    description: "There many variations of dolor passages of Lorem Ipsum.",
-    delay: 400,
-  },
-  {
-    icon: "flaticon-business",
-    number: 3,
-    title: "Compare Salaries",
-    description: "There many variations of dolor passages of Lorem Ipsum.",
-    delay: 600,
-  },
-  {
-    icon: "flaticon-recruitment",
-    number: 4,
-    title: "Register An Account",
-    description: "There many variations of dolor passages of Lorem Ipsum.",
-    delay: 800,
-  },
-];
 
 function AboutUs() {
   const [homeData, setHomeData] = useState({});
@@ -49,6 +20,36 @@ function AboutUs() {
   const [teamSection, setTeamSection] = useState(null);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("global");
+  const steps = [
+    {
+      icon: "flaticon-bag",
+      number: 1,
+      title: t("jobs.find_right_job"),
+      description: t("jobs.lorem_short"),
+      delay: 200,
+    },
+    {
+      icon: "flaticon-company",
+      number: 2,
+      title: t("jobs.research_companies"),
+      description: t("jobs.lorem_short"),
+      delay: 400,
+    },
+    {
+      icon: "flaticon-business",
+      number: 3,
+      title: t("jobs.compare_salaries"),
+      description: t("jobs.lorem_short"),
+      delay: 600,
+    },
+    {
+      icon: "flaticon-recruitment",
+      number: 4,
+      title: t("jobs.register_account"),
+      description: t("jobs.lorem_short"),
+      delay: 800,
+    },
+  ];
   const containerRef = useRef(null);
   const [stats, setStats] = useState([]);
   const [aboutData, setAboutData] = useState(null);
@@ -75,23 +76,23 @@ function AboutUs() {
         {
           icon: "flaticon-bag",
           count: data.jobsAdded || 0,
-          label: "Jobs Added",
+          label: t("header.jobsAdded"),
           showPlus: true,
         },
         {
           icon: "flaticon-office-building",
           count: data.companies || 0,
-          label: "Companies",
+          label: t("header.companies"),
         },
         {
           icon: "flaticon-cv",
           count: data.resumes || 0,
-          label: "Resume",
+          label: t("header.resume"),
         },
         {
           icon: "flaticon-member",
-          count: data.jobSeeker || 0,
-          label: "Members",
+          count: data.jobseeker ?? data.jobSeeker ?? 0,
+          label: t("header.candidates"),
         },
       ];
 
@@ -148,70 +149,38 @@ function AboutUs() {
 
   return (
     <>
-      <Helmet>
-        <title>About Us | Job Portal</title>
-
-        <meta
-          name="description"
-          content="Learn about our job portal, our mission, and how we help job seekers and employers connect."
-        />
-
-        <link rel="canonical" href={window.location.href} />
-
-        {/* Open Graph */}
-        <meta property="og:title" content="About Us | Job Portal" />
-        <meta
-          property="og:description"
-          content="Discover our mission, vision, and team behind the job portal."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
-        <meta
-          property="og:image"
-          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-        />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="About Us | Job Portal" />
-        <meta
-          name="twitter:description"
-          content="Learn more about our platform and how we connect talent with opportunity."
-        />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Job Portal",
-            url: window.location.href,
-            logo: "/jobPortal/assets/images/logo.png",
+      <PageSEO
+        title={t("header.aboutUs")}
+        description="Learn about Connect Work.ma, our mission, and how we help job seekers and employers connect across Morocco."
+        canonical="/about-us"
+        image="/assets/images/banner/inner-banner-img.jpg"
+        jsonLd={[
+          buildOrganizationSchema({
             description:
-              "Job portal connecting job seekers with top companies worldwide.",
-            sameAs: [
-              "https://facebook.com/",
-              "https://linkedin.com/",
-              "https://twitter.com/",
-            ],
-          })}
-        </script>
-      </Helmet>
-      <section class="inner-banners-info-area">
-        <div class="inner-banners-img-area">
+              "Job portal connecting job seekers with top companies across Morocco.",
+            url: absoluteUrl("/about-us"),
+          }),
+          buildBreadcrumbSchema([
+            { name: t("header.home"), path: "/" },
+            { name: t("header.aboutUs"), path: "/about-us" },
+          ]),
+        ]}
+      />
+      <section className="inner-banners-info-area">
+        <div className="inner-banners-img-area">
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-            alt="breadcrumb Img"
+            alt={t("header.aboutUs")}
           />
         </div>
-        <div class="inner-banners-title-info">
-          <div class="container">
-            <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12">
-                <div class="inner-page-banner-title">
-                  <h2>{t("header.aboutUs")}</h2>
+        <div className="inner-banners-title-info">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12">
+                <div className="inner-page-banner-title">
+                  <h1>{t("header.aboutUs")}</h1>
                   <ul>
-                    <li class="menu-divide-arrow">
+                    <li className="menu-divide-arrow">
                       <Link to="/">{t("header.home")}</Link>
                     </li>
                     <li> {t("header.aboutUs")}</li>
@@ -233,7 +202,7 @@ function AboutUs() {
                       ? `${API_IMAGE_URL}${aboutData.image}`
                       : "/jobPortal/assets/images/cv/candidate-with-cv.png"
                   }
-                  alt="About"
+                  alt={aboutData?.mainTitle || t("header.aboutUs")}
                   onError={(e) => {
                     e.target.src =
                       "/jobPortal/assets/images/cv/candidate-with-cv.png";
@@ -248,12 +217,12 @@ function AboutUs() {
                   {aboutData?.mainTitle ? (
                     <>
                       {aboutData.mainTitle.split("For")[0] + "For "}
-                      <label className="oragneColor">
+                      <span className="oragneColor">
                         {aboutData.mainTitle.split("For")[1]}
-                      </label>
+                      </span>
                     </>
                   ) : (
-                    "Loading..."
+                    t("jobs.loading")
                   )}
                 </h2>
 
@@ -269,7 +238,7 @@ function AboutUs() {
       <div className="works-area pt-100 pb-70 bg-f0f5f7">
         <div className="container">
           <div className="section-title">
-            <h2>{secondSection?.mainTitle || "Loading..."}</h2>
+            <h2>{secondSection?.mainTitle || t("jobs.loading")}</h2>
             <p>{secondSection?.description}</p>
           </div>
 
@@ -318,14 +287,14 @@ function AboutUs() {
                   <div className="icon">
                     <i className={item.icon} />
                   </div>
-                  <h1>
+                  <h2 className="counter-value">
                     <Odometer
                       value={inView ? item.count : 0}
                       format="(,ddd)"
                       duration={2000}
                     />
                     {item.showPlus && <span className="target">+</span>}
-                  </h1>
+                  </h2>
                   <p>{item.label}</p>
                 </div>
               </div>
@@ -350,7 +319,8 @@ function AboutUs() {
                         <img
                           crossorigin="anonymous"
                           src={`${API_IMAGE_URL}${img}`}
-                          alt="CV"
+                          alt={`${homeData?.fifthSection?.mainTitle || t("header.uploadYourCV")} - ${index + 1}`}
+                          loading="lazy"
                         />
                       </div>
                     </div>
@@ -362,9 +332,9 @@ function AboutUs() {
               <div className="cv-content pl-15">
                 <h2>
                   {fifthWords.slice(0, -3).join(" ")}{" "}
-                  <label className="oragneColor">
+                  <span className="oragneColor">
                     {fifthWords.slice(-3).join(" ")}
-                  </label>
+                  </span>
                 </h2>
 
                 <p>{homeData?.fifthSection?.mainTitleDescription}</p>
@@ -401,7 +371,7 @@ function AboutUs() {
             <div className="row align-items-center">
               <div className="col-lg-8 col-md-9">
                 <div className="section-title style2">
-                  <h2>{teamSection?.title || "Loading..."}</h2>
+                  <h2>{teamSection?.title || t("jobs.loading")}</h2>
                   <p>{teamSection?.description}</p>
                 </div>
               </div>

@@ -1,18 +1,21 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 function ApplicationManagement() {
+  const { t } = useTranslation("global");
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Application Management</h1>
+            <h1>{t("header.Application_Management")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <a href="dashboard.html">{t("header.home")} </a>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" /> Application Management
@@ -21,7 +24,7 @@ function ApplicationManagement() {
           </div>
           {/* End Breadcrumb Area */}
           <div className="employer-dashboard-common-heading">
-            <h2>Profiles of 100 applicants for operation manager position</h2>
+            <h2>{t("breadcrumbs.profiles_applicants_heading")}</h2>
           </div>
           {/* Application Management Search Start Area */}
           {/* <div class="manage-jobs-box">
@@ -30,13 +33,13 @@ function ApplicationManagement() {
                   <div class="row g-0">
                       <div class="col-lg-3 col-sm-6">
                           <div class="form-group">
-                              <input class="form-control" type="text" placeholder="Keywords / Job Title">
+                              <input class="form-control" type="text" placeholder={t("header.keywords")}>
                               <i class="flaticon-portfolio"></i>
                           </div>
                       </div>
                       <div class="col-lg-3 col-sm-6">
                           <div class="form-group">
-                              <input class="form-control" type="text" placeholder="City Or Postcode">
+                              <input class="form-control" type="text" placeholder={t("header.location_city")}>
                               <i class="flaticon-location"></i>
                           </div>
                       </div>
@@ -53,7 +56,7 @@ function ApplicationManagement() {
                       </div>
                       <div class="col-lg-2 col-sm-6">
                           <div class="search-btn">
-                              <button type="submit" class="default-btn btn">Find Jobs</button>
+                              <button type="submit" class="default-btn btn">{t("header.find_jobs")}</button>
                           </div>
                       </div>
                   </div>
@@ -74,7 +77,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -82,7 +85,7 @@ function ApplicationManagement() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose A Skills</option>
+                        <option selected>{t("breadcrumbs.choose_skills")}</option>
                         <option value={1}>Digital</option>
                         <option value={2}>Design</option>
                         <option value={3}>Developer</option>
@@ -104,7 +107,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -116,7 +119,7 @@ function ApplicationManagement() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 0 - 2 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_0_2")}</label>
                         </li>
                         <li>
                           <input
@@ -125,7 +128,7 @@ function ApplicationManagement() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 2 - 4 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_2_4")}</label>
                         </li>
                         <li>
                           <input
@@ -134,7 +137,7 @@ function ApplicationManagement() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 5 - 7 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_5_7")}</label>
                         </li>
                         <li>
                           <input
@@ -143,7 +146,7 @@ function ApplicationManagement() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 8 - 10 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_8_10")}</label>
                         </li>
                         <li>
                           <input
@@ -175,7 +178,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -237,7 +240,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -264,7 +267,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -288,7 +291,7 @@ function ApplicationManagement() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">

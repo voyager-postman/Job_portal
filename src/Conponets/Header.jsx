@@ -5,22 +5,37 @@ import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
+import { SITE } from "../utils/seo";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { getAuthHeaders, hasAuthSession, isAuthReady, getRequestConfig, persistAuthToken } from "../utils/apiHeaders";
 import {
   isVerifiedByAdmin,
   readVerifiedByAdminFromStorage,
   resolveEmployerCompanyId,
   toVerifiedByAdminStorage,
 } from "../utils/employerVerification";
+import "./AuthModal.css";
+import {
+  formatNotificationTime,
+  getNotificationMeta,
+  getNotificationRoute,
+} from "../utils/notifications";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
-  console.log(i18n);
+  const currentLanguage = i18n.language?.split("-")[0] || "en";
+
+  const handleLanguageChange = (event) => {
+    const nextLanguage = event.target.value;
+    i18n.changeLanguage(nextLanguage);
+    localStorage.setItem("i18nextLng", nextLanguage);
+    document.documentElement.lang = nextLanguage;
+  };
   const {
     isLoggedIn,
     profileImage,
@@ -38,10 +53,34 @@ function Header({ bgColor }) {
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isJobSeeker = userRole === "JobSeeker";
   const isEmployer = userRole === "Recruiter" || userRole === "Company";
   const isGuest = !userRole;
   // localStorage.setItem("verifiedByAdmin", "true");
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileNavOpen(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileNavOpen]);
+
+  const closeMobileNav = () => setMobileNavOpen(false);
 
   useEffect(() => {
     const adminVerified = localStorage.getItem("adminVerified");
@@ -57,18 +96,15 @@ function Header({ bgColor }) {
     }
 
     try {
-      const token = localStorage.getItem("token");
       const companyId = resolveEmployerCompanyId();
 
-      if (!token || !companyId) {
+      if (!isAuthReady() || !companyId) {
         return null;
       }
 
       const response = await axios.get(
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       const company = response.data?.company;
@@ -98,17 +134,19 @@ function Header({ bgColor }) {
     }
   }, []);
 
-  // Fetch notifications from API
+  // Fetch notifications from API (logged-in users only)
   const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("token");
+    if (!isAuthReady()) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
 
+    try {
       const response = await axios.post(
         `${API_BASE_URL}get/notifications`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: getAuthHeaders() },
       );
 
       if (response.data && response.data.notifications) {
@@ -123,43 +161,50 @@ function Header({ bgColor }) {
       console.error("Error fetching notifications:", err);
     }
   };
-  const handleNotificationClick = (note) => {
-    const walletTypes = [
-      "pack",
-      "pack_warning",
-      "pack_expired",
-      "welcome_pack_warning",
-      "Welcome_Pack_Expired",
-      "credits",
-      "low_balance",
-      "zero_credit",
-      "LOW_JOB_CREDIT",
-      "monthly_limit",
-      "weekly_limit",
-      "daily_limit",
-    ];
+  const markNotificationRead = async (notificationId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}markRead/${notificationId}`,
+        {},
+        { headers: getAuthHeaders() },
+      );
 
-    if (walletTypes.includes(note?.type)) {
-      navigate("/employer-wallet");
-    } else if (note?.type === "job_alert") {
-      navigate("/job-search");
-    } else if (note?.type === "application-status") {
-      navigate("/manage-job-application");
-    } else {
-      navigate("/employer-dashboard"); // default fallback
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === notificationId ? { ...n, isRead: true } : n,
+        ),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Error marking notification read:", err);
     }
+  };
+
+  const deleteAllNotifications = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}delete/AllNotifications`, {
+        headers: getAuthHeaders(),
+      });
+
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Error deleting all notifications:", err);
+    }
+  };
+
+  const handleNotificationClick = async (note) => {
+    if (!note?.isRead && note?._id) {
+      await markNotificationRead(note._id);
+    }
+
+    navigate(
+      getNotificationRoute(note, localStorage.getItem("user_role")),
+    );
   };
   const markAllRead = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      await axios.post(
-        `${API_BASE_URL}markAllRead`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      await axios.post(`${API_BASE_URL}markAllRead`, {}, { headers: getAuthHeaders() });
 
       // Instantly update UI
       setUnreadCount(0);
@@ -172,19 +217,21 @@ function Header({ bgColor }) {
     }
   };
 
-  // Fetch notifications on initial load
+  // Fetch notifications only when user is logged in
   useEffect(() => {
-    fetchNotifications(); // first call
-  }, []);
+    if (isLoggedIn && hasAuthSession()) {
+      fetchNotifications();
+    }
+  }, [isLoggedIn]);
 
   const isEmployerPage =
     location.pathname === "/employer-home" ||
     location.pathname === "/employer-login" ||
     location.pathname === "/employer-register";
 
-  const handleLogout = () => {
-    logout(); // clears localStorage + state
-    navigate("/"); // redirect to home or login
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
   };
 
   const handleLogin = () => {
@@ -209,105 +256,6 @@ function Header({ bgColor }) {
     const role = "JobSeeker";
     window.location.href = `${API_BASE_URL}auth/linkedin?role=${role}`;
   };
-
-  useEffect(() => {
-    const handleSocialLogin = async () => {
-      const queryParams = new URLSearchParams(window.location.search);
-      console.log(queryParams, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      const success = queryParams.get("success");
-      const token = queryParams.get("token");
-      const message = queryParams.get("message");
-
-      // ❌ Backend error
-      if (success === "false") {
-        console.log("Login failed!");
-        toast.error(message || "Login failed!");
-        window.history.replaceState({}, document.title, "/jobPortal");
-        return;
-      }
-
-      // ⛔ Not a social callback
-      if (!success || !token) return;
-
-      const role = queryParams.get("role");
-      const email = queryParams.get("email");
-      const name = queryParams.get("name") || "";
-      const avatar = queryParams.get("avatar");
-      const companyId = queryParams.get("companyId");
-
-      const is_completed = queryParams.get("is_completed") === "true";
-      const verifiedByAdmin = queryParams.get("verifiedByAdmin") === "true";
-
-      const [first_name = "", last_name = ""] = name.split(" ");
-
-      const user = {
-        email,
-        role,
-        first_name,
-        last_name,
-        is_completed,
-        verifiedByAdmin,
-        companyId,
-      };
-
-      // 💾 Save SAME as normal login
-      localStorage.setItem("token", token);
-      localStorage.setItem("user_email", email);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("user_role", role);
-      localStorage.setItem("first_name", first_name);
-      localStorage.setItem("last_name", last_name);
-      localStorage.setItem("is_completed", is_completed);
-      localStorage.setItem("verifiedByAdmin", verifiedByAdmin);
-      localStorage.setItem("companyId", companyId);
-      const defaultProfileImage =
-        role === "Company" || role === "Recruiter"
-          ? DEFAULT_COMPANY_IMG
-          : DEFAULT_JOBSEEKER_IMG;
-
-      localStorage.setItem("profileImage", avatar || defaultProfileImage);
-
-      authLogin(); // AuthContext login
-
-      // 🔒 Block unverified Company (EXACT same as normal login)
-      if (role === "Company" && is_completed && !verifiedByAdmin) {
-        console.log(
-          "our account is not verified by the admin. Please contact support",
-        );
-        await Swal.fire({
-          title: t("header.Account_Not_Verified"),
-          text: t("header.Your_account_is_not_verified_by_the_admin"),
-          icon: "error",
-          confirmButtonText: t("header.ok"),
-        });
-
-        navigate("/");
-        window.history.replaceState({}, document.title, "/jobPortal");
-        return;
-      }
-
-      // 🚀 Redirect (same rules as email login)
-      if (is_completed) {
-        console.log("completed profile");
-        if (role === "Recruiter" || role === "Company") {
-          navigate("/employer-dashboard");
-        } else {
-          navigate("/candidate-profile");
-        }
-      } else {
-        console.log("not completed profile");
-        if (role === "Recruiter" || role === "Company") {
-          navigate("/employer-basic-info");
-        } else {
-          navigate("/profile-basic-info");
-        }
-      }
-
-      // 🧹 Clean URL AFTER navigation
-    };
-
-    handleSocialLogin();
-  }, []);
 
   const cleanImageUrl1 = (url) => {
     if (!url) return "";
@@ -354,7 +302,9 @@ function Header({ bgColor }) {
         console.log("Sending to Backend:", payload);
 
         // 2️⃣ Send to Backend API
-        const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload);
+        const apiRes = await axios.post(`${API_BASE_URL}google/login`, payload, {
+          withCredentials: true,
+        });
         console.log("Backend Response:", apiRes.data);
 
         // ⚠️ Handle backend error (Google or LinkedIn restriction)
@@ -366,13 +316,14 @@ function Header({ bgColor }) {
         const { token, user } = apiRes.data;
 
         // 3️⃣ Save Data
-        localStorage.setItem("token", token);
+        persistAuthToken(token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("user_id", user?._id);
         localStorage.setItem("user_email", user?.email);
         localStorage.setItem("user_role", user?.role);
         localStorage.setItem("first_name", user?.first_name);
         localStorage.setItem("last_name", user?.last_name);
+        localStorage.setItem("department", user?.department || "");
         localStorage.setItem("is_completed", user?.is_completed);
         localStorage.setItem("user_profile", user?.profileImage);
         localStorage.setItem(
@@ -380,40 +331,46 @@ function Header({ bgColor }) {
           `${user?.first_name} ${user?.last_name}`,
         );
 
-        // 4️⃣ Fetch Profile Data
+        // 4️⃣ Fetch profile data only for the matching role
         try {
-          const profileRes = await axios.get(
-            `${API_BASE_URL}candidate/profile`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
+          if (user.role === "JobSeeker") {
+            const profileRes = await axios.get(
+              `${API_BASE_URL}candidate/profile`,
+              getRequestConfig(),
+            );
 
-          const profileData = profileRes.data?.profile;
-          const profileImg = profileData?.profileImage;
+            const profileData = profileRes.data?.profile;
+            const profileImg = profileData?.profileImage;
 
-          if (profileImg && profileImg.trim() !== "") {
-            const finalImage = profileImg.startsWith("http")
-              ? profileImg
-              : `${API_IMAGE_URL}${profileImg}`;
+            if (profileImg && profileImg.trim() !== "") {
+              const finalImage = profileImg.startsWith("http")
+                ? profileImg
+                : `${API_IMAGE_URL}${profileImg}`;
 
-            localStorage.setItem("profileImage", finalImage);
+              localStorage.setItem("profileImage", finalImage);
 
-            if (typeof updateProfileImage === "function") {
-              updateProfileImage(finalImage);
+              if (typeof updateProfileImage === "function") {
+                updateProfileImage(finalImage);
+              }
+            } else {
+              localStorage.setItem("profileImage", DEFAULT_JOBSEEKER_IMG);
+              updateProfileImage(DEFAULT_JOBSEEKER_IMG);
             }
-          } else {
-            const fallback =
-              user.role === "Company"
-                ? DEFAULT_COMPANY_IMG
-                : DEFAULT_JOBSEEKER_IMG;
 
-            localStorage.setItem("profileImage", fallback);
-            updateProfileImage(fallback);
-          }
+            if (profileData) {
+              updateName(profileData.first_name, profileData.last_name);
+            }
+          } else if (user.role === "Company" || user.role === "Recruiter") {
+            if (user?.companyId) {
+              localStorage.setItem("companyId", user.companyId);
+            }
 
-          if (profileData) {
-            updateName(profileData.first_name, profileData.last_name);
+            if (resolveEmployerCompanyId()) {
+              await fetchCompanyProfile();
+            } else {
+              localStorage.setItem("profileImage", DEFAULT_COMPANY_IMG);
+              updateProfileImage(DEFAULT_COMPANY_IMG);
+            }
           }
         } catch (profileErr) {
           console.error("Profile fetch error:", profileErr);
@@ -506,39 +463,50 @@ function Header({ bgColor }) {
 
   return (
     <>
-      <ToastContainer />
-      <div className="navbar-area" style={{ backgroundColor: bgColor }}>
+      <a href="#main-content" className="skip-to-main">
+        {t("common.skip_to_content", { defaultValue: "Skip to main content" })}
+      </a>
+      <header className="navbar-area" style={{ backgroundColor: bgColor }}>
         <div className="mobile-responsive-nav">
           <div className="container">
             <div className="mobile-responsive-menu">
-              <div className="logo">
+              <Link to="/" className="logo" onClick={closeMobileNav}>
                 <img
                   src="/jobPortal/assets/images/logo.png"
                   className="main-logo"
-                  alt="logo"
+                  alt={`${SITE.name} logo`}
                 />
                 <img
                   src="/jobPortal/assets/images/white-logo.png"
                   className="white-logo"
-                  alt="logo"
+                  alt={`${SITE.name} logo`}
                 />
-              </div>
+              </Link>
+              <button
+                type="button"
+                className="mobile-nav-toggle-btn"
+                aria-label={t("common.menu")}
+                aria-expanded={mobileNavOpen}
+                onClick={() => setMobileNavOpen(true)}
+              >
+                <i className="fa-solid fa-bars" />
+              </button>
             </div>
           </div>
         </div>
         <div className="desktop-nav">
           <div className="container-fluid">
-            <nav className="navbar navbar-expand-md navbar-light">
+            <nav className="navbar navbar-expand-md navbar-light" aria-label="Main navigation">
               <Link className="navbar-brand" to="/">
                 <img
                   src="/jobPortal/assets/images/logo.png"
                   className="main-logo"
-                  alt="logo"
+                  alt={`${SITE.name} logo`}
                 />
                 <img
                   src="/jobPortal/assets/images/white-logo.png"
                   className="white-logo"
-                  alt="logo"
+                  alt={`${SITE.name} logo`}
                 />
               </Link>
               <div
@@ -592,7 +560,7 @@ function Header({ bgColor }) {
                     </li>
                   )}
 
-                  {userRole === "Recruiter" && (
+                  {/* {(userRole === "Recruiter" || userRole === "Company") && (
                     <li className="nav-item">
                       <NavLink
                         to="/applied-candidate-list"
@@ -603,7 +571,7 @@ function Header({ bgColor }) {
                         {t("header.candidates")}
                       </NavLink>
                     </li>
-                  )}
+                  )} */}
                   <li className="nav-item">
                     <NavLink
                       to="/contact-us"
@@ -633,86 +601,116 @@ function Header({ bgColor }) {
                           <button
                             className="btn notification-btn"
                             type="button"
-                            style={{ border: "none" }}
                             id="notificationDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            onClick={markAllRead} // Mark all read on click
+                            onClick={markAllRead}
                           >
-                            <i className="fa-regular fa-bell"></i>
+                            <i className="fa-regular fa-bell" />
                             {unreadCount > 0 && (
-                              <span className="badge bg-danger">
-                                {unreadCount}
+                              <span className="notification-count-badge">
+                                {unreadCount > 99 ? "99+" : unreadCount}
                               </span>
                             )}
                           </button>
                           <ul
-                            className="dropdown-menu dropdown-menu-end"
+                            className="dropdown-menu dropdown-menu-end notification-panel"
                             aria-labelledby="notificationDropdown"
-                            style={{
-                              width: "320px",
-                              maxHeight: "350px",
-                              overflowY: "auto",
-                            }}
                           >
-                            <li className="dropdown-header fw-bold">
-                              {t("header.Notifications")}
+                            <li className="notification-panel-header">
+                              <div className="notification-panel-title-wrap">
+                                <p className="notification-panel-title">
+                                  {t("header.Notifications")}
+                                </p>
+                                {unreadCount > 0 && (
+                                  <span className="notification-unread-pill">
+                                    {unreadCount} new
+                                  </span>
+                                )}
+                              </div>
                             </li>
 
                             {notifications.length > 0 ? (
-                              notifications.map((note) => (
-                                <li key={note._id}>
-                                  <div
-                                    onClick={() =>
-                                      handleNotificationClick(note)
-                                    }
-                                    className={`dropdown-item notification-item d-flex gap-2 align-items-start ${
-                                      note.isRead ? "" : "fw-bold"
-                                    }`}
-                                  >
-                                    {/* IMAGE */}
-                                    <img
-                                      crossOrigin="anonymous"
-                                      src={
-                                        note.logo
-                                          ? cleanImageUrl1(note.logo)
-                                          : "assets/images/dashboard/images1.png"
+                              notifications.map((note) => {
+                                const meta = getNotificationMeta(note);
+                                return (
+                                  <li key={note._id}>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleNotificationClick(note)
                                       }
-                                      alt="Notification"
-                                      className="rounded"
-                                      style={{
-                                        width: "40px",
-                                        height: "40px",
-                                        objectFit: "cover",
-                                        border: "1px solid #e5e5e5",
-                                      }}
-                                    />
-
-                                    {/* TEXT */}
-                                    <div className="flex-grow-1">
-                                      <div>{note.title}</div>
-                                      <small className="text-muted d-block">
-                                        {note.message}
-                                      </small>
-                                    </div>
-                                  </div>
-                                </li>
-                              ))
+                                      className={`notification-card ${note.isRead ? "" : "is-unread"
+                                        }`}
+                                    >
+                                      <div
+                                        className="notification-icon-wrap"
+                                        style={{ background: meta.bg }}
+                                      >
+                                        <i
+                                          className={meta.icon}
+                                          style={{ color: meta.color }}
+                                        />
+                                      </div>
+                                      <div className="notification-content">
+                                        <div className="notification-title-row">
+                                          <span className="notification-card-title">
+                                            {note.title}
+                                          </span>
+                                          {note.createdAt && (
+                                            <span className="notification-time">
+                                              {formatNotificationTime(
+                                                note.createdAt,
+                                                currentLanguage,
+                                              )}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="notification-message">
+                                          {note.message}
+                                        </p>
+                                      </div>
+                                      {!note.isRead && (
+                                        <span
+                                          className="notification-unread-dot"
+                                          aria-hidden="true"
+                                        />
+                                      )}
+                                    </button>
+                                  </li>
+                                );
+                              })
                             ) : (
-                              <li className="dropdown-item text-center">
-                                {t("header.No_notifications")}
+                              <li className="notification-empty-state">
+                                <div className="notification-empty-icon">
+                                  <i className="fa-regular fa-bell-slash" />
+                                </div>
+                                <p>{t("header.No_notifications")}</p>
                               </li>
                             )}
 
-                            <li>
-                              <hr className="dropdown-divider" />
-                            </li>
-
-                            <li>
-                              <a className="dropdown-item text-center">
-                                {t("header.View_All_Notifications")}
-                              </a>
-                            </li>
+                            {notifications.length > 0 && (
+                              <>
+                                <li>
+                                  <hr className="dropdown-divider notification-panel-divider" />
+                                </li>
+                                <li className="notification-panel-actions">
+                                  <button
+                                    type="button"
+                                    className="notification-clear-btn"
+                                    onClick={deleteAllNotifications}
+                                  >
+                                    Clear all
+                                  </button>
+                                  <Link
+                                    to="/notifications"
+                                    className="notification-panel-link"
+                                  >
+                                    {t("header.View_All_Notifications")}
+                                  </Link>
+                                </li>
+                              </>
+                            )}
                           </ul>
                         </div>
                       </div>
@@ -722,7 +720,7 @@ function Header({ bgColor }) {
                         (localStorage.getItem("user_role") === "Recruiter" ||
                           (localStorage.getItem("user_role") === "Company" &&
                             localStorage.getItem("verifiedByAdmin") ===
-                              "true")) && (
+                            "true")) && (
                           <div className="option-item post-job-employers-btn">
                             <button
                               onClick={handlePostJob}
@@ -781,13 +779,13 @@ function Header({ bgColor }) {
                                     hasValidName && (
                                       <span className="name">
                                         {firstName &&
-                                        firstName !== "null" &&
-                                        firstName !== "undefined"
+                                          firstName !== "null" &&
+                                          firstName !== "undefined"
                                           ? firstName
                                           : ""}{" "}
                                         {lastName &&
-                                        lastName !== "null" &&
-                                        lastName !== "undefined"
+                                          lastName !== "null" &&
+                                          lastName !== "undefined"
                                           ? lastName
                                           : ""}
                                       </span>
@@ -812,61 +810,61 @@ function Header({ bgColor }) {
 
                             {localStorage.getItem("is_completed") ===
                               "true" && (
-                              <div className="dropdown-body">
-                                <ul className="profile-nav p-0 pt-3">
-                                  <li className="nav-item active">
-                                    <button
-                                      className="nav-link"
-                                      onClick={async () => {
-                                        const role =
-                                          localStorage.getItem("user_role");
-                                        const updatedUser =
-                                          await fetchCompanyProfile();
-                                        const verified = updatedUser
-                                          ? isVerifiedByAdmin(
+                                <div className="dropdown-body">
+                                  <ul className="profile-nav p-0 pt-3">
+                                    <li className="nav-item active">
+                                      <button
+                                        className="nav-link"
+                                        onClick={async () => {
+                                          const role =
+                                            localStorage.getItem("user_role");
+                                          const updatedUser =
+                                            await fetchCompanyProfile();
+                                          const verified = updatedUser
+                                            ? isVerifiedByAdmin(
                                               updatedUser.verifiedByAdmin,
                                             )
-                                          : readVerifiedByAdminFromStorage();
-                                        // If employer is not verified → show popup & block access
-                                        if (
-                                          (role === "Recruiter" ||
-                                            role === "Company") &&
-                                          !verified
-                                        ) {
-                                          await Swal.fire({
-                                            title: t(
-                                              "header.Account_Not_Verified",
-                                            ),
-                                            text: t(
-                                              "header.Your_account_is_not_verified_by_the_admin",
-                                            ),
-                                            icon: "error",
-                                            confirmButtonText: t("header.ok"),
-                                          });
-                                          return;
-                                        }
+                                            : readVerifiedByAdminFromStorage();
+                                          // If employer is not verified → show popup & block access
+                                          if (
+                                            (role === "Recruiter" ||
+                                              role === "Company") &&
+                                            !verified
+                                          ) {
+                                            await Swal.fire({
+                                              title: t(
+                                                "header.Account_Not_Verified",
+                                              ),
+                                              text: t(
+                                                "header.Your_account_is_not_verified_by_the_admin",
+                                              ),
+                                              icon: "error",
+                                              confirmButtonText: t("header.ok"),
+                                            });
+                                            return;
+                                          }
 
-                                        if (role === "JobSeeker") {
-                                          navigate("/candidate-dashboard");
-                                        } else {
-                                          navigate("/employer-dashboard");
-                                        }
-                                      }}
-                                    >
-                                      <span className="icon">
-                                        <img
-                                          src="/jobPortal/assets/images/svg-icon/icon-1.svg"
-                                          alt="Dashboard"
-                                        />
-                                      </span>
-                                      <span className="menu-title">
-                                        {t("header.dashboard")}
-                                      </span>
-                                    </button>
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
+                                          if (role === "JobSeeker") {
+                                            navigate("/candidate-dashboard");
+                                          } else {
+                                            navigate("/employer-dashboard");
+                                          }
+                                        }}
+                                      >
+                                        <span className="icon">
+                                          <img
+                                            src="/jobPortal/assets/images/svg-icon/icon-1.svg"
+                                            alt="Dashboard"
+                                          />
+                                        </span>
+                                        <span className="menu-title">
+                                          {t("header.dashboard")}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                              )}
 
                             {localStorage.getItem("is_completed") === "true" &&
                               localStorage.getItem("isLoggedIn") === "true" &&
@@ -875,7 +873,7 @@ function Header({ bgColor }) {
                                 (localStorage.getItem("user_role") ===
                                   "Company" &&
                                   localStorage.getItem("verifiedByAdmin") ===
-                                    "true")) && (
+                                  "true")) && (
                                 <div className="dropdown-body">
                                   <ul className="profile-nav p-0 pt-3">
                                     <li className="nav-item">
@@ -886,7 +884,8 @@ function Header({ bgColor }) {
                                         <span className="icon">
                                           <img
                                             src="/jobPortal/assets/images/svg-icon/icon-9.svg"
-                                            alt="Image"
+                                            alt=""
+                                            aria-hidden="true"
                                           />
                                         </span>
                                         <span>
@@ -911,7 +910,8 @@ function Header({ bgColor }) {
                                   >
                                     <img
                                       src="/jobPortal/assets/images/svg-icon/icon-11.svg"
-                                      alt="Image"
+                                      alt=""
+                                      aria-hidden="true"
                                     />
                                     <span>{t("header.logout")}</span>
                                   </button>
@@ -927,13 +927,13 @@ function Header({ bgColor }) {
                       <div className="option-item">
                         <div className="default-btn btn style-2  employer-login-register-button">
                           <Link to="/employer-login">
-                            <span style={{color:"#fff"}}>
+                            <span style={{ color: "#fff" }}>
                               <i className="fa-regular fa-user" />{" "}
                               {t("header.login")} /
                             </span>
                           </Link>
                           <Link to="/employer-register">
-                            <span style={{color:"#fff"}}> {t("header.register")} </span>
+                            <span style={{ color: "#fff" }}> {t("header.register")} </span>
                           </Link>
                         </div>
                       </div>
@@ -983,8 +983,9 @@ function Header({ bgColor }) {
                 <div className="header-language-toggle">
                   <select
                     className="form-select"
-                    value={i18n.language}
-                    onChange={(e) => i18n.changeLanguage(e.target.value)}
+                    aria-label="Language"
+                    value={currentLanguage}
+                    onChange={handleLanguageChange}
                   >
                     <option value="en">Eng</option>
                     <option value="fr">Fr</option>
@@ -1008,10 +1009,10 @@ function Header({ bgColor }) {
                 <div className="others-options justify-content-center d-flex align-items-center">
                   <div className="others-options">
                     <div className="option-item">
-                      <a href="login.html" className="default-btn btn style-2">
+                      <Link to="/login" className="default-btn btn style-2">
                         <i className="fa-regular fa-user" /> {t("header.login")}
                         /{t("header.register")}
-                      </a>
+                      </Link>
                     </div>
                     <div className="option-item">
                       <a href="/" className="default-btn btn">
@@ -1024,29 +1025,264 @@ function Header({ bgColor }) {
             </div>
           </div>
         </div>
+      </header>
+
+      {mobileNavOpen && (
+        <button
+          type="button"
+          className="mobile-offcanvas-backdrop"
+          aria-label={t("common.close")}
+          onClick={closeMobileNav}
+        />
+      )}
+
+      <div
+        className={`offcanvas offcanvas-end mobile-header-offcanvas${mobileNavOpen ? " show" : ""
+          }`}
+        key={`mobile-nav-${currentLanguage}`}
+        tabIndex={-1}
+        aria-labelledby="mobileNavLabel"
+        style={mobileNavOpen ? { visibility: "visible" } : undefined}
+      >
+        <div className="offcanvas-header">
+          <div className="offcanvas-title" id="mobileNavLabel">
+            {t("common.menu")}
+          </div>
+          <button
+            type="button"
+            className="btn-close"
+            aria-label={t("common.close")}
+            onClick={closeMobileNav}
+          />
+        </div>
+        <div className="offcanvas-body">
+          <ul className="mobile-header-nav">
+            <li>
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+                onClick={closeMobileNav}
+              >
+                {t("header.home")}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/about-us"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+                onClick={closeMobileNav}
+              >
+                {t("header.aboutUs")}
+              </NavLink>
+            </li>
+            {(isJobSeeker || isGuest) && (
+              <li>
+                <NavLink
+                  to="/jobs"
+                  className={({ isActive }) =>
+                    "nav-link" + (isActive ? " active" : "")
+                  }
+                  onClick={closeMobileNav}
+                >
+                  {t("header.jobs")}
+                </NavLink>
+              </li>
+            )}
+            {(isJobSeeker || isGuest) && (
+              <li>
+                <NavLink
+                  to="/companies"
+                  className={({ isActive }) =>
+                    "nav-link" + (isActive ? " active" : "")
+                  }
+                  onClick={closeMobileNav}
+                >
+                  {t("header.employers")}
+                </NavLink>
+              </li>
+            )}
+            {(userRole === "Recruiter" || userRole === "Company") && (
+              <li>
+                <NavLink
+                  to="/applied-candidate-list"
+                  className={({ isActive }) =>
+                    "nav-link" + (isActive ? " active" : "")
+                  }
+                  onClick={closeMobileNav}
+                >
+                  {t("header.candidates")}
+                </NavLink>
+              </li>
+            )}
+            <li>
+              <NavLink
+                to="/contact-us"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+                onClick={closeMobileNav}
+              >
+                {t("header.contactUs")}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/blog"
+                className={({ isActive }) =>
+                  "nav-link" + (isActive ? " active" : "")
+                }
+                onClick={closeMobileNav}
+              >
+                {t("header.blog")}
+              </NavLink>
+            </li>
+          </ul>
+
+          <div className="mobile-header-actions">
+            {emailName ? (
+              <>
+                {localStorage.getItem("is_completed") === "true" && (
+                  <button
+                    type="button"
+                    className="default-btn btn"
+                    onClick={async () => {
+                      closeMobileNav();
+                      const role = localStorage.getItem("user_role");
+                      const updatedUser = await fetchCompanyProfile();
+                      const verified = updatedUser
+                        ? isVerifiedByAdmin(updatedUser.verifiedByAdmin)
+                        : readVerifiedByAdminFromStorage();
+                      if (
+                        (role === "Recruiter" || role === "Company") &&
+                        !verified
+                      ) {
+                        await Swal.fire({
+                          title: t("header.Account_Not_Verified"),
+                          text: t(
+                            "header.Your_account_is_not_verified_by_the_admin",
+                          ),
+                          icon: "error",
+                          confirmButtonText: t("header.ok"),
+                        });
+                        return;
+                      }
+                      navigate(
+                        role === "JobSeeker"
+                          ? "/candidate-dashboard"
+                          : "/employer-dashboard",
+                      );
+                    }}
+                  >
+                    {t("header.dashboard")}
+                  </button>
+                )}
+                {localStorage.getItem("is_completed") === "true" &&
+                  localStorage.getItem("isLoggedIn") === "true" &&
+                  (localStorage.getItem("user_role") === "Recruiter" ||
+                    (localStorage.getItem("user_role") === "Company" &&
+                      localStorage.getItem("verifiedByAdmin") === "true")) && (
+                    <button
+                      type="button"
+                      className="default-btn btn"
+                      onClick={() => {
+                        closeMobileNav();
+                        handlePostJob();
+                      }}
+                    >
+                      {t("header.Post_New_Job")}
+                    </button>
+                  )}
+                <button
+                  type="button"
+                  className="default-btn btn style-2"
+                  onClick={() => {
+                    closeMobileNav();
+                    handleLogout();
+                  }}
+                >
+                  {t("header.logout")}
+                </button>
+              </>
+            ) : isEmployerPage ? (
+              <>
+                <Link
+                  to="/employer-login"
+                  className="default-btn btn style-2"
+                  onClick={closeMobileNav}
+                >
+                  {t("header.login")} / {t("header.register")}
+                </Link>
+                <Link
+                  to="/"
+                  className="default-btn btn"
+                  onClick={closeMobileNav}
+                >
+                  {t("header.For_Jobseeker")}
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="default-btn btn style-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#exampleModalLogin"
+                  onClick={closeMobileNav}
+                >
+                  {t("header.login")} / {t("header.register")}
+                </button>
+                <Link
+                  to="/employer-home"
+                  className="default-btn btn"
+                  onClick={closeMobileNav}
+                >
+                  {t("header.For_Employers")}
+                </Link>
+              </>
+            )}
+          </div>
+
+          <div className="mobile-header-lang">
+            <select
+              className="form-select"
+              aria-label="Language"
+              value={currentLanguage}
+              onChange={handleLanguageChange}
+            >
+              <option value="en">Eng</option>
+              <option value="fr">Fr</option>
+            </select>
+          </div>
+        </div>
       </div>
+
       <div>
         {/*Login Modal */}
         <div className="register-modal-info">
           <div
             className="modal fade"
             id="exampleModalLogin"
+            key={`login-modal-${i18n.language}`}
             tabIndex={-1}
             aria-labelledby="exampleModalLabel"
             style={{ display: "none" }}
             aria-hidden="true"
           >
-            <div className="modal-dialog">
+            <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                  <span className="modal-title fs-5" id="exampleModalLabel">
                     {t("header.Sign_in_as_jobseeker")}
-                  </h1>
+                  </span>
                   <button
                     type="button"
                     className="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close"
+                    aria-label={t("common.close")}
                   />
                 </div>
                 <div className="modal-body">
@@ -1054,14 +1290,14 @@ function Header({ bgColor }) {
                     <button
                       onClick={handleLogin}
                       data-bs-dismiss="modal"
-                      aria-label="Close"
+                      aria-label={t("common.close")}
                       className="default-btn btn"
                     >
                       {t("header.Sign_in_with_email")}
                     </button>
                   </div>
                   <div className="option-or-content">
-                    <p>or</p>
+                    <p>{t("header.or")}</p>
                   </div>
                   <div className="register-option-info-are">
                     <button
@@ -1102,10 +1338,10 @@ function Header({ bgColor }) {
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalRegister"
-                      style={{ cursor: "pointer", color: "#007bff" }}
+                      role="button"
+                      tabIndex={0}
                     >
-                      {" "}
-                      {t("header.Register")}{" "}
+                      {t("header.Register")}
                     </span>
                   </div>
                 </div>
@@ -1118,22 +1354,23 @@ function Header({ bgColor }) {
           <div
             className="modal fade"
             id="exampleModalRegister"
+            key={`register-modal-${i18n.language}`}
             tabIndex={-1}
-            aria-labelledby="exampleModalLabel"
+            aria-labelledby="exampleModalRegisterLabel"
             style={{ display: "none" }}
             aria-hidden="true"
           >
-            <div className="modal-dialog">
+            <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h1 className="modal-title fs-5" id="exampleModalLabel">
+                  <span className="modal-title fs-5" id="exampleModalRegisterLabel">
                     {t("header.Create_Your_Account")}
-                  </h1>
+                  </span>
                   <button
                     type="button"
                     className="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close"
+                    aria-label={t("common.close")}
                   />
                 </div>
                 <div className="modal-body">
@@ -1141,15 +1378,15 @@ function Header({ bgColor }) {
                     <button
                       type="button"
                       onClick={handleRegister}
-                      class="default-btn btn"
+                      className="default-btn btn"
                       data-bs-dismiss="modal"
-                      aria-label="Close"
+                      aria-label={t("common.close")}
                     >
                       {t("header.Sign_up_with_email")}
                     </button>
                   </div>
                   <div className="option-or-content">
-                    <p>or</p>
+                    <p>{t("header.or")}</p>
                   </div>
                   <div className="register-option-info-are">
                     <button
@@ -1176,11 +1413,11 @@ function Header({ bgColor }) {
                   </div>
                   <div className="already-have-account-content">
                     <p>{t("header.already_account")}</p>
-
                     <span
                       data-bs-toggle="modal"
                       data-bs-target="#exampleModalLogin"
-                      style={{ cursor: "pointer", color: "#007bff" }}
+                      role="button"
+                      tabIndex={0}
                     >
                       <i className="fa-regular fa-user" /> {t("header.sign_in")}
                     </span>

@@ -8,8 +8,12 @@ import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // adjust path
 import { useLocation } from "react-router-dom";
 import "./MyProfileMordern.css";
+import { getAuthHeaders } from "../utils/apiHeaders";
+import { MAX_DOCUMENT_SIZE_BYTES } from "../utils/fileUploadLimits";
+import { useTranslation } from "react-i18next";
 const label = { inputProps: { "aria-label": "Size switch demo" } };
 function MyProfile() {
+  const { t } = useTranslation("global");
   const containerId = "page-a-toast";
   const { login } = useAuth();
   const location = useLocation();
@@ -198,7 +202,7 @@ function MyProfile() {
       ];
 
       if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Only PDF, DOC, and DOCX files are allowed.");
+        setError(t("profile.only_pdf_doc_allowed"));
         return;
       }
       setError("");
@@ -215,16 +219,16 @@ function MyProfile() {
     let isValid = true;
 
     if (!formData.firstName?.trim()) {
-      newErrors.firstName = "Prénom obligatoire";
-      toast.error("First name is required.", {
+      newErrors.firstName = t("profile.first_name_required");
+      toast.error(t("profile.first_name_required"), {
         containerId,
       });
       isValid = false;
     }
 
     if (!formData.lastName?.trim()) {
-      newErrors.lastName = "Nom obligatoire";
-      toast.error("Last name is required.", {
+      newErrors.lastName = t("profile.last_name_required");
+      toast.error(t("profile.last_name_required"), {
         containerId,
       });
       isValid = false;
@@ -295,7 +299,7 @@ function MyProfile() {
       }
     } catch (err) {
       console.error("Auto profile creation failed:", err);
-      toast.error("Failed to create profile automatically.");
+      toast.error(t("profile.failed_auto_profile"));
     }
   };
 
@@ -304,13 +308,31 @@ function MyProfile() {
     createCandidateProfile();
   };
 
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_FILE_SIZE = MAX_DOCUMENT_SIZE_BYTES;
   const uploadResume = async () => {
     const userId = localStorage.getItem("extract_id");
+    const loggedInUserId = localStorage.getItem("user_id");
+    const userRole = localStorage.getItem("user_role");
     const file = formData?.attachment;
 
-    if (!userId) {
-      toast.error("User not found. Please login again.", {
+    if (!userId || !loggedInUserId) {
+      toast.error(t("profile.user_not_found"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (userRole !== "JobSeeker") {
+      toast.error(t("profile.login_as_jobseeker"), {
+        autoClose: 2000,
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (String(userId) !== String(loggedInUserId)) {
+      toast.error(t("profile.resume_upload_own_user"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -318,7 +340,7 @@ function MyProfile() {
     }
 
     if (!file) {
-      toast.error("Please select a resume file.", {
+      toast.error(t("profile.select_resume"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -326,7 +348,7 @@ function MyProfile() {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("Uploaded file is too large. Max size is 2MB.", {
+      toast.error(t("header.file_too_large"), {
         autoClose: 2000,
         theme: "colored",
       });
@@ -343,7 +365,9 @@ function MyProfile() {
         `${API_BASE_URL}extractResume/${userId}`,
         data,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: getAuthHeaders({
+            "Content-Type": "multipart/form-data",
+          }),
         },
       );
 
@@ -351,17 +375,19 @@ function MyProfile() {
         setIsExtracting(true); // ✅ extraction loader
         fetchExtractedData(res.data.jobId);
       } else {
-        toast.error("Upload succeeded but jobId missing.");
+        toast.error(t("profile.upload_jobid_missing"));
         setIsUploading(false);
       }
     } catch (err) {
       console.error("Resume upload error:", err);
       setIsUploading(false);
 
-      if (err?.response?.status === 413) {
-        toast.error("Uploaded file is too large. Max size is 2MB.");
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        toast.error(t("profile.session_expired"));
+      } else if (err?.response?.status === 413) {
+        toast.error(t("header.file_too_large"));
       } else {
-        toast.error("Failed to upload resume.");
+        toast.error(t("profile.failed_upload_resume"));
       }
     }
   };
@@ -369,23 +395,33 @@ function MyProfile() {
   const fetchExtractedData = async (jobId, attempt = 0) => {
     try {
       const res = await axios.get(`${API_BASE_URL}resume/result/${jobId}`);
-      const { state, result } = res.data;
+      const { state, result, success, message } = res.data;
+
+      // ❌ Failed (e.g. state: "failed", success: false)
+      if (success === false || state === "failed") {
+        setIsUploading(false);
+        setIsExtracting(false);
+        toast.error(message || t("profile.extraction_failed"));
+        return;
+      }
 
       // ⏳ Still processing
       if (state === "active") {
         if (attempt < 10) {
           setTimeout(() => fetchExtractedData(jobId, attempt + 1), 2000);
         } else {
+          setIsUploading(false);
           setIsExtracting(false);
-          toast.error("Resume extraction taking too long.");
+          toast.error(t("profile.extraction_too_long"));
         }
         return;
       }
 
-      // ❌ Failed
+      // ❌ Completed but extraction unsuccessful
       if (state === "completed" && !result?.success) {
+        setIsUploading(false);
         setIsExtracting(false);
-        toast.error("Resume extraction failed.");
+        toast.error(result?.message || message || t("profile.extraction_failed"));
         return;
       }
 
@@ -420,16 +456,23 @@ function MyProfile() {
         setIsExtracting(false);
         setShowModal(false);
 
-        toast.success("Resume extracted successfully!");
+        toast.success(t("profile.resume_extracted_success"));
 
         // 🚀 AUTO CREATE PROFILE + REDIRECT
         createCandidateProfile(autoProfileData);
+        return;
       }
+
+      // Unexpected response shape
+      setIsUploading(false);
+      setIsExtracting(false);
+      toast.error(message || t("profile.extraction_failed"));
     } catch (err) {
       console.error("Extraction Error:", err);
       setIsUploading(false);
       setIsExtracting(false);
-      toast.error("Error fetching resume data.");
+      const apiMessage = err?.response?.data?.message;
+      toast.error(apiMessage || t("profile.error_fetch_resume"));
     }
   };
 
@@ -440,7 +483,7 @@ function MyProfile() {
       );
     } catch (err) {
       console.error(err);
-      toast.error("LinkedIn redirect failed");
+      toast.error(t("profile.linkedin_redirect_failed"));
     }
   };
   useEffect(() => {
@@ -475,14 +518,14 @@ function MyProfile() {
         selectedCategory: "",
       }));
 
-      toast.success("LinkedIn profile imported successfully!", {
+      toast.success(t("profile.linkedin_import_success"), {
         containerId,
       });
     }
 
     // ❌ FAILURE CASE
     if (success === "false") {
-      toast.error(message || "LinkedIn profile fetch failed", {
+      toast.error(message || t("profile.linkedin_fetch_failed"), {
         containerId,
       });
     }
@@ -502,14 +545,11 @@ function MyProfile() {
         <div className="modern-quick-start-card">
           <div className="ai-powered-badge">
             <i className="fa-solid fa-wand-magic-sparkles" />
-            AI Powered
+            {t("profile.ai_powered")}
           </div>
           <div className="card-ai-header">
-            <h2>Quick Start</h2>
-            <p>
-              Experience the power of AI. Let us build your professional profile
-              instantly from your CV or LinkedIn.
-            </p>
+            <h2>{t("profile.quick_start")}</h2>
+            <p>{t("profile.quick_start_desc")}</p>
           </div>
           <form className="ai-form-minimal">
             <div className="row">
@@ -526,7 +566,7 @@ function MyProfile() {
                     value={formData.firstName}
                     onChange={handleChange}
                   />
-                  <label htmlFor="firstName">First Name *</label>
+                  <label htmlFor="firstName">{t("profile.first_name")} *</label>
 
                   {errors.firstName && (
                     <span className="error-text">{errors.firstName}</span>
@@ -547,7 +587,7 @@ function MyProfile() {
                     value={formData.lastName}
                     onChange={handleChange}
                   />
-                  <label htmlFor="lastName">Last Name *</label>
+                  <label htmlFor="lastName">{t("profile.last_name")} *</label>
 
                   {errors.lastName && (
                     <span className="error-text">{errors.lastName}</span>
@@ -565,7 +605,7 @@ function MyProfile() {
                 }}
               >
                 <i className="fa-solid fa-wand-magic-sparkles" />
-                AI Resume Scan
+                {t("profile.ai_resume_scan")}
               </button>
               <button
                 type="button"
@@ -573,12 +613,12 @@ function MyProfile() {
                 onClick={importFromLinkedIn}
               >
                 <i className="fa-brands fa-linkedin" />
-                LinkedIn AI Sync
+                {t("profile.linkedin_ai_sync")}
               </button>
             </div>
             <div className="skip-action-container">
               <div className="btn-skip-modern" onClick={candidateLogin}>
-                Continue to Manual Setup{" "}
+                {t("profile.continue_manual_setup")}{" "}
                 <i className="fa-solid fa-arrow-right" />
               </div>
             </div>
@@ -596,7 +636,7 @@ function MyProfile() {
               {/* HEADER */}
               <div className="ai-modal-header border-0 pb-0">
                 <i className="fa-solid fa-wand-magic-sparkles header-ai-icon" />
-                <h5>AI Resume Scanner</h5>
+                <h5>{t("profile.ai_resume_scanner")}</h5>
 
                 <button
                   type="button"
@@ -655,11 +695,11 @@ function MyProfile() {
                         className="fw-bold text-dark d-block mb-1"
                         style={{ fontSize: "1.1rem" }}
                       >
-                        Drop your CV here
+                        {t("profile.drop_cv_here")}
                       </span>
 
                       <span className="text-muted small">
-                        Support for PDF, DOC, DOCX (Max 2MB)
+                        {t("profile.file_support_hint")}
                       </span>
                     </label>
 
@@ -679,7 +719,7 @@ function MyProfile() {
                     {/* FILE NAME */}
                     {file && (
                       <div className="text-success small mt-2">
-                        Selected: {file.name}
+                        {t("profile.selected_file", { name: file.name })}
                       </div>
                     )}
                   </div>
@@ -696,13 +736,13 @@ function MyProfile() {
                         <>
                           <span className="spinner-border spinner-border-sm me-2" />
                           {isUploading
-                            ? "Uploading..."
-                            : "Extracting Resume..."}
+                            ? t("profile.uploading")
+                            : t("profile.extracting_resume")}
                         </>
                       ) : (
                         <>
                           <i className="fa-solid fa-wand-magic-sparkles me-2" />
-                          Start AI Extraction
+                          {t("profile.start_ai_extraction")}
                         </>
                       )}
                     </button>
@@ -716,7 +756,7 @@ function MyProfile() {
                       <i className="fa-solid fa-wand-magic-sparkles" />
                     </div>
 
-                    <h4 className="ai-analysis-title">DEEP AI ANALYSIS</h4>
+                    <h4 className="ai-analysis-title">{t("profile.deep_ai_analysis")}</h4>
 
                     <div
                       className="ai-progress-container"
@@ -734,15 +774,15 @@ function MyProfile() {
                         style={{ color: "#1e293b", fontSize: "1rem" }}
                       >
                         {isUploading
-                          ? `Uploading Resume... ${progress}%`
-                          : `Processing Intel: ${progress}%`}
+                          ? t("profile.uploading_resume_progress", { progress })
+                          : t("profile.processing_intel", { progress })}
                       </p>
                     ) : (
                       <p
                         className="fw-bold mb-3"
                         style={{ color: "#1e293b", fontSize: "1rem" }}
                       >
-                        Analysis Complete! Synchronizing...
+                        {t("profile.analysis_complete")}
                       </p>
                     )}
                   </div>
@@ -756,7 +796,7 @@ function MyProfile() {
                       <i className="fa-solid fa-wand-magic-sparkles" />
                     </div>
 
-                    <h4 className="ai-analysis-title">DEEP AI ANALYSIS</h4>
+                    <h4 className="ai-analysis-title">{t("profile.deep_ai_analysis")}</h4>
 
                     <div
                       className="ai-progress-container"
@@ -784,7 +824,7 @@ function MyProfile() {
                         className="fw-bold mb-3"
                         style={{ color: "#1e293b", fontSize: "1rem" }}
                       >
-                        Analysis Complete! Synchronizing...
+                        {t("profile.analysis_complete")}
                       </p>
                     )}
                   </div>

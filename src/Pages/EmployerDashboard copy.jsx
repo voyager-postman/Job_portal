@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Link } from "react-router-dom";
 import { TableView } from "../Conponets/DataTable";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function EmployerDashboard() {
   const [stats, setStats] = useState("");
@@ -159,9 +160,7 @@ function EmployerDashboard() {
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}recruiter/dashboardStats`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          getRequestConfig(),
         );
         console.log("Dashboard Stats:", response.data);
         setStats(response.data.stats);
@@ -266,9 +265,7 @@ function EmployerDashboard() {
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${API_BASE_URL}getCandidateEngagementInsights`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          getRequestConfig(),
         );
 
         const { uniqueMessageSentPercentage = 0, uniqueReplyPercentage = 0 } =

@@ -5,14 +5,18 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import image1 from "../../src/images/whatImg.png";
 import "./ChatMassageSystemModern.css";
 import EmojiPicker from "emoji-picker-react";
-import { io } from "socket.io-client";
+import { connectSocket } from "../utils/socketAuth";
 import { useDebounce } from "../hooks/useDebounce";
 import { checkSearchRateLimit } from "../utils/searchRateLimit";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { getRequestConfig } from "../utils/apiHeaders";
+import { validateChatAttachmentFile } from "../utils/fileUploadLimits";
 
 const CHAT_SEARCH_DEBOUNCE_MS = 600;
 
 function ChatMassageSystem() {
-  const token = localStorage.getItem("token");
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   console.log(location);
@@ -55,14 +59,7 @@ function ChatMassageSystem() {
     return Math.max(0, Math.min(100, Math.round(rate)));
   };
   useEffect(() => {
-    const socket = io("https://sisccltd.com", {
-      path: "/job_portal/socket.io", // IMPORTANT (if backend uses custom path)
-      auth: {
-        token: token,
-      },
-      transports: ["websocket"],
-    });
-
+    const socket = connectSocket();
     socketRef.current = socket;
 
     socket.on("connect", () => {
@@ -73,124 +70,104 @@ function ChatMassageSystem() {
       console.log("Socket error:", err.message);
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-  useEffect(() => {
-    if (!socketRef.current) return;
-
-    // ================= NEW MESSAGE =================
-
     const handleNewMessage = (payload) => {
-      console.log("📩 New message:", payload);
+          console.log("📩 New message:", payload);
 
-      // ================= CHAT STORE =================
+          setChatStore((prev) => {
+            const oldMessages = prev[payload.groupId] || [];
 
-      setChatStore((prev) => {
-        const oldMessages = prev[payload.groupId] || [];
+            const alreadyExists = oldMessages.some(
+              (m) =>
+                m._id === payload.message._id ||
+                m.clientMessageId === payload.message.clientMessageId,
+            );
 
-        const alreadyExists = oldMessages.some(
-          (m) =>
-            m._id === payload.message._id ||
-            m.clientMessageId === payload.message.clientMessageId,
-        );
-
-        if (alreadyExists) return prev;
-
-        return {
-          ...prev,
-          [payload.groupId]: [...oldMessages, payload.message],
-        };
-      });
-
-      // ================= USERS + OVERVIEW =================
-
-      setUsers((prevUsers) => {
-        const updatedUsers = prevUsers.map((user) => {
-          if (user.groupId === payload.groupId) {
-            const isMine =
-              String(payload.message.sender) === String(CURRENT_USER_ID);
+            if (alreadyExists) return prev;
 
             return {
-              ...user,
-
-              lastMessage: payload.message.message || "📎 Attachment",
-
-              lastMessageAt: payload.message.created_at || new Date(),
-
-              unreadCount: isMine
-                ? user.unreadCount || 0
-                : (user.unreadCount || 0) + 1,
+              ...prev,
+              [payload.groupId]: [...oldMessages, payload.message],
             };
-          }
+          });
 
-          return user;
+          setUsers((prevUsers) => {
+            const updatedUsers = prevUsers.map((user) => {
+              if (user.groupId === payload.groupId) {
+                const isMine =
+                  String(payload.message.sender) === String(CURRENT_USER_ID);
+
+                return {
+                  ...user,
+
+                  lastMessage:
+                    payload.message.message || t("messaging.attachment"),
+
+                  lastMessageAt: payload.message.created_at || new Date(),
+
+                  unreadCount: isMine
+                    ? user.unreadCount || 0
+                    : (user.unreadCount || 0) + 1,
+                };
+              }
+
+              return user;
+            });
+
+            updatedUsers.sort(
+              (a, b) =>
+                new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0),
+            );
+
+            const totalUnread = updatedUsers.reduce(
+              (sum, u) => sum + (u.unreadCount || 0),
+              0,
+            );
+
+            setOverview((prev) => ({
+              ...prev,
+
+              notRead: totalUnread,
+
+              answerRate: calculateAnswerRate(prev.total, totalUnread),
+            }));
+
+            return [...updatedUsers];
+          });
+        };
+
+    socket.on("message:new", handleNewMessage);
+
+    socket.on("message:read", ({ groupId }) => {
+          console.log("✔ Read:", groupId);
+
+          setUsers((prevUsers) => {
+            const updatedUsers = prevUsers.map((u) =>
+              u.groupId === groupId
+                ? {
+                    ...u,
+                    unreadCount: 0,
+                  }
+                : u,
+            );
+
+            const totalUnread = updatedUsers.reduce(
+              (sum, u) => sum + (u.unreadCount || 0),
+              0,
+            );
+
+            setOverview((prev) => ({
+              ...prev,
+
+              notRead: totalUnread,
+
+              answerRate: calculateAnswerRate(prev.total, totalUnread),
+            }));
+
+            return updatedUsers;
+          });
         });
 
-        // latest chat top
-        updatedUsers.sort(
-          (a, b) =>
-            new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0),
-        );
-
-        // realtime unread total
-        const totalUnread = updatedUsers.reduce(
-          (sum, u) => sum + (u.unreadCount || 0),
-          0,
-        );
-
-        // realtime overview
-        setOverview((prev) => ({
-          ...prev,
-
-          notRead: totalUnread,
-
-          answerRate: calculateAnswerRate(prev.total, totalUnread),
-        }));
-
-        return [...updatedUsers];
-      });
-    };
-
-    socketRef.current.on("message:new", handleNewMessage);
-
-    // ================= MESSAGE READ =================
-
-    socketRef.current.on("message:read", ({ groupId }) => {
-      console.log("✔ Read:", groupId);
-
-      setUsers((prevUsers) => {
-        const updatedUsers = prevUsers.map((u) =>
-          u.groupId === groupId
-            ? {
-                ...u,
-                unreadCount: 0,
-              }
-            : u,
-        );
-
-        // recalculate unread
-        const totalUnread = updatedUsers.reduce(
-          (sum, u) => sum + (u.unreadCount || 0),
-          0,
-        );
-
-        setOverview((prev) => ({
-          ...prev,
-
-          notRead: totalUnread,
-
-          answerRate: calculateAnswerRate(prev.total, totalUnread),
-        }));
-
-        return updatedUsers;
-      });
-    });
-
-    // ================= UNREAD UPDATE =================
-
-    socketRef.current.on("unread:update", ({ groupId, unreadCount }) => {
+    socket.on("unread:update", ({ groupId, unreadCount }) => {
       console.log("Unread Update:", groupId, unreadCount);
 
       setUsers((prevUsers) => {
@@ -203,13 +180,11 @@ function ChatMassageSystem() {
             : u,
         );
 
-        // realtime total unread
         const totalUnread = updatedUsers.reduce(
           (sum, item) => sum + (item.unreadCount || 0),
           0,
         );
 
-        // sync overview
         setOverview((prev) => ({
           ...prev,
 
@@ -223,9 +198,11 @@ function ChatMassageSystem() {
     });
 
     return () => {
-      socketRef.current.off("message:new", handleNewMessage);
-      socketRef.current.off("message:read");
-      socketRef.current.off("unread:update");
+      socket.off("message:new", handleNewMessage);
+      socket.off("message:read");
+      socket.off("unread:update");
+      socket.disconnect();
+      socketRef.current = null;
     };
   }, []);
   const uploadFile = async () => {
@@ -235,12 +212,13 @@ function ChatMassageSystem() {
     formData.append("file", selectedFile);
 
     try {
-      const res = await axios.post(`${API_BASE_URL}chat/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await axios.post(
+        `${API_BASE_URL}chat/upload`,
+        formData,
+        getRequestConfig({
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+      );
 
       console.log("UPLOAD RESPONSE:", res.data);
 
@@ -284,6 +262,13 @@ function ChatMassageSystem() {
     const file = e.target.files[0];
 
     if (!file) return;
+
+    const validation = validateChatAttachmentFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message);
+      e.target.value = "";
+      return;
+    }
 
     setSelectedFile(file);
 
@@ -422,12 +407,10 @@ function ChatMassageSystem() {
 
       console.log("FINAL PARAMS:", params);
 
-      const res = await axios.get(`${API_BASE_URL}chat/conversations`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params,
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}chat/conversations`,
+        getRequestConfig({ params }),
+      );
 
       console.log("Conversation API:", res.data);
 
@@ -490,7 +473,7 @@ function ChatMassageSystem() {
       const res = await axios.post(
         `${API_BASE_URL}chat/mark-read/${groupId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
       console.log(res.data);
       fetchCandidates();
@@ -503,11 +486,7 @@ function ChatMassageSystem() {
     try {
       const res = await axios.get(
         `${API_BASE_URL}chat/history/group/${groupId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
 
       console.log("CHAT HISTORY:", res.data);
@@ -542,13 +521,13 @@ function ChatMassageSystem() {
 
       // NAME
       name:
-        user?.otherUser?.brandName || user?.otherUser?.name || "Unknown User",
+        user?.otherUser?.brandName || user?.otherUser?.name || t("messaging.unknown_user"),
 
       // IMAGE
       image: user?.otherUser?.logo || user?.otherUser?.profileImage || "",
 
       // STATUS
-      online: user?.otherUser?.isOnline ? "Online" : "Offline",
+      online: user?.otherUser?.isOnline ? t("messaging.online") : t("messaging.offline"),
       isOnline: user?.otherUser?.isOnline,
 
       // COMPANY ONLY
@@ -630,18 +609,18 @@ function ChatMassageSystem() {
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           <div className="breadcrumb-area">
-            <h1>Messages</h1>
+            <h1>{t("messaging.title")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/candidate-dashboard" style={{ marginLeft: 6 }}>
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>{" "}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Messages
+                <i className="fa-solid fa-angle-right" /> {t("messaging.title")}
               </li>
             </ol>
           </div>
@@ -652,68 +631,38 @@ function ChatMassageSystem() {
               <div className="chat-sidebar-overview">
                 <div className="overview-header-minimal">
                   <i className="fa-solid fa-chart-simple" />
-                  <span>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Overview
-                      </font>
-                    </font>
-                  </span>
+                  <span>{t("messaging.overview")}</span>
                 </div>
                 <div className="modern-msg-stats-integrated">
                   <div className="msg-stat-item-premium">
                     <span className="msg-stat-value-premium">
                       {overview?.total || 0}
                     </span>
-                    <span className="msg-stat-label-premium">Total</span>
+                    <span className="msg-stat-label-premium">{t("messaging.total")}</span>
                   </div>
                   <div className="msg-stat-item-premium unread">
                     <span className="msg-stat-value-premium">
                       {overview?.notRead || 0}
                     </span>
-                    <span className="msg-stat-label-premium">
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          Non-verbal
-                        </font>
-                      </font>
-                    </span>
+                    <span className="msg-stat-label-premium">{t("messaging.non_verbal")}</span>
                   </div>
                   <div className="msg-stat-item-premium rate">
                     <span className="msg-stat-value-premium">
                       {overview?.answerRate || 0}%
                     </span>
-                    <span className="msg-stat-label-premium">
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          Answer
-                        </font>
-                      </font>
-                    </span>
+                    <span className="msg-stat-label-premium">{t("messaging.answer")}</span>
                   </div>
                 </div>
               </div>
               <div className="sidebar-divider-modern" />
               <div className="chat-sidebar-header-modern">
-                <h2>
-                  <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      Conversations
-                    </font>
-                  </font>
-                </h2>
+                <h2>{t("messaging.conversations")}</h2>
               </div>
               <div className="chat-contact-list">
                 {filteredUsers.length === 0 ? (
                   <div className="no-messages-found">
                     <i className="fa-solid fa-comment-slash" />
-                    <p>Aucun message trouvé</p>
+                    <p>{t("messaging.no_messages_found")}</p>
                   </div>
                 ) : (
                   filteredUsers.map((u) => {
@@ -749,7 +698,7 @@ function ChatMassageSystem() {
                           {/* TOP */}
                           <div className="contact-name-row">
                             <span className="contact-name">
-                              {u?.otherUser?.brandName || "Unknown"}
+                              {u?.otherUser?.brandName || t("messaging.unknown_user")}
                             </span>
 
                             <span className="contact-time">
@@ -770,7 +719,7 @@ function ChatMassageSystem() {
                             <span className="msg-text">
                               {u?.lastMessage?.length > 55
                                 ? u.lastMessage.substring(0, 55) + "..."
-                                : u?.lastMessage || "No messages"}
+                                : u?.lastMessage || t("messaging.no_messages")}
                             </span>
 
                             {u?.unreadCount > 0 && (
@@ -799,7 +748,7 @@ function ChatMassageSystem() {
                         setFilter("");
                       }}
                     >
-                      All
+                      {t("messaging.all")}
                     </div>
 
                     <div
@@ -811,7 +760,7 @@ function ChatMassageSystem() {
                         setFilter("unread");
                       }}
                     >
-                      Non-verbal
+                      {t("messaging.non_verbal")}
                     </div>
                   </div>
 
@@ -825,7 +774,7 @@ function ChatMassageSystem() {
                         setDateFilter("all");
                       }}
                     >
-                      All
+                      {t("messaging.all")}
                     </span>
 
                     {/* TODAY */}
@@ -842,7 +791,7 @@ function ChatMassageSystem() {
                         setEndDate(today);
                       }}
                     >
-                      Today
+                      {t("messaging.today")}
                     </span>
 
                     {/* CUSTOM */}
@@ -874,7 +823,7 @@ function ChatMassageSystem() {
                     <i className="fa-solid fa-magnifying-glass" />
 
                     <input
-                      placeholder="Search for a company..."
+                      placeholder={t("messaging.search_company")}
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -912,7 +861,7 @@ function ChatMassageSystem() {
                     <div className="chat-header-tools">
                       <button
                         className={`tool-btn ${showChatSearch ? "active" : ""}`}
-                        title="Search the conversation"
+                        title={t("messaging.search_conversation")}
                         onClick={() => setShowChatSearch((prev) => !prev)}
                       >
                         <i className="fa-solid fa-magnifying-glass" />
@@ -922,7 +871,7 @@ function ChatMassageSystem() {
                         className={`tool-btn ${
                           showCompanyInfo ? "active" : ""
                         }`}
-                        title="Company information"
+                        title={t("messaging.company_information")}
                         onClick={() => setShowCompanyInfo((prev) => !prev)}
                       >
                         <i className="fa-solid fa-circle-info" />
@@ -942,7 +891,7 @@ function ChatMassageSystem() {
                   <div className="chat-search-box">
                     <i className="fa-solid fa-magnifying-glass" />
                     <input
-                      placeholder="Rechercher un mot-clé dans ce chat..."
+                      placeholder={t("messaging.search_chat_keyword")}
                       type="text"
                       value={chatSearchTerm}
                       onChange={(e) => setChatSearchTerm(e.target.value)}
@@ -972,7 +921,7 @@ function ChatMassageSystem() {
                       }}
                     />
 
-                    <h2>Ready to trade?</h2>
+                    <h2>{t("messaging.ready_to_trade")}</h2>
                   </div>
                 ) : (
                   <>
@@ -988,7 +937,7 @@ function ChatMassageSystem() {
                       ).length === 0 ? (
                         <div className="no-messages-found">
                           <i className="fa-solid fa-comment-slash"></i>
-                          <p>No messages found</p>
+                          <p>{t("messaging.no_messages_found")}</p>
                         </div>
                       ) : (
                         (chatStore[activeUser?.groupId] || [])
@@ -1089,7 +1038,7 @@ function ChatMassageSystem() {
                                           target="_blank"
                                           rel="noreferrer"
                                         >
-                                          📄 Download File
+                                          📄 {t("messaging.download_file")}
                                         </a>
                                       )}
                                   </div>
@@ -1162,7 +1111,7 @@ function ChatMassageSystem() {
                     )}
                     <textarea
                       className="chat-input-textarea"
-                      placeholder="Write your message..."
+                      placeholder={t("messaging.write_message")}
                       rows={1}
                       value={text}
                       onChange={(e) => {
@@ -1184,7 +1133,7 @@ function ChatMassageSystem() {
                           type="button"
                           className={`input-tool-btn ${showEmojiPicker ? "active" : ""}`}
                           aria-expanded={showEmojiPicker}
-                          aria-label="Toggle emoji picker"
+                          aria-label={t("messaging.toggle_emoji_picker")}
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowEmojiPicker((prev) => !prev);
@@ -1201,7 +1150,7 @@ function ChatMassageSystem() {
                             <button
                               type="button"
                               className="emoji-picker-close"
-                              aria-label="Close emoji picker"
+                              aria-label={t("messaging.close_emoji_picker")}
                               onClick={() => setShowEmojiPicker(false)}
                             >
                               <i className="fa-solid fa-xmark" />
@@ -1242,20 +1191,20 @@ function ChatMassageSystem() {
 
                   <div className="info-section">
                     <div className="company-about">
-                      <h5 className="section-title">About Company</h5>
+                      <h5 className="section-title">{t("messaging.about_company")}</h5>
 
                       <div
                         className="info-description"
                         dangerouslySetInnerHTML={{
                           __html:
                             activeUser?.aboutCompany ||
-                            "No company description available.",
+                            t("messaging.no_company_description"),
                         }}
                       />
                     </div>
 
                     <div className="contact-section">
-                      <h5 className="section-title">Contact Details</h5>
+                      <h5 className="section-title">{t("messaging.contact_details")}</h5>
 
                       {activeUser?.website && (
                         <div className="info-item">
@@ -1274,7 +1223,7 @@ function ChatMassageSystem() {
 
                       <div className="info-item">
                         <i className="fa-solid fa-envelope"></i>
-                        <span>{activeUser?.email || "N/A"}</span>
+                        <span>{activeUser?.email || t("messaging.na")}</span>
                       </div>
 
                       <div className="info-item">
@@ -1284,7 +1233,7 @@ function ChatMassageSystem() {
                             ? typeof activeUser.phone === "object"
                               ? `+${activeUser.phone.countryCode} ${activeUser.phone.number}`
                               : activeUser.phone
-                            : "N/A"}
+                            : t("messaging.na")}
                         </span>
                       </div>
 
@@ -1311,7 +1260,7 @@ function ChatMassageSystem() {
                         )
                       }
                     >
-                      View Full Profile
+                      {t("messaging.view_full_profile")}
                     </button>
                   </div>
                 </>
@@ -1327,17 +1276,17 @@ function ChatMassageSystem() {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name"> {t("header.Connect_Work")} </span>{" "}
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>

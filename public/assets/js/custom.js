@@ -817,17 +817,12 @@ try {
 } catch (err) {}
 
 // <!-- active deactive toggle button js start here-->
-
-{
-  /* <script type="text/javascript"> */
-}
 const toggleButton = document.getElementById("toggleButton");
-
-toggleButton.addEventListener("click", () => {
-  const isActive = toggleButton.classList.toggle("active");
-  toggleButton.classList.toggle("deactive", !isActive);
-  toggleButton.textContent = isActive ? "Active" : "Deactive";
-});
-// </script>
-
+if (toggleButton) {
+  toggleButton.addEventListener("click", () => {
+    const isActive = toggleButton.classList.toggle("active");
+    toggleButton.classList.toggle("deactive", !isActive);
+    toggleButton.textContent = isActive ? "Active" : "Deactive";
+  });
+}
 // <!-- active deactive toggle button js end here-->

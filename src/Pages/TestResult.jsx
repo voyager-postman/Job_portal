@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const TestResult = () => {
+  const { t } = useTranslation("global");
   const { state } = useLocation();
   const navigate = useNavigate();
-  console.log(state);
+
   useEffect(() => {
     if (!state) {
       navigate("/");
@@ -14,11 +16,9 @@ const TestResult = () => {
   if (!state) return null;
 
   const {
-    testName,
-    from,
+    message,
     jobId,
     jobSlug,
-    message,
     scorePercentage,
     passingPercentage,
     totalQuestions,
@@ -26,67 +26,57 @@ const TestResult = () => {
     incorrectAnswers,
     isPassed,
     autoSubmitted,
+    from,
   } = state;
+
   const closeAnyOpenModal = () => {
     document.body.classList.remove("modal-open");
     document.body.style.overflow = "auto";
-
-    const backdrops = document.querySelectorAll(".modal-backdrop");
-    backdrops.forEach((bd) => bd.remove());
+    document.querySelectorAll(".modal-backdrop").forEach((bd) => bd.remove());
   };
 
   return (
     <section className="skill-assessment-test-score-card-area">
       <div className="score-card-wrapper text-center p-40">
-        {/* Optional auto-submit message */}
         {autoSubmitted && (
-          <p className="text-warning mb-3">
-            ⏱ Test was auto-submitted due to time expiration.
-          </p>
+          <p className="text-warning mb-3">⏱ {t("assessment.auto_submitted")}</p>
         )}
-        {/* ================= NOT PASSED ================= */}
         {!isPassed && (
           <div className="skill-assessment-test-score-NoPassed card p-4 text-center">
             <div className="score-card-top-area">
               <i className="fa-regular fa-circle-xmark text-danger fs-1"></i>
-              <h5 className="mt-3">{message || "Test Not Passed"}</h5>
-              <p>You needed {passingPercentage}% to pass.</p>
+              <h5 className="mt-3">{message || t("assessment.test_not_passed")}</h5>
+              <p>{t("assessment.needed_to_pass", { percent: passingPercentage })}</p>
             </div>
-
             <div className="score-card-final-score my-3">
               <h2>{scorePercentage || 0}%</h2>
-              <p>Final Score</p>
+              <p>{t("assessment.final_score")}</p>
             </div>
-
             <div className="score-card-number-area d-flex justify-content-around">
               <div>
                 <h5>{totalQuestions || 0}</h5>
-                <p>Total</p>
+                <p>{t("messaging.total")}</p>
               </div>
               <div>
                 <h5>{correctAnswers || 0}</h5>
-                <p>Correct</p>
+                <p>{t("assessment.correct")}</p>
               </div>
               <div>
                 <h5>{incorrectAnswers || 0}</h5>
-                <p>Incorrect</p>
+                <p>{t("assessment.incorrect")}</p>
               </div>
             </div>
-
             <div className="mt-4">
               <button
                 className="default-btn btn"
                 onClick={() => {
                   closeAnyOpenModal();
                   navigate(`/job/${jobSlug}`, {
-                    state: {
-                      from: "/job-search",
-                      JobId: jobId,
-                    },
+                    state: { from: "/job-search", JobId: jobId },
                   });
                 }}
               >
-                Back to Application
+                {t("assessment.back_to_application")}
               </button>
             </div>
           </div>
@@ -95,49 +85,42 @@ const TestResult = () => {
           <div className="skill-assessment-test-score-Passed card p-4 text-center">
             <div className="score-card-top-area">
               <i className="fa-solid fa-trophy"></i>
-              <h5 className="mt-3">Congratulations!</h5>
-              <p>You have successfully passed the assessment.</p>
+              <h5 className="mt-3">{t("assessment.congratulations")}</h5>
+              <p>{t("assessment.passed_message")}</p>
             </div>
-
             <div className="score-card-final-score my-3">
               <h2>{scorePercentage || 0}%</h2>
-              <p>Final Score</p>
+              <p>{t("assessment.final_score")}</p>
             </div>
-
             <div className="score-card-number-area d-flex justify-content-around">
               <div>
                 <h5>{totalQuestions || 0}</h5>
-                <p>Total</p>
+                <p>{t("messaging.total")}</p>
               </div>
               <div>
                 <h5>{correctAnswers || 0}</h5>
-                <p>Correct</p>
+                <p>{t("assessment.correct")}</p>
               </div>
               <div>
                 <h5>{incorrectAnswers || 0}</h5>
-                <p>Incorrect</p>
+                <p>{t("assessment.incorrect")}</p>
               </div>
             </div>
-
             <div className="continue-application-btn-area mt-4">
               <button
                 className="default-btn btn"
                 onClick={() => {
                   closeAnyOpenModal();
                   navigate(`/job/${jobSlug}`, {
-                    state: {
-                      from: from || "/job-search",
-                      JobId: jobId,
-                    },
+                    state: { from: from || "/job-search", JobId: jobId },
                   });
                 }}
               >
-                Continue Application
+                {t("assessment.continue_application")}
               </button>
             </div>
           </div>
-        )}{" "}
-        *
+        )}
       </div>
     </section>
   );

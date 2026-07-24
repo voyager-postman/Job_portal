@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
@@ -47,9 +48,7 @@ function Header({ bgColor }) {
       const companyId = localStorage.getItem("companyId");
       const response = await axios.get(
         `${API_BASE_URL}GetCompanyDetails/${companyId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
       const updatedUser = response.data.company;
       // Update localStorage with latest status
@@ -75,9 +74,7 @@ function Header({ bgColor }) {
         const response = await axios.post(
           `${API_BASE_URL}get/notifications`,
           {},
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          getRequestConfig(),
         );
 
         if (response.data && response.data.notifications) {
@@ -101,9 +98,7 @@ function Header({ bgColor }) {
       await axios.post(
         `${API_BASE_URL}markAllRead`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       // Instantly update UI
@@ -314,9 +309,7 @@ function Header({ bgColor }) {
         try {
           const profileRes = await axios.get(
             `${API_BASE_URL}candidate/profile`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
+            getRequestConfig(),
           );
           const profileData = profileRes.data?.profile;
           const profileImg = profileData?.profileImage;

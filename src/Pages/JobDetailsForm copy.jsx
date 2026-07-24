@@ -10,6 +10,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import { data } from "jquery";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function JobDetailsForm() {
   const navigate = useNavigate();
@@ -79,9 +80,7 @@ function JobDetailsForm() {
     if (!jobFromState._id && id) {
       const token = localStorage.getItem("token");
       axios
-        .get(`${API_BASE_URL}getJobById/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        .get(`${API_BASE_URL}getJobById/${id}`, getRequestConfig())
         .then((res) => {
           const job = res.data.data;
           setFormData((prev) => ({

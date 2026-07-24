@@ -8,6 +8,7 @@ import { API_IMAGE_URL } from "../Url/Url";
 import { TbMessages } from "react-icons/tb";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import {isAuthReady, getRequestConfig } from "../utils/apiHeaders";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 
 function AppliedJobList() {
@@ -26,14 +27,16 @@ function AppliedJobList() {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${API_BASE_URL}getCompanyActiveJobs`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          search,
-          page,
-          limit: perPage,
-        },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}getCompanyActiveJobs`,
+        getRequestConfig({
+          params: {
+            search,
+            page,
+            limit: perPage,
+          },
+        }),
+      );
 
       setJobs(res.data.jobs || []);
       setTotalCount(res.data.total || 0);
@@ -73,16 +76,14 @@ function AppliedJobList() {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
-          if (!token) {
+          if (!isAuthReady()) {
             toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
           const response = await axios.post(
             `${API_BASE_URL}deleteJob/${id}`,
             {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
+            getRequestConfig(),
           );
           if (response.data.success) {
             toast.success(response.data.message);

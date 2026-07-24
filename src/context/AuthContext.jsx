@@ -1,4 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { postUserLogout } from "../utils/authApi";
+import { clearAuthStorage, hasAuthSession, isAuthReady } from "../utils/apiHeaders";
+import { AUTH_SESSION_EXPIRED_EVENT, resetSessionExpiredState } from "../utils/authInterceptor";
 
 const AuthContext = createContext();
 
@@ -36,6 +39,30 @@ export const AuthProvider = ({ children }) => {
   );
 
   useEffect(() => {
+    const syncSession = () => {
+      if (hasAuthSession() || isAuthReady()) {
+        setIsLoggedIn(true);
+      }
+    };
+
+    const onSessionExpired = () => {
+      setIsLoggedIn(false);
+      setProfileImage(getRoleDefaultImage(user_role));
+      setFirstName("");
+      setLastName("");
+    };
+
+    syncSession();
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, onSessionExpired);
+    window.addEventListener("storage", syncSession);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, onSessionExpired);
+      window.removeEventListener("storage", syncSession);
+    };
+  }, [isLoggedIn]);
+
+  useEffect(() => {
     if (isLoggedIn) {
       setProfileImage(
         getSafeProfileImage(localStorage.getItem("profileImage")),
@@ -46,12 +73,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isLoggedIn]);
 
-  // 🔥 Called after successful login (Google or normal login)
   const login = () => {
+    resetSessionExpiredState();
     localStorage.setItem("isLoggedIn", "true");
     setIsLoggedIn(true);
 
-    // ✅ Use role-based safe image
     const img = localStorage.getItem("profileImage");
     setProfileImage(getSafeProfileImage(img));
 
@@ -59,32 +85,25 @@ export const AuthProvider = ({ children }) => {
     setLastName(localStorage.getItem("last_name") || "");
   };
 
-  console.log(profileImage);
-  // 🔥 Logout function
-  const logout = () => {
-    localStorage.clear();
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("first_name");
-    localStorage.removeItem("last_name");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("profileImage");
+  const logout = async () => {
+    try {
+      await postUserLogout();
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    }
+
+    clearAuthStorage();
     setProfileImage(getRoleDefaultImage(user_role));
     setFirstName("");
     setLastName("");
     setIsLoggedIn(false);
   };
 
-  // 🔥 Update profile image from profile API
   const updateProfileImage = (url) => {
     localStorage.setItem("profileImage", url);
     setProfileImage(url);
   };
 
-  // 🔥 Update names from profile API
   const updateName = (first, last) => {
     localStorage.setItem("first_name", first);
     localStorage.setItem("last_name", last);
@@ -96,7 +115,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         isLoggedIn,
-        login, // Login function available globally
+        login,
         logout,
         profileImage,
         firstName,

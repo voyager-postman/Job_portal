@@ -33,17 +33,55 @@ export const resolveApplicationFileUrl = (value) => {
 };
 
 export const getApplicantCvUrl = (applicant) => {
-  if (!applicant) return null;
-
-  const cv = resolveApplicationFileUrl(applicant.cv);
-  if (cv) return cv;
-
-  return resolveApplicationFileUrl(applicant.customResume);
+  const source = getApplicantCvSource(applicant);
+  return source ? resolveApplicationFileUrl(source) : null;
 };
+
+const getProfileResumeEntries = (applicant) =>
+  applicant?.userId?.candidateProfile?.resumeUrls || [];
+
+const getProfileCoverLetterEntries = (applicant) =>
+  collectCoverLetterEntries(
+    applicant?.userId?.candidateProfile?.coverLetter,
+  );
 
 export const getApplicantCvSource = (applicant) => {
   if (!applicant) return null;
-  return applicant.cv || applicant.customResume || null;
+
+  const directCv = applicant.cv || applicant.customResume;
+  if (directCv) return directCv;
+
+  const profileResumes = getProfileResumeEntries(applicant);
+  if (profileResumes.length === 0) return null;
+
+  const latest = profileResumes[profileResumes.length - 1];
+  return latest?.url || latest;
+};
+
+export const getApplicantResumeEntries = (applicant) => {
+  if (!applicant) return [];
+
+  const entries = [];
+  const seen = new Set();
+
+  const addEntry = (entry, fallbackId) => {
+    const source = entry?.url || entry;
+    const key = documentPathKey(source);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    entries.push(
+      typeof entry === "object" && entry !== null
+        ? entry
+        : { _id: fallbackId, url: entry },
+    );
+  };
+
+  if (applicant.cv) addEntry(applicant.cv, "application-cv");
+  if (applicant.customResume) addEntry(applicant.customResume, "custom-resume");
+
+  getProfileResumeEntries(applicant).forEach((resume) => addEntry(resume, resume?._id));
+
+  return entries;
 };
 
 const documentPathKey = (value) => {
@@ -66,41 +104,27 @@ const collectCoverLetterEntries = (coverLetter) => {
 };
 
 export const getApplicantCoverLetterUrl = (applicant) => {
-  if (!applicant) return null;
-
-  const cvPathKey =
-    documentPathKey(applicant.cv) ||
-    documentPathKey(applicant.customResume);
-
-  const entries = collectCoverLetterEntries(applicant.coverLetter);
-
-  for (let i = entries.length - 1; i >= 0; i -= 1) {
-    const entry = entries[i];
-    const url = resolveApplicationFileUrl(entry);
-    if (!url) continue;
-
-    const coverPathKey = documentPathKey(entry);
-    if (cvPathKey && coverPathKey && coverPathKey === cvPathKey) {
-      continue;
-    }
-
-    return url;
-  }
-
-  return null;
+  const source = getApplicantCoverLetterSource(applicant);
+  return source ? resolveApplicationFileUrl(source) : null;
 };
 
 export const hasApplicantCoverLetter = (applicant) =>
   Boolean(getApplicantCoverLetterUrl(applicant));
 
-export const getApplicantCoverLetterSource = (applicant) => {
-  if (!applicant) return null;
+export const getApplicantCoverLetterEntries = (applicant) => {
+  if (!applicant) return [];
 
   const cvPathKey =
     documentPathKey(applicant.cv) ||
     documentPathKey(applicant.customResume);
 
-  const entries = collectCoverLetterEntries(applicant.coverLetter);
+  const entries = [
+    ...collectCoverLetterEntries(applicant.coverLetter),
+    ...getProfileCoverLetterEntries(applicant),
+  ];
+
+  const seen = new Set();
+  const result = [];
 
   for (let i = entries.length - 1; i >= 0; i -= 1) {
     const entry = entries[i];
@@ -110,11 +134,23 @@ export const getApplicantCoverLetterSource = (applicant) => {
     if (cvPathKey && coverPathKey && coverPathKey === cvPathKey) {
       continue;
     }
+    if (!coverPathKey || seen.has(coverPathKey)) continue;
 
-    return entry;
+    seen.add(coverPathKey);
+    result.unshift(
+      typeof entry === "object" && entry !== null
+        ? entry
+        : { url: entry },
+    );
   }
 
-  return null;
+  return result;
+};
+
+export const getApplicantCoverLetterSource = (applicant) => {
+  const entries = getApplicantCoverLetterEntries(applicant);
+  if (entries.length === 0) return null;
+  return entries[entries.length - 1];
 };
 
 export const hasApplicantCoverLetterSource = (applicant) =>

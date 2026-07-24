@@ -1,11 +1,7 @@
-import React from "react";
+import GlobalLoader from "../components/GlobalLoader";
 
-const Spinner = () => {
-  return (
-    <div className="spinner-container">
-      <div className="loader"></div>
-    </div>
-  );
+const Spinner = ({ message, overlay = false }) => {
+  return <GlobalLoader message={message} overlay={overlay} />;
 };
 
 export default Spinner;

@@ -1,27 +1,26 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 
 const ApplyTest = () => {
+  const { t } = useTranslation("global");
   const location = useLocation();
-  const { from, jobTitle } = location.state || {};
+  const { jobTitle } = location.state || {};
 
   return (
     <div>
-      {/* Breadcrumb */}
       <section className="inner-breadcrumb-main-area">
         <div className="container">
           <div className="row">
             <div className="col-lg-12 col-sm-12">
               <div className="breadcrumb-main-list-area mt-4">
-                <h4>Apply Test</h4>
-               
+                <h4>{t("assessment.apply_test")}</h4>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Page Content (Instead of Modal) */}
       <section className="skill-assessment-test-page-area py-5">
         <div className="container">
           <div className="row justify-content-center">
@@ -30,14 +29,17 @@ const ApplyTest = () => {
                 <div className="test-header mb-3">
                   <h4>
                     <i className="fa-solid fa-file me-2"></i>
-                    Test Required
+                    {t("assessment.test_required")}
                   </h4>
                 </div>
 
                 <div className="skill-assessment-test-modal-details">
                   <p>
-                    To apply for <strong>Senior JavaScript Developer</strong>,
-                    you must complete a skills assessment.
+                    <Trans
+                      i18nKey="assessment.apply_test_message"
+                      values={{ jobTitle: jobTitle || "Senior JavaScript Developer" }}
+                      components={{ strong: <strong /> }}
+                    />
                   </p>
 
                   <div className="skill-assessment-javaScript-fundamental mb-3">
@@ -45,34 +47,29 @@ const ApplyTest = () => {
                     <p>Assess your knowledge of JavaScript core concepts</p>
                     <ul>
                       <li>
-                        <i className="fa-solid fa-calendar me-1"></i> 5 Minutes
+                        <i className="fa-solid fa-calendar me-1"></i>{" "}
+                        {t("assessment.minutes", { count: 5 })}
                       </li>
                       <li>
-                        <i className="fa-solid fa-file me-1"></i> 5 Questions
+                        <i className="fa-solid fa-file me-1"></i>{" "}
+                        {t("assessment.questions_count", { count: 5 })}
                       </li>
                       <li>
-                        <i className="fa-solid fa-percent me-1"></i> Pass
-                        threshold: 70%
+                        <i className="fa-solid fa-percent me-1"></i>{" "}
+                        {t("assessment.pass_threshold", { percent: 70 })}
                       </li>
                     </ul>
                   </div>
 
                   <div className="skill-assessment-important-area">
-                    <h6>Important</h6>
-                    <p>
-                      Once started, the timer cannot be paused. Make sure you
-                      have enough time to complete the test.
-                    </p>
+                    <h6>{t("assessment.important")}</h6>
+                    <p>{t("assessment.timer_warning")}</p>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="d-flex justify-content-end gap-2 mt-4">
-                  {/* <Link to="/candidate-dashboard" className="default-btn btn">
-                    Back
-                  </Link> */}
                   <Link to="/start-test" className="default-btn btn">
-                    Start Test
+                    {t("assessment.start_test")}
                   </Link>
                 </div>
               </div>

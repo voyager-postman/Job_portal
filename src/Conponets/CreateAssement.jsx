@@ -4,7 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
+import { getAdminAuthHeaders } from "../utils/apiHeaders";
+import { useTranslation } from "react-i18next";
+
 function CreateAssement() {
+  const { t } = useTranslation("global");
   const categoryRef = useRef(null);
   const answerDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -57,7 +61,7 @@ function CreateAssement() {
         setCategories(res.data.data);
       }
     } catch {
-      toast.error("Failed to load skill categories");
+      toast.error(t("assessment.failed_load_categories"));
     }
   };
   useEffect(() => {
@@ -120,7 +124,7 @@ function CreateAssement() {
 
       setSelectedCategories(selectedCats);
     } catch (err) {
-      toast.error("Failed to load assessment details");
+      toast.error(t("assessment.failed_load_assessment"));
     }
   };
 
@@ -233,10 +237,10 @@ function CreateAssement() {
         setBankQuestions(res.data.data);
       } else {
         setBankQuestions([]);
-        toast.info("No questions found");
+        toast.info(t("assessment.no_questions_found"));
       }
     } catch (err) {
-      toast.error("Failed to load questions");
+      toast.error(t("assessment.failed_load_questions"));
       setBankQuestions([]);
     } finally {
       setLoadingQuestions(false);
@@ -300,12 +304,12 @@ function CreateAssement() {
 
   const validateForm = () => {
     if (!assessmentName.trim()) {
-      toast.error("Assessment name is required");
+      toast.error(t("assessment.name_required"));
       return false;
     }
 
     if (!formData.totalDuration || Number(formData.totalDuration) <= 0) {
-      toast.error("Total duration must be greater than 0");
+      toast.error(t("assessment.duration_required"));
       return false;
     }
 
@@ -314,19 +318,19 @@ function CreateAssement() {
       Number(formData.passingPercentage) <= 0 ||
       Number(formData.passingPercentage) > 100
     ) {
-      toast.error("Passing percentage must be between 1 and 100");
+      toast.error(t("assessment.passing_range"));
       return false;
     }
 
     const totalSelected = selectedBankQuestions.length + manualQuestions.length;
 
     if (!totalSelected) {
-      toast.error("Please add at least one question");
+      toast.error(t("assessment.add_one_question"));
       return false;
     }
 
     if (!totalSelected) {
-      toast.error("Please add at least one question");
+      toast.error(t("assessment.add_one_question"));
       return false;
     }
 
@@ -350,16 +354,14 @@ function CreateAssement() {
       });
 
       toast.success(
-        isEditMode
-          ? "Skill Assessment updated successfully"
-          : "Skill Assessment created successfully",
+        isEditMode ? t("assessment.updated_success") : t("assessment.created_success"),
       );
 
       setTimeout(() => {
         navigate("/manage-assessment");
       }, 1200);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save assessment");
+      toast.error(err.response?.data?.message || t("assessment.failed_save"));
     }
   };
   return (
@@ -369,26 +371,26 @@ function CreateAssement() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Create Assessment</h1>
+            <h1>{t("assessment.create_assessment")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
                   {" "}
                   <i className="fa-solid fa-angle-right" />
-                  Dashboard{" "}
+                  {t("header.dashboard")}{" "}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/manage-assessment">
                   <i className="fa-solid fa-angle-right" />
-                  Manage Assessment
+                  {t("assessment.manage_assessment")}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Create
+                <i className="fa-solid fa-angle-right" /> {t("assessment.create")}
               </li>
             </ol>
           </div>
@@ -396,7 +398,7 @@ function CreateAssement() {
           {/*Start My Profile Area*/}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Create Assessment</h3>
+              <h3>{t("assessment.create_assessment")}</h3>
               <div className="my-profile-area">
                 <div className="profile-form-content">
                   <div className="profile-form">
@@ -404,11 +406,11 @@ function CreateAssement() {
                       <div className="row">
                         <div className="col-lg-12 col-md-12">
                           <div className="form-group">
-                            <label>Assessment name</label>
+                            <label>{t("assessment.assessment_name")}</label>
                             <input
                               className="form-control"
                               type="text"
-                              placeholder="Skill assessment name"
+                              placeholder={t("assessment.assessment_name_placeholder")}
                               value={assessmentName}
                               onChange={(e) =>
                                 setAssessmentName(e.target.value)
@@ -418,7 +420,7 @@ function CreateAssement() {
                         </div>
                         <div className="col-lg-12 col-md-12">
                           <div className="form-group">
-                            <label>Question level</label>
+                            <label>{t("assessment.question_level_label")}</label>
                             <select
                               className="form-select form-control"
                               value={questionLevel}
@@ -427,7 +429,6 @@ function CreateAssement() {
 
                                 setQuestionLevel(level);
 
-                                // If creating (not editing), reset all dependent data when level changes
                                 if (!isEditMode) {
                                   setSelectedCategories([]);
                                   setSelectedBankQuestions([]);
@@ -435,19 +436,19 @@ function CreateAssement() {
                                   setCurrentQuestion(null);
                                 }
                               }}
-                              disabled={isEditMode} // Disable in edit mode
+                              disabled={isEditMode}
                             >
-                              <option value="">-- Select Level --</option>
-                              <option value="Easy">Easy</option>
-                              <option value="Medium">Medium</option>
-                              <option value="Hard">Hard</option>
+                              <option value="">{t("assessment.select_level")}</option>
+                              <option value="Easy">{t("assessment.easy")}</option>
+                              <option value="Medium">{t("assessment.medium")}</option>
+                              <option value="Hard">{t("assessment.hard")}</option>
                             </select>
                           </div>
                         </div>
 
                         <div className="col-lg-12 col-md-12">
                           <div className="form-group questions-category-main">
-                            <label>Select Category</label>
+                            <label>{t("assessment.select_category")}</label>
 
                             <div
                               className="multi-select-container"
@@ -496,7 +497,7 @@ function CreateAssement() {
 
                                 <input
                                   type="text"
-                                  placeholder="Search category..."
+                                  placeholder={t("assessment.search_category")}
                                   value={categorySearchTerm}
                                   onChange={(e) =>
                                     setCategorySearchTerm(e.target.value)
@@ -562,7 +563,7 @@ function CreateAssement() {
 
                         <div className="question-bank-question-area ">
                           <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h5 className="mb-0">Questions</h5>
+                            <h5 className="mb-0">{t("assessment.questions")}</h5>
                             <button
                               type="button"
                               className="add-question-button"
@@ -575,7 +576,7 @@ function CreateAssement() {
                             <div className="manual-question-form ">
                               {/* Skill Category */}
                               <div className="form-group">
-                                <label>Skill Category</label>
+                                <label>{t("assessment.skill_category")}</label>
                                 <select
                                   className="form-control"
                                   value={currentQuestion.skillCategory}
@@ -607,7 +608,7 @@ function CreateAssement() {
                                   }}
                                 >
                                   <option value="">
-                                    -- Select Skill Category --
+                                    {t("assessment.select_skill_category")}
                                   </option>
                                   {categories.map((cat) => (
                                     <option key={cat._id} value={cat._id}>
@@ -619,7 +620,7 @@ function CreateAssement() {
 
                               {/* Question Type */}
                               <div className="form-group">
-                                <label>Question Type</label>
+                                <label>{t("assessment.question_type")}</label>
                                 <select
                                   className="form-control"
                                   value={currentQuestion.questionType}
@@ -642,23 +643,23 @@ function CreateAssement() {
                                   }}
                                 >
                                   <option value="">
-                                    -- Select Question Type --
+                                    {t("assessment.select_question_type")}
                                   </option>
-                                  <option value="single">Single Choice</option>
+                                  <option value="single">{t("assessment.single_choice")}</option>
                                   <option value="multiple">
-                                    Multiple Choice
+                                    {t("assessment.multiple_choice")}
                                   </option>
-                                  <option value="boolean">True / False</option>
+                                  <option value="boolean">{t("assessment.true_false")}</option>
                                 </select>
                               </div>
 
                               {/* Question */}
                               <div className="form-group">
-                                <label>Question</label>
+                                <label>{t("assessment.question")}</label>
                                 <textarea
                                   className="custom-question-area"
-                                  rows={2} // 👈 adjust height as needed
-                                  placeholder="Enter question here..."
+                                  rows={2}
+                                  placeholder={t("assessment.enter_question")}
                                   value={currentQuestion.question}
                                   onChange={(e) =>
                                     setCurrentQuestion({
@@ -673,10 +674,10 @@ function CreateAssement() {
                               {["A", "B"].map((opt) => (
                                 <div className="form-group" key={opt}>
                                   <label>
-                                    Option {opt}
+                                    {t("assessment.option", { key: opt })}
                                     {currentQuestion.questionType ===
                                       "boolean" &&
-                                      ` (${opt === "A" ? "True" : "False"})`}
+                                      ` (${opt === "A" ? t("assessment.true") : t("assessment.false")})`}
                                   </label>
                                   <input
                                     className="form-control"
@@ -701,7 +702,7 @@ function CreateAssement() {
                               {currentQuestion.questionType !== "boolean" &&
                                 ["C", "D"].map((opt) => (
                                   <div className="form-group" key={opt}>
-                                    <label>Option {opt}</label>
+                                    <label>{t("assessment.option", { key: opt })}</label>
                                     <input
                                       className="form-control"
                                       placeholder={`Option (${opt})`}
@@ -724,7 +725,7 @@ function CreateAssement() {
                                 ref={answerDropdownRef}
                                 className="form-group position-relative"
                               >
-                                <label>Correct Answer</label>
+                                <label>{t("assessment.correct_answer_label")}</label>
 
                                 <div
                                   className="form-control d-flex justify-content-between align-items-center"
@@ -735,8 +736,10 @@ function CreateAssement() {
                                 >
                                   <span>
                                     {currentQuestion.correctAnswer.length > 0
-                                      ? `Selected: ${currentQuestion.correctAnswer.join(", ")}`
-                                      : "Select Correct Answer"}
+                                      ? t("assessment.selected_answers", {
+                                          answers: currentQuestion.correctAnswer.join(", "),
+                                        })
+                                      : t("assessment.select_correct_answer")}
                                   </span>
                                   <i className="fa fa-caret-down" />
                                 </div>
@@ -855,9 +858,9 @@ function CreateAssement() {
                                           {currentQuestion.questionType ===
                                           "boolean"
                                             ? opt === "A"
-                                              ? "True"
-                                              : "False"
-                                            : `Option ${opt}`}
+                                              ? t("assessment.true")
+                                              : t("assessment.false")
+                                            : t("assessment.option", { key: opt })}
                                         </label>
                                       </div>
                                     ))}
@@ -875,19 +878,19 @@ function CreateAssement() {
 
                                     // ✅ validations
                                     if (!q.skillCategory) {
-                                      toast.error("Skill Category is required");
+                                      toast.error(t("assessment.skill_category_required"));
                                       return;
                                     }
                                     if (!q.questionType) {
-                                      toast.error("Question Type is required");
+                                      toast.error(t("assessment.question_type_required"));
                                       return;
                                     }
                                     if (!q.question.trim()) {
-                                      toast.error("Question is required");
+                                      toast.error(t("assessment.question_required"));
                                       return;
                                     }
                                     if (!q.correctAnswer.length) {
-                                      toast.error("Select correct answer");
+                                      toast.error(t("assessment.select_correct_answer_error"));
                                       return;
                                     }
 
@@ -913,17 +916,13 @@ function CreateAssement() {
                                       const res = await axios.post(
                                         `${API_BASE_URL}/add-question`,
                                         payload,
-                                        {
-                                          headers: {
-                                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                                          },
-                                        },
+                                        { headers: getAdminAuthHeaders() },
                                       );
 
                                       const newQuestion = res.data?.data;
 
                                       toast.success(
-                                        "Question added to Question Bank",
+                                        t("assessment.question_added_bank"),
                                       );
 
                                       // 🔄 REFRESH BANK QUESTIONS
@@ -942,12 +941,12 @@ function CreateAssement() {
                                     } catch (err) {
                                       toast.error(
                                         err.response?.data?.message ||
-                                          "Failed to save question",
+                                          t("assessment.failed_save_question"),
                                       );
                                     }
                                   }}
                                 >
-                                  Save Question
+                                  {t("assessment.save_question")}
                                 </button>
 
                                 <button
@@ -958,7 +957,7 @@ function CreateAssement() {
                                     setShowManualQuestions(false);
                                   }}
                                 >
-                                  Close
+                                  {t("header.Close")}
                                 </button>
                               </div>
                             </div>
@@ -1005,12 +1004,12 @@ function CreateAssement() {
 
                         <div className="col-lg-4 col-md-12">
                           <div className="form-group">
-                            <label>Total Duration (Minutes)</label>
+                            <label>{t("assessment.total_duration_minutes")}</label>
                             <input
                               className="form-control"
                               type="text"
                               name="totalDuration"
-                              placeholder="Total Duration"
+                              placeholder={t("assessment.total_duration_placeholder")}
                               value={formData.totalDuration}
                               onChange={handleChange}
                             />
@@ -1018,7 +1017,7 @@ function CreateAssement() {
                         </div>
                         <div className="col-lg-4 col-md-12">
                           <div className="form-group">
-                            <label>Total Questions</label>
+                            <label>{t("assessment.total_questions_col")}</label>
                             <input
                               className="form-control"
                               type="text"
@@ -1030,12 +1029,12 @@ function CreateAssement() {
                         </div>
                         <div className="col-lg-4 col-md-12">
                           <div className="form-group">
-                            <label>Passing Percentage (%)</label>
+                            <label>{t("assessment.passing_percentage_label")}</label>
                             <input
                               className="form-control"
                               type="text"
                               name="passingPercentage"
-                              placeholder="Passing Percentage"
+                              placeholder={t("assessment.passing_percentage_placeholder")}
                               value={formData.passingPercentage}
                               onChange={handleChange}
                             />
@@ -1047,7 +1046,7 @@ function CreateAssement() {
                             className="default-btn btn"
                             onClick={handleSubmitAssessment}
                           >
-                            {isEditMode ? "Update Assessment" : "Submit"}
+                            {isEditMode ? t("assessment.update_assessment") : t("assessment.submit")}
                           </button>
                         </div>
                       </div>

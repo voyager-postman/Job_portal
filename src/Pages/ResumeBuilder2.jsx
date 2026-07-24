@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios"
+import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../Url/Url";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -11,15 +12,9 @@ import TemplateOne from "./templates/TemplateOne";
 import TemplateTwo from "./templates/TemplateTwo";
 
 const ResumeBuilder = () => {
-  const [profile, setProfile] = useState(null);
+  const { t } = useTranslation("global");
   const [loading, setLoading] = useState(true);
   const [incomplete, setIncomplete] = useState(false);
-  const [educationList, setEducationList] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [experience, setExperience] = useState([]);
-  const [certificates, setCertificates] = useState([]);
-  const [languages, setLanguages] = useState([]);
-  const [personalDetails, setPersonalDetails] = useState(null);
   const [resumeData, setResumeData] = useState(null);
   const [template, setTemplate] = useState("template1");
 
@@ -35,7 +30,6 @@ const ResumeBuilder = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(response.data);
       setResumeData({
         personal: response.data.profile,
         skills: response.data.profile.skills || [],
@@ -46,38 +40,32 @@ const ResumeBuilder = () => {
         summary: response.data.profile.summary || "",
       });
 
-      const isIncomplete = !response.data.profile;
-      // !response.data.profile.education?.length ||
-      // !response.data.profile.workHistory?.length ||
-      // !response.data.profile.skills?.length;
-
-      setIncomplete(isIncomplete);
+      setIncomplete(!response.data.profile);
       setLoading(false);
     } catch (error) {
       console.error(error);
     }
   };
 
-  if (loading) return <h2>Loading...</h2>;
+  if (loading) return <h2>{t("header.Loading")}</h2>;
 
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Resume Builder</h1>
+            <h1>{t("sidebar.resume_builder")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/"> Home </Link>
+                <Link to="/"> {t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/candidate-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Resume Builder
+                <i className="fa-solid fa-angle-right" /> {t("sidebar.resume_builder")}
               </li>
             </ol>
           </div>
@@ -99,59 +87,48 @@ const ResumeBuilder = () => {
   );
 };
 
-// STEP 2 — Incomplete Profile Screen
-//
 const ProfileIncomplete = () => {
+  const { t } = useTranslation("global");
   return (
     <div style={{ padding: 20, background: "#ffe5e5", borderRadius: 10 }}>
-      <h2>Complete your profile to build your resume</h2>
-
+      <h2>{t("resume.complete_profile_title")}</h2>
       <ul>
-        <li>Personal Info</li>
-        <li>Experience</li>
-        <li>Education</li>
-        <li>Skills</li>
+        <li>{t("resume.personal_info")}</li>
+        <li>{t("resume.experience")}</li>
+        <li>{t("resume.education")}</li>
+        <li>{t("resume.skills")}</li>
       </ul>
-
       <button
         style={{ padding: 10, background: "black", color: "white" }}
         onClick={() => (window.location.href = "/profile")}
       >
-        Go to Profile
+        {t("resume.go_to_profile")}
       </button>
     </div>
   );
 };
 
-//
-// STEP 3 — Builder Layout
-//
-const BuilderScreen = ({
-  resumeData,
-  setResumeData,
-  template,
-  setTemplate,
-}) => {
+const BuilderScreen = ({ resumeData, template, setTemplate }) => {
+  const { t } = useTranslation("global");
   return (
     <div>
       <div className="manage-jobs-box">
         <div className="p-4">
-          <h3 className="mb-2">Choose Template</h3>
+          <h3 className="mb-2">{t("resume.choose_template")}</h3>
           <button
             onClick={() => setTemplate("template1")}
             className="default-btn btn"
           >
-            Template One
+            {t("resume.template_one")}
           </button>
           <button
             onClick={() => setTemplate("template2")}
             style={{ marginLeft: 10 }}
             className="default-btn btn"
           >
-            Template Two
+            {t("resume.template_two")}
           </button>
           <DownloadButtons />
-          {/* <DownloadButtons data={resumeData} /> */}
         </div>
       </div>
 
@@ -165,39 +142,8 @@ const BuilderScreen = ({
   );
 };
 
-//
-// STEP 4 — Editor
-//
-// const ResumeEditor = ({ data, setData }) => {
-//   const update = (field, value) => {
-//     setData({ ...data, [field]: value });
-//   };
-
-//   return (
-//     <div style={{ marginBottom: 20 }}>
-//       <h2>Edit Resume</h2>
-
-//       <textarea
-//         value={data.summary}
-//         onChange={(e) => update("summary", e.target.value)}
-//         placeholder="Summary"
-//         style={{ width: "100%", height: 80 }}
-//       />
-
-//       <button
-//         onClick={() => update("projectsEnabled", !data.projectsEnabled)}
-//         style={{ marginTop: 10 }}
-//       >
-//         Toggle Projects Section
-//       </button>
-//     </div>
-//   );
-// };
-
-//
-// STEP 6 — Download PDF + DOCX
-//
 const DownloadButtons = ({ data }) => {
+  const { t } = useTranslation("global");
   const downloadPDF = () => {
     const element = document.querySelector(".resume-preview");
 
@@ -216,9 +162,9 @@ const DownloadButtons = ({ data }) => {
           children: [
             new Paragraph({
               children: [
-                new TextRun(data.personal.name),
+                new TextRun(data?.personal?.name || ""),
                 new TextRun("\n"),
-                new TextRun(data.summary),
+                new TextRun(data?.summary || ""),
               ],
             }),
           ],
@@ -238,14 +184,14 @@ const DownloadButtons = ({ data }) => {
         onClick={downloadPDF}
         className="default-btn btn"
       >
-        Download PDF
+        {t("resume.download_pdf")}
       </button>
       <button
         style={{ marginLeft: 10 }}
         onClick={downloadDocx}
         className="default-btn btn"
       >
-        Download DOCX
+        {t("resume.download_docx")}
       </button>
     </>
   );

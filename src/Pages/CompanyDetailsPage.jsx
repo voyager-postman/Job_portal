@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import {isAuthReady, getRequestConfig } from "../utils/apiHeaders";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { Modal } from "react-bootstrap";
@@ -8,6 +9,14 @@ import { useTranslation } from "react-i18next";
 import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+import PageSEO from "../components/PageSEO";
+import {
+  absoluteUrl,
+  buildCompanyOrganizationSchema,
+  buildBreadcrumbSchema,
+  stripHtml,
+  SITE,
+} from "../utils/seo";
 import "./Main.css";
 function CompanyDetailsPage() {
   const { t } = useTranslation("global");
@@ -30,26 +39,24 @@ function CompanyDetailsPage() {
   const from = location.state?.from || "/";
   const [showVideoModal, setShowVideoModal] = useState(false);
   // const breadcrumbLabel = from.includes("/manage-job-application")
-  //   ? "Manage Job Application"
-  //   : "Search Company List";
+  //   ? t("applications.manage_job_application")
+  //   : t("breadcrumbs.search_company_list");
 
   const breadcrumbLabel = from?.includes("/manage-job-application")
-    ? "Manage Job Application"
+    ? t("applications.manage_job_application")
     : from?.includes("/companies-list")
-      ? "Search Company List"
+      ? t("breadcrumbs.search_company_list")
       : from?.includes("/companies")
-        ? "Companies"
+        ? t("header.companies")
         : // : from?.includes("/")
           //   ? "Home"
-          "Search Company List";
+          t("breadcrumbs.search_company_list");
 
   const getCompanyDetails = async () => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}GetCompanyDetails/${companySlug}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
       setCompany(res?.data?.company);
     } catch (error) {
@@ -65,7 +72,6 @@ function CompanyDetailsPage() {
 
   const apply = useJobApply({
     t,
-    token,
     onApplySuccess: () => {
       if (companySlug) getCompanyDetails();
     },
@@ -127,7 +133,7 @@ function CompanyDetailsPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!token || userRole !== "JobSeeker") {
+    if (!isAuthReady() || userRole !== "JobSeeker") {
       navigate("/login");
       return;
     }
@@ -147,7 +153,7 @@ function CompanyDetailsPage() {
   const handleSaveJob = async (jobId) => {
     try {
       // 🧠 Step 1: Check if user is logged in
-      if (!token) {
+      if (!isAuthReady()) {
         toast.warning("⚠️ Please login first to save jobs!");
         // optionally redirect to login page:
         // navigate("/login");
@@ -206,7 +212,7 @@ function CompanyDetailsPage() {
 
     // ❌ No link case
     if (!linkUrl) {
-      toast.error("Link not available", {
+      toast.error(t("jobs.link_not_available_toast"), {
         autoClose: 1500,
         theme: "colored",
       });
@@ -221,7 +227,7 @@ function CompanyDetailsPage() {
       setTimeout(() => setCopiedJobId(null), 2000);
     } catch (err) {
       console.error("Failed to copy text:", err);
-      toast.error("Failed to copy link");
+      toast.error(t("jobs.failed_copy_link"));
     }
   };
 
@@ -282,6 +288,39 @@ function CompanyDetailsPage() {
   };
   return (
     <>
+      <PageSEO
+        title={
+          company?.brandName ||
+          company?.companyName ||
+          (companySlug ? companySlug.replace(/-/g, " ") : t("jobs.company_profile"))
+        }
+        description={
+          company?.aboutCompany
+            ? stripHtml(company.aboutCompany)
+            : SITE.defaultDescription
+        }
+        canonical={`/${companySlug}`}
+        image={company?.logo}
+        jsonLd={[
+          company
+            ? buildCompanyOrganizationSchema(
+                company,
+                absoluteUrl(`/${companySlug}`),
+              )
+            : null,
+          buildBreadcrumbSchema([
+            { name: t("header.home"), path: "/" },
+            { name: t("header.companies"), path: "/companies" },
+            {
+              name:
+                company?.brandName ||
+                company?.companyName ||
+                t("breadcrumbs.company_details"),
+              path: `/${companySlug}`,
+            },
+          ]),
+        ]}
+      />
       <ToastContainer />
       {from !== "/" && (
         <section className="inner-breadcrumb-main-area ">
@@ -289,15 +328,15 @@ function CompanyDetailsPage() {
             <div className="row">
               <div className="col-lg-12 col-sm-12">
                 <div className="breadcrumb-main-list-area ">
-                  <h4>Job Details</h4>
+                  <p className="breadcrumb-page-label">{t("breadcrumbs.job_details")}</p>
                   <ul>
                     <li>
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                       <i className="fa-solid fa-angle-right"></i>
                     </li>
                     {from !== "/companies" && (
                       <li>
-                        <Link to="/candidate-dashboard">Dashboard</Link>
+                        <Link to="/candidate-dashboard">{t("header.dashboard")}</Link>
                         <i className="fa-solid fa-angle-right"></i>
                       </li>
                     )}
@@ -310,7 +349,7 @@ function CompanyDetailsPage() {
                         ? "Loading..."
                         : company?.brandName ||
                           company?.brandName ||
-                          "Company Details"}
+                          t("breadcrumbs.company_details")}
                     </li>
                   </ul>
                 </div>
@@ -319,12 +358,13 @@ function CompanyDetailsPage() {
           </div>
         </section>
       )}
-      <div className="company-details-container">
+      <article className="company-details-container">
         <section className="company-hero-section">
           <img
             crossOrigin="anonymous"
             className="company-hero-image"
-            alt="Hero"
+            alt={`${company?.brandName || t("breadcrumbs.company_details")} cover`}
+            loading="eager"
             src={
               company?.coverPhoto
                 ? `${API_IMAGE_URL}${company.coverPhoto}` // Replace API_IMAGE_URL with your base URL
@@ -338,7 +378,7 @@ function CompanyDetailsPage() {
               <div className="company-logo-wrapper">
                 <img
                   crossOrigin="anonymous"
-                  alt="Logo"
+                  alt={`${company?.brandName || t("breadcrumbs.company_details")} logo`}
                   src={
                     company?.logo
                       ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
@@ -347,7 +387,7 @@ function CompanyDetailsPage() {
                 />
               </div>
               <div className="company-title-info">
-                <h2>{company?.brandName}</h2>
+                <h1>{company?.brandName}</h1>
                 <div className="company-badges">
                   <span className="badge-item">
                     <i className="fa-solid fa-building me-1" />{" "}
@@ -359,7 +399,7 @@ function CompanyDetailsPage() {
                   </span>
                 </div>
               </div>
-              <div className="branding-actions d-none d-lg-flex gap-3">
+              <div className="branding-actions d-flex flex-wrap gap-3 mt-3 mt-lg-0">
                 <button
                   className="btn btn-primary px-4 py-2 rounded-pill fw-bold"
                   style={{
@@ -438,7 +478,7 @@ function CompanyDetailsPage() {
                   <div className="content-section border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white mb-4">
                     <div className="about-premium-wrapper">
                       <div className="about-premium-header">
-                        <h3> {company?.aboutPremium?.mainTitle}</h3>
+                        <h2> {company?.aboutPremium?.mainTitle}</h2>
                         <p className="lead">
                           {company?.aboutPremium?.subtitle}
                         </p>
@@ -471,7 +511,7 @@ function CompanyDetailsPage() {
                                     src={`${getYouTubeEmbedUrl(mediaUrl)}?enablejsapi=1&autoplay=1&mute=${
                                       aboutMuted ? 1 : 0
                                     }&loop=1&controls=0&modestbranding=1&playsinline=1`}
-                                    title="About Us Video"
+                                    title={t("jobs.about_us_video")}
                                     frameBorder="0"
                                     allow="autoplay; encrypted-media; picture-in-picture"
                                     allowFullScreen
@@ -499,7 +539,7 @@ function CompanyDetailsPage() {
                               {mediaType === "image" && mediaUrl ? (
                                 <img
                                   src={`${API_IMAGE_URL}${mediaUrl}`}
-                                  alt="About Company"
+                                  alt={t("jobs.about_company_alt")}
                                   className="about-premium-video"
                                   crossOrigin="anonymous"
                                 />
@@ -510,7 +550,7 @@ function CompanyDetailsPage() {
                       </div>
                     </div>
                     <div className="employee-reviews-section mt-5 border-top pt-5">
-                      <h4
+                      <h2
                         className="fw-bold mb-4 text-center"
                         style={{
                           color: "rgb(26, 26, 26)",
@@ -518,7 +558,7 @@ function CompanyDetailsPage() {
                         }}
                       >
                         L'expérience de nos collaborateurs
-                      </h4>
+                      </h2>
 
                       {company?.aboutPremium?.employeeExperience?.length >
                         0 && (
@@ -555,12 +595,12 @@ function CompanyDetailsPage() {
                                         }
                                       />
 
-                                      <h5
-                                        className="fw-bold mb-1"
+                                      <p
+                                        className="fw-bold mb-1 reviewer-name"
                                         style={{ color: "rgb(26, 26, 26)" }}
                                       >
                                         {item.fullName}
-                                      </h5>
+                                      </p>
 
                                       <span
                                         style={{
@@ -589,7 +629,7 @@ function CompanyDetailsPage() {
                               className="carousel-control-prev-icon review-nav-bg shadow"
                               aria-hidden="true"
                             />
-                            <span className="visually-hidden">Previous</span>
+                            <span className="visually-hidden">{t("jobs.previous")}</span>
                           </button>
 
                           {/* Next */}
@@ -603,14 +643,14 @@ function CompanyDetailsPage() {
                               className="carousel-control-next-icon review-nav-bg shadow"
                               aria-hidden="true"
                             />
-                            <span className="visually-hidden">Next</span>
+                            <span className="visually-hidden">{t("jobs.next")}</span>
                           </button>
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="content-section border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-white mb-4">
-                    <h4
+                    <h2
                       className="fw-bold mb-4"
                       style={{
                         color: "rgb(26, 26, 26)",
@@ -618,7 +658,7 @@ function CompanyDetailsPage() {
                       }}
                     >
                       La vie chez Deloitte
-                    </h4>
+                    </h2>
 
                     <p className="text-muted mb-4 fs-5">
                       Découvrez notre quotidien, nos espaces et l'énergie de nos
@@ -637,7 +677,7 @@ function CompanyDetailsPage() {
                               >
                                 <img
                                   crossOrigin="anonymous"
-                                  alt="Company"
+                                  alt={t("header.company")}
                                   loading="lazy"
                                   src={`${API_IMAGE_URL}${item.url}`}
                                 />
@@ -683,7 +723,7 @@ function CompanyDetailsPage() {
                                 src={`https://www.youtube.com/embed/${videoId}?autoplay=${
                                   isHover ? 1 : 0
                                 }&mute=${isMuted ? 1 : 0}&controls=0&loop=1&playlist=${videoId}`}
-                                title="Company Video"
+                                title={t("jobs.company_video")}
                                 frameBorder="0"
                                 allow="autoplay; encrypted-media"
                                 className="grid-video-iframe"
@@ -736,12 +776,12 @@ function CompanyDetailsPage() {
                             color: "rgb(251, 118, 26)",
                           }}
                         />
-                        <h4
+                        <h2
                           className="fw-bold mb-0"
                           style={{ color: "rgb(26, 26, 26)" }}
                         >
                           Notre mission
-                        </h4>
+                        </h2>
                       </div>
                       <p
                         className="text-muted fs-6"
@@ -759,12 +799,12 @@ function CompanyDetailsPage() {
                             color: "rgb(251, 118, 26)",
                           }}
                         />
-                        <h4
+                        <h2
                           className="fw-bold mb-0"
                           style={{ color: "rgb(26, 26, 26)" }}
                         >
                           Notre vision
-                        </h4>
+                        </h2>
                       </div>
                       <p
                         className="text-muted fs-6"
@@ -777,7 +817,7 @@ function CompanyDetailsPage() {
                 </div>
                 <div id="teams-tab" className="tab-pane fade" role="tabpanel">
                   <div className="content-section">
-                    <h4>Rencontrez l'équipe</h4>
+                    <h2>Rencontrez l'équipe</h2>
 
                     {/* First Team Member = CEO Section */}
                     {company?.aboutPremium?.leader && (
@@ -796,9 +836,13 @@ function CompanyDetailsPage() {
                         </div>
 
                         <div className="ceo-content">
-                          <h4>{company?.aboutPremium?.leader?.name}</h4>
+                          <p className="ceo-name fw-bold mb-1">
+                            {company?.aboutPremium?.leader?.name}
+                          </p>
 
-                          <h2>{company?.aboutPremium?.leader?.position}</h2>
+                          <p className="ceo-position text-muted mb-3">
+                            {company?.aboutPremium?.leader?.position}
+                          </p>
 
                           <p className="ceo-quote">
                             {company?.aboutPremium?.leader?.message}
@@ -837,7 +881,9 @@ function CompanyDetailsPage() {
                             />
 
                             <div className="team-info">
-                              <h5>{member.fullName}</h5>
+                              <p className="team-member-name fw-bold mb-1">
+                                {member.fullName}
+                              </p>
                               <p>{member.post}</p>
                             </div>
                           </div>
@@ -851,7 +897,7 @@ function CompanyDetailsPage() {
 
                     {/* If No Data */}
                     {company?.aboutPremium?.team?.length === 0 && (
-                      <p className="text-muted">No team data available</p>
+                      <p className="text-muted">{t("jobs.no_team_data")}</p>
                     )}
                   </div>
                 </div>
@@ -861,10 +907,13 @@ function CompanyDetailsPage() {
                   role="tabpanel"
                 >
                   <div className="content-section">
-                    <h4>Offres d'emploi disponibles</h4>
+                    <h2>Offres d'emploi disponibles</h2>
                     {company?.jobs?.length > 0 ? (
                       company.jobs.map((job) => (
-                        <div className="elegant-job-card-wrapper position-relative">
+                        <div
+                          className="elegant-job-card-wrapper position-relative"
+                          key={job._id}
+                        >
                           <Link
                             to={`/job/${job.slug}`}
                             state={{
@@ -873,10 +922,9 @@ function CompanyDetailsPage() {
                             className="elegant-job-card"
                           >
                             <div className="job-card-main">
-                              <h5>
-                                {" "}
-                                <h4>{job.jobTitle || "N/A"}</h4>
-                              </h5>
+                              <h3 className="job-card-title">
+                                {job.jobTitle || "N/A"}
+                              </h3>
                               <div className="job-meta">
                                 <span>
                                   <i className="fa-solid fa-location-dot" />{" "}
@@ -991,13 +1039,13 @@ function CompanyDetailsPage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted">No jobs available</p>
+                      <p className="text-muted">{t("header.no_jobs")}</p>
                     )}
                   </div>
                 </div>
                 <div id="career-tab" className="tab-pane fade" role="tabpanel">
                   <div className="content-section">
-                    <h4>Travailler chez Deloitte</h4>
+                    <h2>{t("jobs.work_at_company", { company: company?.brandName || company?.companyName || "" })}</h2>
 
                     <div className="company-rich-text">
                       {decodedCareerDetail?.trim() ? (
@@ -1008,7 +1056,7 @@ function CompanyDetailsPage() {
                           }}
                         />
                       ) : (
-                        <p className="text-muted">No Career Details</p>
+                        <p className="text-muted">{t("jobs.no_career_details")}</p>
                       )}
                     </div>
                   </div>
@@ -1017,13 +1065,13 @@ function CompanyDetailsPage() {
             </div>
             <div className="content-right">
               <div className="sidebar-fact-card">
-                <h5 className="sidebar-title">En un coup d'œil</h5>
+                <p className="sidebar-title">En un coup d'œil</p>
                 <div className="fact-item">
                   <div className="fact-icon">
                     <i className="fa-solid fa-users" />
                   </div>
                   <div className="fact-detail">
-                    <h6>Taille de l'entreprise</h6>
+                    <p className="fact-label">Taille de l'entreprise</p>
                     <p>{company?.numberOfEmployees || "N/A"}</p>
                   </div>
                 </div>
@@ -1032,7 +1080,7 @@ function CompanyDetailsPage() {
                     <i className="fa-solid fa-industry" />
                   </div>
                   <div className="fact-detail">
-                    <h6>Secteur</h6>
+                    <p className="fact-label">{t("jobs.sector")}</p>
                     <p>{company?.industries || "N/A"}</p>
                   </div>
                 </div>
@@ -1041,7 +1089,7 @@ function CompanyDetailsPage() {
                     <i className="fa-solid fa-location-dot" />
                   </div>
                   <div className="fact-detail">
-                    <h6>Siège social</h6>
+                    <p className="fact-label">Siège social</p>
                     <p>{company?.city || "N/A"}</p>
                   </div>
                 </div>
@@ -1050,7 +1098,7 @@ function CompanyDetailsPage() {
                     <i className="fa-solid fa-phone" />
                   </div>
                   <div className="fact-detail">
-                    <h6>Contact</h6>
+                    <p className="fact-label">{t("jobs.contact")}</p>
                     <p>
                       {" "}
                       +{company?.phone?.countryCode} {company?.phone?.number}
@@ -1064,7 +1112,7 @@ function CompanyDetailsPage() {
                 company?.links?.instagram ||
                 company?.links?.twitter ? (
                   <>
-                    <h5 className="sidebar-title mt-4">Liens officiels</h5>
+                    <p className="sidebar-title mt-4">{t("jobs.official_links")}</p>
 
                     <div className="social-links-grid">
                       {/* Website */}
@@ -1135,7 +1183,7 @@ function CompanyDetailsPage() {
                   </>
                 ) : (
                   <>
-                    <h5 className="sidebar-title mt-4">Liens officiels</h5>
+                    <p className="sidebar-title mt-4">{t("jobs.official_links")}</p>
                     <p className="text-muted">
                       Aucun lien officiel disponible.
                     </p>
@@ -1161,7 +1209,7 @@ function CompanyDetailsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </article>
       <Modal
         show={showVideoModal}
         onHide={() => setShowVideoModal(false)}

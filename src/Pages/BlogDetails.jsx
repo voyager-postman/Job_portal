@@ -1,98 +1,133 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import PageSEO from "../components/PageSEO";
+import {
+  absoluteUrl,
+  buildBlogPostingSchema,
+  buildBreadcrumbSchema,
+  stripHtml,
+  SITE,
+} from "../utils/seo";
+
+const POPULAR_POSTS_LIMIT = 5;
 
 function BlogDetails() {
   const { t, i18n } = useTranslation("global");
   const { id } = useParams();
   const [blog, setBlog] = useState(null);
+  const [popularPosts, setPopularPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const getBlogDetails = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}getActiveBlogs`);
-
-      if (res.data.success) {
-        const selectedBlog = res.data.data.find(
-          (item) => item._id === id || item.slug === id,
-        );
-
-        if (selectedBlog) {
-          setBlog(selectedBlog);
-          setError(null);
-        } else {
-          setError("Blog not found");
-        }
-      } else {
-        setError("Blog not found");
-      }
-    } catch (error) {
-      console.error("Error Fetching Blog Details:-", error);
-      setError("Failed to load blog details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      getBlogDetails();
-    }
-  }, [id]);
-
-  const cleanImageUrl = (url) => {
+  const cleanImageUrl = useCallback((url) => {
     if (!url) return "";
 
-    // ✅ Default local dashboard image
     if (url === "/jobPortal/assets/images/dashboard/images1.png") {
       return url;
     }
 
-    // ✅ Fix wrong stored URL like "/uploads/https://..."
     if (url.includes("uploads/https")) {
       return url.substring(url.indexOf("https"));
     }
 
-    // ✅ External image (Google, GitHub, etc.)
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
-    // ✅ Local uploaded image
     return `${API_IMAGE_URL}${url}`;
+  }, []);
+
+  const formatPublishDate = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString(
+      i18n.language?.startsWith("fr") ? "fr-FR" : "en-US",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      },
+    );
   };
+
+  const getBlogDetails = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_BASE_URL}getBlog/${id}`, {
+        params: { popularLimit: POPULAR_POSTS_LIMIT },
+      });
+
+      if (res.data?.success && res.data?.data) {
+        setBlog(res.data.data);
+        setPopularPosts(
+          (res.data.popularPosts || []).filter((post) => post._id !== id),
+        );
+        setError(null);
+      } else {
+        setBlog(null);
+        setPopularPosts([]);
+        setError("Blog not found");
+      }
+    } catch (fetchError) {
+      console.error("Error Fetching Blog Details:-", fetchError);
+      setBlog(null);
+      setPopularPosts([]);
+      setError("Failed to load blog details");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    getBlogDetails();
+  }, [getBlogDetails]);
 
   if (loading) {
     return (
-      <div className="blog-area pt-100 pb-70">
-        <div className="container">
-          <div className="text-center">
-            <div className="spinner-border" role="status">
-              <span className="visually-hidden">{t("header.Loading")}</span>
+      <>
+        <PageSEO
+          title={t("header.blog")}
+          description={SITE.defaultDescription}
+          canonical={`/blogDetails/${id}`}
+          robots="index, follow"
+        />
+        <div className="blog-area pt-100 pb-70">
+          <div className="container">
+            <div className="text-center">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">{t("header.Loading")}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="blog-area pt-100 pb-70">
-        <div className="container">
-          <div className="alert alert-danger" role="alert">
-            {error}
+      <>
+        <PageSEO
+          title={t("header.blog")}
+          description={SITE.defaultDescription}
+          canonical={`/blogDetails/${id}`}
+          robots="noindex, follow"
+        />
+        <div className="blog-area pt-100 pb-70">
+          <div className="container">
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+            <Link to="/blog" className="default-btn btn">
+              {t("header.Back_to_Blog_List")}
+            </Link>
           </div>
-          <Link to="/blog" className="default-btn btn">
-            {t("header.Back_to_Blog_List")}
-          </Link>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -102,56 +137,27 @@ function BlogDetails() {
 
   return (
     <>
-      <Helmet>
-        <title>{blog.title} | Job Portal</title>
-
-        <meta
-          name="description"
-          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
-        />
-
-        <link rel="canonical" href={window.location.href} />
-
-        {/* Open Graph (Facebook, LinkedIn) */}
-        <meta property="og:title" content={blog.title} />
-        <meta
-          property="og:description"
-          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
-        />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={cleanImageUrl(blog.bannerImage)} />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={blog.title} />
-        <meta
-          name="twitter:description"
-          content={blog.content?.replace(/<[^>]+>/g, "").substring(0, 150)}
-        />
-        <meta name="twitter:image" content={cleanImageUrl(blog.bannerImage)} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            headline: blog.title,
-            image: cleanImageUrl(blog.bannerImage),
-            author: {
-              "@type": "Person",
-              name: blog.authorName,
-            },
-            datePublished: blog.publishDate,
-            description: blog.content
-              ?.replace(/<[^>]+>/g, "")
-              .substring(0, 150),
-            mainEntityOfPage: window.location.href,
-          })}
-        </script>
-      </Helmet>
-      <div>
-        {/*Start Page Banner Area*/}
+      <PageSEO
+        title={blog.title}
+        description={stripHtml(blog.content)}
+        canonical={`/blogDetails/${id}`}
+        image={cleanImageUrl(blog.bannerImage)}
+        ogType="article"
+        articlePublishedTime={blog.publishDate || blog.createdAt}
+        articleAuthor={blog.authorName}
+        jsonLd={[
+          buildBlogPostingSchema(
+            blog,
+            absoluteUrl(`/blogDetails/${id}`),
+          ),
+          buildBreadcrumbSchema([
+            { name: t("header.home"), path: "/" },
+            { name: t("header.blog"), path: "/blog" },
+            { name: blog.title, path: `/blogDetails/${id}` },
+          ]),
+        ]}
+      />
+      <article>
         <div className="page-banner-area bg-f0f4fc">
           <div className="container">
             <div className="page-banner-content">
@@ -160,13 +166,15 @@ function BlogDetails() {
                 <li>
                   <Link to="/">{t("header.home")}</Link>
                 </li>
+                <li>
+                  <Link to="/blog">{t("header.blog")}</Link>
+                </li>
                 <li>{blog.title}</li>
               </ul>
             </div>
           </div>
         </div>
-        {/*End Page Banner Area*/}
-        {/*Start Blog Area*/}
+
         <div className="blog-area pt-100 pb-70">
           <div className="container">
             <div className="row">
@@ -175,7 +183,7 @@ function BlogDetails() {
                   <div className="blog-details-top-content">
                     <div className="top-image">
                       <img
-                        crossorigin="anonymous"
+                        crossOrigin="anonymous"
                         src={cleanImageUrl(blog.bannerImage)}
                         alt={blog?.title}
                       />
@@ -188,19 +196,14 @@ function BlogDetails() {
                         </li>
                         <li>
                           <i className="fa-solid fa-calendar-days" />{" "}
-                          {new Date(blog.publishDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )}
+                          {formatPublishDate(blog.publishDate)}
                         </li>
                       </ul>
                     </div>
-                    <h2>{blog.title}</h2>
-                    <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+                    <div
+                      className="blog-article-body"
+                      dangerouslySetInnerHTML={{ __html: blog.content }}
+                    />
                   </div>
                   {blog.additionalContent && (
                     <div className="blog-deails-content">
@@ -211,149 +214,65 @@ function BlogDetails() {
                       />
                     </div>
                   )}
-                  {/* <div class="tag-and-share">
-                          <div class="row align-items-center">
-                              <div class="col-lg-6 col-md-7">
-                                  <div class="tags">
-                                      <ul>
-                                          <li><i class="fa-solid fa-tag"></i></li>
-                                          <li><a href="#">SEO</a></li>
-                                          <li><a href="#">Business</a></li>
-                                          <li><a href="#">Internet</a></li>
-                                          <li><a href="#">Property</a></li>
-                                      </ul>
-                                  </div>
-                              </div>
-                              <div class="col-lg-6 col-md-5">
-                                  <div class="share">
-                                      <ul>
-                                          <li>Share:</li>
-                                          <li>
-                                              <a href="https://www.facebook.com/" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-                                          </li>
-                                          <li>
-                                              <a href="https://www.twitter.com/" target="_blank"><i class="fa-brands fa-twitter"></i></a>
-                                          </li>
-                                          <li>
-                                              <a href="https://instagram.com/?lang=en" target="_blank"><i class="fa-brands fa-instagram"></i></a>
-                                          </li>
-                                      </ul>
-                                  </div>
-                              </div>
-                          </div>
-                      </div> */}
-                  {/* <div class="reply-content">
-                          <h3>Leave A Reply</h3>
-                          <p>Your email address will not be published. Required fields are marked</p>
-                          <form>
-                              <div class="row">
-                                  <div class="col-lg-6 col-md-6">
-                                      <div class="form-group">
-                                          <input class="form-control" type="text" placeholder="Name">
-                                      </div>
-                                  </div>
-                                  <div class="col-lg-6 col-md-6">
-                                      <div class="form-group">
-                                          <input class="form-control" type="email" placeholder="Email">
-                                      </div>
-                                  </div>
-                                  <div class="col-lg-12">
-                                      <div class="form-group">
-                                          <textarea class="form-control" placeholder="Comment" rows="5"></textarea>
-                                      </div>
-                                  </div>
-                              </div>
-                          </form>
-                      </div> */}
                 </div>
               </div>
+
               <div className="col-lg-4">
                 <div className="sidebar">
-                  <div className="single-sidebar-widget search-bar">
-                    <div className="form-group">
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Search..."
-                      />
-                      <button type="submit" className="default-btn btn">
-                        <i className="flaticon-search" />
-                      </button>
+                  {popularPosts.length > 0 && (
+                    <div className="single-sidebar-widget widget-peru-posts-thumb">
+                      <h3>{t("header.blog_list")}</h3>
+                      <div className="post-wrap">
+                        {popularPosts.map((post, index) => (
+                          <article className="item" key={post._id}>
+                            <Link
+                              to={`/blogDetails/${post._id}`}
+                              className="thumb"
+                            >
+                              {post.bannerImage ? (
+                                <img
+                                  crossOrigin="anonymous"
+                                  src={cleanImageUrl(post.bannerImage)}
+                                  alt={post.title}
+                                  className="fullimage cover"
+                                />
+                              ) : (
+                                <span
+                                  className={`fullimage cover bg${
+                                    (index % 3) + 1
+                                  }`}
+                                  role="img"
+                                  aria-label={post.title}
+                                />
+                              )}
+                            </Link>
+                            <div className="info">
+                              <time dateTime={post.publishDate || ""}>
+                                {formatPublishDate(post.publishDate)}
+                              </time>
+                              <h4 className="title usmall">
+                                <Link to={`/blogDetails/${post._id}`}>
+                                  {post.title}
+                                </Link>
+                              </h4>
+                              {post.authorName && (
+                                <p className="mb-0 small text-muted">
+                                  {post.authorName}
+                                </p>
+                              )}
+                            </div>
+                            <div className="clear" />
+                          </article>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  {/* <div class="single-sidebar-widget categories">
-                          <h3>Categories</h3>
-                          <ul>
-                              <li><a href="blog-grid.html">Design</a></li>
-                              <li><a href="blog-grid.html">Lifestyle</a></li>
-                              <li><a href="blog-grid.html">Camping</a></li>
-                              <li><a href="blog-grid.html">Job</a></li>
-                              <li><a href="blog-grid.html">Device</a></li>
-                              <li><a href="blog-grid.html">Internet</a></li>
-                          </ul>
-                      </div> */}
-                  <div className="single-sidebar-widget widget-peru-posts-thumb">
-                    <h3>Popular Post</h3>
-                    <div className="post-wrap">
-                      <article className="item">
-                        <a href="blog-details.html" className="thumb">
-                          <span className="fullimage cover bg1" role="img" />
-                        </a>
-                        <div className="info">
-                          <time dateTime="2024-06-30">July 30, 2024</time>
-                          <h4 className="title usmall">
-                            <a href="blog-details.html">
-                              We’ve Weeded Through Hundreds Of Job Hunting
-                            </a>
-                          </h4>
-                        </div>
-                        <div className="clear" />
-                      </article>
-                      <article className="item">
-                        <a href="blog-details.html" className="thumb">
-                          <span className="fullimage cover bg2" role="img" />
-                        </a>
-                        <div className="info">
-                          <time dateTime="2024-06-30">July 30, 2024</time>
-                          <h4 className="title usmall">
-                            <a href="blog-details.html">
-                              Today From Connecting With Potential Employers
-                            </a>
-                          </h4>
-                        </div>
-                        <div className="clear" />
-                      </article>
-                      <article className="item">
-                        <a href="blog-details.html" className="thumb">
-                          <span className="fullimage cover bg3" role="img" />
-                        </a>
-                        <div className="info">
-                          <time dateTime="2024-06-30">July 30, 2024</time>
-                          <h4 className="title usmall">
-                            <a href="blog-details.html">
-                              We Do Friendly Behave With Our All Employee
-                            </a>
-                          </h4>
-                        </div>
-                        <div className="clear" />
-                      </article>
-                    </div>
-                  </div>
-                  {/* <div class="single-sidebar-widget tags">
-                          <h3>Tags</h3>
-                          <a href="blog-grid.html">Business</a>
-                          <a href="blog-grid.html">Internet</a>
-                          <a href="blog-grid.html">IT & Support</a>
-                          <a href="blog-grid.html">SASS</a>
-                          <a href="blog-grid.html">Tips</a>
-                          <a href="blog-grid.html">Device</a>
-                      </div> */}
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </article>
     </>
   );
 }

@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function EmployerAdminSideBar() {
+  const { t } = useTranslation("global");
   return (
     <div className="sidemenu-area">
       <div className="sidemenu-header">
@@ -23,9 +25,9 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-1.svg" alt="Dashboard" />
+                <img src="assets/images/svg-icon/icon-1.svg" alt={t("sidebar.dashboard")} />
               </span>
-              <span className="menu-title">Dashboard</span>
+              <span className="menu-title">{t("sidebar.dashboard")}</span>
             </NavLink>
           </li>
 
@@ -37,9 +39,9 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-2.svg" alt="Job Search" />
+                <img src="assets/images/svg-icon/icon-2.svg" alt={t("sidebar.job_search")} />
               </span>
-              <span className="menu-title">Job Search</span>
+              <span className="menu-title">{t("sidebar.job_search")}</span>
             </NavLink>
           </li>
 
@@ -51,13 +53,11 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-8.svg" alt="My Profile" />
+                <img src="assets/images/svg-icon/icon-8.svg" alt={t("sidebar.my_profile")} />
               </span>
-              <span className="menu-title">My Profile</span>
+              <span className="menu-title">{t("sidebar.my_profile")}</span>
             </NavLink>
           </li>
-
-          {/* Repeat for other links as needed */}
         </ul>
       </div>
     </div>

@@ -43,13 +43,52 @@
   color: #1e293b;
 }
 
-/* Hero Section */
+/* Hero Section — cover via <img crossOrigin> (uploads block CSS background-image via CORP) */
 .job-hero-section {
   position: relative;
-  background: url("https://www.technologysolutions.net/wp-content/uploads/2025/04/AdobeStock_1194898552-scaled-2560x1280.jpeg")
-    no-repeat center center / cover;
+  background-color: #1e293b;
   height: 350px;
   width: 100%;
+  overflow: hidden;
+}
+
+.job-hero-section.is-loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    #1e293b 0%,
+    #334155 45%,
+    #1e293b 90%
+  );
+  background-size: 200% 100%;
+  animation: job-hero-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes job-hero-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.job-hero-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.job-hero-cover.is-visible {
+  opacity: 1;
 }
 
 .job-hero-pattern {
@@ -63,6 +102,7 @@
     rgba(0, 0, 0, 0.1) 0%,
     rgba(0, 0, 0, 0.4) 100%
   );
+  pointer-events: none;
 }
 
 /* Branding Area */

@@ -3,9 +3,10 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../Url/Url";
 import { API_IMAGE_URL } from "../Url/Url";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import {isAuthReady, getRequestConfig } from "../utils/apiHeaders";
 
 import Swal from "sweetalert2";
 import {
@@ -433,9 +434,7 @@ function ManagesApplicants() {
     try {
       setLoading(true);
 
-      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
+      const res = await axios.get(`${API_BASE_URL}getAllApplicantsPerCompany`, getRequestConfig({ params: {
           search: customSearch || undefined,
           skills:
             customFilters.selectedSkills?.length > 0
@@ -471,7 +470,8 @@ function ManagesApplicants() {
           page,
           limit: perPage,
         },
-      });
+      }),
+      );
 
       const applicants = res.data.applicants || [];
 
@@ -551,12 +551,36 @@ function ManagesApplicants() {
   ]);
 
   useEffect(() => {
-    if (selectedCandidate?._id) {
-      fetchCandidateDetails(selectedCandidate._id);
+    if (selectedCandidateId) {
+      fetchCandidateDetails(selectedCandidateId);
     }
-  }, [selectedCandidate]);
+  }, [selectedCandidateId]);
+
+  const mergeApplicantDetails = (current, detail) => {
+    if (!detail) return current;
+    if (!current || String(current._id) !== String(detail._id)) return detail;
+
+    return {
+      ...current,
+      ...detail,
+      userId: {
+        ...current.userId,
+        ...detail.userId,
+        candidateProfile: {
+          ...current.userId?.candidateProfile,
+          ...detail.userId?.candidateProfile,
+        },
+      },
+      jobId:
+        typeof detail.jobId === "object"
+          ? { ...current.jobId, ...detail.jobId }
+          : detail.jobId || current.jobId,
+    };
+  };
+
   const fetchCandidateDetails = async (id) => {
-    console.log(id);
+    if (!id) return;
+
     try {
       setDetailsLoading(true);
 
@@ -568,13 +592,57 @@ function ManagesApplicants() {
         },
       });
 
-      setCandidateDetails(res.data?.applicant);
+      const applicants = res.data?.applicants?.length
+        ? res.data.applicants
+        : res.data?.applicant
+          ? [res.data.applicant]
+          : [];
+
+      const detail =
+        applicants.find((item) => String(item._id) === String(id)) ||
+        applicants[0];
+
+      if (!detail) return;
+
+      setCandidateDetails(detail);
+      setSelectedCandidate((prev) => mergeApplicantDetails(prev, detail));
+      setCandidates((prev) =>
+        prev.map((item) =>
+          String(item._id) === String(detail._id)
+            ? mergeApplicantDetails(item, detail)
+            : item,
+        ),
+      );
     } catch (err) {
       console.error("Error fetching candidate details:", err);
     } finally {
       setDetailsLoading(false);
     }
   };
+
+  const filterEmptyValues = (values) => {
+    if (!Array.isArray(values)) return [];
+    return values.filter((value) => String(value || "").trim());
+  };
+
+  const getApplicantProfile = (applicant) =>
+    applicant?.userId?.candidateProfile || null;
+
+  const getApplicantAboutRole = (applicant) =>
+    getApplicantProfile(applicant)?.aboutRole || null;
+
+  const getApplicantJobTitle = (applicant) => {
+    const aboutTitle = getApplicantAboutRole(applicant)?.jobTitle?.trim();
+    if (aboutTitle) return aboutTitle;
+    return applicant?.jobId?.jobTitle || "N/A";
+  };
+
+  const getApplicantExperience = (applicant) => {
+    const experience = getApplicantAboutRole(applicant)?.yearOfExperience;
+    if (experience) return experience;
+    return applicant?.yearOfExperience || "0";
+  };
+
   const getResumeUrl = () => getApplicantCvSource(selectedCandidate);
 
   const getCoverLetterUrl = () =>
@@ -689,7 +757,7 @@ function ManagesApplicants() {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
-          if (!token) {
+          if (!isAuthReady()) {
             toast.error(t("header.You_need_to_log_in_first"));
             return;
           }
@@ -697,9 +765,7 @@ function ManagesApplicants() {
           const response = await axios.post(
             `${API_BASE_URL}deleteApplicant/${id}`,
             {},
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
+            getRequestConfig(),
           );
 
           if (response.data.success) {
@@ -930,7 +996,6 @@ function ManagesApplicants() {
   console.log(selectedCandidate);
   return (
     <>
-      <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
@@ -1062,7 +1127,7 @@ function ManagesApplicants() {
 
                 return (
                   <button
-                    key={statusItem}
+                    key={statusItem.value || statusItem.label}
                     onClick={() => {
                       setSelectedFilter(statusItem.label);
                       setStatus(statusItem.value); // ✅ send correct API value
@@ -1936,7 +2001,7 @@ function ManagesApplicants() {
             <section className="employer-candidate-info-area">
               <div className="row">
                 <div
-                  className="col-lg-4 d-none d-lg-block"
+                  className="col-12 col-lg-4"
                   style={{
                     "-webkit-flex": "0 0 30%",
                     "-ms-flex": "0 0 30%",
@@ -2169,14 +2234,14 @@ function ManagesApplicants() {
                                 >
                                   <span className="d-flex align-items-center gap-1 text-primary fw-bold">
                                     <i className="fa-solid fa-briefcase" />
-                                    {about?.yearOfExperience || 0} Years
+                                    {getApplicantExperience(item)} Years
                                   </span>
 
                                   <span>•</span>
 
                                   <span className="d-flex align-items-center gap-1">
                                     <i className="fa-solid fa-location-dot text-danger" />
-                                    {profile?.location?.city || "N/A"}
+                                 {item.userId?.city || "N/A"}
                                   </span>
                                 </div>
 
@@ -2224,7 +2289,7 @@ function ManagesApplicants() {
                 </div>
                 {selectedCandidate ? (
                   <div
-                    className="col-lg-8"
+                    className="col-12 col-lg-8"
                     style={{
                       "-webkit-flex": "0 0 70%",
                       "-ms-flex": "0 0 70%",
@@ -2272,9 +2337,7 @@ function ManagesApplicants() {
                                   className="text-primary fw-medium mb-2"
                                   style={{ "font-size": "16px" }}
                                 >
-                                  {" "}
-                                  {selectedCandidate?.userId?.candidateProfile
-                                    ?.aboutRole?.jobTitle || "N/A"}
+                                  {getApplicantJobTitle(selectedCandidate)}
                                 </p>
                               </div>
                               <div className="d-flex gap-2">
@@ -2456,9 +2519,9 @@ function ManagesApplicants() {
                               </span>
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-briefcase text-info" />
-                                {selectedCandidate?.userId?.candidateProfile
-                                  ?.aboutRole?.yearOfExperience
-                                  ? `${selectedCandidate.userId.candidateProfile.aboutRole.yearOfExperience}+ Years Exp.`
+                                {getApplicantExperience(selectedCandidate) &&
+                                getApplicantExperience(selectedCandidate) !== "0"
+                                  ? `${getApplicantExperience(selectedCandidate)}+ Years Exp.`
                                   : "N/A"}
                               </span>
                             </div>
@@ -3114,17 +3177,16 @@ function ManagesApplicants() {
                                       </div>
 
                                       <div className="fw-bold small">
-                                        {Array.isArray(
-                                          selectedCandidate?.userId
-                                            ?.candidateProfile?.career_goals
-                                            ?.DesiredJobTitle,
-                                        )
-                                          ? selectedCandidate.userId.candidateProfile.career_goals.DesiredJobTitle.join(
-                                            ", ",
-                                          )
-                                          : selectedCandidate?.userId
-                                            ?.candidateProfile?.career_goals
-                                            ?.DesiredJobTitle || "NA"}
+                                        {(() => {
+                                          const titles = filterEmptyValues(
+                                            selectedCandidate?.userId
+                                              ?.candidateProfile?.career_goals
+                                              ?.DesiredJobTitle,
+                                          );
+                                          return titles.length > 0
+                                            ? titles.join(", ")
+                                            : "NA";
+                                        })()}
                                       </div>
                                     </div>
 
@@ -3141,35 +3203,24 @@ function ManagesApplicants() {
                                       </div>
 
                                       <div className="d-flex flex-wrap gap-1">
-                                        {Array.isArray(
+                                        {filterEmptyValues(
                                           selectedCandidate?.userId
                                             ?.candidateProfile?.career_goals
                                             ?.DesiredEmploymentType,
-                                        ) ? (
-                                          selectedCandidate.userId.candidateProfile.career_goals.DesiredEmploymentType.map(
-                                            (type, index) => (
-                                              <span
-                                                key={index}
-                                                className="badge bg-white text-dark border px-2 py-1"
-                                                style={{ fontSize: "10px" }}
-                                              >
-                                                {type}
-                                              </span>
-                                            ),
-                                          )
-                                        ) : selectedCandidate?.userId
-                                          ?.candidateProfile?.career_goals
-                                          ?.DesiredEmploymentType ? (
-                                          <span
-                                            className="badge bg-white text-dark border px-2 py-1"
-                                            style={{ fontSize: "10px" }}
-                                          >
-                                            {
-                                              selectedCandidate.userId
-                                                .candidateProfile.career_goals
-                                                .DesiredEmploymentType
-                                            }
-                                          </span>
+                                        ).length > 0 ? (
+                                          filterEmptyValues(
+                                            selectedCandidate.userId
+                                              .candidateProfile.career_goals
+                                              .DesiredEmploymentType,
+                                          ).map((type, index) => (
+                                            <span
+                                              key={index}
+                                              className="badge bg-white text-dark border px-2 py-1"
+                                              style={{ fontSize: "10px" }}
+                                            >
+                                              {type}
+                                            </span>
+                                          ))
                                         ) : (
                                           <span className="text-muted small">
                                             NA
@@ -3191,17 +3242,16 @@ function ManagesApplicants() {
                                       </div>
 
                                       <div className="fw-bold small">
-                                        {Array.isArray(
-                                          selectedCandidate?.userId
-                                            ?.candidateProfile?.career_goals
-                                            ?.DesiredJobCategory,
-                                        )
-                                          ? selectedCandidate.userId.candidateProfile.career_goals.DesiredJobCategory.join(
-                                            ", ",
-                                          )
-                                          : selectedCandidate?.userId
-                                            ?.candidateProfile?.career_goals
-                                            ?.DesiredJobCategory || "NA"}
+                                        {(() => {
+                                          const categories = filterEmptyValues(
+                                            selectedCandidate?.userId
+                                              ?.candidateProfile?.career_goals
+                                              ?.DesiredJobCategory,
+                                          );
+                                          return categories.length > 0
+                                            ? categories.join(", ")
+                                            : "NA";
+                                        })()}
                                       </div>
                                     </div>
 
@@ -3477,7 +3527,7 @@ function ManagesApplicants() {
             >
               <div className="card border-0 shadow-sm rounded-0 w-100">
                 <div className="card-body p-0">
-                  <div className=" w-100">
+                  <div className="table-responsive w-100">
                     <table
                       className="table table-hover align-top mb-0 w-100"
                       style={{ "font-size": "14px" }}

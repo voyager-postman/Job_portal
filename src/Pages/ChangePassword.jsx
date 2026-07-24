@@ -1,41 +1,42 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { putChangePassword, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
-import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
+import "../Main.css";
 
 const ChangePassword = () => {
+  const { t } = useTranslation("global");
+  const userRole = localStorage.getItem("user_role");
+  const dashboardPath =
+    userRole === "JobSeeker" ? "/candidate-dashboard" : "/employer-dashboard";
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const changePassword = async (e) => {
-    e.preventDefault(); // prevent page reload
+    e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      toast.error("New password and confirm password do not match");
+      toast.error(t("settings.password_mismatch"));
       return;
     }
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("token"); // adjust key as per your app
+      const response = await putChangePassword({
+        oldPassword,
+        newPassword,
+        confirmPassword,
+      });
 
-      const response = await putChangePassword(
-        {
-          oldPassword,
-          newPassword,
-          confirmPassword,
-        },
-        token,
+      toast.success(
+        response.data?.message || t("settings.password_changed_success"),
       );
-
-      toast.success(response.data?.message || "Password changed successfully");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -45,7 +46,9 @@ const ChangePassword = () => {
         return;
       }
 
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      toast.error(
+        error?.response?.data?.message || t("settings.something_wrong"),
+      );
     } finally {
       setLoading(false);
     }
@@ -56,118 +59,85 @@ const ChangePassword = () => {
       <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          <div className="container">
-            {/* <!-- Breadcrumb Area --> */}
-            <div className="breadcrumb-area">
-              <h1>Change Password</h1>
-              <ol className="breadcrumb">
-                <li className="item">
-                  <Link to="/">Home </Link>
-                </li>
-                <li className="item">
-                  <Link to="/employer-dashboard">
-                    <i className="fa-solid fa-angle-right" /> Dashboard
-                  </Link>
-                </li>
-                <li className="item">
-                <Link to="/change-password">
-                  <i className="fa-solid fa-angle-right" />
-                  Change Password
+          <div className="breadcrumb-area">
+            <h1>{t("settings.change_password_title")}</h1>
+            <ol className="breadcrumb">
+              <li className="item">
+                <Link to="/">{t("header.home")}</Link>
+              </li>
+              <li className="item">
+                <Link to={dashboardPath}>
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
-                </li>
-              </ol>
-            </div>
-            {/* <!-- End Breadcrumb Area --> */}
-
-            {/* <!--Start My Profile Area--> */}
-            <div className="my-profile-area">
-              <div className="profile-form-content">
-                <h3>Change Password</h3>
-                <div className="profile-form">
-                  <form onSubmit={changePassword}>
-                    <div className="row">
-                      <div className="col-lg-12 col-md-6">
-                        <div className="form-group">
-                          <label>Current Password</label>
-                          <input
-                            className="form-control"
-                            type="password"
-                            placeholder="Current Password"
-                            value={oldPassword}
-                            onChange={(e) => setOldPassword(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="col-lg-12 col-md-6">
-                        <div className="form-group">
-                          <label>New Password</label>
-                          <input
-                            className="form-control"
-                            type="password"
-                            placeholder="New Password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="col-lg-12 col-md-6">
-                        <div className="form-group">
-                          <label>Confirm New Password</label>
-                          <input
-                            className="form-control"
-                            type="password"
-                            placeholder="Confirm New Password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="create-recruiters-btn">
-                      <button
-                        type="submit"
-                        className="default-btn btn"
-                        disabled={loading}
-                      >
-                        {loading ? "Updating..." : "Save Changes"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-            {/* <!--End My Profile Area--> */}
-
-            <div className="copy-right-area bg-f0f4fc">
-            <div className="row">
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-left-content">
-                  <p>
-                    {" "}
-                    <span className="copy">© </span>
-                    <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6">
-                <div className="copyright-right-content">
-                  <p>
-                    Designed By{" "}
-                    <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </div>
+              </li>
+              <li className="item">
+                <i className="fa-solid fa-angle-right" />{" "}
+                {t("settings.change_password_title")}
+              </li>
+            </ol>
           </div>
+
+          <div className="my-profile-area change-password-page">
+            <div className="profile-form-content change-password-card">
+              <h3 className="change-password-card-title">
+                {t("settings.change_password_title")}
+              </h3>
+              <div className="profile-form">
+                <form onSubmit={changePassword}>
+                  <div className="row g-4">
+                    <div className="col-lg-4 col-md-12">
+                      <div className="form-group">
+                        <label>{t("settings.current_password")}</label>
+                        <input
+                          className="form-control"
+                          type="password"
+                          placeholder={t("settings.current_password")}
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-4 col-md-12">
+                      <div className="form-group">
+                        <label>{t("settings.new_password")}</label>
+                        <input
+                          className="form-control"
+                          type="password"
+                          placeholder={t("settings.new_password")}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-4 col-md-12">
+                      <div className="form-group">
+                        <label>{t("settings.confirm_new_password")}</label>
+                        <input
+                          className="form-control"
+                          type="password"
+                          placeholder={t("settings.confirm_new_password")}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="change-password-form-actions">
+                    <button
+                      type="submit"
+                      className="default-btn btn"
+                      disabled={loading}
+                    >
+                      {loading ? t("settings.updating") : t("settings.save_changes")}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </div>

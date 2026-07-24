@@ -4,6 +4,15 @@ import { API_BASE_URL } from "../Url/Url";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { getRequestConfig } from "../utils/apiHeaders";
+import {
+  formatCreditAmount,
+  getPackDaysLeft,
+  getPackExpiryDate,
+  hasNoPackExpiry,
+  hasUnlimitedCredits,
+} from "../utils/packCreditDisplay";
+import { isCompanyProfileHighlightEnabled } from "../utils/featuredJobDisplay";
 const EmployerWallet = () => {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
@@ -38,9 +47,7 @@ const EmployerWallet = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE_URL}credit-status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${API_BASE_URL}credit-status`, getRequestConfig());
       // console.log(response.data.data);
       setCredits(response.data.data);
     } catch (error) {
@@ -78,9 +85,7 @@ const EmployerWallet = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${API_BASE_URL}recharge-track`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}recharge-track`, getRequestConfig());
       console.log("Recharge API Response:", res.data.data); // 👈 add this
       setRechargeRequests(res.data.data || []);
     } catch (error) {
@@ -385,18 +390,28 @@ const EmployerWallet = () => {
 
                             {/* Validity */}
                             <div className="user-wallet-credit-box">
-                              <h3>{welcomePack.daysLeft} Days</h3>
-                              <h4>Pack Validity</h4>
-                              <p>
-                                Expiry:{" "}
-                                {new Date(
-                                  welcomePack.expiresAt,
-                                ).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
-                              </p>
+                              {hasNoPackExpiry(welcomePack) ? (
+                                <>
+                                  <h3>Unlimited</h3>
+                                  <h4>Pack Validity</h4>
+                                  <p>No expiry</p>
+                                </>
+                              ) : (
+                                <>
+                                  <h3>{welcomePack.daysLeft ?? 0} Days</h3>
+                                  <h4>Pack Validity</h4>
+                                  <p>
+                                    Expiry:{" "}
+                                    {new Date(
+                                      getPackExpiryDate(welcomePack),
+                                    ).toLocaleDateString("en-GB", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </p>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -435,26 +450,23 @@ const EmployerWallet = () => {
                               {/* Job Credits */}
                               <div className="user-wallet-credit-box">
                                 <h3>
-                                  {" "}
-                                  <h3>
-                                    {purchasedPack.jobCreditsTotal === -1
-                                      ? "Unlimited"
-                                      : `${purchasedPack.jobCreditsTotal - purchasedPack.jobCreditsRemaining}/${purchasedPack.jobCreditsTotal}`}
-                                  </h3>
-                                  <h4>Total Job Credits</h4>
-                                  <p>
-                                    Remaining:{" "}
-                                    {purchasedPack.jobCreditsRemaining === -1
-                                      ? "Unlimited"
-                                      : purchasedPack.jobCreditsRemaining}
-                                  </p>
+                                  {hasUnlimitedCredits(purchasedPack)
+                                    ? "Unlimited"
+                                    : `${purchasedPack.jobCreditsTotal - purchasedPack.jobCreditsRemaining}/${purchasedPack.jobCreditsTotal}`}
                                 </h3>
+                                <h4>Total Job Credits</h4>
+                                <p>
+                                  Remaining:{" "}
+                                  {formatCreditAmount(
+                                    purchasedPack.jobCreditsRemaining,
+                                  )}
+                                </p>
                               </div>
 
                               {/* Profile Credits */}
                               <div className="user-wallet-credit-box">
                                 <h3>
-                                  {purchasedPack.profileCreditsTotal === -1
+                                  {hasUnlimitedCredits(purchasedPack)
                                     ? "Unlimited"
                                     : `${purchasedPack.profileCreditsTotal - purchasedPack.profileCreditsRemaining}/${purchasedPack.profileCreditsTotal}`}
                                 </h3>
@@ -463,9 +475,9 @@ const EmployerWallet = () => {
 
                                 <p>
                                   Remaining:{" "}
-                                  {purchasedPack.profileCreditsRemaining === -1
-                                    ? "Unlimited"
-                                    : purchasedPack.profileCreditsRemaining}
+                                  {formatCreditAmount(
+                                    purchasedPack.profileCreditsRemaining,
+                                  )}
                                 </p>
                               </div>
 
@@ -493,18 +505,28 @@ const EmployerWallet = () => {
 
                               {/* Validity */}
                               <div className="user-wallet-credit-box">
-                                <h3>{purchasedPack.daysLeft} Days</h3>
-                                <h4>Pack Validity</h4>
-                                <p>
-                                  Expiry:{" "}
-                                  {new Date(
-                                    purchasedPack.expiresAt,
-                                  ).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })}
-                                </p>
+                                {hasNoPackExpiry(purchasedPack) ? (
+                                  <>
+                                    <h3>Unlimited</h3>
+                                    <h4>Pack Validity</h4>
+                                    <p>No expiry</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <h3>{getPackDaysLeft(purchasedPack) ?? 0} Days</h3>
+                                    <h4>Pack Validity</h4>
+                                    <p>
+                                      Expiry:{" "}
+                                      {new Date(
+                                        getPackExpiryDate(purchasedPack),
+                                      ).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                      })}
+                                    </p>
+                                  </>
+                                )}
                               </div>
                               {/* Featured Job Credits */}
                               {/* Featured Jobs */}
@@ -543,7 +565,7 @@ const EmployerWallet = () => {
                               )}
 
                               {/* Company Profile Highlight */}
-                              {purchasedPack.features?.hasProfileHighlight && (
+                              {isCompanyProfileHighlightEnabled(purchasedPack) && (
                                 <div className="user-wallet-credit-box">
                                   <h3>Enabled</h3>
 

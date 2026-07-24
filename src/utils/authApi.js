@@ -1,11 +1,14 @@
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
+import { getAuthHeaders } from "./apiHeaders";
 import {
   assertSecureApiTransport,
   getInsecureTransportMessage,
   preparePasswordField,
   preparePasswordFields,
 } from "./secureCredentials";
+
+const AUTH_AXIOS_CONFIG = { withCredentials: true };
 
 const buildAuthError = (code, message) => {
   const error = new Error(message);
@@ -20,7 +23,7 @@ const securePost = async (url, body, config = {}) => {
     throw buildAuthError("INSECURE_API_TRANSPORT", getInsecureTransportMessage());
   }
 
-  return axios.post(url, body, config);
+  return axios.post(url, body, { ...AUTH_AXIOS_CONFIG, ...config });
 };
 
 const securePut = async (url, body, config = {}) => {
@@ -30,7 +33,7 @@ const securePut = async (url, body, config = {}) => {
     throw buildAuthError("INSECURE_API_TRANSPORT", getInsecureTransportMessage());
   }
 
-  return axios.put(url, body, config);
+  return axios.put(url, body, { ...AUTH_AXIOS_CONFIG, ...config });
 };
 
 export const postUserLogin = async ({ email, password, role }) => {
@@ -67,25 +70,23 @@ export const postCompanyRegister = async ({ email, password, ...rest }) => {
   });
 };
 
-export const putChangePassword = async (
-  { oldPassword, newPassword, confirmPassword },
-  token,
-) => {
+export const postUserLogout = async () =>
+  securePost(`${API_BASE_URL}user/logout`, {});
+
+export const putChangePassword = async ({
+  oldPassword,
+  newPassword,
+  confirmPassword,
+}) => {
   const passwordFields = await preparePasswordFields({
     oldPassword,
     newPassword,
     confirmPassword,
   });
 
-  return securePut(
-    `${API_BASE_URL}/change-password`,
-    passwordFields,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  return securePut(`${API_BASE_URL}/change-password`, passwordFields, {
+    headers: getAuthHeaders(),
+  });
 };
 
 export const isInsecureTransportError = (error) =>

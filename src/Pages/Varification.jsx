@@ -1,53 +1,101 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MdEmail } from "react-icons/md";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios"
+import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
+import {
+  extractLoginToken,
+  getRequestConfig,
+  getUserToken,
+  isAuthReady,
+  persistAuthToken,
+  resolveAuthToken,
+} from "../utils/apiHeaders";
 
 const VerifyEmail = () => {
+  const { t } = useTranslation("global");
   const location = useLocation();
   const navigate = useNavigate();
-  const { email, token, showToast } = location.state || {};
+  const queryParams = new URLSearchParams(location.search);
+  const stateEmail = location.state?.email;
+  const stateToken = location.state?.token;
+  const showToast = location.state?.showToast;
+
+  const email =
+    stateEmail ||
+    queryParams.get("email") ||
+    localStorage.getItem("user_email") ||
+    "";
 
   const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  /* ✅ Show initial toast */
+  const getSessionToken = useCallback(() => {
+    const queryToken = new URLSearchParams(location.search).get("token");
+    return resolveAuthToken(stateToken, queryToken, getUserToken());
+  }, [stateToken, location.search]);
+
+  useEffect(() => {
+    if (email) {
+      localStorage.setItem("user_email", email);
+    }
+    const token = getSessionToken();
+    if (token) {
+      persistAuthToken(token);
+    }
+  }, [email, getSessionToken]);
+
   useEffect(() => {
     if (showToast) {
-      toast.info("Please check your email for verification.");
+      toast.info(t("verification.check_email_toast"));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
-  /* ✅ Check verification status */
   const checkVerificationStatus = async () => {
-    if (!token) return;
+    if (!email) return;
+
+    const sessionToken = getSessionToken();
+    if (!sessionToken && !isAuthReady()) return;
 
     try {
-      const res = await axios.get(`${API_BASE_URL}checkVerificationStatus`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log(res);
+      const statusUrl = email
+        ? `${API_BASE_URL}checkVerificationStatus?email=${encodeURIComponent(email)}`
+        : `${API_BASE_URL}checkVerificationStatus`;
+
+      const config = getRequestConfig();
+      if (sessionToken) {
+        config.headers = {
+          ...config.headers,
+          Authorization: `Bearer ${sessionToken}`,
+        };
+      }
+
+      const res = await axios.get(statusUrl, config);
+
       if (res.data?.verified === true && !isVerified) {
         setIsVerified(true);
 
-        toast.success("Email verified successfully!", {
+        const authToken = resolveAuthToken(
+          extractLoginToken(res.data),
+          sessionToken,
+          getUserToken(),
+        );
+        if (authToken) {
+          persistAuthToken(authToken);
+        }
+
+        toast.success(t("verification.email_verified_toast"), {
           containerId: "verify-email-toast",
           autoClose: 2000,
         });
 
-        // ✅ Auto redirect after short delay
         setTimeout(() => {
-          const redirectUrl =
-            `https://itdevelopmentservices.com/jobPortal/account-verified` +
-            `?email=${encodeURIComponent(email)}` +
-            `&role=${encodeURIComponent(res.data.role || "JobSeeker")}` +
-            `&token=${encodeURIComponent(token)}`;
-
-          window.location.href = redirectUrl; // 👈 external redirect
+          const params = new URLSearchParams();
+          params.set("email", email);
+          params.set("role", res.data.role || "JobSeeker");
+          navigate(`/account-verified?${params.toString()}`, { replace: true });
         }, 2000);
       }
     } catch (error) {
@@ -55,21 +103,17 @@ const VerifyEmail = () => {
     }
   };
 
-  /* ✅ Auto-check every 5 seconds */
   useEffect(() => {
     if (!email || isVerified) return;
 
-    const interval = setInterval(() => {
-      checkVerificationStatus();
-    }, 5000);
-
+    checkVerificationStatus();
+    const interval = setInterval(checkVerificationStatus, 5000);
     return () => clearInterval(interval);
   }, [email, isVerified]);
 
-  /* ✅ Resend email */
   const handleResendVerification = async () => {
     if (!email) {
-      toast.error("Email is required.", {
+      toast.error(t("verification.email_required"), {
         containerId: "verify-email-toast",
       });
       return;
@@ -82,7 +126,7 @@ const VerifyEmail = () => {
       });
 
       if (res.data.success) {
-        toast.success("Verification email resent!", {
+        toast.success(t("verification.verification_resent"), {
           containerId: "verify-email-toast",
         });
       } else {
@@ -97,11 +141,6 @@ const VerifyEmail = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  /* ✅ Continue after verification */
-  const handleContinue = () => {
-    navigate("/login"); // or dashboard
   };
 
   return (
@@ -125,8 +164,8 @@ const VerifyEmail = () => {
             </span>
           </div>
 
-          <h2>Please verify your email</h2>
-          <p>We sent a verification email to</p>
+          <h1>{t("verification.verify_email_title")}</h1>
+          <p>{t("verification.verify_email_sent")}</p>
           <p className="email">{email}</p>
 
           <button
@@ -134,7 +173,9 @@ const VerifyEmail = () => {
             onClick={handleResendVerification}
             disabled={loading}
           >
-            {loading ? "Sending..." : "Resend Verification Email"}
+            {loading
+              ? t("verification.sending")
+              : t("verification.resend_verification")}
           </button>
         </div>
       </div>

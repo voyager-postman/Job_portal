@@ -7,7 +7,8 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import PageSEO from "../components/PageSEO";
+import { absoluteUrl, buildBreadcrumbSchema } from "../utils/seo";
 import Slider from "react-slick";
 import { ToastContainer, toast } from "react-toastify";
 import { useDebounce } from "../hooks/useDebounce";
@@ -78,7 +79,7 @@ const Employers = () => {
           justifyContent: "center",
         }}
       >
-        <div className="custom-spinner mb-3" role="status" aria-label="Loading" />
+        <div className="custom-spinner mb-3" role="status" aria-label={t("header.Loading")} />
         <p className="text-muted mb-0">{message}</p>
       </div>
     </div>
@@ -94,7 +95,7 @@ const Employers = () => {
         padding: "20px",
       }}
     >
-      <div className="custom-spinner mb-3" role="status" aria-label="Loading" />
+      <div className="custom-spinner mb-3" role="status" aria-label={t("header.Loading")} />
       <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
         Loading companies...
       </p>
@@ -415,7 +416,7 @@ const Employers = () => {
                   ? `${API_IMAGE_URL}${company?.coverPhoto}`
                   : "/jobPortal/assets/images/company/company-img-1.jpg"
               }
-              alt={company?.brandName || "Company Cover"}
+              alt={company?.brandName || t("companies.company_cover")}
             />
             <div className="premium-overlay" />
           </div>
@@ -436,7 +437,7 @@ const Employers = () => {
                     ? `${API_IMAGE_URL}${company?.logo}`
                     : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                 }
-                alt={company?.brandName || "Company Logo"}
+                alt={company?.brandName || t("companies.company_logo")}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -445,12 +446,12 @@ const Employers = () => {
               />
             </div>
 
-            <h4
+            <h3
               className="premium-title text-truncate"
               title={company?.brandName}
             >
               {company?.brandName}
-            </h4>
+            </h3>
 
             <div
               className="premium-details d-flex flex-column mb-3"
@@ -481,7 +482,7 @@ const Employers = () => {
                   }}
                 >
                   {stripHtml(company?.aboutCompany) ||
-                    "No description available"}
+                    t("companies.no_description")}
                 </p>
               </div>
 
@@ -550,59 +551,70 @@ const Employers = () => {
       </div>
     );
   };
+
+  const activeCompanies =
+    companies?.companies?.length > 0
+      ? companies.companies
+      : [
+          ...(companies?.sections?.companiesOfMoment || []),
+          ...(companies?.sections?.partnerCompanies || []),
+          ...(companies?.sections?.justJoinedUs || []),
+        ];
+
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} />
-      <Helmet>
-        {/* Basic SEO */}
-        <title>Companies | Job Portal</title>
-        <meta
-          name="description"
-          content="Browse top companies, explore industries and find your dream employer."
-        />
-
-        <link rel="canonical" href={window.location.href} />
-
-        {/* Open Graph (Facebook, LinkedIn) */}
-        <meta property="og:title" content="Companies | Job Portal" />
-        <meta
-          property="og:description"
-          content="Browse top companies and explore job opportunities."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
-        <meta
-          property="og:image"
-          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-        />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Companies | Job Portal" />
-        <meta
-          name="twitter:description"
-          content="Find companies hiring near you."
-        />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
+      <PageSEO
+        title={t("header.companies")}
+        description={t("seo.pages.companies-list.description", {
+          defaultValue:
+            "Browse top companies, explore industries, and find your dream employer on Connect Work.ma.",
+        })}
+        canonical="/companies"
+        image="/assets/images/banner/inner-banner-img.jpg"
+        jsonLd={[
+          {
             "@context": "https://schema.org",
-            "@type": "ItemList",
-            name: "Company Listings",
-            description: "List of companies available on Job Portal",
-            url: window.location.href,
-            numberOfItems: companies?.companies?.length || 0,
-            itemListElement:
-              companies?.companies?.map((item, index) => ({
-                "@type": "ListItem",
-                position: index + 1,
-                name: item?.companyId?.brandName,
-                url: `${window.location.origin}/jobPortal/${item?.companyId?.slug}`,
-              })) || [],
-          })}
-        </script>
-      </Helmet>
+            "@type": "CollectionPage",
+            name: t("header.companies"),
+            url: absoluteUrl("/companies"),
+            description: t("seo.pages.companies-list.description", {
+              defaultValue:
+                "Browse top companies, explore industries, and find your dream employer on Connect Work.ma.",
+            }),
+          },
+          activeCompanies.length > 0
+            ? {
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                name: t("companies.search_company_list"),
+                description: "List of companies available on Connect Work.ma",
+                url: absoluteUrl("/companies"),
+                numberOfItems: activeCompanies.length,
+                itemListElement: activeCompanies
+                  .map((item, index) => {
+                    const comp = item?.companyId || item;
+                    if (!comp || (!comp.brandName && !comp.companyName)) return null;
+                    return {
+                      "@type": "ListItem",
+                      position: index + 1,
+                      item: {
+                        "@type": "Organization",
+                        name: comp.brandName || comp.companyName || "",
+                        url: absoluteUrl(`/${comp.slug || ""}`),
+                        logo: comp.logo ? `${API_IMAGE_URL}${comp.logo}` : undefined,
+                      },
+                    };
+                  })
+                  .filter(Boolean),
+              }
+            : null,
+          buildBreadcrumbSchema([
+            { name: t("header.home"), path: "/" },
+            { name: t("header.companies"), path: "/companies" },
+          ]),
+        ]}
+      />
       <section
         className="inner-banners-info-area"
         style={{
@@ -629,7 +641,9 @@ const Employers = () => {
           }}
         >
           <img
-            alt="Banner Img"
+            alt={t("companies.search_company_list", {
+              defaultValue: "Our Partner Companies",
+            })}
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             style={{
               width: "100%",
@@ -659,7 +673,7 @@ const Employers = () => {
             <div className="row justify-content-center">
               <div className="col-lg-8 col-md-10 text-center">
                 <div className="inner-page-banner-title">
-                  <h2
+                  <h1
                     className="fw-bold text-white mb-3"
                     style={{
                       "font-size": "2.5rem",
@@ -668,12 +682,10 @@ const Employers = () => {
                       "letter-spacing": "1px",
                     }}
                   >
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Our Partner Companies
-                      </font>
-                    </font>
-                  </h2>
+                    {t("companies.search_company_list", {
+                      defaultValue: "Our Partner Companies",
+                    })}
+                  </h1>
                   <ul
                     className="d-inline-flex align-items-center justify-content-center px-4 py-2 rounded-pill shadow-sm m-0"
                     style={{
@@ -770,9 +782,9 @@ const Employers = () => {
                 )}
                 <div className="row align-items-start">
                   <div className="col-lg-4 col-md-4 mb-3 mb-lg-0">
-                    <h5 className="filter-title mb-3 text-start">
+                    <label className="filter-title mb-3 text-start d-block fw-bold h6">
                       Search for a company
-                    </h5>
+                    </label>
 
                     <div className="search-company-input">
                       <i className="fa-solid fa-magnifying-glass search-icon" />
@@ -791,9 +803,9 @@ const Employers = () => {
                     </small>
                   </div>
                   <div className="col-lg-4 col-md-4 mb-3 mb-lg-0">
-                    <h5 className="filter-title mb-3 text-start">
+                    <label className="filter-title mb-3 text-start d-block fw-bold h6">
                       Business sector
-                    </h5>
+                    </label>
 
                     <div className="job-filter-select-info">
                       <div
@@ -901,9 +913,9 @@ const Employers = () => {
                     </div>
                   </div>
                   <div className="col-lg-4 col-md-4 mb-3 mb-lg-0">
-                    <h5 className="filter-title mb-3 text-start">
+                    <label className="filter-title mb-3 text-start d-block fw-bold h6">
                       City or country
-                    </h5>
+                    </label>
 
                     <div className="search-company-input">
                       <i className="fa-solid fa-location-dot search-icon" />
@@ -934,7 +946,7 @@ const Employers = () => {
                               className="section-title text-start m-0"
                               style={{ margin: "0px" }}
                             >
-                              <h3
+                              <h2
                                 className="fw-bold d-inline-block"
                                 style={{
                                   color: "rgb(0, 102, 204)",
@@ -955,7 +967,7 @@ const Employers = () => {
                                     They have just joined us
                                   </font>
                                 </font>
-                              </h3>
+                              </h2>
                             </div>
                           </div>
                         </div>
@@ -1077,8 +1089,8 @@ const Employers = () => {
                             "box-shadow": "rgba(0, 102, 204, 0.2) 0px 4px 15px",
                           }}
                         >
-                          <h4
-                            className="fw-bold mb-0 text-white"
+                          <div
+                            className="fw-bold mb-0 text-white h4"
                             style={{
                               "-webkit-text-shadow":
                                 "rgba(0, 0, 0, 0.3) 0px 2px 4px",
@@ -1096,7 +1108,7 @@ const Employers = () => {
                                 Companies that trust us
                               </font>
                             </font>
-                          </h4>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1185,7 +1197,7 @@ const Employers = () => {
                             className="section-title text-start m-0"
                             style={{ margin: "0px" }}
                           >
-                            <h3
+                            <h2
                               className="fw-bold d-inline-block"
                               style={{
                                 color: "rgb(0, 102, 204)",
@@ -1205,7 +1217,7 @@ const Employers = () => {
                                   Companies of the moment
                                 </font>
                               </font>
-                            </h3>
+                            </h2>
                           </div>
                         </div>
                         <div className="row">
@@ -1268,12 +1280,12 @@ const Employers = () => {
                                       </div>
 
                                       {/* Company Name */}
-                                      <h4
+                                      <h3
                                         className="premium-title text-truncate"
                                         title={company?.brandName}
                                       >
                                         {company?.brandName}
-                                      </h4>
+                                      </h3>
 
                                       {/* Description + Industry */}
                                       <div
@@ -1305,7 +1317,7 @@ const Employers = () => {
                                             }}
                                           >
                                             {stripHtml(company?.aboutCompany) ||
-                                              "No description available"}
+                                              t("companies.no_description")}
                                           </p>
                                         </div>
 
@@ -1432,7 +1444,7 @@ const Employers = () => {
                             className="section-title text-start m-0"
                             style={{ margin: "0px" }}
                           >
-                            <h3
+                            <h2
                               className="fw-bold d-inline-block"
                               style={{
                                 color: "rgb(0, 102, 204)",
@@ -1452,7 +1464,7 @@ const Employers = () => {
                                   Our partner companies
                                 </font>
                               </font>
-                            </h3>
+                            </h2>
                           </div>
                         </div>
                         <div className="row">
@@ -1514,12 +1526,12 @@ const Employers = () => {
                                       </div>
 
                                       {/* Company Name */}
-                                      <h4
+                                      <h3
                                         className="premium-title text-truncate"
                                         title={company?.brandName}
                                       >
                                         {company?.brandName}
-                                      </h4>
+                                      </h3>
 
                                       {/* Details */}
                                       <div
@@ -1552,7 +1564,7 @@ const Employers = () => {
                                             }}
                                           >
                                             {stripHtml(company?.aboutCompany) ||
-                                              "No description available"}
+                                              t("companies.no_description")}
                                           </p>
                                         </div>
 
@@ -1684,7 +1696,7 @@ const Employers = () => {
                       <div
                         className="custom-spinner"
                         role="status"
-                        aria-label="Loading pagination"
+                        aria-label={t("header.Loading")}
                       />
                     </div>
                   ) : (

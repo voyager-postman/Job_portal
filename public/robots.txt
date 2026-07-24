@@ -1,3 +1,21 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /jobPortal/login
+Disallow: /jobPortal/register
+Disallow: /jobPortal/recovery-password
+Disallow: /jobPortal/verify-otp
+Disallow: /jobPortal/employer-register
+Disallow: /jobPortal/employer-login
+Disallow: /jobPortal/email-verification
+Disallow: /jobPortal/verification
+Disallow: /jobPortal/checkout
+Disallow: /jobPortal/candidate-dashboard
+Disallow: /jobPortal/employer-dashboard
+Disallow: /jobPortal/job-search
+Disallow: /jobPortal/companies-list
+Disallow: /jobPortal/applied-candidate-list
+Disallow: /jobPortal/applicants-details
+Disallow: /jobPortal/admin/
+
+Sitemap: https://itdevelopmentservices.com/jobPortal/sitemap.xml

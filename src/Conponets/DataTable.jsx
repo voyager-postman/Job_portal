@@ -5,8 +5,16 @@ import {
   getFilteredRowModel,
   flexRender,
 } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 
-export const TableView = ({ columns = [], data = [], limit, setLimit, customElement = <></> }) => {
+export const TableView = ({
+  columns = [],
+  data = [],
+  limit,
+  setLimit,
+  customElement = <></>,
+}) => {
+  const { t } = useTranslation("global");
   const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
@@ -23,20 +31,23 @@ export const TableView = ({ columns = [], data = [], limit, setLimit, customElem
       <div className="tab-content px-2 md:!px-4">
         <div className="parentProduceSearch">
           <div className="entries">
-            <small>show</small>{" "}
-            <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+            <small>{t("common.show")}</small>{" "}
+            <select
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+            >
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>{" "}
-            <small>entries</small>
+            <small>{t("common.entries")}</small>
           </div>
 
           <div className="table-search-box-info">
             <input
               type="search"
-              placeholder="search"
+              placeholder={t("header.search")}
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
             />
@@ -52,7 +63,10 @@ export const TableView = ({ columns = [], data = [], limit, setLimit, customElem
                 <tr key={group.id}>
                   {group.headers.map((header) => (
                     <th key={header.id}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -63,7 +77,7 @@ export const TableView = ({ columns = [], data = [], limit, setLimit, customElem
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="text-center">
-                    No data found
+                    {t("common.no_data_found")}
                   </td>
                 </tr>
               ) : (
@@ -71,7 +85,10 @@ export const TableView = ({ columns = [], data = [], limit, setLimit, customElem
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -81,7 +98,6 @@ export const TableView = ({ columns = [], data = [], limit, setLimit, customElem
           </table>
         </div>
       </div>
-      
     </div>
   );
 };

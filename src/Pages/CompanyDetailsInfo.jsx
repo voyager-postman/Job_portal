@@ -1,15 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import PageSEO from "../components/PageSEO";
+import { PUBLIC_PAGE_SEO } from "../config/publicPageSeo";
 import axios from "axios"
 
 function CompanyDetailsInfo() {
+  const { t } = useTranslation("global");
+  const seo = PUBLIC_PAGE_SEO["/company-details"];
+
   return (
     <>
+      <PageSEO
+        title={seo?.title || t("breadcrumbs.company_details")}
+        description={seo?.description}
+        canonical="/company-details"
+        image={seo?.image}
+        ogType={seo?.ogType}
+        robots="noindex, follow"
+        jsonLd={seo?.jsonLd}
+      />
       <section className="inner-banners-info-area">
         <div className="inner-banners-img-area">
           <img
-            src="assets/images/banner/inner-banner-img.jpg"
-            alt="breadcrumb Img"
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+            alt={t("breadcrumbs.company_details")}
           />
         </div>
         <div className="inner-banners-title-info">
@@ -17,12 +32,12 @@ function CompanyDetailsInfo() {
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <div className="inner-page-banner-title">
-                  <h2>Company Details</h2>
+                  <h1>{t("breadcrumbs.company_details")}</h1>
                   <ul>
                     <li className="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>Company Details</li>
+                    <li>{t("breadcrumbs.company_details")}</li>
                   </ul>
                 </div>
               </div>
@@ -46,11 +61,11 @@ function CompanyDetailsInfo() {
                   <h4>Hauts De Seine Department</h4>
                   <div className="subscribe-best-employer-btn">
                     <span className="subscribe-btn default-btn btn">
-                      + Subscribe
+                      {t("jobs.subscribe")}
                     </span>
                     <span>
                       <div className="best-employer-btn">
-                        <i className="fa-solid fa-award" /> Best Employer
+                        <i className="fa-solid fa-award" /> {t("jobs.best_employer")}
                       </div>
                     </span>
                   </div>
@@ -66,7 +81,7 @@ function CompanyDetailsInfo() {
                     <li>
                       <a href="#" target="_blank">
                         <i className="fa-solid fa-arrow-up-right-from-square" />
-                        Visit the company website
+                        {t("jobs.visit_company_website")}
                       </a>
                     </li>
                   </ul>
@@ -221,12 +236,12 @@ function CompanyDetailsInfo() {
                             <div className="modal-dialog">
                               <div className="modal-content">
                                 <div className="modal-header">
-                                  <h1
+                                  <h2
                                     className="modal-title fs-5"
                                     id="staticBackdropLabel"
                                   >
                                     Apply Now
-                                  </h1>
+                                  </h2>
                                   <button
                                     type="button"
                                     className="btn-close"
@@ -340,12 +355,12 @@ function CompanyDetailsInfo() {
                             <div className="modal-dialog">
                               <div className="modal-content">
                                 <div className="modal-header">
-                                  <h1
+                                  <h2
                                     className="modal-title fs-5"
                                     id="staticBackdropLabel"
                                   >
                                     Apply Now
-                                  </h1>
+                                  </h2>
                                   <button
                                     type="button"
                                     className="btn-close"
@@ -459,12 +474,12 @@ function CompanyDetailsInfo() {
                             <div className="modal-dialog">
                               <div className="modal-content">
                                 <div className="modal-header">
-                                  <h1
+                                  <h2
                                     className="modal-title fs-5"
                                     id="staticBackdropLabel"
                                   >
                                     Apply Now
-                                  </h1>
+                                  </h2>
                                   <button
                                     type="button"
                                     className="btn-close"
@@ -578,12 +593,12 @@ function CompanyDetailsInfo() {
                             <div className="modal-dialog">
                               <div className="modal-content">
                                 <div className="modal-header">
-                                  <h1
+                                  <h2
                                     className="modal-title fs-5"
                                     id="staticBackdropLabel"
                                   >
                                     Apply Now
-                                  </h1>
+                                  </h2>
                                   <button
                                     type="button"
                                     className="btn-close"
@@ -710,7 +725,7 @@ function CompanyDetailsInfo() {
                   </div>
                   <div id="menu5" className="tab-pane fade" role="tabpanel">
                     <div className="company-detail-fifth-tab">
-                      <h4>Career</h4>
+                      <h4>{t("jobs.career_tab")}</h4>
                       <p>
                         Respect for people, our priority at ID2, also includes
                         respect for the environment; it's a strong conviction

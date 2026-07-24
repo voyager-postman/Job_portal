@@ -6,9 +6,12 @@ import { Outlet } from "react-router-dom";
 import axios from "axios"
 import moment from "moment";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../Url/Url";
 
 function JobDetailsList() {
+  const { t } = useTranslation("global");
+
   const location = useLocation();
   const navigate = useNavigate();
   const [jobList, setJobList] = useState([]);
@@ -69,16 +72,16 @@ function JobDetailsList() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Job Keywords</h1>
+            <h1>{t("breadcrumbs.search_job_keywords")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/candidate-dashboard">Home </Link>
+                <Link to="/candidate-dashboard">{t("header.home")} </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Search Job Keywords
+                <i className="fa-solid fa-angle-right" /> {t("breadcrumbs.search_job_keywords")}
               </li>
             </ol>
           </div>
@@ -96,7 +99,7 @@ function JobDetailsList() {
                               <input
                                 className="form-control"
                                 type="text"
-                                placeholder="Keywords / Job Title"
+                                placeholder={t("header.keywords")}
                               />
                               <i className="flaticon-portfolio"></i>
                             </div>
@@ -106,7 +109,7 @@ function JobDetailsList() {
                               <input
                                 className="form-control"
                                 type="text"
-                                placeholder="City Or Postcode"
+                                placeholder={t("header.location_city")}
                               />
                               <i className="flaticon-location"></i>
                             </div>
@@ -168,7 +171,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -194,7 +197,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -266,7 +269,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -294,7 +297,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -348,7 +351,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -402,7 +405,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">
@@ -429,7 +432,7 @@ function JobDetailsList() {
                                 </h4>
                               </div>
                               <div className="job-filter-cancel-heading">
-                                <h4>Clear</h4>
+                                <h4>{t("header.clear")}</h4>
                               </div>
                             </div>
                             <div className="job-filter-select-info">

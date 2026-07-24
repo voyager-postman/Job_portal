@@ -43,9 +43,9 @@ function JobApplyModal({
       <div className="modal-dialog apply-modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h1 className="modal-title" id={`${modalId}Label`}>
+            <h2 className="modal-title" id={`${modalId}Label`}>
               {t("header.apply_now")}
-            </h1>
+            </h2>
             <button
               type="button"
               className="btn-close"

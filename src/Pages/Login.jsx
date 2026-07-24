@@ -4,15 +4,17 @@ import axios from "axios";
 import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
 import { isRateLimitError } from "../utils/apiRateLimitHandler";
+import { getRequestConfig, persistLoginSession, getPostLoginPath, extractLoginToken } from "../utils/apiHeaders";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
-import { API_IMAGE_URL } from "../Url/Url";
-// import bannerImg from "";
+import { SITE } from "../utils/seo";
+import { useTranslation } from "react-i18next";
 
 function Login() {
+  const { t } = useTranslation("global");
   const { login, updateProfileImage, updateName } = useAuth();
   const navigate = useNavigate();
 
@@ -23,8 +25,7 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
+  const [captchaVerified, setCaptchaVerified] = useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -34,72 +35,15 @@ function Login() {
   const validateForm = () => {
     const { email, password } = formData;
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error(t("header.email_password_required"));
       return false;
     }
     if (!captchaVerified) {
-      toast.error("Please verify captcha!");
+      toast.error(t("header.captcha_required"));
       return false;
     }
     return true;
   };
-
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-
-  //   if (!validateForm()) return;
-
-  //   setLoading(true);
-
-  //   try {
-  //     const response = await axios.post(`${API_BASE_URL}user/login`, {
-  //       email: formData.email,
-  //       password: formData.password,
-  //     });
-
-  //     if (response.status === 200 && response.data.success) {
-  //       const { token, user } = response.data;
-
-  //       // Save login data
-  //       localStorage.setItem("token", token);
-  //       localStorage.setItem("user", JSON.stringify(user));
-  //       localStorage.setItem("user_id", user.id);
-  //       localStorage.setItem("user_email", user.email);
-  //       localStorage.setItem("user_role", user.role);
-  //       localStorage.setItem("first_name", user.first_name);
-  //       localStorage.setItem("last_name", user.last_name);
-  //       login(); // call your login context or auth function
-
-  //       toast.success("Login successful!");
-
-  //       // Navigate based on profile completion
-  //       if (user?.is_completed) {
-  //         navigate("/candidate-profile");
-  //       } else {
-  //         navigate("/profile-basic-info");
-  //       }
-  //     } else {
-  //       toast.error(response.data?.message || "Invalid credentials");
-  //     }
-  //   } catch (error) {
-  //     console.error("Login error:", error);
-
-  //     if (error.response?.status === 429) {
-  //       // Handle Too Many Requests
-  //       toast.error(
-  //         "Too many login attempts. Please wait a moment and try again."
-  //       );
-  //     } else if (Array.isArray(error.response?.data?.errors)) {
-  //       error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
-  //     } else {
-  //       toast.error(
-  //         error.response?.data?.message || "Login failed. Please try again."
-  //       );
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -115,30 +59,29 @@ function Login() {
       });
 
       if (response.status === 200 && response.data.success) {
-        const { token, user, profile } = response.data;
-        // Save login data
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("user_id", user.id);
-        localStorage.setItem("extract_id", user?.id);
-        localStorage.setItem("user_email", user.email);
-        localStorage.setItem("user_role", user.role);
-        localStorage.setItem("first_name", user.first_name);
-        localStorage.setItem("last_name", user.last_name);
-        localStorage.setItem("is_completed", user?.is_completed);
+        const { token, user } = response.data;
+
+        if (!user) {
+          toast.error(response.data?.message || t("header.invalid_credentials"));
+          return;
+        }
+
+        persistLoginSession({
+          token,
+          user,
+          data: response.data,
+          extras: { extract_id: user?.id },
+        });
         try {
           const profileRes = await axios.get(
             `${API_BASE_URL}candidate/profile`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
+            getRequestConfig(),
           );
           const profileImg = profileRes.data?.profile?.profileImage;
           const profileData = profileRes.data?.profile;
           if (profileImg && profileImg.trim() !== "") {
             const fullUrl = `${profileImg}`;
             localStorage.setItem("profileImage", fullUrl);
-            // ✅ Update AuthContext instantly
             if (typeof updateProfileImage === "function") {
               updateProfileImage(fullUrl);
             }
@@ -155,24 +98,21 @@ function Login() {
           console.error("Profile fetch error:", profileErr);
         }
         setFormData((prev) => ({ ...prev, password: "" }));
-        login(); // call your login context or auth function
-        toast.success("Login successfully!");
-        // Navigate based on profile completion
-        if (user?.is_completed) {
-          if (user.role == "Recruiter" || user.role == "Company") {
-            navigate("/employer-dashboard");
-          } else {
-            navigate("/candidate-profile");
-          }
-        } else {
-          if (user.role == "Recruiter" || user.role == "Company") {
-            navigate("/employer-basic-info");
-          } else {
-            navigate("/profile-basic-info");
-          }
+        login();
+
+        if (
+          process.env.NODE_ENV === "development" &&
+          !extractLoginToken(response.data)
+        ) {
+          toast.warn(
+            "Local dev: no JWT in login response. Use a local API URL or ask backend to return token for development.",
+            { autoClose: 8000 },
+          );
         }
+
+        navigate(getPostLoginPath(user), { state: { loginSuccess: true } });
       } else {
-        toast.error(response.data?.message || "Invalid credentials");
+        toast.error(response.data?.message || t("header.invalid_credentials"));
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -186,18 +126,17 @@ function Login() {
         error.response?.data?.success === false &&
         error.response?.data?.action === "resendVerificationEmail"
       ) {
-        // Special case: Email not verified
         toast.error(error.response.data.message);
         navigate("/verification", {
           state: { email: formData.email, showToast: true },
         });
       } else if (isRateLimitError(error)) {
-        // Handled globally by installApiRateLimitHandler()
+        // Handled globally
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
         toast.error(
-          error.response?.data?.message || "Login failed. Please try again.",
+          error.response?.data?.message || t("header.login_failed"),
         );
       }
     } finally {
@@ -207,7 +146,6 @@ function Login() {
 
   return (
     <>
-      <ToastContainer />
       <section className="login-area-info-area">
         <div className="container-fluid">
           <div className="row">
@@ -217,56 +155,53 @@ function Login() {
                   <img
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
-                    alt="logo"
+                    alt={`${SITE.name} logo`}
                   />
                 </div>
                 <div className="container">
                   <div className="login">
-                    <h3>Jobseeker Log In</h3>
+                    <h1>{t("auth.jobseeker_login_title")}</h1>
                     <form onSubmit={handleLogin}>
                       <div className="form-group">
-                        <label>Email Address*</label>
+                        <label htmlFor="email">{t("auth.email_label")}</label>
                         <input
                           type="email"
                           id="email"
                           className="form-control"
-                          placeholder="Username Or Email Address*"
+                          placeholder={t("auth.username_email_placeholder")}
                           value={formData.email}
                           onChange={handleChange}
-                        />{" "}
+                        />
                       </div>
                       <div className="form-group eye-icon-postion">
-                        <label>Password*</label>
+                        <label htmlFor="password">{t("auth.password_label")}</label>
                         <div style={{ position: "relative" }}>
                           <input
                             type={showPassword ? "text" : "password"}
                             id="password"
                             className="form-control"
-                            placeholder="Password*"
+                            placeholder={t("auth.password_placeholder")}
                             value={formData.password}
                             onChange={handleChange}
                           />
-
-                          <i
-                            className={`fa-solid ${
-                              showPassword ? "fa-eye-slash" : "fa-eye"
-                            }`}
-                            style={{
-                              position: "absolute",
-                              right: "10px",
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              cursor: "pointer",
-                            }}
+                          <button
+                            type="button"
+                            className="password-toggle-btn"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword((prev) => !prev)}
-                          />
+                          >
+                            <i
+                              className={`fa-solid ${
+                                showPassword ? "fa-eye-slash" : "fa-eye"
+                              }`}
+                              aria-hidden="true"
+                            />
+                          </button>
                         </div>
                       </div>
-
-                      {/* ✅ reCAPTCHA Checkbox */}
                       <div className="form-group mb-3">
                         <ReCAPTCHA
-                          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // Google test key
+                          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
                           onChange={() => setCaptchaVerified(true)}
                         />
                       </div>
@@ -275,33 +210,34 @@ function Login() {
                           to="/recovery-password"
                           state={{ role: "jobseeker" }}
                         >
-                          <i className="fa-solid fa-lock" /> Forgot your
-                          password?
+                          <i className="fa-solid fa-lock" />{" "}
+                          {t("auth.forgot_password_link")}
                         </Link>
                       </div>
                       <div className="login-btn-recover-password">
                         <div className="login-recover-password-btn">
                           <button type="submit" className="default-btn btn">
-                            {loading ? "Logging in..." : "Login"}
+                            {loading
+                              ? t("auth.logging_in")
+                              : t("auth.login_btn")}
                           </button>
                         </div>
                         <div className="login-singup-bottom-content">
                           <p>
-                            Don't have an account yet?
+                            {t("auth.no_account_yet")}
                             <Link to="/register">
-                              <i className="fa-solid fa-square-plus" /> Create
-                              an account
+                              <i className="fa-solid fa-square-plus" />{" "}
+                              {t("auth.create_an_account")}
                             </Link>
                           </p>
                         </div>
                       </div>
                     </form>
                     <div className="recruiter-login-content-area">
-                      <p>
-                        Are you a recruiter? Log in via our dedicated portal
-                      </p>
+                      <p>{t("auth.recruiter_login_prompt")}</p>
                       <Link to="/employer-login">
-                        <i className="fa-solid fa-users" /> Recruiter Login
+                        <i className="fa-solid fa-users" />{" "}
+                        {t("auth.recruiter_login_link")}
                       </Link>
                     </div>
                   </div>
@@ -312,7 +248,7 @@ function Login() {
               <div className="login-img-info-area">
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
-                  alt="register-img"
+                  alt={t("auth.jobseeker_login_title")}
                 />
               </div>
             </div>

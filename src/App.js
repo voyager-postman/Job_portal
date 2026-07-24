@@ -1,90 +1,140 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect, useRef, Suspense } from "react";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "./context/AuthContext";
+import { consumeSocialOAuthCallback, enrichSocialLoginProfile } from "./utils/socialOAuthCallback";
 import Header from "./Conponets/Header";
 import Footer from "./Conponets/Footer";
 import Home from "./Conponets/Home";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
 import RecoveryPassword from "./Pages/RecoveryPassword";
-import MyProfile from "./Pages/MyProfile";
 import "./App.css";
 
-import ContactUs from "./Pages/ContactUs";
-import AboutUs from "./Pages/AboutUs";
 import Sidebar from "./Conponets/Sidebar";
-import CandidateProfile from "./Pages/CandidateProfile";
 import ScrollToTop from "./ScrollToTop";
 import NotFound from "./Pages/NotFound";
-import JobSearch from "./Pages/JobSearch";
-import Companies from "./Pages/Companies";
-import EmployerRegister from "./Pages/EmployerRegister";
-import EmployerLogin from "./Pages/EmployerLogin";
 import PrivateRoute from "./Routes/PrivateRoute";
-import EmployerHomePage from "./Pages/EmployerHomePage";
-import EmployerBasicInformation from "./Pages/EmployerBasicInformation";
 import CompanyDetailsPage from "./Pages/CompanyDetailsPage";
 import JobDetails from "./Pages/JobDetails";
-import YourJobPosts from "./Pages/YourJobPosts";
-import JobDetailsForm from "./Pages/JobDetailsForm";
-import CandidateDashboard from "./Pages/CandidateDashboard";
-import ManagesJobApplication from "./Pages/ManagesJobApplication";
-import EmployerFilterCandinateList from "./Pages/EmployerFilterCandinateList";
-import EmployerShortListCandinate from "./Pages/EmployerShortListCandinate";
-import CandinatesList from "./Pages/CandinatesList";
-import CandinateProfileDetails from "./Pages/CandinateProfileDetails";
-import EmployerCandinateList from "./Pages/EmployerCandinateList";
-import CompanyDetailsInfo from "./Pages/CompanyDetailsInfo";
 import Employers from "./Pages/Employers";
 import JobList from "./Pages/JobList";
-import EmployerDashboard from "./Pages/EmployerDashboard";
-import CustomResumeCoverLatter from "./Pages/CustomResumeCoverLatter";
-import JobAlert from "./Pages/JobAlert";
-import Faq from "./Pages/Faq";
-import JobDetailsList from "./Pages/JobDetailsList";
-import ActivityTimeline from "./Pages/ActivityTimeline";
-import ChatMassageSystem from "./Pages/ChatMassageSystem";
-import EmployerProfile from "./Pages/EmployerProfile";
-import SkillAssementTestPage from "./Pages/SkillAssementTestPage";
-import CertificateScorePage from "./Pages/CertificateScorePage";
-import RecruiterLists from "./Conponets/RecruiterLists";
-import CreateRecruiters from "./Conponets/CreateRecruiters";
-import MassagingSystem from "./Pages/MassagingSystem";
-import ApplicationManagement from "./Pages/ApplicationManagement";
-import AppliedJobList from "./Pages/AppliedJobList";
-import EmailOTPVerification from "./Pages/EmailOTPVerification";
-import VerifiedCancel from "./Pages/VerifiedCancel";
-import AccountVerified from "./Pages/AccountVerified";
-import Varification from "./Pages/Varification";
-import PrivecyPolicy from "./Pages/PrivecyPolicy";
-import TearmCondition from "./Pages/TearmCondition";
-import Blog from "./Pages/Blog";
-import BlogDetails from "./Pages/BlogDetails";
-import Setting from "./Pages/Setting";
-import EmployerWallet from "./Pages/EmployerWallet";
-import Checkout from "./Pages/Checkout";
-import AddPlan from "./Pages/AddPlan";
-import ResumeBuilder from "./Pages/ResumeBuilder";
-import AddOnPack from "./Pages/AddOnPack";
-import SendOtp from "./Pages/SendOtp";
-import ManagesApplicants from "./Pages/ManagesApplicants";
-import ApplicantsDetails from "./Pages/ApplicantsDetails";
-import ChangePassword from "./Pages/ChangePassword";
-import CategoryManagement from "./Pages/assesment/ManageAssesment";
-import ApplyTest from "./Pages/ApplyTest";
-import { elements } from "chart.js";
-import StartTest from "./Pages/StartTest";
-import TestResult from "./Pages/TestResult";
-import ManagesAssement from "./Conponets/ManagesAssement";
-import CreateAssement from "./Conponets/CreateAssement";
-import AssessmentDetails from "./Pages/AssessmentDetails";
-import PaymentSuccess from "../src/Pages/PaymentSuccess";
-import PaymentFailed from "../src/Pages/PaymentFailed";
-import OfferContact from "./Conponets/OfferContact";
-import InvoiceView from "./Pages/InvoiceView";
+import RouteSEO from "./components/RouteSEO";
+import GoogleMarketingScripts from "./components/GoogleMarketingScripts";
+import HomePageSEO from "./components/HomePageSEO";
+import LegacyJobRedirect from "./Pages/LegacyJobRedirect";
+import RouteFallback from "./components/RouteFallback";
+import * as Lazy from "./Routes/lazyPages";
 // "build 04-09-2025"
 console.log("Date:20-02-2026,time:-18:05");
 function LayoutWrapper() {
   const location = useLocation();
-  const noLayoutRoutes = ["/start-test", "/apply-test", "/test-result", "/checkout"];
+  const navigate = useNavigate();
+  const { login: authLogin, updateProfileImage, updateName } = useAuth();
+  const { t } = useTranslation("global");
+  const oauthResultRef = useRef(null);
+  const oauthHandledRef = useRef(false);
+
+  if (oauthResultRef.current === null) {
+    oauthResultRef.current = consumeSocialOAuthCallback(location.search);
+  }
+
+  useEffect(() => {
+    if (oauthHandledRef.current) {
+      return;
+    }
+
+    const result = oauthResultRef.current;
+    if (!result) {
+      return;
+    }
+
+    oauthHandledRef.current = true;
+
+    const finishSocialLogin = async () => {
+      if (result.error) {
+        toast.error(result.error);
+        oauthResultRef.current = null;
+        return;
+      }
+
+      if (!result.persisted) {
+        oauthResultRef.current = null;
+        return;
+      }
+
+      const profileData = await enrichSocialLoginProfile(result.role);
+      authLogin();
+
+      if (profileData) {
+        const profileImg = localStorage.getItem("profileImage");
+        if (profileImg && typeof updateProfileImage === "function") {
+          updateProfileImage(profileImg);
+        }
+
+        const firstName =
+          profileData.first_name || localStorage.getItem("first_name") || "";
+        const lastName =
+          profileData.last_name || localStorage.getItem("last_name") || "";
+        if (typeof updateName === "function") {
+          updateName(firstName, lastName);
+        }
+      }
+
+      if (result.blockedUnverified) {
+        await Swal.fire({
+          title: t("header.Account_Not_Verified"),
+          text: t("header.Your_account_is_not_verified_by_the_admin"),
+          icon: "error",
+          confirmButtonText: t("header.ok"),
+        });
+        navigate("/", { replace: true });
+        oauthResultRef.current = null;
+        return;
+      }
+
+      if (result.redirectPath && location.pathname !== result.redirectPath) {
+        navigate(result.redirectPath, { replace: true });
+      }
+
+      oauthResultRef.current = null;
+    };
+
+    finishSocialLogin();
+    // Run once for the OAuth callback only; do not re-run on route changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!location.state?.loginSuccess) {
+      return;
+    }
+
+    toast.success(t("header.login_success"), { toastId: "login-success" });
+
+    const nextState = { ...location.state };
+    delete nextState.loginSuccess;
+
+    navigate(
+      { pathname: location.pathname, search: location.search },
+      {
+        replace: true,
+        state: Object.keys(nextState).length ? nextState : null,
+      },
+    );
+  }, [location, navigate, t]);
+
+  const noLayoutRoutes = [
+    "/start-test",
+    "/apply-test",
+    "/test-result",
+    "/checkout",
+    "/payment-success",
+    "/payment-failed",
+  ];
   const hideLayout = noLayoutRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
@@ -109,6 +159,7 @@ function LayoutWrapper() {
     "/manage-assessment",
     "/messaging-system",
     "/change-password",
+    "/notifications",
     "/company-profile",
     "/assessment-details",
     "/job-details-form",
@@ -134,56 +185,73 @@ function LayoutWrapper() {
   const showFooter = !hideLayout && !showSidebar;
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        limit={3}
+      />
+      <RouteSEO />
+      <HomePageSEO />
+      <GoogleMarketingScripts />
       {!hideLayout && <Header bgColor={bgColor} />}
       {showSidebar && <Sidebar />}
 
+      <main id="main-content" role="main">
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/verification" element={<Varification />} />
-        <Route path="/account-verified" element={<AccountVerified />} />
-        <Route path="/verified-cancel" element={<VerifiedCancel />} />
+        <Route path="/verification" element={<Lazy.Varification />} />
+        <Route path="/account-verified" element={<Lazy.AccountVerified />} />
+        <Route path="/verified-cancel" element={<Lazy.VerifiedCancel />} />
         <Route path="/register" element={<Register />} />
         <Route path="/recovery-password" element={<RecoveryPassword />} />
-        <Route path="/verify-otp" element={<SendOtp />} />
-        <Route path="/employer-register" element={<EmployerRegister />} />
-        <Route path="/employer-login" element={<EmployerLogin />} />
-        <Route path="/email-verification" element={<EmailOTPVerification />} />
-        <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/privacy-policy" element={<PrivecyPolicy />} />
-        <Route path="/terms-condition" element={<TearmCondition />} />
+        <Route path="/forgot-password" element={<RecoveryPassword />} />
+        <Route path="/verify-otp" element={<Lazy.SendOtp />} />
+        <Route path="/employer-register" element={<Lazy.EmployerRegister />} />
+        <Route path="/employer-login" element={<Lazy.EmployerLogin />} />
+        <Route path="/email-verification" element={<Lazy.EmailOTPVerification />} />
+        <Route path="/contact-us" element={<Lazy.ContactUs />} />
+        <Route path="/privacy-policy" element={<Lazy.PrivecyPolicy />} />
+        <Route path="/terms-condition" element={<Lazy.TearmCondition />} />
         <Route path="/companies" element={<Employers />} />
-        <Route path="/faq/:type" element={<Faq />} />{" "}
+        <Route path="/faq/:type" element={<Lazy.Faq />} />{" "}
         <Route
           path="/applied-candidate-list"
-          element={<EmployerCandinateList />}
+          element={<Lazy.EmployerCandinateList />}
         />
-        <Route path="/applicants-details" element={<ApplicantsDetails />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-failed" element={<PaymentFailed />} />
-        <Route path="/blogDetails/:id" element={<BlogDetails />} />
-        <Route path="/employer-home" element={<EmployerHomePage />} />
+        <Route path="/applicants-details" element={<Lazy.ApplicantsDetails />} />
+        <Route path="/about-us" element={<Lazy.AboutUs />} />
+        <Route path="/blog" element={<Lazy.Blog />} />
+        <Route path="/payment-success" element={<Lazy.PaymentSuccess />} />
+        <Route path="/payment-failed" element={<Lazy.PaymentFailed />} />
+        <Route path="/blogDetails/:id" element={<Lazy.BlogDetails />} />
+        <Route path="/employer-home" element={<Lazy.EmployerHomePage />} />
         <Route
           path="/employer-basic-info"
-          element={<EmployerBasicInformation />}
+          element={<Lazy.EmployerBasicInformation />}
         />
         <Route path="/jobs" element={<JobList />} />
+        <Route path="/job-details/:id" element={<LegacyJobRedirect />} />
         <Route
           path="/custom-resume-cover-letter"
-          element={<CustomResumeCoverLatter />}
+          element={<Lazy.CustomResumeCoverLatter />}
         />
-        <Route path="/company-details" element={<CompanyDetailsInfo />} />
-        <Route path="/add-plan" element={<AddPlan />} />
-        <Route path="/add-on-pack" element={<AddOnPack />} />
+        <Route path="/company-details" element={<Lazy.CompanyDetailsInfo />} />
+        <Route path="/add-plan" element={<Lazy.AddPlan />} />
+        <Route path="/add-on-pack" element={<Lazy.AddOnPack />} />
         {/* Protected Routes */}
         <Route
           path="/job-details-form/:id"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <JobDetailsForm />
+              <Lazy.JobDetailsForm />
             </PrivateRoute>
           }
         />
@@ -191,7 +259,7 @@ function LayoutWrapper() {
           path="/job-details-form"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <JobDetailsForm />
+              <Lazy.JobDetailsForm />
             </PrivateRoute>
           }
         />
@@ -199,7 +267,7 @@ function LayoutWrapper() {
           path="/profile-basic-info"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <MyProfile />
+              <Lazy.MyProfile />
             </PrivateRoute>
           }
         />
@@ -207,7 +275,7 @@ function LayoutWrapper() {
           path="/candidate-profile"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <CandidateProfile />
+              <Lazy.CandidateProfile />
             </PrivateRoute>
           }
         />
@@ -215,7 +283,7 @@ function LayoutWrapper() {
           path="/resume-builder"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <ResumeBuilder />
+              <Lazy.ResumeBuilder />
             </PrivateRoute>
           }
         />
@@ -223,7 +291,7 @@ function LayoutWrapper() {
           path="/employer-dashboard"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <EmployerDashboard />
+              <Lazy.EmployerDashboard />
             </PrivateRoute>
           }
         />
@@ -231,7 +299,7 @@ function LayoutWrapper() {
           path="/skill-assessments-tests"
           element={
             <PrivateRoute>
-              <SkillAssementTestPage />
+              <Lazy.SkillAssementTestPage />
             </PrivateRoute>
           }
         />
@@ -239,7 +307,7 @@ function LayoutWrapper() {
           path="/certificates-scores"
           element={
             <PrivateRoute>
-              <CertificateScorePage />
+              <Lazy.CertificateScorePage />
             </PrivateRoute>
           }
         />
@@ -247,7 +315,7 @@ function LayoutWrapper() {
           path="/job-alert"
           element={
             <PrivateRoute>
-              <JobAlert />
+              <Lazy.JobAlert />
             </PrivateRoute>
           }
         />
@@ -255,7 +323,15 @@ function LayoutWrapper() {
           path="/activity-timeline"
           element={
             <PrivateRoute  allowedRoles={["JobSeeker"]}>
-              <ActivityTimeline />
+              <Lazy.ActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <PrivateRoute>
+              <Lazy.Notifications />
             </PrivateRoute>
           }
         />
@@ -263,7 +339,7 @@ function LayoutWrapper() {
           path="/application-management"
           element={
             <PrivateRoute>
-              <ApplicationManagement />
+              <Lazy.ApplicationManagement />
             </PrivateRoute>
           }
         />
@@ -271,7 +347,7 @@ function LayoutWrapper() {
           path="/applied-jobs-list"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <AppliedJobList />
+              <Lazy.AppliedJobList />
             </PrivateRoute>
           }
         />
@@ -279,7 +355,7 @@ function LayoutWrapper() {
           path="/chat-messaging-system"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <ChatMassageSystem />
+              <Lazy.ChatMassageSystem />
             </PrivateRoute>
           }
         />
@@ -289,7 +365,7 @@ function LayoutWrapper() {
           path="/job-details-list"
           element={
             <PrivateRoute>
-              <JobDetailsList />
+              <Lazy.JobDetailsList />
             </PrivateRoute>
           }
         />
@@ -297,7 +373,7 @@ function LayoutWrapper() {
           path="/candidate-dashboard"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <CandidateDashboard />
+              <Lazy.CandidateDashboard />
             </PrivateRoute>
           }
         />
@@ -305,7 +381,7 @@ function LayoutWrapper() {
           path="/manage-job-application"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <ManagesJobApplication />
+              <Lazy.ManagesJobApplication />
             </PrivateRoute>
           }
         />
@@ -313,7 +389,7 @@ function LayoutWrapper() {
           path="/your-job-posts"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <YourJobPosts />
+              <Lazy.YourJobPosts />
             </PrivateRoute>
           }
         />
@@ -321,7 +397,7 @@ function LayoutWrapper() {
           path="/employer-wallet"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <EmployerWallet />
+              <Lazy.EmployerWallet />
             </PrivateRoute>
           }
         />
@@ -329,7 +405,7 @@ function LayoutWrapper() {
           path="/checkout"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <Checkout />
+              <Lazy.Checkout />
             </PrivateRoute>
           }
         />
@@ -337,7 +413,7 @@ function LayoutWrapper() {
           path="/employer-wallet"
           element={
             <PrivateRoute>
-              <EmployerWallet />
+              <Lazy.EmployerWallet />
             </PrivateRoute>
           }
         /> */}
@@ -345,7 +421,7 @@ function LayoutWrapper() {
           path="/view-invoice/:id"
           element={
             <PrivateRoute>
-              <InvoiceView />
+              <Lazy.InvoiceView />
             </PrivateRoute>
           }
         />
@@ -353,7 +429,31 @@ function LayoutWrapper() {
           path="/setting"
           element={
             <PrivateRoute>
-              <Setting />
+              <Lazy.Setting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/google-marketing"
+          element={
+            <PrivateRoute allowedRoles={["Admin"]}>
+              <Lazy.GoogleMarketingConfig />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/home-page-seo"
+          element={
+            <PrivateRoute allowedRoles={["Admin"]}>
+              <Lazy.HomePageSeoConfig />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/jobs-listing-seo-settings"
+          element={
+            <PrivateRoute allowedRoles={["Admin"]}>
+              <Lazy.AdminJobsListingSeoSettings />
             </PrivateRoute>
           }
         />
@@ -361,7 +461,7 @@ function LayoutWrapper() {
           path="/manage-applicants"
           element={
             <PrivateRoute>
-              <EmployerFilterCandinateList />
+              <Lazy.EmployerFilterCandinateList />
             </PrivateRoute>
           }
         />
@@ -369,7 +469,7 @@ function LayoutWrapper() {
           path="/bookmark-candidate"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <EmployerShortListCandinate />
+              <Lazy.EmployerShortListCandinate />
             </PrivateRoute>
           }
         />
@@ -377,7 +477,7 @@ function LayoutWrapper() {
           path="/candidates-search"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <CandinatesList />
+              <Lazy.CandinatesList />
             </PrivateRoute>
           }
         />
@@ -385,7 +485,7 @@ function LayoutWrapper() {
           path="/all-applicants-list"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <ManagesApplicants />
+              <Lazy.ManagesApplicants />
             </PrivateRoute>
           }
         />
@@ -393,7 +493,7 @@ function LayoutWrapper() {
           path="/create-recruiters"
           element={
             <PrivateRoute>
-              <CreateRecruiters />
+              <Lazy.CreateRecruiters />
             </PrivateRoute>
           }
         />
@@ -401,7 +501,7 @@ function LayoutWrapper() {
           path="/create-assessment"
           element={
             <PrivateRoute>
-              <CreateAssement />
+              <Lazy.CreateAssement />
             </PrivateRoute>
           }
         />
@@ -409,7 +509,7 @@ function LayoutWrapper() {
           path="/request-plan"
           element={
             <PrivateRoute>
-              <OfferContact />
+              <Lazy.OfferContact />
             </PrivateRoute>
           }
         />
@@ -417,7 +517,7 @@ function LayoutWrapper() {
           path="/manage-recruiter"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <RecruiterLists />
+              <Lazy.RecruiterLists />
             </PrivateRoute>
           }
         />
@@ -425,7 +525,7 @@ function LayoutWrapper() {
           path="/manage-assessment"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <ManagesAssement />
+              <Lazy.ManagesAssement />
             </PrivateRoute>
           }
         />
@@ -433,7 +533,7 @@ function LayoutWrapper() {
           path="/messaging-system"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <MassagingSystem />
+              <Lazy.MassagingSystem />
             </PrivateRoute>
           }
         />
@@ -441,7 +541,7 @@ function LayoutWrapper() {
           path="/company-profile"
           element={
             <PrivateRoute allowedRoles={["Recruiter", "Company"]}>
-              <EmployerProfile />
+              <Lazy.EmployerProfile />
             </PrivateRoute>
           }
         />
@@ -449,7 +549,7 @@ function LayoutWrapper() {
           path="/assessment-details"
           element={
             <PrivateRoute>
-              <AssessmentDetails />
+              <Lazy.AssessmentDetails />
             </PrivateRoute>
           }
         />
@@ -457,7 +557,7 @@ function LayoutWrapper() {
           path="/change-password"
           element={
             <PrivateRoute>
-              <ChangePassword />
+              <Lazy.ChangePassword />
             </PrivateRoute>
           }
         />
@@ -465,7 +565,7 @@ function LayoutWrapper() {
           path="/candidates-details"
           element={
             <PrivateRoute>
-              <CandinateProfileDetails />
+              <Lazy.CandinateProfileDetails />
             </PrivateRoute>
           }
         />
@@ -473,7 +573,7 @@ function LayoutWrapper() {
           path="/job-search"
           element={
             <PrivateRoute allowedRoles={["JobSeeker"]}>
-              <JobSearch />
+              <Lazy.JobSearch />
             </PrivateRoute>
           }
         ></Route>
@@ -481,7 +581,7 @@ function LayoutWrapper() {
           path="/apply-test"
           element={
             <PrivateRoute>
-              <ApplyTest />
+              <Lazy.ApplyTest />
             </PrivateRoute>
           }
         ></Route>
@@ -489,7 +589,7 @@ function LayoutWrapper() {
           path="/start-test"
           element={
             <PrivateRoute>
-              <StartTest />
+              <Lazy.StartTest />
             </PrivateRoute>
           }
         ></Route>
@@ -497,13 +597,15 @@ function LayoutWrapper() {
           path="/test-result"
           element={
             <PrivateRoute>
-              <TestResult />
+              <Lazy.TestResult />
             </PrivateRoute>
           }
         ></Route>
-        <Route path="/companies-list" element={<Companies />} />
+        <Route path="/companies-list" element={<Lazy.Companies />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
+      </main>
       {showFooter && <Footer />}
     </>
   );

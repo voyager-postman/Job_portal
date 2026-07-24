@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import axios from "axios"
-function ContactUs() {
+import { useTranslation } from "react-i18next";
+function JobDetalsInfo() {
+  const { t } = useTranslation("global");
   return (
     <>
       <section class="inner-banners-info-area">
@@ -16,12 +18,12 @@ function ContactUs() {
             <div class="row">
               <div class="col-lg-12 col-md-12 col-sm-12">
                 <div class="inner-page-banner-title">
-                  <h2>Contact Us</h2>
+                  <h2>{t("breadcrumbs.job_details")}</h2>
                   <ul>
                     <li class="menu-divide-arrow">
-                      <Link to="/">Home</Link>
+                      <Link to="/">{t("header.home")}</Link>
                     </li>
-                    <li>Contact Us</li>
+                    <li>{t("breadcrumbs.job_details")}</li>
                   </ul>
                 </div>
               </div>
@@ -38,7 +40,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-location-dot" />
                   </div>
-                  <h3>Our location</h3>
+                  <h3>{t("header.our_location")}</h3>
                   <span>
                     CA 560 bush st &amp; 20th ave, apt 5 san francisco,230909,
                     canada
@@ -50,7 +52,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-envelope" />
                   </div>
-                  <h3>Email Us</h3>
+                  <h3>{t("header.email_us")}</h3>
                   <a href="https://templates.hibootstrap.com/cdn-cgi/l/email-protection#543c3138383b143339353d387a373b39">
                     <span
                       className="__cf_email__"
@@ -74,7 +76,7 @@ function ContactUs() {
                   <div className="icon">
                     <i className="fa-solid fa-envelope" />
                   </div>
-                  <h3>Phone</h3>
+                  <h3>{t("header.phone")}</h3>
                   <a href="tel:+44587154756">+44 587 154756</a>
                   <a href="tel:+55555514574">+55555514574</a>
                 </div>
@@ -97,7 +99,7 @@ function ContactUs() {
       <div className="contact-form-area pb-100">
         <div className="container">
           <div className="section-title">
-            <span>SEND MESSAGE</span>
+            <span>{t("header.send_message").toUpperCase()}</span>
             <h2>Ready To Get Started?</h2>
           </div>
           <div className="contact-form">
@@ -208,4 +210,4 @@ function ContactUs() {
   );
 }
 
-export default ContactUs;
+export default JobDetalsInfo;

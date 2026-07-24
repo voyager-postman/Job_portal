@@ -9,8 +9,10 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function AssessmentDetails() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const { state } = useLocation();
 
@@ -40,7 +42,7 @@ function AssessmentDetails() {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load question details");
+      toast.error(t("assessment.failed_load_details"));
     } finally {
       setLoading(false);
     }
@@ -57,25 +59,25 @@ function AssessmentDetails() {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Assessment Details</h1>
+            <h1>{t("assessment.details_title")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/manage-assessment">
                   <i className="fa-solid fa-angle-right" />
-                  Manage Assessments
+                  {t("sidebar.manage_assessments")}
                 </Link>
               </li>
               <li className="item">
                 <i className="fa-solid fa-angle-right" />
-                Details
+                {t("assessment.details")}
               </li>
             </ol>
           </div>
@@ -85,7 +87,7 @@ function AssessmentDetails() {
             <div className="skill-assessment-detail-main-area">
               <div className="skill-assessment-detail-main">
                 <h5>
-                  Skill Assessment Name:{" "}
+                  {t("assessment.skill_assessment_name")}{" "}
                   <span>
                     {assessmentData?.assessmentDetails?.assessmentName}
                   </span>
@@ -93,7 +95,7 @@ function AssessmentDetails() {
               </div>
               <div className="skill-assessment-detail-main">
                 <h5>
-                  Skill Assessment Category:{" "}
+                  {t("assessment.skill_assessment_category")}{" "}
                   <span>
                     {assessmentData?.assessmentDetails?.skillAssessmentCategory.join(
                       ", ",
@@ -103,7 +105,7 @@ function AssessmentDetails() {
               </div>
               <div className="skill-assessment-detail-main">
                 <h5>
-                  Question Level:{" "}
+                  {t("assessment.question_level")}{" "}
                   <span>
                     {assessmentData?.assessmentDetails?.questionLevel}
                   </span>
@@ -120,18 +122,18 @@ function AssessmentDetails() {
                       <ul>
                         {q.options.map((opt) => (
                           <li key={opt._id}>
-                            Option {opt.key}: <span>{opt.text}</span>
+                            {t("assessment.option_label", { key: opt.key })} <span>{opt.text}</span>
                           </li>
                         ))}
                       </ul>
 
                       <h4>
-                        <span>Correct Answer: </span>
+                        <span>{t("assessment.correct_answer")} </span>
                         {q.correctAnswers.map((ans, i) => {
                           const opt = q.options.find((o) => o.key === ans);
                           return (
                             <>
-                              Option {ans}: {opt?.text}
+                              {t("assessment.option_label", { key: ans })} {opt?.text}
                             </>
                           );
                         })}
@@ -143,14 +145,14 @@ function AssessmentDetails() {
               <div className="skill-assessment-detail-main">
                 <div className="category-name-no-questions">
                   <div className="category-name-area">
-                    <h5>Category Name</h5>
+                    <h5>{t("assessment.category_name")}</h5>
                     {assessmentData?.categoryQuestionCount.map((item) => (
                       <h4 key={item.categoryName}>{item.categoryName}</h4>
                     ))}
                   </div>
 
                   <div className="number-questions-per-category">
-                    <h5>No. of Questions</h5>
+                    <h5>{t("assessment.no_of_questions")}</h5>
                     {assessmentData?.categoryQuestionCount.map((item) => (
                       <h5 key={item.categoryName}>{item.numberOfQuestions}</h5>
                     ))}
@@ -162,16 +164,16 @@ function AssessmentDetails() {
                 <div className="total-Duration-Questions-passing-percentage">
                   <div className="total-dqpp-main-area">
                     <h5>
-                      Total Duration:{" "}
+                      {t("assessment.total_duration")}{" "}
                       <span>
-                        {assessmentData?.assessmentDetails?.totalDuration} mins
+                        {assessmentData?.assessmentDetails?.totalDuration} {t("assessment.mins")}
                       </span>
                     </h5>
                   </div>
 
                   <div className="total-dqpp-main-area">
                     <h5>
-                      Total Questions:{" "}
+                      {t("assessment.total_questions")}{" "}
                       <span>
                         {assessmentData?.assessmentDetails?.totalQuestions}
                       </span>
@@ -180,7 +182,7 @@ function AssessmentDetails() {
 
                   <div className="total-dqpp-main-area">
                     <h5>
-                      Passing Percentage:{" "}
+                      {t("assessment.passing_percentage")}{" "}
                       <span>
                         {assessmentData?.assessmentDetails?.passingPercentage}%
                       </span>

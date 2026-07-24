@@ -1,4 +1,11 @@
 import { API_BASE_URL } from "../Url/Url";
+import {
+  getFetchAuthOptions,
+  getUserToken,
+  hasAuthSession,
+  isAuthReady,
+} from "./apiHeaders";
+import { handleSessionExpired } from "./authInterceptor";
 
 export const PROTECTED_FILE_ERRORS = {
   LOGIN_REQUIRED: "LOGIN_REQUIRED",
@@ -160,7 +167,8 @@ export async function openProtectedFile(apiUrl, token, options = {}) {
     throw err;
   }
 
-  if (!token) {
+  const authToken = token || getUserToken();
+  if (!authToken && !hasAuthSession()) {
     const err = new Error(PROTECTED_FILE_ERRORS.LOGIN_REQUIRED);
     onError?.(err);
     if (redirectOn401) {
@@ -170,15 +178,17 @@ export async function openProtectedFile(apiUrl, token, options = {}) {
   }
 
   const fullUrl = buildFullUrl(apiUrl);
-  const res = await fetch(fullUrl, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const fetchOptions = getFetchAuthOptions(
+    authToken ? { Authorization: `Bearer ${authToken}` } : {},
+  );
+  const res = await fetch(fullUrl, fetchOptions);
 
   if (res.status === 401) {
     const err = new Error(PROTECTED_FILE_ERRORS.LOGIN_REQUIRED);
     onError?.(err);
-    if (redirectOn401) {
-      localStorage.clear();
+    if (redirectOn401 && isAuthReady()) {
+      handleSessionExpired();
+    } else if (redirectOn401) {
       window.location.href = "/jobPortal";
     }
     throw err;

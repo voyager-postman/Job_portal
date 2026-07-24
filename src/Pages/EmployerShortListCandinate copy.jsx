@@ -7,6 +7,7 @@ import axios from "axios";
 
 import { ToastContainer, toast } from "react-toastify";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function EmployerShortListCandinate() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,7 +82,7 @@ function EmployerShortListCandinate() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
       // Show message from backend
       toast.success(res.data.message);

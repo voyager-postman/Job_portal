@@ -1,0 +1,88 @@
+.featured-benefits-meta {
+  border-top: 1px dashed #ffe082;
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.featured-benefits-meta .featured-benefits-row:last-child {
+  margin-bottom: 0;
+}
+
+.featured-benefits-panel {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 12px;
+  margin-top: 1rem;
+  padding: 16px;
+}
+
+.featured-benefits-title {
+  color: #ff9800;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.featured-benefits-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.featured-benefits-row:last-child {
+  margin-bottom: 0;
+}
+
+.featured-benefits-row span {
+  color: #6d5b45;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.featured-benefits-row strong {
+  color: #1f2937;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.featured-benefits-row--stacked {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.featured-benefits-row--stacked strong {
+  line-height: 1.6;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.featured-benefits-list {
+  color: #6d5b45;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.featured-benefits-list li {
+  margin-bottom: 6px;
+}
+
+.featured-benefits-list li:last-child {
+  margin-bottom: 0;
+}
+
+.job-payment-detail-box-info {
+  overflow: visible;
+}
+
+.job-payment-detail-box-info .featured-benefits-panel {
+  margin-bottom: 0;
+}

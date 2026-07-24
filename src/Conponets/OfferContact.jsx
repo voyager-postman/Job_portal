@@ -1,10 +1,12 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 
 function OfferContact() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
   const { plan } = location.state || {};
@@ -34,7 +36,7 @@ function OfferContact() {
       !formData.contactPhone ||
       !formData.billingAddress
     ) {
-      toast.error("Please fill all required fields");
+      toast.error(t("header.Please_fill_all_required_fields"));
       return;
     }
 
@@ -56,12 +58,12 @@ function OfferContact() {
         },
       });
 
-      toast.success("Your request has been submitted successfully!");
+      toast.success(t("wallet.requestSubmittedSuccess"));
       setTimeout(() => {
         navigate("/employer-dashboard");
       }, 2000);
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error(t("header.something_wrong"));
     }
   };
 
@@ -70,46 +72,44 @@ function OfferContact() {
       <ToastContainer />
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* Breadcrumb */}
           <div className="breadcrumb-area">
-            <h1>Plan Purchase Request</h1>
+            <h1>{t("wallet.planPurchaseRequest")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home</Link>
+                <Link to="/">{t("header.home")}</Link>
               </li>
               <li className="item">
                 <Link to="/employer-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Request Plan
+                <i className="fa-solid fa-angle-right" /> {t("wallet.requestPlan")}
               </li>
             </ol>
           </div>
 
-          {/* Plan Summary */}
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Plan Summary</h3>
+              <h3>{t("wallet.planSummary")}</h3>
 
               <div className="alert alert-info">
                 <h5>{plan?.packName}</h5>
                 <p>
-                  Job Credits: {plan?.jobPostingCredits} <br />
-                  CV Credits: {plan?.profileViewingCredits} <br />
-                  Validity: {plan?.validityValue} {plan?.validityUnit} <br />
-                  Price: {plan?.currency} {plan?.amount}
+                  {t("wallet.jobCredits")}: {plan?.jobPostingCredits} <br />
+                  {t("wallet.cvCredits")}: {plan?.profileViewingCredits} <br />
+                  {t("wallet.validity")}: {plan?.validityValue} {plan?.validityUnit}{" "}
+                  <br />
+                  {t("wallet.price")}: {plan?.currency} {plan?.amount}
                 </p>
               </div>
 
-              {/* Form */}
               <div className="profile-form">
                 <form onSubmit={handleSubmit}>
                   <div className="row">
                     <div className="col-lg-6">
                       <div className="form-group">
-                        <label>Contact Person *</label>
+                        <label>{t("wallet.contactPerson")}</label>
                         <input
                           type="text"
                           name="contactPerson"
@@ -121,7 +121,7 @@ function OfferContact() {
 
                     <div className="col-lg-6">
                       <div className="form-group">
-                        <label>Contact Email *</label>
+                        <label>{t("wallet.contactEmail")}</label>
                         <input
                           type="email"
                           name="contactEmail"
@@ -133,7 +133,7 @@ function OfferContact() {
 
                     <div className="col-lg-6">
                       <div className="form-group">
-                        <label>Contact Phone *</label>
+                        <label>{t("wallet.contactPhone")}</label>
                         <input
                           type="text"
                           name="contactPhone"
@@ -145,7 +145,7 @@ function OfferContact() {
 
                     <div className="col-lg-6">
                       <div className="form-group">
-                        <label>GST / Tax Number</label>
+                        <label>{t("wallet.gstTaxNumber")}</label>
                         <input
                           type="text"
                           name="gstNumber"
@@ -157,7 +157,7 @@ function OfferContact() {
 
                     <div className="col-lg-12">
                       <div className="form-group">
-                        <label>Billing Address *</label>
+                        <label>{t("wallet.billingAddress")}</label>
                         <textarea
                           name="billingAddress"
                           className="form-control"
@@ -169,7 +169,7 @@ function OfferContact() {
 
                     <div className="col-lg-12">
                       <div className="form-group">
-                        <label>Special Notes</label>
+                        <label>{t("wallet.specialNotes")}</label>
                         <textarea
                           name="notes"
                           className="form-control"
@@ -181,28 +181,29 @@ function OfferContact() {
                   </div>
 
                   <button type="submit" className="default-btn btn mt-3">
-                    Submit Request
+                    {t("wallet.submitRequest")}
                   </button>
                 </form>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
           <div className="copy-right-area bg-f0f4fc">
             <div className="row">
               <div className="col-lg-6">
-                <p>© Connect Work.ma All Rights Reserved</p>
+                <p>
+                  © {t("header.Connect_Work")} {t("header.All_Rights_Reserved")}
+                </p>
               </div>
               <div className="col-lg-6 text-end">
                 <p>
-                  Designed By{" "}
+                  {t("header.Designed_By")}{" "}
                   <a
                     href="https://hibootstrap.com/"
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Webnmobapps Solution Pvt. Ltd
+                    {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                   </a>
                 </p>
               </div>

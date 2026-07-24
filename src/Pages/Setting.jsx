@@ -1,12 +1,21 @@
 import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios"
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { validateImageFile } from "../utils/fileUploadLimits";
+
 const Setting = () => {
+  const { t } = useTranslation("global");
   const [activeTab, setActiveTab] = useState("menu1");
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const validation = validateImageFile(file, t);
+    if (!validation.ok) {
+      toast.error(validation.message);
+      e.target.value = "";
+    }
   };
 
   return (
@@ -15,9 +24,8 @@ const Setting = () => {
         <div className="container">
           <div className="my-profile-area">
             <div className="profile-form-content">
-              <h3>Setting</h3>
+              <h3>{t("settings.title")}</h3>
               <div className="company-profile-management-info">
-                {/* Nav Tabs */}
                 <div className="company-profile-management-tab">
                   <ul className="nav nav-tabs" role="tablist">
                     <li className="nav-item" role="presentation">
@@ -28,7 +36,7 @@ const Setting = () => {
                         onClick={() => setActiveTab("menu1")}
                         data-bs-toggle="tab"
                       >
-                        Employer Profile
+                        {t("settings.employer_profile_tab")}
                       </a>
                     </li>
                     <li className="nav-item" role="presentation">
@@ -38,12 +46,11 @@ const Setting = () => {
                         }`}
                         onClick={() => setActiveTab("menu2")}
                       >
-                        Change Password
+                        {t("settings.change_password_tab")}
                       </a>
                     </li>
                   </ul>
                 </div>
-                {/* Tab Panes */}
                 <div className="company-profile-management-input-form">
                   <div className="tab-content">
                     <div
@@ -58,53 +65,47 @@ const Setting = () => {
                           <div className="row">
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Name</label>
+                                <label>{t("header.name")}</label>
                                 <input
                                   className="form-control"
                                   type="text"
-                                  placeholder="Enter Name"
+                                  placeholder={t("settings.enter_name")}
                                   name="name"
-                                  // value={formData.brand_name}
-                                  // onChange={handleChange}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Email</label>
+                                <label>{t("header.email")}</label>
                                 <input
                                   className="form-control"
                                   type="email"
-                                  placeholder="Enter Email"
+                                  placeholder={t("settings.enter_email")}
                                   name="email"
-                                  // value={formData.brand_name}
-                                  // onChange={handleChange}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Phone Number</label>
+                                <label>{t("profile.phone_number")}</label>
                                 <input
                                   className="form-control"
                                   type="number"
-                                  placeholder="Enter Phone Number"
+                                  placeholder={t("settings.enter_phone_number")}
                                   name="phone"
-                                  // value={formData.brand_name}
-                                  // onChange={handleChange}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Profile Photo</label>
+                                <label>{t("settings.profile_photo")}</label>
                                 <div className="upload-company-info-area">
                                   <div className="upload-company-img-preview">
                                     <img
                                       crossorigin="anonymous"
                                       src="/jobPortal/assets/images/logo.png"
                                       className="main-logo"
-                                      alt="Image Preview"
+                                      alt={t("profile.image_preview")}
                                     />
                                   </div>
                                   <div className="upload-company-input">
@@ -112,14 +113,12 @@ const Setting = () => {
                                       type="file"
                                       id="imageInput"
                                       accept="image/*"
-                                      placeholder="Upload image"
-                                      // onChange={handleFileChange}
-                                      // style={{ display: "none" }}
+                                      placeholder={t("settings.profile_photo")}
                                     />
                                   </div>
                                   <div className="upload-company-file-name">
                                     <span className="file-name">
-                                      No Selected Photo
+                                      {t("settings.no_selected_photo")}
                                     </span>
                                   </div>
                                   <div className="upload-company-file-btn">
@@ -127,18 +126,14 @@ const Setting = () => {
                                       htmlFor="imageInput"
                                       className="custom-upload default-btn btn"
                                     >
-                                      Choose Img
+                                      {t("settings.choose_img")}
                                     </label>
                                   </div>
                                 </div>
                               </div>
                               <div className="employer-personal-info-btn">
-                                <button
-                                  // onClick={handleSubmitMultipleImage}
-                                  className="default-btn btn"
-                                  // disabled={isUploading}
-                                >
-                                  Submit
+                                <button className="default-btn btn">
+                                  {t("settings.submit")}
                                 </button>
                               </div>
                             </div>
@@ -158,37 +153,29 @@ const Setting = () => {
                           <div className="row">
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Enter New Password</label>
+                                <label>{t("settings.enter_new_password")}</label>
                                 <input
                                   className="form-control"
                                   type="text"
-                                  placeholder="Enter New Password"
+                                  placeholder={t("settings.enter_new_password")}
                                   name="new_password"
-                                  // value={formData.brand_name}
-                                  // onChange={handleChange}
                                 />
                               </div>
                             </div>
                             <div className="col-lg-12 col-md-12">
                               <div className="form-group">
-                                <label>Enter Confirm Password</label>
+                                <label>{t("settings.enter_confirm_password")}</label>
                                 <input
                                   className="form-control"
                                   type="text"
-                                  placeholder="Enter Confirm Password"
+                                  placeholder={t("settings.enter_confirm_password")}
                                   name="confirm_password"
-                                  // value={formData.brand_name}
-                                  // onChange={handleChange}
                                 />
                               </div>
                             </div>
                             <div className="employer-personal-info-btn">
-                              <button
-                                // onClick={handleSubmitMultipleImage}
-                                className="default-btn btn"
-                                // disabled={isUploading}
-                              >
-                                Submit
+                              <button className="default-btn btn">
+                                {t("settings.submit")}
                               </button>
                             </div>
                           </div>

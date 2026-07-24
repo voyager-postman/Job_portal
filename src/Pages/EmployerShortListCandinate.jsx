@@ -9,6 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import { getCandidateCoverLetterSource } from "../utils/applicationDocuments";
 import { openProtectedDocument } from "../utils/protectedFile";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
@@ -150,9 +151,7 @@ function EmployerShortListCandinate() {
       const response = await axios.post(
         `${API_BASE_URL}viewCandidate/${candidateDetails.userId._id}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (!response.data.success) {
@@ -253,7 +252,7 @@ function EmployerShortListCandinate() {
       const res = await axios.post(
         `${API_BASE_URL}getCandidateDetails/${id}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       setCandidateDetails(res.data?.data);
@@ -510,9 +509,7 @@ function EmployerShortListCandinate() {
         sortOrder = order;
       }
 
-      const res = await axios.get(`${API_BASE_URL}getFolderCandidates`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
+      const res = await axios.get(`${API_BASE_URL}getFolderCandidates`, getRequestConfig({ params: {
           folderId: folderId !== "all" ? folderId : undefined,
           search: customSearch || undefined,
           skills:
@@ -549,7 +546,8 @@ function EmployerShortListCandinate() {
           page: page,
           limit: perPage,
         },
-      });
+      }),
+      );
 
       if (res.data.success) {
         const list = res.data.data || [];
@@ -1717,7 +1715,7 @@ function EmployerShortListCandinate() {
                   {applicants.length > 0 ? (
                     applicants.map((candidate, index) => {
                       const user = candidate?.userId || {};
-                      const role = candidate?.aboutRole || {};
+                      const yearOfExperience = candidate?.yearOfExperience || {};
 
                       return (
                         <div
@@ -1781,8 +1779,8 @@ function EmployerShortListCandinate() {
                                 >
                                   <span className="text-primary fw-bold">
                                     <i class="fa-solid fa-briefcase"></i>{" "}
-                                    {role.yearOfExperience
-                                      ? `${role.yearOfExperience} Years`
+                                    {yearOfExperience
+                                      ? `${yearOfExperience} Years`
                                       : "N/A"}
                                   </span>
 

@@ -1,20 +1,24 @@
+import { useTranslation } from "react-i18next";
+
 function SearchJobList() {
+  const { t } = useTranslation("global");
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Job List</h1>
+            <h1>{t("breadcrumbs.search_job_list")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <a href="dashboard.html">Home </a>
+                <a href="dashboard.html">{t("header.home")} </a>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Search Job List
+                <i className="fa-solid fa-angle-right" /> {t("breadcrumbs.search_job_list")}
               </li>
             </ol>
           </div>
@@ -29,7 +33,7 @@ function SearchJobList() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="Keywords / Job Title"
+                        placeholder={t("header.keywords")}
                       />
                       <i className="flaticon-portfolio" />
                     </div>
@@ -39,7 +43,7 @@ function SearchJobList() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="City Or Postcode"
+                        placeholder={t("header.location_city")}
                       />
                       <i className="flaticon-location" />
                     </div>
@@ -50,7 +54,7 @@ function SearchJobList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose A Category</option>
+                        <option selected>{t("header.choose_category")}</option>
                         <option value={1}>Development</option>
                         <option value={2}>Information IT</option>
                         <option value={3}>Corporate Job</option>
@@ -94,7 +98,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -120,7 +124,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -182,7 +186,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -209,7 +213,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -231,7 +235,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -253,7 +257,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -297,7 +301,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -350,7 +354,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -377,7 +381,7 @@ function SearchJobList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">

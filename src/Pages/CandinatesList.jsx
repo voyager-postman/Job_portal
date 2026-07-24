@@ -8,6 +8,14 @@ import { useTranslation } from "react-i18next";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import { getCandidateCoverLetterSource } from "../utils/applicationDocuments";
 import { openProtectedDocument } from "../utils/protectedFile";
+import { getRequestConfig } from "../utils/apiHeaders";
+
+const getExperienceYearsLabel = (value) => {
+  if (value == null || value === "") return null;
+  if (typeof value === "object") return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+};
 
 function CandinatesList() {
   const { t, i18n } = useTranslation("global");
@@ -139,7 +147,7 @@ function CandinatesList() {
       const res = await axios.post(
         `${API_BASE_URL}getCandidateDetails/${id}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       setCandidateDetails(res.data?.data);
@@ -560,9 +568,7 @@ function CandinatesList() {
       const response = await axios.post(
         `${API_BASE_URL}viewCandidate/${candidateDetails.userId._id}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (!response.data.success) {
@@ -619,7 +625,7 @@ function CandinatesList() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       toast.success(res.data.message);
@@ -798,6 +804,10 @@ function CandinatesList() {
   const clearExperience = () => {
     setSelectedExperience([]);
   };
+  const selectedExperienceYears = getExperienceYearsLabel(
+    candidateDetails?.aboutRole?.yearOfExperience ??
+      candidateDetails?.yearOfExperience,
+  );
   return (
     <>
       <ToastContainer />
@@ -1717,7 +1727,9 @@ function CandinatesList() {
                   {candidates.length > 0 ? (
                     candidates.map((candidate, index) => {
                       const user = candidate?.userId || {};
-                      const role = candidate?.aboutRole || {};
+                      const experienceYears = getExperienceYearsLabel(
+                        candidate?.yearOfExperience,
+                      );
 
                       return (
                         <div
@@ -1911,8 +1923,8 @@ function CandinatesList() {
                                 >
                                   <span className="text-primary fw-bold">
                                     <i class="fa-solid fa-briefcase"></i>{" "}
-                                    {role.yearOfExperience
-                                      ? `${role.yearOfExperience} Years`
+                                   {experienceYears
+                                      ? `${experienceYears} Years`
                                       : "N/A"}
                                   </span>
 
@@ -2179,8 +2191,8 @@ function CandinatesList() {
                               </span>
                               <span className="d-flex align-items-center gap-1">
                                 <i className="fa-solid fa-briefcase text-info" />
-                                {candidateDetails?.aboutRole?.yearOfExperience
-                                  ? `${candidateDetails.aboutRole.yearOfExperience}+ Years Exp.`
+                                {selectedExperienceYears
+                                  ? `${selectedExperienceYears}+ Years Exp.`
                                   : "N/A"}
                               </span>
                             </div>

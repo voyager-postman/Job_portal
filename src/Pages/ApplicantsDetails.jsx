@@ -12,15 +12,17 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { TbMessages } from "react-icons/tb";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
 import {
   getApplicantCoverLetterUrl,
   getApplicantCvSource,
   openApplicationFile,
 } from "../utils/applicationDocuments";
+import { getFetchAuthOptions, getRequestConfig } from "../utils/apiHeaders";
 
 function ApplicantsDetails() {
+  const { t } = useTranslation("global");
   const location = useLocation();
-  const token = localStorage.getItem("token");
   const jobId = location.state?.jobId;
   const jobTags = location.state?.tags || [];
   const [candidateList, setCandidateList] = useState([]);
@@ -56,17 +58,17 @@ function ApplicantsDetails() {
   });
 
   const degreeOptions = [
-    "High School",
-    "Secondary School",
-    "Higher Secondary",
-    "Certificate",
-    "Diploma",
-    "Associate Degree",
-    "Bachelor Degree",
-    "Master’s Degree",
-    "Doctorate (PhD)",
-    "Post Doctorate",
-    "Professional Degree",
+    t("header.High_School"),
+    t("header.Secondary_School"),
+    t("header.Higher_Secondary"),
+    t("header.Certificate"),
+    t("header.Diploma"),
+    t("header.Associate_Degree"),
+    t("header.Bachelor_Degree"),
+    t("header.Master_Degree"),
+    t("header.Doctorate"),
+    t("header.Post_Doctorate"),
+    t("header.Professional_Degree"),
   ];
 
   const fetchCandidates = async (status = "") => {
@@ -88,9 +90,7 @@ function ApplicantsDetails() {
 
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      getFetchAuthOptions(),
     );
 
     const data = await res.json();
@@ -125,9 +125,7 @@ function ApplicantsDetails() {
     const queryString = `?${query.join("&")}`;
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      getFetchAuthOptions(),
     );
     const data = await res.json();
     console.log("Candidate Count Data:-", data.summary);
@@ -144,9 +142,7 @@ function ApplicantsDetails() {
     try {
       const res = await axios.get(
         `${API_BASE_URL}ats-score/${jobId}/${applicationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (res.data?.success) {
@@ -216,15 +212,11 @@ function ApplicantsDetails() {
           applicationId: selectedCandidate?._id,
           newStatus: value,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        getRequestConfig(),
       );
 
       console.log("Status Updated", res.data);
-      toast.success(`Candidate status updated to ${value}`, {
+      toast.success(t("header.Candidate_status_updated_to", { value }), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -326,9 +318,7 @@ function ApplicantsDetails() {
     try {
       const res = await fetch(
         `${API_BASE_URL}applicant/details/${applicationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getFetchAuthOptions(),
       );
 
       const data = await res.json();
@@ -351,7 +341,7 @@ function ApplicantsDetails() {
       const res = await axios.post(
         `${API_BASE_URL}bookmark/candidate`,
         { candidateId, jobId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       // Show message from backend
@@ -364,7 +354,7 @@ function ApplicantsDetails() {
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
       } else {
-        toast.error("Failed to bookmark candidate!");
+        toast.error(t("jobs.failed_bookmark"));
       }
     }
   };
@@ -422,11 +412,11 @@ function ApplicantsDetails() {
                 <h4>Applicant Details</h4>
                 <ul>
                   <li>
-                    <Link to="/">Home</Link>
+                    <Link to="/">{t("header.home")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
@@ -611,12 +601,12 @@ function ApplicantsDetails() {
                               const fileUrl = getResumeUrl();
 
                               if (!fileUrl) {
-                                toast.error("No resume uploaded");
+                                toast.error(t("jobs.no_resume_uploaded"));
                                 return;
                               }
 
                               openApplicationFile(fileUrl, () =>
-                                toast.error("No resume uploaded"),
+                                toast.error(t("jobs.no_resume_uploaded")),
                               );
                             }}
                           >
@@ -639,7 +629,7 @@ function ApplicantsDetails() {
                                     !selectedCandidate?.profile?.links?.linkedin
                                   ) {
                                     e.preventDefault();
-                                    toast.info("LinkedIn link not available");
+                                    toast.info(t("jobs.linkedin_not_available"));
                                   }
                                   e.stopPropagation(); // prevent parent click
                                 }}
@@ -661,7 +651,7 @@ function ApplicantsDetails() {
                                     !selectedCandidate?.profile?.links?.github
                                   ) {
                                     e.preventDefault();
-                                    toast.info("GitHub link not available");
+                                    toast.info(t("jobs.github_not_available"));
                                   }
                                   e.stopPropagation();
                                 }}
@@ -684,7 +674,7 @@ function ApplicantsDetails() {
                                       ?.portfolio
                                   ) {
                                     e.preventDefault();
-                                    toast.info("Portfolio link not available");
+                                    toast.info(t("jobs.portfolio_not_available"));
                                   }
                                   e.stopPropagation();
                                 }}
@@ -712,10 +702,10 @@ function ApplicantsDetails() {
                             value={newApplicationStatus}
                             onChange={handleStatusUpdate}
                           >
-                            <option value="Applied">New</option>
-                            <option value="Shortlisted">Shortlisted</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Hired">Hired</option>
+                            <option value="Applied">{t("jobs.new_status")}</option>
+                            <option value="Shortlisted">{t("jobs.shortlisted")}</option>
+                            <option value="Rejected">{t("jobs.rejected")}</option>
+                            <option value="Hired">{t("jobs.hired")}</option>
                           </select>
                         </div>
                         <div className="employer-candidate-dcv-btn mt-4">
@@ -752,23 +742,23 @@ function ApplicantsDetails() {
                   {/* ================= PROFESSIONAL SUMMARY ================= */}
                   <div className="employer-candidate-detail-info-area">
                     <div className="employer-candidate-cv-heading">
-                      <h3>About Role</h3>
+                      <h3>{t("jobs.about_role_heading")}</h3>
                     </div>
 
                     <div className="employer-candidate-cv-details">
-                      <h5>Job Title</h5>
+                      <h5>{t("header.jobTitle")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole?.jobTitle ||
                           "NA"}
                       </p>
 
-                      <h5>Years of experience</h5>
+                      <h5>{t("jobs.years_of_experience")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole
                           ?.yearOfExperience || "NA"}
                       </p>
 
-                      <h5>Job category</h5>
+                      <h5>{t("jobs.job_category")}</h5>
                       <p>
                         {selectedCandidate?.profile?.aboutRole?.jobCategory ||
                           "NA"}
@@ -779,29 +769,29 @@ function ApplicantsDetails() {
 
                     {/* ================= CAREER GOALS ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Career Goals</h3>
+                      <h3>{t("jobs.career_goals")}</h3>
                     </div>
 
                     <div className="employer-candidate-cv-details">
-                      <h5>Desired Job Title</h5>
+                      <h5>{t("jobs.desired_job_title")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredJobTitle || "NA"}
                       </p>
 
-                      <h5>Desired Employment Type</h5>
+                      <h5>{t("jobs.desired_employment_type")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredEmploymentType || "NA"}
                       </p>
 
-                      <h5>Desired Occupation Type</h5>
+                      <h5>{t("jobs.desired_occupation_type")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.DesiredOccupationType || "NA"}
                       </p>
 
-                      <h5>Minimum Desired Salary</h5>
+                      <h5>{t("jobs.minimum_desired_salary")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.MinimumDesiredSalary?.amount || "NA"}{" "}
@@ -812,7 +802,7 @@ function ApplicantsDetails() {
                           ?.MinimumDesiredSalary?.type || "NA"}
                       </p>
 
-                      <h5>Job Search Status</h5>
+                      <h5>{t("header.Job_Search_Status")}</h5>
                       <p>
                         {selectedCandidate?.profile?.career_goals
                           ?.jobSearchStatus || "NA"}
@@ -823,7 +813,7 @@ function ApplicantsDetails() {
 
                     {/* ================= SKILLS ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Skills</h3>
+                      <h3>{t("jobs.skills_heading")}</h3>
                     </div>
                     <div className="employer-candidate-profile-skill-info">
                       <ul>
@@ -837,20 +827,20 @@ function ApplicantsDetails() {
 
                     {/* ================= EDUCATION ================= */}
                     <div className="employer-candidate-cv-heading">
-                      <h3>Education</h3>
+                      <h3>{t("header.Education")}</h3>
                     </div>
                     {selectedCandidate?.profile?.education?.map((edu) => (
                       <div
                         key={edu._id}
                         className="employer-candidate-cv-details"
                       >
-                        <h5>Degree</h5>
+                        <h5>{t("jobs.degree")}</h5>
                         <p>{edu.degree || "NA"}</p>
 
-                        <h5>University</h5>
+                        <h5>{t("jobs.university")}</h5>
                         <p>{edu.University || "NA"}</p>
 
-                        <h5>Start Date</h5>
+                        <h5>{t("jobs.start_date")}</h5>
                         <p>{new Date(edu.startDate).toLocaleDateString()}</p>
 
                         <h5>End Date</h5>

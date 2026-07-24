@@ -1,7 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import axios from "axios"
+import { SITE } from "../utils/seo";
+import { useTranslation } from "react-i18next";
+
 function SendOtp() {
+  const { t } = useTranslation("global");
+
   return (
     <>
       <section className="forgot-password-info-area">
@@ -13,38 +17,36 @@ function SendOtp() {
                   <img
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
-                    alt="logo"
+                    alt={`${SITE.name} logo`}
                   />
                 </div>
 
                 <div className="container">
                   <div className="password">
-                    <h3>Verify OTP</h3>
+                    <h1>{t("otp.verify_title")}</h1>
                     <form>
-                      <h6>
-                        Enter the OTP sent to your registered email address
-                      </h6>
+                      <p className="form-section-lead">{t("otp.verify_subtitle")}</p>
 
                       <div className="form-group">
-                        <label>OTP</label>
+                        <label>{t("otp.otp_label")}</label>
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="Enter OTP"
+                          placeholder={t("otp.enter_otp_placeholder")}
                           maxLength="6"
                         />
                       </div>
 
                       <div className="forgot-password-btn">
                         <button type="submit" className="default-btn btn">
-                          Verify OTP
+                          {t("otp.verify_btn")}
                         </button>
                       </div>
 
                       <div className="text-center mt-3">
                         <p>
-                          Didn’t receive OTP?{" "}
-                          <Link to="/forgot-password">Resend</Link>
+                          {t("otp.resend_prompt")}{" "}
+                          <Link to="/recovery-password">{t("otp.resend_link")}</Link>
                         </p>
                       </div>
                     </form>

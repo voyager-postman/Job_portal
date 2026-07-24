@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SITE } from "../utils/seo";
 import axios from "axios";
+import { isAuthReady } from "../utils/apiHeaders";
 
 function Footer() {
   const { t, i18n } = useTranslation("global");
@@ -54,7 +56,7 @@ function Footer() {
 
   return (
     <>
-      <div>
+      <footer>
         <div className="footer-area bg-color pt-50 pb-50">
           <div className="container">
             <div className="row">
@@ -69,7 +71,7 @@ function Footer() {
                             ? `${API_IMAGE_URL}${homeData.footerSection.image}`
                             : "/jobPortal/assets/images/white-logo.png"
                         }
-                        alt="Footer Logo"
+                        alt={`${SITE.name} logo`}
                       />
                     </Link>
                   </div>
@@ -168,7 +170,7 @@ function Footer() {
                       <li>
                         <Link
                           to={
-                            localStorage.getItem("token")
+                            isAuthReady()
                               ? "/bookmark-candidate"
                               : "/employer-login"
                           }
@@ -179,7 +181,7 @@ function Footer() {
                       <li>
                         <Link
                           to={
-                            localStorage.getItem("token")
+                            isAuthReady()
                               ? "/candidates-search"
                               : "/employer-login"
                           }
@@ -256,7 +258,7 @@ function Footer() {
           <i className="fa-solid fa-arrow-up-long" />
           <i className="fa-solid fa-arrow-up-long" />
         </div>
-      </div>
+      </footer>
     </>
   );
 }

@@ -1,16 +1,36 @@
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
+import { getAuthHeaders, isAuthReady } from "./apiHeaders";
+import {
+  MAX_DOCUMENT_SIZE_BYTES,
+  validateDocumentFile,
+} from "./fileUploadLimits";
 
-export const MAX_APPLY_FILE_SIZE = 2 * 1024 * 1024;
+export const MAX_APPLY_FILE_SIZE = MAX_DOCUMENT_SIZE_BYTES;
 
-export const fetchCandidateApplyDocuments = async (token) => {
-  if (!token) {
+const assertValidDocument = (file, t) => {
+  const result = validateDocumentFile(file, t);
+  if (!result.ok) {
+    const error = new Error(result.message || "FILE_TOO_LARGE");
+    error.code = "FILE_TOO_LARGE";
+    throw error;
+  }
+};
+
+export const fetchCandidateApplyDocuments = async () => {
+  if (!isAuthReady()) {
+    return { resumeList: [], coverLetterList: [] };
+  }
+
+  const role = localStorage.getItem("user_role");
+  if (role !== "JobSeeker") {
     return { resumeList: [], coverLetterList: [] };
   }
 
   try {
     const res = await axios.get(`${API_BASE_URL}candidate/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+      headers: getAuthHeaders(),
     });
     const profile = res.data?.profile || {};
     return {
@@ -22,11 +42,13 @@ export const fetchCandidateApplyDocuments = async (token) => {
   }
 };
 
-export const uploadCvToProfile = async (file, token) => {
+export const uploadCvToProfile = async (file, t) => {
+  assertValidDocument(file, t);
   const formData = new FormData();
   formData.append("resume", file);
   const response = await axios.put(`${API_BASE_URL}updateResumeUrl`, formData, {
-    headers: { Authorization: `Bearer ${token}` },
+    withCredentials: true,
+    headers: getAuthHeaders(),
   });
   return {
     name: file.name,
@@ -35,13 +57,17 @@ export const uploadCvToProfile = async (file, token) => {
   };
 };
 
-export const uploadCoverLetterToProfile = async (file, token) => {
+export const uploadCoverLetterToProfile = async (file, t) => {
+  assertValidDocument(file, t);
   const formData = new FormData();
   formData.append("coverLetter", file);
   const response = await axios.put(
     `${API_BASE_URL}updateCoverLetter`,
     formData,
-    { headers: { Authorization: `Bearer ${token}` } },
+    {
+      withCredentials: true,
+      headers: getAuthHeaders(),
+    },
   );
   return {
     name: file.name,

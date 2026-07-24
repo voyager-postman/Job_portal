@@ -1,24 +1,27 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "axios"
 
 function EmployerFilterCandinateList() {
+  const { t } = useTranslation("global");
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Jobs Listing</h1>
+            <h1>{t("breadcrumbs.jobs_listing")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/employer-dashboard">Home </Link>
+                <Link to="/employer-dashboard">{t("header.home")} </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Dashboard
+                <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Jobs Listing
+                <i className="fa-solid fa-angle-right" /> {t("breadcrumbs.jobs_listing")}
               </li>
             </ol>
           </div>
@@ -33,7 +36,7 @@ function EmployerFilterCandinateList() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="Keywords / Job Title"
+                        placeholder={t("header.keywords")}
                       />
                       <i className="flaticon-portfolio" />
                     </div>
@@ -43,7 +46,7 @@ function EmployerFilterCandinateList() {
                       <input
                         className="form-control"
                         type="text"
-                        placeholder="City Or Postcode"
+                        placeholder={t("header.location_city")}
                       />
                       <i className="flaticon-location" />
                     </div>
@@ -54,7 +57,7 @@ function EmployerFilterCandinateList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose A Category</option>
+                        <option selected>{t("header.choose_category")}</option>
                         <option value={1}>Development</option>
                         <option value={2}>Information IT</option>
                         <option value={3}>Corporate Job</option>
@@ -87,7 +90,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -95,7 +98,7 @@ function EmployerFilterCandinateList() {
                         className="form-select form-control"
                         aria-label="Default select example"
                       >
-                        <option selected>Choose A Skills</option>
+                        <option selected>{t("breadcrumbs.choose_skills")}</option>
                         <option value={1}>Digital</option>
                         <option value={2}>Design</option>
                         <option value={3}>Developer</option>
@@ -117,7 +120,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -129,7 +132,7 @@ function EmployerFilterCandinateList() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 0 - 2 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_0_2")}</label>
                         </li>
                         <li>
                           <input
@@ -138,7 +141,7 @@ function EmployerFilterCandinateList() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 2 - 4 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_2_4")}</label>
                         </li>
                         <li>
                           <input
@@ -147,7 +150,7 @@ function EmployerFilterCandinateList() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 5 - 7 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_5_7")}</label>
                         </li>
                         <li>
                           <input
@@ -156,7 +159,7 @@ function EmployerFilterCandinateList() {
                             name="OtherPreferences"
                             defaultValue="Other Preferences"
                           />
-                          <label htmlFor="vehicle1"> 8 - 10 Years</label>
+                          <label htmlFor="vehicle1"> {t("breadcrumbs.years_8_10")}</label>
                         </li>
                         <li>
                           <input
@@ -188,7 +191,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -250,7 +253,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -277,7 +280,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">
@@ -301,7 +304,7 @@ function EmployerFilterCandinateList() {
                         </h4>
                       </div>
                       <div className="job-filter-cancel-heading">
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
                     <div className="job-filter-select-info">

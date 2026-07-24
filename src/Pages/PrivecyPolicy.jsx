@@ -7,7 +7,10 @@ import { useAuth } from "../context/AuthContext"; // adjust path
 import ReCAPTCHA from "react-google-recaptcha";
 
 import { API_BASE_URL } from "../Url/Url";
+import { useTranslation } from "react-i18next";
+
 function PrivecyPolicy() {
+  const { t, i18n } = useTranslation("global");
   const [email, setEmail] = useState("");
   const [captchaVerified, setCaptchaVerified] = useState(false); // ✅ state
   const [password, setPassword] = useState("");
@@ -37,11 +40,14 @@ function PrivecyPolicy() {
   }, []);
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      i18n.language?.startsWith("fr") ? "fr-FR" : "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+    );
   };
 
   return (
@@ -53,7 +59,7 @@ function PrivecyPolicy() {
           <div className="inner-banners-img-area">
             <img
               src="assets/images/banner/inner-banner-img.jpg"
-              alt="breadcrumb Img"
+              alt={t("legal.privacy_title")}
             />
           </div>
           <div className="inner-banners-title-info">
@@ -61,12 +67,12 @@ function PrivecyPolicy() {
               <div className="row">
                 <div className="col-lg-12 col-md-12 col-sm-12">
                   <div className="inner-page-banner-title">
-                    <h2>Privacy Policy</h2>
+                    <h1>{t("legal.privacy_title")}</h1>
                     <ul>
                       <li className="menu-divide-arrow">
-                        <a href="index.html">Home</a>
+                        <Link to="/">{t("header.home")}</Link>
                       </li>
-                      <li>Privacy Policy</li>
+                      <li>{t("legal.privacy_title")}</li>
                     </ul>
                   </div>
                 </div>
@@ -83,7 +89,7 @@ function PrivecyPolicy() {
                   <div className="terms-condition-privacy-policy-heading">
                     <h2>{privacyData?.title}</h2>
                     <p>
-                      This Privacy Policy was last updated on{" "}
+                      {t("legal.last_updated_privacy")}{" "}
                       {privacyData?.publishDate &&
                         formatDate(privacyData.publishDate)}
                       .

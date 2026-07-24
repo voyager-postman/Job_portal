@@ -4,8 +4,10 @@ import "./ActivityTimelineModern.css";
 import { API_BASE_URL } from "../Url/Url";
 import { Link, useNavigate } from "react-router-dom";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
 
 function ActivityTimeline() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -117,10 +119,10 @@ function ActivityTimeline() {
     const now = new Date();
     const diffTime = now - createdDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "1 day ago";
+    if (diffDays === 0) return t("admin.today");
+    if (diffDays === 1) return t("admin.one_day_ago");
 
-    return `${diffDays} days ago`;
+    return t("admin.days_ago", { count: diffDays });
   };
   return (
     <div className="main-dashboard-content d-flex flex-column">
@@ -137,23 +139,23 @@ function ActivityTimeline() {
                 marginBottom: "0.5rem",
               }}
             >
-              Activity History
+              {t("admin.activity_history")}
             </h1>
 
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Welcome </Link>
+                <Link to="/">{t("admin.welcome")} </Link>
               </li>
 
               <li className="item">
                 <Link to="/candidate-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
 
               <li className="item active">
                 <i className="fa-solid fa-angle-right" />
-                Historical
+                {t("admin.historical")}
               </li>
             </ol>
           </div>
@@ -166,7 +168,7 @@ function ActivityTimeline() {
 
               <input
                 type="text"
-                placeholder="Search for an activity..."
+                placeholder={t("admin.search_activity")}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -187,7 +189,7 @@ function ActivityTimeline() {
                 className="fa-solid fa-list-check me-2"
                 style={{ color: "var(--primary-orange)" }}
               />
-              {counts?.filtered || 0} activities displayed
+              {t("admin.activities_displayed", { count: counts?.filtered || 0 })}
             </div>
           </div>
 
@@ -202,7 +204,7 @@ function ActivityTimeline() {
                 setPage(1);
               }}
             >
-              All ({counts?.all || 0})
+              {t("messaging.all")} ({counts?.all || 0})
             </button>
 
             {/* TODAY */}
@@ -213,7 +215,7 @@ function ActivityTimeline() {
                 setPage(1);
               }}
             >
-              Today ({counts?.today || 0})
+              {t("admin.today")} ({counts?.today || 0})
             </button>
 
             {/* LAST 7 DAYS */}
@@ -226,7 +228,7 @@ function ActivityTimeline() {
                 setPage(1);
               }}
             >
-              Last 7 Days ({counts?.last7days || 0})
+              {t("admin.last_7_days")} ({counts?.last7days || 0})
             </button>
 
             {/* CUSTOM */}
@@ -237,7 +239,7 @@ function ActivityTimeline() {
                 setPage(1);
               }}
             >
-              Custom
+              {t("admin.custom")}
             </button>
 
             {/* CUSTOM DATE FILTER */}
@@ -258,7 +260,7 @@ function ActivityTimeline() {
                     fontWeight: "600",
                   }}
                 >
-                  To
+                  {t("admin.to")}
                 </span>
 
                 <input
@@ -278,7 +280,7 @@ function ActivityTimeline() {
           <div className="timeline-container">
             {loading ? (
               <div className="text-center py-5">
-                <h5>Loading...</h5>
+                <h5>{t("header.Loading")}</h5>
               </div>
             ) : activity?.length > 0 ? (
               activity?.map((item, index) => (
@@ -329,7 +331,7 @@ function ActivityTimeline() {
                         />
 
                         <span>
-                          <span className="detail-label">Date:</span>{" "}
+                          <span className="detail-label">{t("admin.date_label")}</span>{" "}
                           {new Date(item?.createdAt).toLocaleString("en-IN")}
                         </span>
                       </div>
@@ -346,7 +348,7 @@ function ActivityTimeline() {
                           />
 
                           <span>
-                            <span className="detail-label">Email:</span>{" "}
+                            <span className="detail-label">{t("admin.email_label")}</span>{" "}
                             {item?.details?.email}
                           </span>
                         </div>
@@ -434,7 +436,7 @@ function ActivityTimeline() {
                       color: "#0f172a",
                     }}
                   >
-                    No Activity Yet
+                    {t("admin.no_activity_yet")}
                   </h4>
 
                   {/* DESCRIPTION */}
@@ -446,9 +448,7 @@ function ActivityTimeline() {
                       lineHeight: "1.6",
                     }}
                   >
-                    Your recent actions and updates will appear here once you
-                    start interacting with jobs, applications, or profile
-                    updates.
+                    {t("admin.no_activity_description")}
                   </p>
 
                   {/* OPTIONAL BUTTON */}
@@ -466,7 +466,7 @@ function ActivityTimeline() {
                     }}
                     onClick={() => navigate("/job-search")}
                   >
-                    Explore Jobs
+                    {t("admin.explore_jobs")}
                   </button>
                 </div>
               </div>
@@ -483,7 +483,7 @@ function ActivityTimeline() {
               onClick={() => setPage((prev) => prev - 1)}
             >
               <i className="fa-solid fa-chevron-left me-2" />
-              Previous
+              {t("assessment.previous")}
             </button>
 
             {/* PAGE INFO */}
@@ -497,7 +497,7 @@ function ActivityTimeline() {
                 border: "1px solid rgb(226, 232, 240)",
               }}
             >
-              Page {page} of {totalPages}
+              {t("admin.page_of", { page, total: totalPages })}
             </span>
 
             {/* NEXT */}
@@ -506,7 +506,7 @@ function ActivityTimeline() {
               disabled={page === totalPages}
               onClick={() => setPage((prev) => prev + 1)}
             >
-              Next
+              {t("header.Next")}
               <i className="fa-solid fa-chevron-right ms-2" />
             </button>
           </div>

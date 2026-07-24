@@ -5,8 +5,11 @@ import { useLocation, Link, useNavigate } from "react-router-dom";
 import { API_IMAGE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import { openProtectedDocument } from "../utils/protectedFile";
+import { useTranslation } from "react-i18next";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function CandinateProfileDetails() {
+  const { t } = useTranslation("global");
   const location = useLocation();
   const navigate = useNavigate();
   const { userId } = location.state || {};
@@ -21,7 +24,9 @@ function CandinateProfileDetails() {
   const from = location.state?.from || {};
 
   const breadcrumbLabel =
-    from === "/bookmark-candidate" ? "Bookmark Candidates" : "Candidate Search";
+    from === "/bookmark-candidate"
+      ? t("breadcrumbs.bookmark_candidates")
+      : t("breadcrumbs.candidate_search");
 
   useEffect(() => {
     if (userId) {
@@ -36,9 +41,7 @@ function CandinateProfileDetails() {
       const res = await axios.post(
         `${API_BASE_URL}getCandidateDetails/${id}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
       console.log(res.data?.data);
       setCandidate(res.data?.data); // store the candidate details
@@ -69,9 +72,7 @@ function CandinateProfileDetails() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${API_BASE_URL}getReviews/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}getReviews/${userId}`, getRequestConfig());
 
       setReviews(res.data?.data || []);
     } catch (err) {
@@ -106,7 +107,7 @@ function CandinateProfileDetails() {
       const response = await axios.post(
         `${API_BASE_URL}viewCandidate/${candidate?.userId?._id}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (!response.data.success) {
@@ -120,7 +121,7 @@ function CandinateProfileDetails() {
       const refreshed = await axios.post(
         `${API_BASE_URL}getCandidateDetails/${candidate?.userId?._id}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
       setCandidate(refreshed.data?.data);
     } catch (error) {
@@ -171,11 +172,11 @@ function CandinateProfileDetails() {
                 <h4>Candidate Details</h4>
                 <ul>
                   <li>
-                    <Link to="/">Home</Link>
+                    <Link to="/">{t("header.home")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
-                    <Link to="/employer-dashboard">Dashboard</Link>
+                    <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
                     <i className="fa-solid fa-angle-right"></i>
                   </li>
                   <li>
@@ -288,7 +289,7 @@ function CandinateProfileDetails() {
                     className="default-btn btn"
                     onClick={handleDownloadCV}
                   >
-                    Download CV
+                    {t("header.Download_CV")}
                   </button>
                 ) : (
                   <button
@@ -331,7 +332,7 @@ function CandinateProfileDetails() {
             <div className="col-lg-8">
               <div className="candidates-details-content">
                 <div className="about-content candidate-profile-summary">
-                  <h3>Professional Summary</h3>
+                  <h3>{t("header.Professional_Summary")}</h3>
                   <p>{candidate?.professionalSummary}</p>
                 </div>
                 <div className="candidate-profile-divider-line" />
@@ -432,7 +433,7 @@ function CandinateProfileDetails() {
                   <p>Monthly</p>
                 </div> */}
                 <div className="works-experience candidate-profile-summary">
-                  <h3>Work Experience</h3>
+                  <h3>{t("header.Work_Experience")}</h3>
                   {candidate?.workHistory &&
                   candidate.workHistory.length > 0 ? (
                     candidate.workHistory.map((work) => {
@@ -596,7 +597,7 @@ function CandinateProfileDetails() {
                 </div>
                 <div className="candidate-profile-divider-line" />
                 <div className="languages candidate-profile-summary">
-                  <h3>Languages</h3>
+                  <h3>{t("header.Languages")}</h3>
                   {candidate?.languages && candidate.languages.length > 0 ? (
                     candidate.languages.map((lang) => (
                       <div key={lang._id}>
@@ -748,7 +749,7 @@ function CandinateProfileDetails() {
                       className="default-btn btn"
                       onClick={handleDownloadCV}
                     >
-                      Download CV
+                      {t("header.Download_CV")}
                     </button>
                   ) : (
                     <button
@@ -781,7 +782,7 @@ function CandinateProfileDetails() {
         <div className="custom-modal-overlay">
           <div className="custom-modal">
             <div className="modal-header">
-              <h5>Add Review</h5>
+              <h5>{t("header.Add_Review")}</h5>
               <span className="modal-close" onClick={() => setShowModal(false)}>
                 &times;
               </span>
@@ -807,7 +808,7 @@ function CandinateProfileDetails() {
             {/* Review Textarea */}
             <textarea
               className="form-control"
-              placeholder="Write Message"
+              placeholder={t("header.Write_Message")}
               rows={6}
               value={review}
               onChange={(e) => setReview(e.target.value)}
@@ -817,9 +818,9 @@ function CandinateProfileDetails() {
             <button
               className="default-btn btn w-100 mt-3"
               onClick={async () => {
-                if (!rating) return toast.error("Please select a rating!");
+                if (!rating) return toast.error(t("header.Please_select_a_rating"));
                 if (!review.trim())
-                  return toast.error("Review cannot be empty!");
+                  return toast.error(t("jobs.review_cannot_be_empty"));
 
                 const token = localStorage.getItem("token");
 
@@ -838,17 +839,17 @@ function CandinateProfileDetails() {
                     },
                   );
                   getReviewsByUser(userId);
-                  toast.success("Review submitted successfully!");
+                  toast.success(t("header.Review_submitted_successfully"));
                   setShowModal(false);
                   setReview("");
                   setRating(0);
                 } catch (error) {
                   console.error("Error submitting review:", error);
-                  toast.error("Failed to submit review");
+                  toast.error(t("header.Failed_to_submit_review"));
                 }
               }}
             >
-              Submit Review
+              {t("header.Submit_Review")}
             </button>
           </div>
         </div>

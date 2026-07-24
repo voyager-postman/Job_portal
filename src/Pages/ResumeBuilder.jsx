@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios"
+import axios from "axios";
+import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../Url/Url";
 import TemplateOne from "./templates/TemplateOne";
 import TemplateTwo from "./templates/TemplateTwo";
@@ -9,6 +10,7 @@ import TemplateSelector from "./TemplateSelector";
 import DownloadResume from "./DownloadResume";
 
 const ResumeBuilder = () => {
+  const { t } = useTranslation("global");
   const [loading, setLoading] = useState(true);
   const [incomplete, setIncomplete] = useState(false);
   const [resumeData, setResumeData] = useState(null);
@@ -39,9 +41,6 @@ const ResumeBuilder = () => {
       });
 
       const isIncomplete = !response.data.profile;
-      // !response.data.profile.education?.length ||
-      // !response.data.profile.workHistory?.length ||
-      // !response.data.profile.skills?.length;
 
       setIncomplete(isIncomplete);
       setLoading(false);
@@ -50,7 +49,7 @@ const ResumeBuilder = () => {
     }
   };
 
-  if (loading) return <h2>Loading...</h2>;
+  if (loading) return <h2>{t("header.Loading")}</h2>;
 
   const renderTemplate = () => {
     switch (selectedTemplate) {
@@ -69,30 +68,27 @@ const ResumeBuilder = () => {
     <>
       <div className="main-dashboard-content d-flex flex-column">
         <div className="responsive-content">
-          {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Resume Builder</h1>
+            <h1>{t("sidebar.resume_builder")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/"> Home </Link>
+                <Link to="/"> {t("header.home")} </Link>
               </li>
               <li className="item">
                 <Link to="/candidate-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" /> {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
-                <i className="fa-solid fa-angle-right" /> Resume Builder
+                <i className="fa-solid fa-angle-right" /> {t("sidebar.resume_builder")}
               </li>
             </ol>
           </div>
           <div>
-            {/* Step 1 & 2 – Show Template Selector */}
             {!selectedTemplate && (
               <TemplateSelector setTemplate={setSelectedTemplate} />
             )}
           </div>
-          {/* Step 3–5 – Preview + Edit + Download */}
 
           {selectedTemplate && (
             <>
@@ -118,17 +114,17 @@ const ResumeBuilder = () => {
                     {" "}
                     <span className="copy">© </span>
                     <span id="year" />
-                    <span className="template-name"> Connect Work.ma </span> All
-                    Rights Reserved
+                    <span className="template-name"> {t("header.Connect_Work")} </span>{" "}
+                    {t("header.All_Rights_Reserved")}
                   </p>
                 </div>
               </div>
               <div className="col-lg-6 col-md-6">
                 <div className="copyright-right-content">
                   <p>
-                    Designed By{" "}
+                    {t("header.Designed_By")}{" "}
                     <a href="https://hibootstrap.com/" target="_blank">
-                      Webnmobapps Solution Pvt. Ltd
+                      {t("header.Webnmobapps_Solution_Pvt_Ltd")}
                     </a>
                   </p>
                 </div>
@@ -142,22 +138,23 @@ const ResumeBuilder = () => {
 };
 
 const ProfileIncomplete = () => {
+  const { t } = useTranslation("global");
   return (
     <div style={{ padding: 20, background: "#ffe5e5", borderRadius: 10 }}>
-      <h2>Complete your profile to build your resume</h2>
+      <h2>{t("resume.complete_profile_title")}</h2>
 
       <ul>
-        <li>Personal Info</li>
-        <li>Experience</li>
-        <li>Education</li>
-        <li>Skills</li>
+        <li>{t("resume.personal_info")}</li>
+        <li>{t("resume.experience")}</li>
+        <li>{t("resume.education")}</li>
+        <li>{t("resume.skills")}</li>
       </ul>
 
       <button
         style={{ padding: 10, background: "black", color: "white" }}
         onClick={() => (window.location.href = "/profile")}
       >
-        Go to Profile
+        {t("resume.go_to_profile")}
       </button>
     </div>
   );

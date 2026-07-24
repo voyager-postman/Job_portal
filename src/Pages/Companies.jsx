@@ -7,9 +7,11 @@ import { sanitizeCompanyListApiResponse } from "../utils/sanitizePublicCompany";
 import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import Pagination from "@mui/material/Pagination"; // MUI one
+import Pagination from "@mui/material/Pagination";
+import { useTranslation } from "react-i18next";
 
 function Companies() {
+  const { t } = useTranslation("global");
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
   const [companies, setCompanies] = useState([]);
@@ -121,19 +123,21 @@ const handleViewCompany = (company, from) => {
         <div className="responsive-content">
           {/* Breadcrumb Area */}
           <div className="breadcrumb-area">
-            <h1>Search Company List</h1>
+            <h1>{t("companies.search_company_list")}</h1>
             <ol className="breadcrumb">
               <li className="item">
-                <Link to="/">Home </Link>
+                <Link to="/">{t("header.home")}</Link>
               </li>
               <li className="item">
                 <Link to="/candidate-dashboard">
-                  <i className="fa-solid fa-angle-right" /> Dashboard
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("header.dashboard")}
                 </Link>
               </li>
               <li className="item">
                 <Link to="/companies-list">
-                  <i className="fa-solid fa-angle-right" /> Search Company List
+                  <i className="fa-solid fa-angle-right" />{" "}
+                  {t("companies.search_company_list")}
                 </Link>
               </li>
             </ol>
@@ -147,7 +151,8 @@ const handleViewCompany = (company, from) => {
                   <div className="job-filter-heading-area">
                     <h4>
                       <Link to="/job-search">
-                        <i className="fa-regular fa-file" /> Job offers
+                        <i className="fa-regular fa-file" />{" "}
+                        {t("header.job_offers")}
                       </Link>
                     </h4>
                   </div>
@@ -155,7 +160,8 @@ const handleViewCompany = (company, from) => {
                   <div className="divder-line-info" />
                   <div className="job-filter-heading-area job-filter-cancel-heading">
                     <h4>
-                      <i className="fa-regular fa-building" /> Companies
+                      <i className="fa-regular fa-building" />{" "}
+                      {t("header.companies")}
                     </h4>
                   </div>
                   <div className="divder-line-info" />
@@ -164,14 +170,15 @@ const handleViewCompany = (company, from) => {
                     <div className="job-filter-heading-cancel">
                       <div className="job-filter-heading">
                         <h4>
-                          <i className="fas fa-building" /> Industry Sector
+                          <i className="fas fa-building" />{" "}
+                          {t("companies.industry_sector")}
                         </h4>
                       </div>
                       <div
                         className="job-filter-cancel-heading"
                         onClick={clearAll}
                       >
-                        <h4>Clear</h4>
+                        <h4>{t("header.clear")}</h4>
                       </div>
                     </div>
 
@@ -197,7 +204,7 @@ const handleViewCompany = (company, from) => {
                           ))}
                           <input
                             type="text"
-                            placeholder="Search industries..."
+                            placeholder={t("companies.search_industries_placeholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onFocus={() => setShowOptions(true)}
@@ -240,7 +247,8 @@ const handleViewCompany = (company, from) => {
                   <div className="available-company-heading">
                     <h4>
                       <i className="fa-solid fa-building" />
-                      {companies?.totalCompanies} companies available
+                      {companies?.totalCompanies}{" "}
+                      {t("header.available_companies")}
                     </h4>
                     <div className="job-alert-tag-btn">
                       <div className="filter-tag-info-area">
@@ -282,7 +290,7 @@ const handleViewCompany = (company, from) => {
                                         : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                                     }
                                     crossorigin="anonymous"
-                                    alt={company?.brandName || "Company Logo"}
+                                    alt={company?.brandName || t("companies.company_logo")}
                                   />
                                 </div>
 
@@ -295,20 +303,20 @@ const handleViewCompany = (company, from) => {
                                         ? `${API_IMAGE_URL}${company?.coverPhoto}`
                                         : "/jobPortal/assets/images/company/company-img-1.jpg"
                                     }
-                                    alt={company?.brandName || "Company Cover"}
+                                    alt={company?.brandName || t("companies.company_cover")}
                                   />
                                 </div>
 
                                 {/* ✅ Company Info */}
                                 <div className="available-company-content">
                                   <h4>
-                                    {company?.brandName || "Unnamed Company"}
+                                    {company?.brandName || t("companies.unnamed_company")}
                                   </h4>
                                   <ul>
                                     <li>
                                       <i className="fa-solid fa-location-dot" />{" "}
                                       {company?.city ||
-                                        "Location not available"}
+                                        t("companies.location_not_available")}
                                     </li>
                                     <li>
                                       <i className="fa-solid fa-user" />{" "}
@@ -317,7 +325,7 @@ const handleViewCompany = (company, from) => {
                                     <li>
                                       <i className="fa-solid fa-globe" />{" "}
                                       {company?.industry?.name ||
-                                        "Industry not specified"}
+                                        t("companies.industry_not_specified")}
                                     </li>
                                   </ul>
                                 </div>
@@ -333,7 +341,7 @@ const handleViewCompany = (company, from) => {
                                       )
                                     }
                                   >
-                                    View Company
+                                    {t("header.viewCompany")}
                                   </button>
                                 </div>
                               </div>
@@ -342,7 +350,7 @@ const handleViewCompany = (company, from) => {
                         })
                       ) : (
                         <p className="text-center mt-4">
-                          No companies available.
+                          {t("header.no_companies")}
                         </p>
                       )}
                     </div>

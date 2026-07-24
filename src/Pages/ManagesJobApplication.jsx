@@ -13,8 +13,11 @@ import "./ManagesJobApplicationModern.css";
 
 import Swal from "sweetalert2";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
+import { getRequestConfig } from "../utils/apiHeaders";
 
 function ManagesJobApplication() {
+  const { t } = useTranslation("global");
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedNotify, setSelectedNotify] = useState({});
@@ -65,9 +68,7 @@ function ManagesJobApplication() {
     const fetchStrength = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`${API_BASE_URL}profile/strength`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(`${API_BASE_URL}profile/strength`, getRequestConfig());
         console.log("Dashboard Profile Strength", response.data);
         setProfileData(response.data);
       } catch (err) {
@@ -138,16 +139,16 @@ function ManagesJobApplication() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success(data.message || "Saved job removed");
+        toast.success(data.message || t("applications.saved_job_removed"));
 
         // remove from UI instantly
         setSavedJobs((prev) => prev.filter((item) => item._id !== savedJobId));
       } else {
-        toast.error(data.message || "Failed to delete");
+        toast.error(data.message || t("applications.failed_delete"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error(t("header.something_wrong"));
     }
   };
   const filteredOptions = options.filter((industry) =>
@@ -305,101 +306,121 @@ function ManagesJobApplication() {
   };
   const statusOptions = [
     {
-      label: "All statuses",
+      label: t("applications.all_statuses"),
       value: "",
     },
     {
-      label: "Application received",
+      label: t("applications.application_received"),
       value: "Applied",
     },
     {
-      label: "Shortlisted",
+      label: t("applications.shortlisted"),
       value: "Shortlisted",
     },
     {
-      label: "Contacted",
+      label: t("applications.contacted"),
       value: "Contacted",
     },
     {
-      label: "HR Interview",
+      label: t("applications.hr_interview"),
       value: "HR Interview",
     },
     {
-      label: "Technical maintenance",
+      label: t("applications.technical_maintenance"),
       value: "Technical maintenance",
     },
     {
-      label: "Offer sent",
+      label: t("applications.offer_sent"),
       value: "Offer sent",
     },
     {
-      label: "Recruited",
+      label: t("applications.recruited"),
       value: "Recruited",
     },
     {
-      label: "Rejected",
+      label: t("applications.rejected"),
       value: "Rejected",
     },
     {
-      label: "Application withdrawn",
+      label: t("header.Expired"),
+      value: "Expired",
+    },
+    {
+      label: t("applications.application_withdrawn"),
       value: "Withdrawn",
     },
   ];
   const statusConfig = {
     Applied: {
-      label: "Application received",
+      label: t("applications.application_received"),
       background: "#dbeafe",
       color: "#2563eb",
     },
 
     Shortlisted: {
-      label: "Shortlisted",
+      label: t("applications.shortlisted"),
       background: "#ede9fe",
       color: "#7c3aed",
     },
 
     Contacted: {
-      label: "Contacted",
+      label: t("applications.contacted"),
       background: "#fef3c7",
       color: "#d97706",
     },
 
     "HR Interview": {
-      label: "HR Interview",
+      label: t("applications.hr_interview"),
       background: "#cffafe",
       color: "#0891b2",
     },
 
     "Technical maintenance": {
-      label: "Technical maintenance",
+      label: t("applications.technical_maintenance"),
       background: "#fde68a",
       color: "#b45309",
     },
 
     "Offer sent": {
-      label: "Offer sent",
+      label: t("applications.offer_sent"),
       background: "#dcfce7",
       color: "#16a34a",
     },
 
     Recruited: {
-      label: "Recruited",
+      label: t("applications.recruited"),
       background: "#bbf7d0",
       color: "#15803d",
     },
 
     Rejected: {
-      label: "Rejected",
+      label: t("applications.rejected"),
       background: "#fee2e2",
       color: "#dc2626",
     },
 
+    Expired: {
+      label: t("header.Expired"),
+      background: "#fef2f2",
+      color: "#dc2626",
+    },
+
     Withdrawn: {
-      label: "Application withdrawn",
+      label: t("applications.application_withdrawn"),
       background: "#e5e7eb",
       color: "#4b5563",
     },
   };
+  const resolveApplicationStatus = (status) => {
+    if (!status) return null;
+    if (statusConfig[status]) return statusConfig[status];
+    const normalized = String(status).toLowerCase();
+    if (normalized === "expired") return statusConfig.Expired;
+    return null;
+  };
+  const isApplicationExpired = (app, job) =>
+    String(app?.status || "").toLowerCase() === "expired" ||
+    String(job?.status || "").toLowerCase() === "expired";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [reason, setReason] = useState("");
@@ -416,7 +437,7 @@ function ManagesJobApplication() {
   // Handle Withdraw Submit
   const handleWithdrawSubmit = async () => {
     if (!reason) {
-      toast.error("Please select a reason.");
+      toast.error(t("applications.select_reason"));
       return;
     }
 
@@ -448,7 +469,7 @@ function ManagesJobApplication() {
       }
 
       toast.success(
-        res?.data?.message || "Application withdrawn successfully!",
+        res?.data?.message || t("applications.withdrawn_success"),
       );
 
       if (activeTab === "saved-jobs") {
@@ -461,7 +482,7 @@ function ManagesJobApplication() {
 
       toast.error(
         err?.response?.data?.message ||
-          "Failed to withdraw application. Please try again.",
+          t("applications.withdraw_failed"),
       );
     } finally {
       setLoading(false);
@@ -612,11 +633,11 @@ function ManagesJobApplication() {
           toast.success(message);
         }
       } else {
-        toast.error(res.data.message || "Something went wrong.");
+        toast.error(res.data.message || t("header.something_wrong"));
       }
     } catch (err) {
       console.error("❌ Save/Unsave error:", err);
-      toast.error(err.response?.data?.message || "Server error. Try again!");
+      toast.error(err.response?.data?.message || t("header.server_error"));
     }
   };
 
@@ -631,11 +652,11 @@ function ManagesJobApplication() {
       if (res.data.success) {
         setSavedJobs(res.data.savedJobs || []);
       } else {
-        toast.error(res.data.message || "Failed to load saved jobs");
+        toast.error(res.data.message || t("applications.failed_load_saved_jobs"));
       }
     } catch (error) {
       console.error("❌ Error fetching saved jobs:", error);
-      toast.error("Error fetching saved jobs");
+      toast.error(t("applications.error_fetching_saved_jobs"));
     } finally {
       setLoading(false);
     }
@@ -643,14 +664,14 @@ function ManagesJobApplication() {
   const handleDeleteUnavailableJob = async (savedJobId) => {
     try {
       const result = await Swal.fire({
-        title: "Remove Saved Job?",
-        text: "This unavailable job will be removed permanently.",
+        title: t("applications.remove_saved_job_title"),
+        text: t("applications.remove_saved_job_text"),
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#dc2626",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "Yes, Remove",
-        cancelButtonText: "Cancel",
+        confirmButtonText: t("applications.yes_remove"),
+        cancelButtonText: t("header.Cancel"),
         borderRadius: "16px",
       });
 
@@ -671,8 +692,8 @@ function ManagesJobApplication() {
         setSavedJobs((prev) => prev.filter((item) => item._id !== savedJobId));
 
         Swal.fire({
-          title: "Removed!",
-          text: "Saved job removed successfully.",
+          title: t("applications.removed_title"),
+          text: t("applications.saved_job_removed_success"),
           icon: "success",
           timer: 1800,
           showConfirmButton: false,
@@ -682,8 +703,8 @@ function ManagesJobApplication() {
       console.error("Delete failed:", error);
 
       Swal.fire({
-        title: "Error",
-        text: "Failed to remove job.",
+        title: t("applications.error_title"),
+        text: t("applications.failed_remove_job"),
         icon: "error",
       });
     }
@@ -691,19 +712,19 @@ function ManagesJobApplication() {
   const fetchApplications = async (status = "") => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}getJobSeekerApplications`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: status ? { status } : {}, // ✅ pass status only if not empty
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}getJobSeekerApplications`,
+        getRequestConfig({ params: status ? { status } : {} }),
+      );
 
       if (res.data.success) {
         setApplications(res.data.applications || []);
       } else {
-        toast.error(res.data.message || "Failed to load applications");
+        toast.error(res.data.message || t("applications.failed_load_applications"));
       }
     } catch (error) {
       console.error("❌ Error fetching applications:", error);
-      toast.error("Error fetching applications");
+      toast.error(t("applications.error_fetching_applications"));
     } finally {
       setLoading(false);
     }
@@ -737,18 +758,16 @@ function ManagesJobApplication() {
   const fetchJobAlerts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}getSavedJobAlert`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(`${API_BASE_URL}getSavedJobAlert`, getRequestConfig());
 
       if (res.data.success) {
         setJobAlerts(res.data.savedJobs || []);
       } else {
-        toast.error(res.data.message || "Failed to load job alerts");
+        toast.error(res.data.message || t("applications.failed_load_alerts"));
       }
     } catch (error) {
       console.error("❌ Error fetching job alerts:", error);
-      toast.error("Error fetching job alerts");
+      toast.error(t("applications.error_fetching_alerts"));
     } finally {
       setLoading(false);
     }
@@ -761,12 +780,12 @@ function ManagesJobApplication() {
     // Show confirmation only when disabling
     if (isDisabling) {
       const result = await Swal.fire({
-        title: "Disable the alert?",
-        text: "You will no longer receive notifications for this alert.",
+        title: t("applications.disable_alert_title"),
+        text: t("applications.disable_alert_text"),
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, disable",
-        cancelButtonText: "Cancel",
+        confirmButtonText: t("applications.yes_disable"),
+        cancelButtonText: t("header.Cancel"),
         reverseButtons: true,
       });
 
@@ -780,13 +799,11 @@ function ManagesJobApplication() {
           alertId,
           status: newStatus,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        getRequestConfig(),
       );
 
       if (res.data.success) {
-        toast.success("Alert status updated successfully!");
+        toast.success(t("applications.alert_status_updated"));
 
         setJobAlerts((prev) =>
           prev.map((a) =>
@@ -794,11 +811,11 @@ function ManagesJobApplication() {
           ),
         );
       } else {
-        toast.error(res.data.message || "Failed to update alert");
+        toast.error(res.data.message || t("applications.failed_update_alert"));
       }
     } catch (err) {
       console.error(err);
-      toast.error("Error updating alert");
+      toast.error(t("applications.error_updating_alert"));
     }
   };
 
@@ -812,9 +829,7 @@ function ManagesJobApplication() {
       if (notifyEvery !== null) payload.notifyEvery = notifyEvery;
       if (status !== null) payload.status = status;
 
-      const res = await axios.post(`${API_BASE_URL}updateJobAlert`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.post(`${API_BASE_URL}updateJobAlert`, payload, getRequestConfig());
 
       if (res.data.success) {
         const modal = document.getElementById(`editAlertModal-${alertId}`);
@@ -824,26 +839,26 @@ function ManagesJobApplication() {
             bsModal.hide();
           }
         }
-        toast.success("Job alert updated successfully!");
+        toast.success(t("applications.alert_updated"));
         fetchJobAlerts();
       } else {
-        toast.error(res.data.message || "Failed to update alert");
+        toast.error(res.data.message || t("applications.failed_update_alert"));
       }
     } catch (err) {
       console.error("❌ Error updating alert:", err);
-      toast.error("Error updating alert");
+      toast.error(t("applications.error_updating_alert"));
     }
   };
 
   // Delete alert
   const handleDeleteAlert = async (alertId) => {
     const result = await Swal.fire({
-      title: "Delete the alert?",
-      text: "This action is irreversible.",
+      title: t("applications.delete_alert_title"),
+      text: t("applications.delete_alert_text"),
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: t("applications.yes_delete"),
+      cancelButtonText: t("header.Cancel"),
       reverseButtons: true,
       confirmButtonColor: "#ef4444",
     });
@@ -854,19 +869,19 @@ function ManagesJobApplication() {
       const res = await axios.post(
         `${API_BASE_URL}deleteJobAlert`,
         { alertId },
-        { headers: { Authorization: `Bearer ${token}` } },
+        getRequestConfig(),
       );
 
       if (res.data.success) {
-        toast.success("Alert deleted successfully!");
+        toast.success(t("applications.alert_deleted"));
 
         setJobAlerts((prev) => prev.filter((a) => a._id !== alertId));
       } else {
-        toast.error(res.data.message || "Failed to delete alert");
+        toast.error(res.data.message || t("applications.failed_delete_alert"));
       }
     } catch (err) {
       console.error("❌ Error deleting alert:", err);
-      toast.error("Error deleting alert");
+      toast.error(t("applications.error_deleting_alert"));
     }
   };
   const handleCreateAlert = async () => {
@@ -883,7 +898,7 @@ function ManagesJobApplication() {
       selectedRemote.length > 0;
 
     if (!hasAnyFilter) {
-      return toast.error("Please fill at least one field to create job alert");
+      return toast.error(t("applications.fill_alert_field"));
     }
 
     setLoading(true);
@@ -923,7 +938,7 @@ function ManagesJobApplication() {
 
       fetchJobAlerts();
 
-      toast.success("Job Alert created successfully!");
+      toast.success(t("header.alert_success"));
 
       setShowAlertModal(false);
 
@@ -999,7 +1014,7 @@ function ManagesJobApplication() {
               }`}
               onClick={() => handleTabChange("applications")}
             >
-              Candidatures
+              {t("applications.applications_tab")}
             </button>
 
             <button
@@ -1008,7 +1023,7 @@ function ManagesJobApplication() {
               }`}
               onClick={() => handleTabChange("saved-jobs")}
             >
-              Favoris
+              {t("applications.saved_jobs_tab")}
             </button>
 
             <button
@@ -1017,7 +1032,7 @@ function ManagesJobApplication() {
               }`}
               onClick={() => handleTabChange("job-alerts")}
             >
-              Alertes
+              {t("applications.job_alerts_tab")}
             </button>
 
             <button
@@ -1026,7 +1041,7 @@ function ManagesJobApplication() {
               }`}
               onClick={() => handleTabChange("profile-views")}
             >
-              Vue Profile
+              {t("applications.profile_views_tab")}
             </button>
           </div>
           {/* mannage Job application section start here */}
@@ -1042,7 +1057,7 @@ function ManagesJobApplication() {
                         <div className="search-box-modern search-by-input">
                           <i className="fa-solid fa-magnifying-glass search-icon" />
                           <input
-                            placeholder="Search by job title or company..."
+                            placeholder={t("jobs.search_by_title_company")}
                             className="search-input-modern"
                             type="text"
                             value={searchText}
@@ -1059,7 +1074,7 @@ function ManagesJobApplication() {
 
                           <div className="selected-value-modern">
                             {statusOptions.find((s) => s.value === statusFilter)
-                              ?.label || "All statuses"}
+                              ?.label || t("applications.all_statuses")}
                           </div>
 
                           <i className="fa-solid fa-chevron-down arrow-icon" />
@@ -1087,7 +1102,7 @@ function ManagesJobApplication() {
                       </div>
                       {loading ? (
                         <div className="text-center py-5">
-                          <h5>Loading...</h5>
+                          <h5>{t("header.Loading")}</h5>
                         </div>
                       ) : filteredApplications.length === 0 ? (
                         <div className="text-center py-5">
@@ -1143,6 +1158,12 @@ function ManagesJobApplication() {
                           const company = job?.companyId;
                           const isJobRemoved =
                             job?.isDeleted || app?.status === "Job Removed";
+                          const isJobExpired = isApplicationExpired(app, job);
+                          const isJobUnavailable =
+                            isJobRemoved || isJobExpired || job?.jobUnavailable;
+                          const statusStyle = resolveApplicationStatus(
+                            app?.status,
+                          );
                           return (
                             <div
                               className="modern-job-card clickable mb-4"
@@ -1195,13 +1216,11 @@ function ManagesJobApplication() {
                                     style={{
                                       background: isJobRemoved
                                         ? "#fef2f2"
-                                        : statusConfig[app?.status]
-                                            ?.background || "#f3f4f6",
+                                        : statusStyle?.background || "#f3f4f6",
 
                                       color: isJobRemoved
                                         ? "#dc2626"
-                                        : statusConfig[app?.status]?.color ||
-                                          "#374151",
+                                        : statusStyle?.color || "#374151",
 
                                       padding: "6px 14px",
                                       borderRadius: "30px",
@@ -1210,9 +1229,8 @@ function ManagesJobApplication() {
                                     }}
                                   >
                                     {isJobRemoved
-                                      ? "Job no longer available"
-                                      : statusConfig[app?.status]?.label ||
-                                        app?.status}
+                                      ? t("jobs.job_no_longer_available")
+                                      : statusStyle?.label || app?.status}
                                   </span>
                                 </div>
                               </div>
@@ -1220,7 +1238,7 @@ function ManagesJobApplication() {
                               {/* BODY */}
                               <div className="modern-job-body">
                                 <h3 className="modern-job-title">
-                                  {job?.jobUnavailable && (
+                                  {(job?.jobUnavailable || isJobExpired) && (
                                     <div
                                       style={{
                                         background: "#fef2f2",
@@ -1234,7 +1252,9 @@ function ManagesJobApplication() {
                                       }}
                                     >
                                       <i className="fa-solid fa-triangle-exclamation me-2" />
-                                      Job no longer available
+                                      {isJobExpired
+                                        ? t("applications.job_expired")
+                                        : t("jobs.job_no_longer_available")}
                                     </div>
                                   )}
                                   {job?.jobTitle || "N/A"}
@@ -1242,8 +1262,10 @@ function ManagesJobApplication() {
 
                                 <p className="modern-job-description">
                                   {isJobRemoved
-                                    ? "This job is no longer available. Your application history has been saved."
-                                    : "You applied for this position. View details to see full job information."}
+                                    ? t("applications.job_removed_desc")
+                                    : isJobExpired
+                                      ? t("applications.job_expired_desc")
+                                      : t("applications.application_desc")}
                                 </p>
                               </div>
 
@@ -1350,7 +1372,7 @@ function ManagesJobApplication() {
                                     flexWrap: "wrap",
                                   }}
                                 >
-                                  {isJobRemoved ? (
+                                  {isJobUnavailable ? (
                                     <span
                                       style={{
                                         color: "#94a3b8",
@@ -1358,7 +1380,9 @@ function ManagesJobApplication() {
                                         fontSize: "14px",
                                       }}
                                     >
-                                      Job Closed
+                                      {isJobExpired
+                                        ? t("applications.job_expired_closed")
+                                        : t("applications.job_closed")}
                                     </span>
                                   ) : (
                                     <Link
@@ -1374,7 +1398,8 @@ function ManagesJobApplication() {
                                   )}
 
                                   {/* WITHDRAW BUTTON */}
-                                  {app?.status === "Applied" && (
+                                  {app?.status === "Applied" &&
+                                    !isJobUnavailable && (
                                     <button
                                       type="button"
                                       className="modern-apply-btn"
@@ -1395,7 +1420,7 @@ function ManagesJobApplication() {
                                         gap: "8px",
                                       }}
                                     >
-                                      Cancel my application
+                                      {t("applications.withdraw_application")}
                                     </button>
                                   )}
                                 </div>
@@ -1451,7 +1476,7 @@ function ManagesJobApplication() {
                                       : "/jobPortal/assets/images/company/company-img-1.jpg"
                                   }
                                   alt={
-                                    item?.company?.brandName || "Company Logo"
+                                    item?.company?.brandName || t("jobs.company_logo")
                                   }
                                   style={{
                                     width: "100%",
@@ -1602,7 +1627,7 @@ function ManagesJobApplication() {
                                 <div className="modern-job-actions">
                                   <button
                                     className="modern-action-icon saved"
-                                    title="Unsave"
+                                    title={t("jobs.unsave")}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
@@ -1617,7 +1642,7 @@ function ManagesJobApplication() {
                               {/* BODY */}
                               <div className="modern-job-body">
                                 <h3 className="modern-job-title">
-                                  {jobData?.jobTitle || "Untitled Position"}
+                                  {jobData?.jobTitle || t("jobs.untitled_position")}
                                 </h3>
 
                                 <p className="modern-job-description">
@@ -1860,7 +1885,7 @@ function ManagesJobApplication() {
                                       : "/jobPortal/assets/images/company/company-img-1.jpg"
                                   }
                                   alt={
-                                    item?.company?.brandName || "Company Logo"
+                                    item?.company?.brandName || t("jobs.company_logo")
                                   }
                                   style={{
                                     width: "100%",
@@ -2641,7 +2666,7 @@ function ManagesJobApplication() {
                                         onClick={handleCreateAlert}
                                         disabled={loading}
                                       >
-                                        {loading ? "Saving..." : "Save Alert"}
+                                        {loading ? t("jobs.saving") : t("jobs.save_alert")}
                                       </button>
                                       <button
                                         className="cancel-withdraw-btn"
@@ -2768,7 +2793,7 @@ function ManagesJobApplication() {
                                               .charAt(0)
                                               .toUpperCase() +
                                             alert.notifyEvery.slice(1)
-                                          : "Not specified"}
+                                          : t("jobs.not_specified")}
                                       </strong>
                                     </span>
                                   </div>
@@ -2807,7 +2832,7 @@ function ManagesJobApplication() {
                                   {/* Delete Button */}
                                   <button
                                     className="modern-action-icon"
-                                    title="Delete"
+                                    title={t("header.Delete")}
                                     onClick={() => handleDeleteAlert(alert._id)}
                                     style={{
                                       color: "rgb(239, 68, 68)",
@@ -3092,7 +3117,7 @@ function ManagesJobApplication() {
                                       : "/jobPortal/assets/images/company/company-img-1.jpg"
                                   }
                                   alt={
-                                    item?.company?.brandName || "Company Logo"
+                                    item?.company?.brandName || t("jobs.company_logo")
                                   }
                                   style={{
                                     width: "100%",
@@ -3413,7 +3438,7 @@ function ManagesJobApplication() {
                       <div className="profile-viewers-grid">
                         {loading ? (
                           <div className="text-center py-5">
-                            <h5>Loading...</h5>
+                            <h5>{t("header.Loading")}</h5>
                           </div>
                         ) : companies?.length > 0 ? (
                           companies?.map((item, index) => (
@@ -3720,7 +3745,7 @@ function ManagesJobApplication() {
                                       : "/jobPortal/assets/images/company/company-img-1.jpg"
                                   }
                                   alt={
-                                    item?.company?.brandName || "Company Logo"
+                                    item?.company?.brandName || t("jobs.company_logo")
                                   }
                                   style={{
                                     width: "100%",
@@ -3856,7 +3881,7 @@ function ManagesJobApplication() {
 
             {/* BODY */}
             <div className="modal-body text-center pt-0">
-              <h5 className="modal-title-modern">Cancel my application</h5>
+              <h5 className="modal-title-modern">{t("applications.withdraw_application")}</h5>
 
               <p className="modal-subtitle-modern">
                 Please tell us the reason for your cancellation. This helps us
@@ -3957,7 +3982,7 @@ function ManagesJobApplication() {
                   onClick={handleWithdrawSubmit}
                   disabled={loading}
                 >
-                  {loading ? "Withdrawing..." : "Confirm the cancellation"}
+                  {loading ? t("applications.withdrawing") : t("applications.confirm_cancellation")}
                 </button>
 
                 <button className="cancel-withdraw-btn" data-bs-dismiss="modal">

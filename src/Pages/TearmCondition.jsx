@@ -6,7 +6,10 @@ import Spinner from "../Conponets/Spinner"; // optional
 import { useAuth } from "../context/AuthContext"; // adjust path
 import ReCAPTCHA from "react-google-recaptcha";
 import { API_BASE_URL } from "../Url/Url";
+import { useTranslation } from "react-i18next";
+
 function TearmCondition() {
+  const { t, i18n } = useTranslation("global");
   const [loading, setLoading] = useState(false);
   const [termsData, setTermsData] = useState(null);
   const navigate = useNavigate();
@@ -26,11 +29,14 @@ function TearmCondition() {
     fetchTerms();
   }, []);
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      i18n.language?.startsWith("fr") ? "fr-FR" : "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+    );
   };
   return (
     <>
@@ -41,7 +47,7 @@ function TearmCondition() {
           <div className="inner-banners-img-area">
             <img
               src="assets/images/banner/inner-banner-img.jpg"
-              alt="breadcrumb Img"
+              alt={t("legal.terms_title")}
             />
           </div>
           <div className="inner-banners-title-info">
@@ -49,12 +55,12 @@ function TearmCondition() {
               <div className="row">
                 <div className="col-lg-12 col-md-12 col-sm-12">
                   <div className="inner-page-banner-title">
-                    <h2>Terms &amp; Condition</h2>
+                    <h1>{t("legal.terms_title")}</h1>
                     <ul>
                       <li className="menu-divide-arrow">
-                        <a href="index.html">Home</a>
+                        <Link to="/">{t("header.home")}</Link>
                       </li>
-                      <li>Terms &amp; Condition</li>
+                      <li>{t("legal.terms_title")}</li>
                     </ul>
                   </div>
                 </div>
@@ -71,7 +77,7 @@ function TearmCondition() {
                   <div className="terms-condition-privacy-policy-heading">
                     <h2>{termsData?.title}</h2>
                     <p>
-                      This Terms & Conditions was last updated on{" "}
+                      {t("legal.last_updated_terms")}{" "}
                       {termsData?.publishDate &&
                         formatDate(termsData.publishDate)}
                       .

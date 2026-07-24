@@ -5,7 +5,26 @@ import { API_BASE_URL } from "../Url/Url";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
+import PageSEO from "../components/PageSEO";
+import { absoluteUrl } from "../utils/seo";
+import "./ContactUs.css";
+
+const buildMapEmbedUrl = (location) => {
+  const lat = location?.lat;
+  const lng = location?.lng;
+  const address = location?.address?.trim();
+
+  if (lat != null && lng != null && lat !== "" && lng !== "") {
+    return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+  }
+
+  if (address) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=15&output=embed`;
+  }
+
+  return "";
+};
+
 function ContactUs() {
   const { t, i18n } = useTranslation("global");
   const [contactData, setContactData] = useState({});
@@ -87,75 +106,51 @@ function ContactUs() {
       toast.error(t("header.something_wrong"));
     }
   };
+  const mapEmbedUrl = buildMapEmbedUrl(contactData.location);
+
   return (
     <>
-      <Helmet>
-        <title>Contact Us | Job Portal</title>
-
-        <meta
-          name="description"
-          content="Contact us for any job-related queries, support, or business inquiries."
-        />
-
-        <link rel="canonical" href={window.location.href} />
-
-        {/* Open Graph */}
-        <meta property="og:title" content="Contact Us | Job Portal" />
-        <meta
-          property="og:description"
-          content="Get in touch with our team for support or inquiries."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
-        <meta
-          property="og:image"
-          content="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-        />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Contact Us | Job Portal" />
-        <meta
-          name="twitter:description"
-          content="Reach out to us for help, queries, or support."
-        />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ContactPage",
-            name: "Contact Us - Job Portal",
-            url: window.location.href,
-            description:
-              "Contact Job Portal for support, inquiries, and assistance.",
-            contactPoint: {
-              "@type": "ContactPoint",
-              telephone: contactData.phones?.[0] || "",
-              contactType: "customer support",
-              email: contactData.emails?.[0] || "",
-              areaServed: "Worldwide",
-              availableLanguage: ["English"],
-            },
-          })}
-        </script>
-      </Helmet>
+      <PageSEO
+        title={t("seo.pages.contact-us.title", { defaultValue: "Contact Us" })}
+        description={t("seo.pages.contact-us.description", {
+          defaultValue:
+            "Contact Connect Work.ma for job-related queries, support, or business inquiries.",
+        })}
+        canonical="/contact-us"
+        image="/assets/images/banner/inner-banner-img.jpg"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          name: "Contact Us",
+          url: absoluteUrl("/contact-us"),
+          description:
+            "Contact Connect Work.ma for support, inquiries, and assistance.",
+          contactPoint: {
+            "@type": "ContactPoint",
+            telephone: contactData.phones?.[0] || undefined,
+            contactType: "customer support",
+            email: contactData.emails?.[0] || undefined,
+            areaServed: "MA",
+            availableLanguage: ["English", "French"],
+          },
+        }}
+      />
       <ToastContainer position="top-right" autoClose={3000} />
-      <section class="inner-banners-info-area">
-        <div class="inner-banners-img-area">
+      <section className="inner-banners-info-area">
+        <div className="inner-banners-img-area">
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-            alt="breadcrumb Img"
+            alt={t("header.contactUs")}
           />
         </div>
-        <div class="inner-banners-title-info">
-          <div class="container">
-            <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12">
-                <div class="inner-page-banner-title">
-                  <h2>{t("header.contactUs")}</h2>
+        <div className="inner-banners-title-info">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12">
+                <div className="inner-page-banner-title">
+                  <h1>{t("header.contactUs")}</h1>
                   <ul>
-                    <li class="menu-divide-arrow">
+                    <li className="menu-divide-arrow">
                       <Link to="/">{t("header.home")}</Link>
                     </li>
                     <li>{t("header.contactUs")}</li>
@@ -168,15 +163,16 @@ function ContactUs() {
       </section>
       <div className="contact-us-area pt-100 pb-70">
         <div className="container">
-          <div className="row">
+          <div className="row contact-us-layout">
             <div className="col-lg-4">
+              <div className="contact-info-stack">
               <div className="single-contact-info-box">
                 <div className="info-content">
                   <div className="icon">
                     <i className="fa-solid fa-location-dot" />
                   </div>
                   <h3>{t("header.our_location")}</h3>
-                  <span>{contactData.location?.address}</span>{" "}
+                  <span>{contactData.location?.address}</span>
                 </div>
               </div>
               <div className="single-contact-info-box">
@@ -195,7 +191,7 @@ function ContactUs() {
               <div className="single-contact-info-box">
                 <div className="info-content">
                   <div className="icon">
-                    <i className="fa-solid fa-envelope" />
+                    <i className="fa-solid fa-phone" />
                   </div>
                   <h3>{t("header.phone")}</h3>
                   {contactData.phones?.map((p, i) => (
@@ -205,14 +201,25 @@ function ContactUs() {
                   ))}
                 </div>
               </div>
+              </div>
             </div>
             <div className="col-lg-8">
               <div className="contact-map">
-                <iframe
-                  src={`https://maps.google.com/maps?q=${contactData.location?.lat},${contactData.location?.lng}&z=15&output=embed`}
-                  style={{ border: "0", width: "100%", height: "400px" }}
-                  loading="lazy"
-                />
+                {mapEmbedUrl ? (
+                  <iframe
+                    title={t("header.our_location")}
+                    src={mapEmbedUrl}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="contact-map-fallback">
+                    {t("header.map_unavailable", {
+                      defaultValue: "Map location is not available right now.",
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -232,7 +239,9 @@ function ContactUs() {
                     <input
                       type="text"
                       name="name"
+                      id="contact-name"
                       placeholder={t("header.name")}
+                      aria-label={t("header.name")}
                       className="form-control"
                       value={formData.name}
                       onChange={handleChange}
@@ -245,7 +254,9 @@ function ContactUs() {
                     <input
                       type="email"
                       name="email"
+                      id="contact-email"
                       placeholder={t("header.email")}
+                      aria-label={t("header.email")}
                       className="form-control"
                       value={formData.email}
                       onChange={handleChange}
@@ -258,7 +269,9 @@ function ContactUs() {
                     <input
                       type="text"
                       name="phone"
+                      id="contact-phone"
                       placeholder={t("header.phone")}
+                      aria-label={t("header.phone")}
                       className="form-control"
                       value={formData.phone}
                       onChange={handleChange}
@@ -296,20 +309,20 @@ function ContactUs() {
                   <div className="form-check">
                     <input
                       type="checkbox"
+                      id="contact-agree"
                       name="agree"
                       className="form-check-input"
                       checked={formData.agree}
                       onChange={handleChange}
                     />
 
-                    <label className="form-check-label" htmlFor="gridCheck">
+                    <label className="form-check-label" htmlFor="contact-agree">
                       {t("header.I_agree_to_the")}{" "}
-                      <a href="terms-conditions.html"> {t("header.terms")}</a>{" "}
-                      {t("header.and")}
-                      <a href="privacy-policy.html">
-                        {" "}
+                      <Link to="/terms-condition">{t("header.terms")}</Link>{" "}
+                      {t("header.and")}{" "}
+                      <Link to="/privacy-policy">
                         {t("header.privacy_policy")}
-                      </a>
+                      </Link>
                     </label>
                     <div className="help-block with-errors gridCheck-error" />
                   </div>
