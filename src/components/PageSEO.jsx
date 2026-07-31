@@ -45,7 +45,6 @@ function PageSEO({
 
   return (
     <Helmet>
-      <html lang={currentLang} />
       <title>{pageTitle}</title>
       <meta name="description" content={description} />
       <meta name="robots" content={robots} />

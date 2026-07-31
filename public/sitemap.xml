@@ -71,6 +71,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://itdevelopmentservices.com/jobPortal/job/react-js-mita-india-5d899f</loc>
+    <lastmod>2026-07-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://itdevelopmentservices.com/jobPortal/job/react-js-webspread-5d80a5</loc>
     <lastmod>2026-07-22</lastmod>
     <changefreq>daily</changefreq>
@@ -119,14 +125,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/node-js-developer-appsolworld-797004</loc>
-    <lastmod>2026-06-29</lastmod>
+    <loc>https://itdevelopmentservices.com/jobPortal/job/ing-nieur-devops-ositel-groupe-13715f</loc>
+    <lastmod>2026-07-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/ing-nieur-devops-ositel-groupe-13715f</loc>
-    <lastmod>2026-07-08</lastmod>
+    <loc>https://itdevelopmentservices.com/jobPortal/job/react-js-mita-india-5d908b</loc>
+    <lastmod>2026-07-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -275,36 +281,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/react-js-developer-tamtam-energy-f0e30e</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/java-developer-tamtam-energy-f0e305</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/web-developer-tamtam-energy-7833cf</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/glogan-developer-tamtam-energy-7833c7</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/node-js-developer-tamtam-energy-4c1b4b</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://itdevelopmentservices.com/jobPortal/job/seo-developer-test-devstringx-a2e541</loc>
     <lastmod>2026-06-02</lastmod>
     <changefreq>daily</changefreq>
@@ -317,10 +293,9 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/job/web-developer-makino-auto-industries-a161fb</loc>
-    <lastmod>2026-03-25</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
+    <loc>https://itdevelopmentservices.com/jobPortal/mita-india-pvt-ltd-2</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://itdevelopmentservices.com/jobPortal/webspread-technologies-pvt-ltd</loc>
@@ -368,11 +343,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://itdevelopmentservices.com/jobPortal/pixel-it-services</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://itdevelopmentservices.com/jobPortal/dev-tech</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -399,6 +369,11 @@
   </url>
   <url>
     <loc>https://itdevelopmentservices.com/jobPortal/devstringx-technologies-pvt-ltd-2</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://itdevelopmentservices.com/jobPortal/pixel-it-services</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -2,8 +2,7 @@ import Slider from "react-slick";
 import { FaStar, FaQuoteLeft, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import mixitup from "mixitup";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "odometer/themes/odometer-theme-default.css";
 import Odometer from "react-odometerjs";
@@ -325,7 +324,6 @@ function Home() {
     getCompanyList();
   }, []);
 
-  const containerRef = useRef(null);
   const { ref, inView } = useInView({
     threshold: 0.4, // trigger when 40% is visible
     triggerOnce: true,
@@ -337,18 +335,6 @@ function Home() {
     });
   };
 
-  useEffect(() => {
-    if (containerRef.current) {
-      mixitup(containerRef.current, {
-        selectors: {
-          target: ".mix",
-        },
-        animation: {
-          duration: 300,
-        },
-      });
-    }
-  }, []);
   const companyList = companies?.companies || [];
   const companyCount = companyList.length;
 
@@ -890,7 +876,7 @@ function Home() {
             )}
           </div>
 
-          <div id="Container" className="row g-4" ref={containerRef}>
+          <div id="home-jobs-container" className="row g-4">
             {jobList.length > 0 ? (
               jobList.map((job, index) => {
                 const salaryLabel = formatJobSalaryDisplay(
@@ -912,7 +898,7 @@ function Home() {
                 return (
                   <div
                     key={job._id || index}
-                    className="col-lg-4 col-md-6 mix design service writing"
+                    className="col-lg-4 col-md-6"
                   >
                     <article className="cw-job-pro-card">
                       <Link
@@ -1108,7 +1094,7 @@ function Home() {
             <Slider
               {...settings4}
               infinite={companyLogos.length > 5}
-              className="partner-slider"
+              className="cw-partner-slider"
             >
               {companyLogos.map((logo, index) => (
                 <div key={logo || index} className="parner-logo">

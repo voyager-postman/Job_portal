@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { SITE } from "../utils/seo";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { getAuthHeaders, hasAuthSession, isAuthReady, getRequestConfig, persistAuthToken } from "../utils/apiHeaders";
+import { hasAuthSession, isAuthReady, getRequestConfig, persistAuthToken } from "../utils/apiHeaders";
 import {
   isVerifiedByAdmin,
   readVerifiedByAdminFromStorage,
@@ -146,7 +146,7 @@ function Header({ bgColor }) {
       const response = await axios.post(
         `${API_BASE_URL}get/notifications`,
         {},
-        { headers: getAuthHeaders() },
+        getRequestConfig(),
       );
 
       if (response.data && response.data.notifications) {
@@ -163,10 +163,11 @@ function Header({ bgColor }) {
   };
   const markNotificationRead = async (notificationId) => {
     try {
+      // POST /markRead/:id (verifyToken)
       await axios.post(
         `${API_BASE_URL}markRead/${notificationId}`,
         {},
-        { headers: getAuthHeaders() },
+        getRequestConfig(),
       );
 
       setNotifications((prev) =>
@@ -177,19 +178,6 @@ function Header({ bgColor }) {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error("Error marking notification read:", err);
-    }
-  };
-
-  const deleteAllNotifications = async () => {
-    try {
-      await axios.delete(`${API_BASE_URL}delete/AllNotifications`, {
-        headers: getAuthHeaders(),
-      });
-
-      setNotifications([]);
-      setUnreadCount(0);
-    } catch (err) {
-      console.error("Error deleting all notifications:", err);
     }
   };
 
@@ -204,13 +192,17 @@ function Header({ bgColor }) {
   };
   const markAllRead = async () => {
     try {
-      await axios.post(`${API_BASE_URL}markAllRead`, {}, { headers: getAuthHeaders() });
+      await axios.post(
+        `${API_BASE_URL}markAllRead`,
+        {},
+        getRequestConfig(),
+      );
 
       // Instantly update UI
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
-      // 🔥 Fetch updated notifications list from backend
+      // Fetch updated notifications list from backend
       fetchNotifications();
     } catch (err) {
       console.error("Error marking read:", err);
@@ -510,7 +502,7 @@ function Header({ bgColor }) {
                 />
               </Link>
               <div
-                className="collapse navbar-collapse mean-menu"
+                className="collapse navbar-collapse"
                 id="navbarSupportedContent"
               >
                 <ul className="navbar-nav me-auto">
@@ -604,7 +596,6 @@ function Header({ bgColor }) {
                             id="notificationDropdown"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
-                            onClick={markAllRead}
                           >
                             <i className="fa-regular fa-bell" />
                             {unreadCount > 0 && (
@@ -623,9 +614,17 @@ function Header({ bgColor }) {
                                   {t("header.Notifications")}
                                 </p>
                                 {unreadCount > 0 && (
-                                  <span className="notification-unread-pill">
-                                    {unreadCount} new
-                                  </span>
+                                  <button
+                                    type="button"
+                                    className="notification-mark-all-btn"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      markAllRead();
+                                    }}
+                                  >
+                                    {t("header.Mark_all_as_read")}
+                                  </button>
                                 )}
                               </div>
                             </li>
@@ -633,15 +632,24 @@ function Header({ bgColor }) {
                             {notifications.length > 0 ? (
                               notifications.map((note) => {
                                 const meta = getNotificationMeta(note);
+                                const isUnread = !note.isRead;
                                 return (
-                                  <li key={note._id}>
+                                  <li
+                                    key={note._id}
+                                    className={
+                                      isUnread
+                                        ? "notification-list-item is-unread"
+                                        : "notification-list-item"
+                                    }
+                                  >
                                     <button
                                       type="button"
                                       onClick={() =>
                                         handleNotificationClick(note)
                                       }
-                                      className={`notification-card ${note.isRead ? "" : "is-unread"
-                                        }`}
+                                      className={`notification-card ${
+                                        isUnread ? "is-unread" : ""
+                                      }`}
                                     >
                                       <div
                                         className="notification-icon-wrap"
@@ -657,25 +665,20 @@ function Header({ bgColor }) {
                                           <span className="notification-card-title">
                                             {note.title}
                                           </span>
+                                        </div>
+                                        <p className="notification-message">
+                                          {note.message}
                                           {note.createdAt && (
                                             <span className="notification-time">
+                                              {" "}
                                               {formatNotificationTime(
                                                 note.createdAt,
                                                 currentLanguage,
                                               )}
                                             </span>
                                           )}
-                                        </div>
-                                        <p className="notification-message">
-                                          {note.message}
                                         </p>
                                       </div>
-                                      {!note.isRead && (
-                                        <span
-                                          className="notification-unread-dot"
-                                          aria-hidden="true"
-                                        />
-                                      )}
                                     </button>
                                   </li>
                                 );
@@ -695,13 +698,6 @@ function Header({ bgColor }) {
                                   <hr className="dropdown-divider notification-panel-divider" />
                                 </li>
                                 <li className="notification-panel-actions">
-                                  <button
-                                    type="button"
-                                    className="notification-clear-btn"
-                                    onClick={deleteAllNotifications}
-                                  >
-                                    Clear all
-                                  </button>
                                   <Link
                                     to="/notifications"
                                     className="notification-panel-link"
@@ -1039,7 +1035,6 @@ function Header({ bgColor }) {
       <div
         className={`offcanvas offcanvas-end mobile-header-offcanvas${mobileNavOpen ? " show" : ""
           }`}
-        key={`mobile-nav-${currentLanguage}`}
         tabIndex={-1}
         aria-labelledby="mobileNavLabel"
         style={mobileNavOpen ? { visibility: "visible" } : undefined}
@@ -1266,7 +1261,6 @@ function Header({ bgColor }) {
           <div
             className="modal fade"
             id="exampleModalLogin"
-            key={`login-modal-${i18n.language}`}
             tabIndex={-1}
             aria-labelledby="exampleModalLabel"
             style={{ display: "none" }}
@@ -1354,7 +1348,6 @@ function Header({ bgColor }) {
           <div
             className="modal fade"
             id="exampleModalRegister"
-            key={`register-modal-${i18n.language}`}
             tabIndex={-1}
             aria-labelledby="exampleModalRegisterLabel"
             style={{ display: "none" }}

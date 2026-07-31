@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../Url/Url";
-import { getAuthHeaders, isAuthReady } from "../utils/apiHeaders";
+import { getRequestConfig, isAuthReady } from "../utils/apiHeaders";
 import {
   formatNotificationTime,
   getNotificationMeta,
@@ -32,7 +32,7 @@ function Notifications() {
       const response = await axios.post(
         `${API_BASE_URL}get/notifications`,
         {},
-        { headers: getAuthHeaders() },
+        getRequestConfig(),
       );
 
       const list = (response.data?.notifications || []).sort(
@@ -52,10 +52,11 @@ function Notifications() {
 
   const markNotificationRead = async (notificationId) => {
     try {
+      // POST /markRead/:id (verifyToken)
       await axios.post(
         `${API_BASE_URL}markRead/${notificationId}`,
         {},
-        { headers: getAuthHeaders() },
+        getRequestConfig(),
       );
       setNotifications((prev) =>
         prev.map((note) =>
@@ -67,11 +68,27 @@ function Notifications() {
     }
   };
 
+  const markAllRead = async () => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}markAllRead`,
+        {},
+        getRequestConfig(),
+      );
+      setNotifications((prev) =>
+        prev.map((note) => ({ ...note, isRead: true })),
+      );
+    } catch (error) {
+      console.error("Error marking all notifications read:", error);
+    }
+  };
+
   const deleteAllNotifications = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}delete/AllNotifications`, {
-        headers: getAuthHeaders(),
-      });
+      await axios.delete(
+        `${API_BASE_URL}delete/AllNotifications`,
+        getRequestConfig(),
+      );
       setNotifications([]);
     } catch (error) {
       console.error("Error deleting all notifications:", error);
@@ -113,13 +130,24 @@ function Notifications() {
                 {notifications.length === 1 ? "notification" : "notifications"}
               </p>
               {notifications.length > 0 && (
-                <button
-                  type="button"
-                  className="notification-clear-btn"
-                  onClick={deleteAllNotifications}
-                >
-                  Clear all
-                </button>
+                <div className="d-flex align-items-center gap-3">
+                  {notifications.some((note) => !note.isRead) && (
+                    <button
+                      type="button"
+                      className="notification-mark-all-btn"
+                      onClick={markAllRead}
+                    >
+                      {t("header.Mark_all_as_read")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="notification-clear-btn"
+                    onClick={deleteAllNotifications}
+                  >
+                    {t("header.Clear_All")}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -157,12 +185,6 @@ function Notifications() {
                         </div>
                         <p className="notification-message">{note.message}</p>
                       </div>
-                      {!note.isRead && (
-                        <span
-                          className="notification-unread-dot"
-                          aria-hidden="true"
-                        />
-                      )}
                     </button>
                   );
                 })}

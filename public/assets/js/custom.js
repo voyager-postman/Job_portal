@@ -1,9 +1,11 @@
 (function ($) {
   "use strict";
-  // Mean Menu
-  $(".mean-menu").meanmenu({
-    meanScreenWidth: "991",
-  });
+  // Mean Menu — skip when React owns the nav (no .mean-menu nodes)
+  if ($(".mean-menu").length) {
+    $(".mean-menu").meanmenu({
+      meanScreenWidth: "991",
+    });
+  }
 
   // Sticky, Go To Top JS
   $(window).on("scroll", function () {
@@ -291,8 +293,8 @@
     },
   });
 
-  // Partner Slider
-  $(".partner-slider").owlCarousel({
+  // Partner Slider — skip React-managed carousels (.cw-partner-slider)
+  $(".partner-slider").not(".cw-partner-slider, .slick-initialized").owlCarousel({
     loop: true,
     margin: 20,
     nav: false,
