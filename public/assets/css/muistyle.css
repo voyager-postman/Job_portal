@@ -1,0 +1,10 @@
+.css-fpujy5-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
+    color: #fff !important;
+    border: 1px solid #ff6600 !important;
+    background-color: #ff6600 !important;  
+}
+
+
+.css-fpujy5-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected:hover {
+  background-color:#ff6600 !important;
+}
