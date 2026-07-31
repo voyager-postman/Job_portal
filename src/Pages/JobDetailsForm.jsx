@@ -311,7 +311,7 @@ function JobDetailsForm() {
         });
 
         // update form state also
-        setCareerGoalsData((prev) => ({
+        setFormData((prev) => ({
           ...prev,
           salaryCurrency: currencyCode,
           TJMCurrency: currencyCode,

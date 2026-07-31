@@ -953,16 +953,6 @@ function JobSearch() {
       getAllJobList(pageSize, pageNumber);
     }
   }, [pageNumber, pageSize, alert]);
-  const resetApplyModal = () => {
-    setSelectedResumeUrl(null);
-    setSelectedCoverLetterUrl(null);
-    setSelectedCustomFile(null);
-    setIsApplying(false);
-
-    if (fileInputRef?.current) {
-      fileInputRef.current.value = "";
-    }
-  };
 
   const clearAll = () => {
     const clearedIndustries = [];

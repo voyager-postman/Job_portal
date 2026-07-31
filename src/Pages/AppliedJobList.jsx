@@ -217,7 +217,6 @@ function AppliedJobList() {
                   className="btn btn-outline-primary btn-sm px-4"
                   onClick={() => {
                     setSearchTerm("");
-                    setDebouncedSearch("");
                     setCurrentPage(1);
                     fetchJobs("", 1);
                   }}

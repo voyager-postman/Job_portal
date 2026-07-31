@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../Url/Url";
@@ -13,6 +13,7 @@ import { getRequestConfig } from "../utils/apiHeaders";
 
 function EmployerShortListCandinate() {
   const { t, i18n } = useTranslation("global");
+  const navigate = useNavigate();
 
   const cityDropdownRef = useRef(null);
   const experienceRef = useRef(null);

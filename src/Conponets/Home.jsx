@@ -23,6 +23,7 @@ import {
   resolveJobCoverUrl,
 } from "../utils/companyLogo";
 import { SITE } from "../utils/seo";
+import { isJobFeaturedOnHomepage } from "../utils/featuredJobDisplay";
 import "./HomeJobs.css";
 
 const NextArrow = ({ onClick }) => (
@@ -69,8 +70,6 @@ const formatJobSalaryDisplay = (job, currencyCode = "MAD") => {
 
   return "";
 };
-
-import { isJobFeaturedOnHomepage } from "../utils/featuredJobDisplay";
 
 function Home() {
   const { t, i18n } = useTranslation("global");

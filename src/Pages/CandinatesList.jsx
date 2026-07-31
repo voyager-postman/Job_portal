@@ -889,7 +889,7 @@ function CandinatesList() {
                     className="btn btn-primary px-4 fw-bold"
                     onClick={() => {
                       setCurrentPage(1);
-                      fetchApplicants(1); // ✅ CALL API
+                      fetchCandidates(1);
                     }}
                     style={{
                       height: "45px",
