@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
-import { isRateLimitError } from "../utils/apiRateLimitHandler";
+import { isRateLimitError, getRateLimitMessage } from "../utils/apiRateLimitHandler";
 import {
   getRequestConfig,
   persistLoginSession,
@@ -105,12 +105,16 @@ function EmployerLogin() {
 
         setFormData((prev) => ({ ...prev, password: "" }));
         login();
+        toast.success(
+          response.data?.message || t("header.login_success") || "Login successful!",
+          { toastId: "login-success" }
+        );
 
         if (shouldShowAdminVerifyMsg) {
           navigate("/");
           return;
         }
-        navigate(getPostLoginPath(user), { state: { loginSuccess: true } });
+        navigate(getPostLoginPath(user));
       } else {
         toast.error(response.data?.message || t("header.invalid_credentials"));
       }
@@ -123,7 +127,11 @@ function EmployerLogin() {
       }
 
       if (isRateLimitError(error)) {
-        // Handled globally by installApiRateLimitHandler()
+        const rateMsg =
+          error.response?.data?.message ||
+          getRateLimitMessage(error) ||
+          "Your IP has been temporarily blocked due to excessive requests. Try again later.";
+        toast.error(rateMsg, { toastId: "api-ip-banned" });
       } else if (
         error.response?.status === 403 &&
         error.response?.data?.action === "resendVerificationEmail"
@@ -340,6 +348,8 @@ function EmployerLogin() {
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
                     alt={`${SITE.name} logo`}
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
                 <div className="container">
@@ -435,7 +445,7 @@ function EmployerLogin() {
                         className="linkeding-login-btn default-btn btn"
                         onClick={handleLinkedinLogin}
                       >
-                        <img src="assets/images/icon/linkedin-icon.png" />
+                        <img src="assets/images/icon/linkedin-icon.png" loading="lazy" decoding="async" />
                         {t("auth.linkedin_login")}
                       </button>
                     </div>
@@ -448,6 +458,8 @@ function EmployerLogin() {
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
                   alt={t("auth.employer_login_title")}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

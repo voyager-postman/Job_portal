@@ -365,6 +365,8 @@ function EmployerFilterCandinateList() {
                           <img
                             src="assets/images/candidate-img/candidate1.jpg"
                             alt="image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="employer-candidate-name-position">
@@ -427,6 +429,8 @@ function EmployerFilterCandinateList() {
                           <img
                             src="assets/images/candidate-img/candidate1.jpg"
                             alt="image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="employer-candidate-name-position">
@@ -489,6 +493,8 @@ function EmployerFilterCandinateList() {
                           <img
                             src="assets/images/candidate-img/candidate1.jpg"
                             alt="image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="employer-candidate-name-position">
@@ -551,6 +557,8 @@ function EmployerFilterCandinateList() {
                           <img
                             src="assets/images/candidate-img/candidate1.jpg"
                             alt="image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="employer-candidate-name-position">
@@ -613,6 +621,8 @@ function EmployerFilterCandinateList() {
                           <img
                             src="assets/images/candidate-img/candidate1.jpg"
                             alt="image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                         <div className="employer-candidate-name-position">

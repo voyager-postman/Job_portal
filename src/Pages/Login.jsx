@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
-import { isRateLimitError } from "../utils/apiRateLimitHandler";
+import { isRateLimitError, getRateLimitMessage } from "../utils/apiRateLimitHandler";
 import { getRequestConfig, persistLoginSession, getPostLoginPath, extractLoginToken } from "../utils/apiHeaders";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
@@ -99,6 +99,10 @@ function Login() {
         }
         setFormData((prev) => ({ ...prev, password: "" }));
         login();
+        toast.success(
+          response.data?.message || t("header.login_success") || "Login successful!",
+          { toastId: "login-success" }
+        );
 
         if (
           process.env.NODE_ENV === "development" &&
@@ -110,7 +114,7 @@ function Login() {
           );
         }
 
-        navigate(getPostLoginPath(user), { state: { loginSuccess: true } });
+        navigate(getPostLoginPath(user));
       } else {
         toast.error(response.data?.message || t("header.invalid_credentials"));
       }
@@ -131,7 +135,11 @@ function Login() {
           state: { email: formData.email, showToast: true },
         });
       } else if (isRateLimitError(error)) {
-        // Handled globally
+        const rateMsg =
+          error.response?.data?.message ||
+          getRateLimitMessage(error) ||
+          "Your IP has been temporarily blocked due to excessive requests. Try again later.";
+        toast.error(rateMsg, { toastId: "api-ip-banned" });
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
@@ -156,6 +164,8 @@ function Login() {
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
                     alt={`${SITE.name} logo`}
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
                 <div className="container">
@@ -249,6 +259,8 @@ function Login() {
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
                   alt={t("auth.jobseeker_login_title")}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

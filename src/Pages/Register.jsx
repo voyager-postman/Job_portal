@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 import { SITE } from "../utils/seo";
 import { useTranslation } from "react-i18next";
+import { getStoredVisitorId } from "../utils/visitorTracker";
 
 function Register() {
   const { t } = useTranslation("global");
@@ -56,7 +57,14 @@ function Register() {
 
     setLoading(true);
     try {
-      const response = await postUserRegister({ email, password });
+      const visitorId = getStoredVisitorId();
+      const response = await postUserRegister({
+        email,
+        password,
+        role: "JobSeeker",
+        acceptedTerms: agree,
+        visitorId: visitorId || undefined,
+      });
 
       if (response.status === 200 && response.data.success) {
         const { user } = response.data;
@@ -101,6 +109,8 @@ function Register() {
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
                     alt={`${SITE.name} logo`}
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
                 <div className="container">
@@ -223,6 +233,8 @@ function Register() {
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
                   alt={t("auth.jobseeker_signup_title")}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

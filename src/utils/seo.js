@@ -467,7 +467,7 @@ export const buildJobPostingSchema = (job, canonicalUrl) => {
       5000,
     ),
     datePosted: formatIsoDate(details.createdAt),
-    validThrough: formatIsoDate(details.expiryDate),
+    validThrough: formatIsoDate(details.expiresAt || details.expiryDate),
     employmentType,
     directApply: true,
     hiringOrganization: {
@@ -518,6 +518,93 @@ export const buildJobPostingSchema = (job, canonicalUrl) => {
   }
 
   return schema;
+};
+
+export const isJobExpired = (job) => {
+  if (!job) return false;
+  const details = job.jobDetails || job;
+
+  if (job.seo?.isExpired === true || details?.status === "expired") {
+    return true;
+  }
+
+  if (job.seo?.isExpired === false && details?.status === "published") {
+    const expiry = details.expiresAt || details.expiryDate;
+    if (!expiry) return false;
+    const expiryTime = new Date(expiry).getTime();
+    if (!Number.isNaN(expiryTime) && expiryTime < Date.now()) {
+      return true;
+    }
+    return false;
+  }
+
+  const expiry = details?.expiresAt || details?.expiryDate;
+  if (expiry) {
+    const expiryTime = new Date(expiry).getTime();
+    if (!Number.isNaN(expiryTime) && expiryTime < Date.now()) {
+      return true;
+    }
+  }
+
+  return details?.status === "expired";
+};
+
+export const resolveJobSeoData = (job, fallbackTitle = "", fallbackPath = "") => {
+  const details = job?.jobDetails || job;
+  const seo = job?.seo || {};
+  const metaTags = seo.metaTags || {};
+  const expired = isJobExpired(job);
+
+  const robots =
+    seo.robots ||
+    metaTags.robots ||
+    (expired ? "noindex, follow" : "index, follow");
+
+  const canonical =
+    metaTags.canonicalUrl ||
+    (job ? buildJobCanonicalPath(job) : fallbackPath) ||
+    fallbackPath;
+
+  const title = metaTags.title || fallbackTitle;
+
+  const description =
+    metaTags.description ||
+    (details
+      ? stripHtml(details.shortDescription || details.jobDescription)
+      : SITE.defaultDescription);
+
+  const image =
+    metaTags.ogImage ||
+    resolveImageUrl(
+      details?.coverPhoto ||
+      details?.companyCoverPhoto ||
+      details?.companyId?.logo ||
+      SITE.defaultImage,
+    );
+
+  const ogTitle = metaTags.ogTitle || metaTags.title || title;
+  const ogDescription = metaTags.ogDescription || metaTags.description || description;
+  const ogType = metaTags.ogType || "article";
+
+  const jsonLd =
+    seo.jsonLd ||
+    (details
+      ? buildJobPostingSchema(job, buildJobCanonicalUrl(job) || absoluteUrl(canonical))
+      : null);
+
+  return {
+    isExpired: expired,
+    isIndexable: !expired,
+    robots,
+    canonical,
+    title,
+    description,
+    image,
+    ogTitle,
+    ogDescription,
+    ogType,
+    jsonLd,
+  };
 };
 
 export const buildCompanyOrganizationSchema = (company, canonicalUrl) => {

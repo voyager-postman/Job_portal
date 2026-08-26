@@ -103,6 +103,8 @@ function EmployerHomePage() {
                   src={`${API_IMAGE_URL}${slider.image}`}
                   className="d-block w-100"
                   alt={slider.title || "slider"}
+                  loading="lazy"
+                  decoding="async"
                 />
 
                 <div className="carousel-caption d-none d-md-block">
@@ -159,6 +161,7 @@ function EmployerHomePage() {
                     e.currentTarget.src =
                       "/jobPortal/assets/images/employer-home/home-first-section-img.jpg";
                   }}
+                  decoding="async"
                 />
               </div>
             </div>
@@ -208,6 +211,7 @@ function EmployerHomePage() {
                     e.currentTarget.src =
                       "/jobPortal/assets/images/employer-home/new-home-second-section-img.png";
                   }}
+                  decoding="async"
                 />
               </div>
             </div>
@@ -264,6 +268,7 @@ function EmployerHomePage() {
                     e.currentTarget.src =
                       "/jobPortal/assets/images/employer-home/home-first-section-img.jpg";
                   }}
+                  decoding="async"
                 />
               </div>
             </div>

@@ -171,6 +171,8 @@ function AboutUs() {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("header.aboutUs")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">
@@ -207,6 +209,8 @@ function AboutUs() {
                     e.target.src =
                       "/jobPortal/assets/images/cv/candidate-with-cv.png";
                   }}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -321,6 +325,7 @@ function AboutUs() {
                           src={`${API_IMAGE_URL}${img}`}
                           alt={`${homeData?.fifthSection?.mainTitle || t("header.uploadYourCV")} - ${index + 1}`}
                           loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </div>
@@ -393,6 +398,8 @@ function AboutUs() {
                         e.target.src =
                           "/jobPortal/assets/images/team/team-1.jpg";
                       }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
 

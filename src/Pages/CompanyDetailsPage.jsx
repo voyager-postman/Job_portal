@@ -10,6 +10,7 @@ import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
 import PageSEO from "../components/PageSEO";
+import { decodeAndSanitizeHtml } from "../utils/sanitizeHtml";
 import {
   absoluteUrl,
   buildCompanyOrganizationSchema,
@@ -17,6 +18,16 @@ import {
   stripHtml,
   SITE,
 } from "../utils/seo";
+import {
+  resolveCompanyLogoUrl,
+  resolveJobCoverUrl,
+  resolveMediaUrl,
+  DEFAULT_COMPANY_LOGO,
+  DEFAULT_JOB_COVER,
+  DEFAULT_USER_ICON,
+  handleCompanyLogoError,
+  handleJobCoverError,
+} from "../utils/companyLogo";
 import "./Main.css";
 function CompanyDetailsPage() {
   const { t } = useTranslation("global");
@@ -36,8 +47,16 @@ function CompanyDetailsPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copiedJobId, setCopiedJobId] = useState(null);
+  const [openJobAccordions, setOpenJobAccordions] = useState({});
   const from = location.state?.from || "/";
   const [showVideoModal, setShowVideoModal] = useState(false);
+
+  const toggleJobAccordion = (id) => {
+    setOpenJobAccordions((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
   // const breadcrumbLabel = from.includes("/manage-job-application")
   //   ? t("applications.manage_job_application")
   //   : t("breadcrumbs.search_company_list");
@@ -280,11 +299,7 @@ function CompanyDetailsPage() {
   }, [company]);
   const addCrossOriginToHtml = (html) => {
     if (!html) return "";
-
-    return html.replace(
-      /<img([^>]*?)src=/g,
-      '<img crossorigin="anonymous"$1src=',
-    );
+    return html;
   };
   return (
     <>
@@ -361,15 +376,12 @@ function CompanyDetailsPage() {
       <article className="company-details-container">
         <section className="company-hero-section">
           <img
-            crossOrigin="anonymous"
             className="company-hero-image"
             alt={`${company?.brandName || t("breadcrumbs.company_details")} cover`}
             loading="eager"
-            src={
-              company?.coverPhoto
-                ? `${API_IMAGE_URL}${company.coverPhoto}` // Replace API_IMAGE_URL with your base URL
-                : "assets/images/company/company-img-1.jpg" // default image
-            }
+            decoding="async"
+            src={resolveJobCoverUrl(company)}
+            onError={handleJobCoverError}
           />
         </section>
         <div className="container">
@@ -377,13 +389,11 @@ function CompanyDetailsPage() {
             <div className="branding-card-content">
               <div className="company-logo-wrapper">
                 <img
-                  crossOrigin="anonymous"
                   alt={`${company?.brandName || t("breadcrumbs.company_details")} logo`}
-                  src={
-                    company?.logo
-                      ? `${API_IMAGE_URL}${company?.logo}` // Replace API_IMAGE_URL with your base URL
-                      : "assets/images/partner-logo/partner-logo-2.png" // default image
-                  }
+                  src={resolveCompanyLogoUrl(company?.logo)}
+                  onError={handleCompanyLogoError}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="company-title-info">
@@ -399,18 +409,7 @@ function CompanyDetailsPage() {
                   </span>
                 </div>
               </div>
-              <div className="branding-actions d-flex flex-wrap gap-3 mt-3 mt-lg-0">
-                <button
-                  className="btn btn-primary px-4 py-2 rounded-pill fw-bold"
-                  style={{
-                    "background-color": "rgb(251, 118, 26)",
-                    "border-color": "rgb(251, 118, 26)",
-                  }}
-                >
-                  <i className="fa-solid fa-plus me-2" />
-                  Suivre
-                </button>
-              </div>
+
             </div>
           </div>
           <div className="company-nav-tabs">
@@ -538,10 +537,14 @@ function CompanyDetailsPage() {
                               {/* If Image */}
                               {mediaType === "image" && mediaUrl ? (
                                 <img
-                                  src={`${API_IMAGE_URL}${mediaUrl}`}
+                                  src={resolveMediaUrl(mediaUrl) || `${API_IMAGE_URL}${mediaUrl}`}
                                   alt={t("jobs.about_company_alt")}
                                   className="about-premium-video"
-                                  crossOrigin="anonymous"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
                                 />
                               ) : null}
                             </div>
@@ -587,12 +590,16 @@ function CompanyDetailsPage() {
                                       <img
                                         alt={item.fullName}
                                         className="reviewer-avatar mb-3 shadow-sm"
-                                        crossOrigin="anonymous"
                                         src={
-                                          item.photo
-                                            ? `${API_IMAGE_URL}${item.photo}`
-                                            : "assets/images/userIcon.png"
+                                          resolveMediaUrl(item.photo) ||
+                                          DEFAULT_USER_ICON
                                         }
+                                        onError={(e) => {
+                                          e.currentTarget.onerror = null;
+                                          e.currentTarget.src = DEFAULT_USER_ICON;
+                                        }}
+                                        loading="lazy"
+                                        decoding="async"
                                       />
 
                                       <p
@@ -671,15 +678,18 @@ function CompanyDetailsPage() {
                           return (
                             <div className="media-item-modern" key={item._id}>
                               <a
-                                href={`${API_IMAGE_URL}${item.url}`}
+                                href={resolveMediaUrl(item.url) || `${API_IMAGE_URL}${item.url}`}
                                 target="_blank"
                                 rel="noreferrer"
                               >
                                 <img
-                                  crossOrigin="anonymous"
                                   alt={t("header.company")}
                                   loading="lazy"
-                                  src={`${API_IMAGE_URL}${item.url}`}
+                                  src={resolveMediaUrl(item.url) || `${API_IMAGE_URL}${item.url}`}
+                                  decoding="async"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
                                 />
                                 <div className="media-item-overlay">
                                   <i className="fa-solid fa-expand" />
@@ -824,14 +834,18 @@ function CompanyDetailsPage() {
                       <div className="ceo-section">
                         <div className="ceo-image-wrapper">
                           <img
-                            crossOrigin="anonymous"
                             className="ceo-image"
                             src={
-                              company?.aboutPremium?.leader?.photo
-                                ? `${API_IMAGE_URL}${company.aboutPremium.leader.photo}`
-                                : "assets/images/userIcon.png"
+                              resolveMediaUrl(company?.aboutPremium?.leader?.photo) ||
+                              DEFAULT_USER_ICON
                             }
                             alt={company?.aboutPremium?.leader?.name}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = DEFAULT_USER_ICON;
+                            }}
                           />
                         </div>
 
@@ -871,13 +885,17 @@ function CompanyDetailsPage() {
                           <div className="team-card-header">
                             <img
                               className="team-avatar"
-                              crossOrigin="anonymous"
                               src={
-                                member?.photo
-                                  ? `${API_IMAGE_URL}${member.photo}`
-                                  : "assets/images/userIcon.png"
+                                resolveMediaUrl(member?.photo) ||
+                                DEFAULT_USER_ICON
                               }
                               alt={member.fullName}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = DEFAULT_USER_ICON;
+                              }}
                             />
 
                             <div className="team-info">
@@ -907,137 +925,223 @@ function CompanyDetailsPage() {
                   role="tabpanel"
                 >
                   <div className="content-section">
-                    <h2>Offres d'emploi disponibles</h2>
+                    <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                      <h2 className="mb-0">Offres d'emploi disponibles</h2>
+                      {company?.jobs?.length > 0 && (
+                        <span className="badge bg-light text-dark border px-3 py-2 rounded-pill fw-semibold">
+                          {company.jobs.length} {company.jobs.length > 1 ? "offres actives" : "offre active"}
+                        </span>
+                      )}
+                    </div>
+
                     {company?.jobs?.length > 0 ? (
-                      company.jobs.map((job) => (
-                        <div
-                          className="elegant-job-card-wrapper position-relative"
-                          key={job._id}
-                        >
-                          <Link
-                            to={`/job/${job.slug}`}
-                            state={{
-                              JobId: job._id,
-                            }}
-                            className="elegant-job-card"
-                          >
-                            <div className="job-card-main">
-                              <h3 className="job-card-title">
-                                {job.jobTitle || "N/A"}
-                              </h3>
-                              <div className="job-meta">
-                                <span>
-                                  <i className="fa-solid fa-location-dot" />{" "}
-                                  {job.city?.length
-                                    ? job.city.join(", ")
-                                    : "N/A"}
-                                </span>
-                                <span>
-                                  <i className="fa-solid fa-briefcase" />{" "}
-                                  {job.minimumLevel?.name || "N/A"}
-                                </span>
-                                <span>
-                                  <i className="fa-solid fa-house-laptop" />{" "}
-                                  {job?.employmentType?.name || "N/A"}
-                                </span>
-                                <span>
-                                  <i className="fa-solid fa-calendar" /> Publié
-                                  le
-                                  {new Date(job.createdAt).toLocaleString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    },
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="job-card-action d-flex align-items-center gap-3">
-                              {job?.isApplied ? (
-                                <button
-                                  style={{
-                                    color: "rgb(251, 118, 26)",
-                                    borderColor: "rgb(251, 118, 26)",
-                                    width: "150px", // 👈 force same width
-                                    textAlign: "center",
-                                  }}
-                                  className="btn btn-outline-primary rounded-pill px-4"
-                                  disabled
-                                >
-                                  {job?.applicationStatus}
-                                </button>
-                              ) : job?.isAssessmentRequired ? (
-                                <Link
-                                  to={`/job/${job.slug}`}
-                                  state={{
-                                    JobId: job._id,
-                                  }}
-                                  className="btn btn-outline-primary rounded-pill px-4"
-                                  style={{
-                                    color: "rgb(251, 118, 26)",
-                                    borderColor: "rgb(251, 118, 26)",
-                                    width: "150px",
-                                    textAlign: "center",
-                                  }}
+                      <div className="company-jobs-accordion">
+                        {company.jobs.map((job) => {
+                          const isOpen = !!openJobAccordions[job._id];
+                          const jobDate = job.createdAt
+                            ? new Date(job.createdAt).toLocaleDateString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "";
+
+                          const salaryText =
+                            !job.isHideSalary && (job.minSalary || job.maxSalary)
+                              ? `${job.minSalary ? `${job.minSalary}k` : ""} - ${job.maxSalary ? `${job.maxSalary}k` : ""} €`
+                              : job.tjmMin || job.tjmMax
+                              ? `${job.tjmMin || ""}${job.tjmMax ? ` - ${job.tjmMax}` : ""} €/j`
+                              : null;
+
+                          return (
+                            <div
+                              key={job._id}
+                              className={`company-job-accordion-item ${isOpen ? "is-open" : ""}`}
+                            >
+                              {/* Accordion Header */}
+                              <div
+                                className="company-job-accordion-header"
+                                onClick={() => toggleJobAccordion(job._id)}
+                              >
+                                <div className="company-job-header-main">
+                                  <div className="company-job-title-row">
+                                    <h3>{job.jobTitle || "N/A"}</h3>
+                                  </div>
+                                  <div className="company-job-meta-list">
+                                    {job.city?.length > 0 && (
+                                      <span className="company-job-meta-item">
+                                        <i className="fa-solid fa-location-dot" />{" "}
+                                        {Array.isArray(job.city) ? job.city.join(", ") : job.city}
+                                      </span>
+                                    )}
+                                    {job.minimumLevel?.name && (
+                                      <span className="company-job-meta-item">
+                                        <i className="fa-solid fa-briefcase" />{" "}
+                                        {job.minimumLevel.name}
+                                      </span>
+                                    )}
+                                    {job.employmentType?.name && (
+                                      <span className="company-job-meta-item">
+                                        <i className="fa-solid fa-house-laptop" />{" "}
+                                        {job.employmentType.name}
+                                      </span>
+                                    )}
+                                    {salaryText && (
+                                      <span className="company-job-meta-item">
+                                        <i className="fa-solid fa-money-bill-wave" />{" "}
+                                        {salaryText}
+                                      </span>
+                                    )}
+                                    {jobDate && (
+                                      <span className="company-job-meta-item">
+                                        <i className="fa-regular fa-clock" />{" "}
+                                        Publié le {jobDate}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="company-job-header-actions"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  {t("header.view_details")}
-                                </Link>
-                              ) : (
-                                <>
+                                  {job?.isApplied ? (
+                                    <span className="company-job-btn-status">
+                                      {job?.applicationStatus || "Candidature envoyée"}
+                                    </span>
+                                  ) : job?.isAssessmentRequired ? (
+                                    <Link
+                                      to={`/job/${job.slug}`}
+                                      state={{ JobId: job._id }}
+                                      className="company-job-btn-details"
+                                    >
+                                      {t("header.view_details")}
+                                    </Link>
+                                  ) : (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="company-job-btn-apply"
+                                        onClick={(e) => openApplyModal(e, job._id)}
+                                      >
+                                        {t("header.apply_now")}
+                                      </button>
+                                      <Link
+                                        to={`/job/${job.slug}`}
+                                        state={{ JobId: job._id }}
+                                        className="company-job-btn-details"
+                                      >
+                                        {t("header.view_details")}
+                                      </Link>
+                                    </>
+                                  )}
+
                                   <button
                                     type="button"
-                                    className="btn btn-outline-primary rounded-pill px-4"
-                                    style={{
-                                      color: "rgb(251, 118, 26)",
-                                      borderColor: "rgb(251, 118, 26)",
-                                      width: "150px",
-                                      textAlign: "center",
+                                    className="company-job-save-btn"
+                                    title={job.isSaved ? "Saved" : "Save Job"}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleSaveJob(job._id);
                                     }}
-                                    onClick={(e) => openApplyModal(e, job._id)}
                                   >
-                                    {t("header.apply_now")}
+                                    <i
+                                      className={`fa-${job.isSaved ? "solid" : "regular"} fa-heart`}
+                                      style={{ color: job.isSaved ? "#fb761a" : "#dc3545" }}
+                                    />
                                   </button>
-                                  <Link
-                                    to={`/job/${job.slug}`}
-                                    state={{
-                                      JobId: job._id,
+
+                                  <div
+                                    className="company-job-accordion-chevron"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleJobAccordion(job._id);
                                     }}
-                                    className="btn btn-outline-primary rounded-pill px-4"
-                                    style={{
-                                      color: "rgb(251, 118, 26)",
-                                      borderColor: "rgb(251, 118, 26)",
-                                      width: "150px",
-                                      textAlign: "center",
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    {t("header.view_details")}
-                                  </Link>
-                                </>
+                                    <i className="fa-solid fa-chevron-down" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Accordion Body */}
+                              {isOpen && (
+                                <div className="company-job-accordion-body">
+                                  <div className="company-job-detail-grid">
+                                    {job.employmentType?.name && (
+                                      <div className="company-job-detail-item">
+                                        <span className="company-job-detail-label">Contrat</span>
+                                        <span className="company-job-detail-value">{job.employmentType.name}</span>
+                                      </div>
+                                    )}
+                                    {job.city?.length > 0 && (
+                                      <div className="company-job-detail-item">
+                                        <span className="company-job-detail-label">Localisation</span>
+                                        <span className="company-job-detail-value">
+                                          {Array.isArray(job.city) ? job.city.join(", ") : job.city}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {job.minimumLevel?.name && (
+                                      <div className="company-job-detail-item">
+                                        <span className="company-job-detail-label">Niveau d'expérience</span>
+                                        <span className="company-job-detail-value">{job.minimumLevel.name}</span>
+                                      </div>
+                                    )}
+                                    {salaryText && (
+                                      <div className="company-job-detail-item">
+                                        <span className="company-job-detail-label">Rémunération</span>
+                                        <span className="company-job-detail-value">{salaryText}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {(job.shortDescription || job.jobDescription || job.description) && (
+                                    <div className="company-job-description-preview">
+                                      <p className="mb-0">
+                                        {job.shortDescription ||
+                                          (job.jobDescription
+                                            ? stripHtml(job.jobDescription).slice(0, 260) + "..."
+                                            : job.description
+                                            ? stripHtml(job.description).slice(0, 260) + "..."
+                                            : "")}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {(job.skills?.length > 0 || job.tags?.length > 0) && (
+                                    <div className="company-job-skills-wrap">
+                                      {(job.skills || job.tags).map((skill, sIdx) => (
+                                        <span key={sIdx} className="company-job-skill-chip">
+                                          {typeof skill === "string" ? skill : skill?.name || ""}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  <div className="company-job-body-footer">
+                                    <span className="text-muted small">
+                                      <i className="fa-solid fa-circle-info me-1" />
+                                      {job.isAssessmentRequired
+                                        ? "Évaluation requise pour ce poste"
+                                        : "Candidature directe en ligne"}
+                                    </span>
+                                    <div className="d-flex align-items-center gap-2">
+                                      <Link
+                                        to={`/job/${job.slug}`}
+                                        state={{ JobId: job._id }}
+                                        className="company-job-btn-details"
+                                      >
+                                        Voir la fiche complète <i className="fa-solid fa-arrow-right ms-1" />
+                                      </Link>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
-                              <i
-                                className={`fa-${
-                                  job.isSaved ? "solid" : "regular"
-                                } fa-heart fs-5`}
-                                style={{
-                                  cursor: "pointer",
-                                  color: job.isSaved ? "#fb761a" : "#dc3545",
-                                }}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleSaveJob(job._id);
-                                }}
-                              />
                             </div>
-                          </Link>
-                        </div>
-                      ))
+                          );
+                        })}
+                      </div>
                     ) : (
                       <p className="text-muted">{t("header.no_jobs")}</p>
                     )}
@@ -1052,7 +1156,11 @@ function CompanyDetailsPage() {
                         <div
                           className="company-career-detail"
                           dangerouslySetInnerHTML={{
-                            __html: addCrossOriginToHtml(decodedCareerDetail),
+                            __html: addCrossOriginToHtml(
+                              decodeAndSanitizeHtml(
+                                company?.careerDetail || "",
+                              ),
+                            ),
                           }}
                         />
                       ) : (

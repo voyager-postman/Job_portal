@@ -72,6 +72,24 @@ const bytesToBase64 = (bytes) => {
   return btoa(binary);
 };
 
+const isLocalOrPrivateHost = (hostname = "") => {
+  if (!hostname) return false;
+  if (LOCAL_API_HOSTS.has(hostname)) return true;
+  if (
+    hostname.endsWith(".local") ||
+    hostname.endsWith(".test") ||
+    hostname.endsWith(".internal")
+  ) {
+    return true;
+  }
+  // IPv4 private/loopback ranges
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+  if (/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+  return false;
+};
+
 export const isSecureApiUrl = (apiBaseUrl = API_BASE_URL) => {
   try {
     const { protocol, hostname } = new URL(apiBaseUrl);
@@ -81,8 +99,9 @@ export const isSecureApiUrl = (apiBaseUrl = API_BASE_URL) => {
 
     if (
       protocol === "http:" &&
-      LOCAL_API_HOSTS.has(hostname) &&
-      process.env.NODE_ENV === "development"
+      (isLocalOrPrivateHost(hostname) ||
+        process.env.NODE_ENV === "development" ||
+        process.env.REACT_APP_ALLOW_INSECURE_AUTH === "true")
     ) {
       return true;
     }

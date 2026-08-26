@@ -421,6 +421,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-1.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -486,6 +488,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-2.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -551,6 +555,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-3.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -616,6 +622,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-4.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -681,6 +689,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-6.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -746,6 +756,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-5.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -811,6 +823,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-15.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -876,6 +890,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-16.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -941,6 +957,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-17.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>
@@ -1006,6 +1024,8 @@ function ApplicationManagement() {
                               <img
                                 src="assets/images/freelancers/freelancers-img-18.jpg"
                                 alt="Image"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </a>
                           </div>

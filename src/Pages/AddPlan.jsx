@@ -530,6 +530,8 @@ const AddPlan = () => {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt="breadcrumb Img"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">

@@ -3,6 +3,7 @@ import { lazy } from "react";
 const lazyPage = (factory) => lazy(factory);
 
 // Public pages (lazy — not needed on first paint)
+export const SupportTickets = lazyPage(() => import("../Pages/SupportTickets"));
 export const ContactUs = lazyPage(() => import("../Pages/ContactUs"));
 export const AboutUs = lazyPage(() => import("../Pages/AboutUs"));
 export const Companies = lazyPage(() => import("../Pages/Companies"));
@@ -110,4 +111,15 @@ export const HomePageSeoConfig = lazyPage(
 );
 export const AdminJobsListingSeoSettings = lazyPage(
   () => import("../Pages/admin/AdminJobsListingSeoSettings"),
+);
+
+// Heavy public pages — kept out of the main bundle to improve FCP on home
+export const Login = lazyPage(() => import("../Pages/Login"));
+export const Register = lazyPage(() => import("../Pages/Register"));
+export const RecoveryPassword = lazyPage(() => import("../Pages/RecoveryPassword"));
+export const JobList = lazyPage(() => import("../Pages/JobList"));
+export const JobDetails = lazyPage(() => import("../Pages/JobDetails"));
+export const Employers = lazyPage(() => import("../Pages/Employers"));
+export const CompanyDetailsPage = lazyPage(
+  () => import("../Pages/CompanyDetailsPage"),
 );

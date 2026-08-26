@@ -18,6 +18,8 @@ function SendOtp() {
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
                     alt={`${SITE.name} logo`}
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
 
@@ -60,6 +62,8 @@ function SendOtp() {
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
                   alt="otp-img"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

@@ -19,6 +19,13 @@ import {
   openApplicationFile,
 } from "../utils/applicationDocuments";
 import { getFetchAuthOptions, getRequestConfig } from "../utils/apiHeaders";
+import { downloadJobResumesZip } from "../Services/recruiterJobService";
+import {
+  resolveUserAvatarUrl,
+  handleUserAvatarError,
+  DEFAULT_USER_ICON,
+} from "../utils/companyLogo";
+import Swal from "sweetalert2";
 
 function ApplicantsDetails() {
   const { t } = useTranslation("global");
@@ -47,6 +54,66 @@ function ApplicantsDetails() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [newApplicationStatus, setNewApplicationStatus] = useState("");
   const [candidateCount, setCandidateCount] = useState("");
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+
+  const handleBulkDownloadResumesZip = async () => {
+    if (!jobId) {
+      toast.error(t("jobs.no_job_id") || "No Job ID found for downloading resumes.");
+      return;
+    }
+
+    if (!candidateList || candidateList.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Resumes Available",
+        text: t("jobs.no_resumes_available", { defaultValue: "No candidate resumes found for this job." }),
+        confirmButtonColor: "#fb761a",
+      });
+      return;
+    }
+
+    setIsDownloadingZip(true);
+    try {
+      toast.info(t("jobs.downloading_resumes_zip") || "Preparing resumes ZIP download...");
+      const result = await downloadJobResumesZip(jobId, {
+        status: selectedStatus || "",
+        includeCoverLetters: true,
+      });
+      toast.success(t("jobs.download_resumes_success") || `Downloaded ${result.filename}`);
+    } catch (error) {
+      console.error("Bulk download resumes failed:", error);
+      const msg =
+        error.customMessage ||
+        error.response?.data?.message ||
+        t("jobs.download_resumes_failed") ||
+        "Failed to download resumes ZIP";
+
+      if (error.errorCode === "CANDIDATES_NOT_UNLOCKED") {
+        Swal.fire({
+          icon: "warning",
+          title: "Profiles Not Unlocked",
+          text: msg,
+          confirmButtonColor: "#fb761a",
+        });
+      } else if (
+        error.errorCode === "NO_RESUMES_FOUND" ||
+        error.response?.status === 404 ||
+        msg.toLowerCase().includes("no resume") ||
+        msg.toLowerCase().includes("not found")
+      ) {
+        Swal.fire({
+          icon: "info",
+          title: "No Resumes Found",
+          text: msg || t("jobs.no_resumes_available", { defaultValue: "No candidate resumes found for this job." }),
+          confirmButtonColor: "#fb761a",
+        });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  };
 
   const [filters, setFilters] = useState({
     search: "",
@@ -55,6 +122,8 @@ function ApplicantsDetails() {
     education: "",
     experienceLevel: "",
     salaryRange: "",
+    startDate: "",
+    endDate: "",
   });
 
   const degreeOptions = [
@@ -85,6 +154,8 @@ function ApplicantsDetails() {
     if (filters.experienceLevel)
       query.push(`experienceLevel=${filters.experienceLevel}`);
     if (filters.salaryRange) query.push(`salaryRange=${filters.salaryRange}`);
+    if (filters.startDate) query.push(`startDate=${filters.startDate}`);
+    if (filters.endDate) query.push(`endDate=${filters.endDate}`);
 
     const queryString = `?${query.join("&")}`;
 
@@ -122,6 +193,9 @@ function ApplicantsDetails() {
     query.push(`page=${page}`);
     query.push(`limit=${limit}`);
 
+    if (filters.startDate) query.push(`startDate=${filters.startDate}`);
+    if (filters.endDate) query.push(`endDate=${filters.endDate}`);
+
     const queryString = `?${query.join("&")}`;
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
@@ -135,7 +209,7 @@ function ApplicantsDetails() {
 
   useEffect(() => {
     fetchCandidates2();
-  }, [page]);
+  }, [page, filters.startDate, filters.endDate]);
   const fetchATSScore = async (jobId, applicationId) => {
     if (!jobId || !applicationId) return;
 
@@ -408,25 +482,52 @@ function ApplicantsDetails() {
         <div className="container">
           <div className="row">
             <div className="col-lg-12 col-sm-12">
-              <div className="breadcrumb-main-list-area">
-                <h4>Applicant Details</h4>
-                <ul>
-                  <li>
-                    <Link to="/">{t("header.home")}</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>
-                    <Link to="/all-applicants-list" state={{ showAllJobs: true }}>
-                      Applicant Management
-                    </Link>
-                    <i className="fa-solid fa-angle-right"></i>
-                  </li>
-                  <li>Applicant Details</li>
-                </ul>
+              <div className="breadcrumb-main-list-area d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                  <h4>Applicant Details</h4>
+                  <ul>
+                    <li>
+                      <Link to="/">{t("header.home")}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    <li>
+                      <Link to="/employer-dashboard">{t("header.dashboard")}</Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    <li>
+                      <Link to="/all-applicants-list" state={{ showAllJobs: true }}>
+                        Applicant Management
+                      </Link>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </li>
+                    <li>Applicant Details</li>
+                  </ul>
+                </div>
+                {jobId && (
+                  <button
+                    className="default-btn btn btn-primary d-inline-flex align-items-center gap-2"
+                    onClick={handleBulkDownloadResumesZip}
+                    disabled={isDownloadingZip}
+                    style={{
+                      borderRadius: "8px",
+                      padding: "8px 18px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      backgroundColor: "#fb761a",
+                      borderColor: "#fb761a",
+                      color: "#fff",
+                    }}
+                  >
+                    <i
+                      className={`fa-solid ${
+                        isDownloadingZip ? "fa-spinner fa-spin" : "fa-file-zipper"
+                      }`}
+                    />
+                    {isDownloadingZip
+                      ? t("jobs.downloading", { defaultValue: "Downloading (.ZIP)..." })
+                      : t("jobs.download_all_resumes_zip", { defaultValue: "Download All Resumes (.ZIP)" })}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -445,17 +546,11 @@ function ApplicantsDetails() {
                       <div className="employer-candidate-img-content-info">
                         <div className="employer-candidate-img-info">
                           <img
-                            crossOrigin="anonymous"
-                            src={
-                              selectedCandidate?.userInfo?.profileImage
-                                ? selectedCandidate.userInfo.profileImage.startsWith(
-                                    "http",
-                                  )
-                                  ? selectedCandidate.userInfo.profileImage // external URL → use directly
-                                  : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                                : "assets/images/userIcon.png"
-                            }
+                            src={resolveUserAvatarUrl(selectedCandidate?.userInfo?.profileImage)}
+                            onError={handleUserAvatarError}
                             alt="Image"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
 

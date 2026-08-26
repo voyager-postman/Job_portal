@@ -3,6 +3,7 @@ import axios from "axios";
 
 import { Link, useNavigate } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
+import { resolveMediaUrl } from "../utils/companyLogo";
 import { sanitizeCompanyListApiResponse } from "../utils/sanitizePublicCompany";
 import Stack from "@mui/material/Stack";
 import Select from "@mui/material/Select";
@@ -285,9 +286,8 @@ const handleViewCompany = (company, from) => {
                                 <div className="available-company-logo">
                                   <img
                                     src={
-                                      company?.logo
-                                        ? `${API_IMAGE_URL}${company?.logo}`
-                                        : "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
+                                      resolveMediaUrl(company?.logo) ||
+                                      "/jobPortal/assets/images/partner-logo/partner-logo-2.png"
                                     }
                                     crossorigin="anonymous"
                                     alt={company?.brandName || t("companies.company_logo")}
@@ -299,9 +299,8 @@ const handleViewCompany = (company, from) => {
                                   <img
                                     crossorigin="anonymous"
                                     src={
-                                      company?.coverPhoto
-                                        ? `${API_IMAGE_URL}${company?.coverPhoto}`
-                                        : "/jobPortal/assets/images/company/company-img-1.jpg"
+                                      resolveMediaUrl(company?.coverPhoto) ||
+                                      "/jobPortal/assets/images/company/company-img-1.jpg"
                                     }
                                     alt={company?.brandName || t("companies.company_cover")}
                                   />

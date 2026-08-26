@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { postUserLogin, isInsecureTransportError } from "../utils/authApi";
 import { getInsecureTransportMessage } from "../utils/secureCredentials";
-import { isRateLimitError } from "../utils/apiRateLimitHandler";
+import { isRateLimitError, getRateLimitMessage } from "../utils/apiRateLimitHandler";
 import { persistAuthToken } from "../utils/apiHeaders";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
@@ -61,17 +61,21 @@ function EmailOTPVerification() {
         setFormData((prev) => ({ ...prev, password: "" }));
         persistAuthToken(token);
         localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("user_id", user.id);
-        localStorage.setItem("user_email", user.email);
-        localStorage.setItem("user_role", user.role);
-        localStorage.setItem("first_name", user.first_name);
-        localStorage.setItem("last_name", user.last_name);
+        localStorage.setItem("user_id", user?.id || "");
+        localStorage.setItem("user_email", user?.email || "");
+        localStorage.setItem("user_role", user?.role || "");
+        localStorage.setItem("first_name", user?.first_name || "");
+        localStorage.setItem("last_name", user?.last_name || "");
         login();
+        toast.success(
+          response.data?.message || t("header.login_success") || "Login successful!",
+          { toastId: "login-success" }
+        );
 
         if (user?.is_completed) {
-          navigate("/candidate-profile", { state: { loginSuccess: true } });
+          navigate("/candidate-profile");
         } else {
-          navigate("/profile-basic-info", { state: { loginSuccess: true } });
+          navigate("/profile-basic-info");
         }
       } else {
         toast.error(response.data?.message || t("header.invalid_credentials"));
@@ -85,7 +89,11 @@ function EmailOTPVerification() {
       }
 
       if (isRateLimitError(error)) {
-        // Handled globally by installApiRateLimitHandler()
+        const rateMsg =
+          error.response?.data?.message ||
+          getRateLimitMessage(error) ||
+          "Your IP has been temporarily blocked due to excessive requests. Try again later.";
+        toast.error(rateMsg, { toastId: "api-ip-banned" });
       } else if (Array.isArray(error.response?.data?.errors)) {
         error.response.data.errors.forEach((errMsg) => toast.error(errMsg));
       } else {
@@ -110,6 +118,8 @@ function EmailOTPVerification() {
                     src="assets/images/logo/connect-work-ma-login.png"
                     className="main-logo"
                     alt={`${SITE.name} logo`}
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
                 <div className="container">
@@ -183,6 +193,8 @@ function EmailOTPVerification() {
                 <img
                   src="assets/images/company/book-appointment-orignal.png"
                   alt={t("auth.jobseeker_login_title")}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

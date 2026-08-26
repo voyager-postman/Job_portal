@@ -12,6 +12,7 @@ import CreatableSelect from "react-select/creatable";
 import { cleanupBootstrapModal } from "../utils/cleanupBootstrapModal";
 import { openProtectedDocument } from "../utils/protectedFile";
 import { getAuthHeaders, getRequestConfig } from "../utils/apiHeaders";
+import { resolveMediaUrl } from "../utils/companyLogo";
 import {
   MAX_DOCUMENT_SIZE_BYTES,
   MAX_IMAGE_SIZE_BYTES,
@@ -2252,28 +2253,7 @@ function CandidateProfile() {
       toast.error(t("profile.failed_delete_skill"), { theme: "colored" });
     }
   };
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    // ✅ Dashboard default images
-    if (url.includes("assets/images/dashboard/")) {
-      // ensure absolute path
-      return url.startsWith("/") ? url : `/${url}`;
-    }
-
-    // ✅ Fix wrongly stored upload URLs
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // ✅ External URLs
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-
-    // ✅ Backend uploaded image
-    return `${API_IMAGE_URL}${url}`;
-  };
+  const cleanImageUrl = (url) => resolveMediaUrl(url) || "";
 
   console.log(image);
   const formatEmail = (email, maxLength = 35) => {
@@ -2341,6 +2321,8 @@ function CandidateProfile() {
                             ? cleanImageUrl(image)
                             : "https://randomuser.me/api/portraits/women/44.jpg"
                         }
+                        loading="lazy"
+                        decoding="async"
                       />
                     )}
 

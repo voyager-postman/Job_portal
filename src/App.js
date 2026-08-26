@@ -1,7 +1,6 @@
-import { useEffect, useRef, Suspense } from "react";
+﻿import { useEffect, useRef, useState, Suspense } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./context/AuthContext";
@@ -9,25 +8,25 @@ import { consumeSocialOAuthCallback, enrichSocialLoginProfile } from "./utils/so
 import Header from "./Conponets/Header";
 import Footer from "./Conponets/Footer";
 import Home from "./Conponets/Home";
-import Register from "./Pages/Register";
-import Login from "./Pages/Login";
-import RecoveryPassword from "./Pages/RecoveryPassword";
 import "./App.css";
+import "react-toastify/dist/ReactToastify.css";
 
 import Sidebar from "./Conponets/Sidebar";
 import ScrollToTop from "./ScrollToTop";
 import NotFound from "./Pages/NotFound";
 import PrivateRoute from "./Routes/PrivateRoute";
-import CompanyDetailsPage from "./Pages/CompanyDetailsPage";
-import JobDetails from "./Pages/JobDetails";
-import Employers from "./Pages/Employers";
-import JobList from "./Pages/JobList";
 import RouteSEO from "./components/RouteSEO";
 import GoogleMarketingScripts from "./components/GoogleMarketingScripts";
 import HomePageSEO from "./components/HomePageSEO";
+import VisitorTracker from "./components/VisitorTracker";
+import GlobalSeoScripts from "./components/GlobalSeoScripts";
 import LegacyJobRedirect from "./Pages/LegacyJobRedirect";
 import RouteFallback from "./components/RouteFallback";
 import * as Lazy from "./Routes/lazyPages";
+import {
+  loadDashboardStyles,
+  loadExtraUiStyles,
+} from "./utils/loadStylesheet";
 // "build 04-09-2025"
 console.log("Date:20-02-2026,time:-18:05");
 function LayoutWrapper() {
@@ -181,8 +180,60 @@ function LayoutWrapper() {
     location.pathname.startsWith(route),
   );
 
+  useEffect(() => {
+    if (showSidebar) {
+      loadDashboardStyles();
+    }
+  }, [showSidebar]);
+
+  // Extra UI CSS (meanmenu/aos) can reshape layout â€” only after real interaction,
+  // never on a timer (late CSS was a major CLS source on Home).
+  useEffect(() => {
+    const warmExtraCss = () => loadExtraUiStyles();
+    const onInteract = () => {
+      warmExtraCss();
+      window.removeEventListener("scroll", onInteract);
+      window.removeEventListener("click", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+    };
+    window.addEventListener("scroll", onInteract, { once: true, passive: true });
+    window.addEventListener("click", onInteract, { once: true, passive: true });
+    window.addEventListener("touchstart", onInteract, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("scroll", onInteract);
+      window.removeEventListener("click", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+    };
+  }, []);
+
   const bgColor = showSidebar ? "#fff" : "#f0f5f7";
   const showFooter = !hideLayout && !showSidebar;
+
+  // Mount Footer after Home sections have mostly settled so growing main
+  // does not shove Footer (largest CLS contributor on this page).
+  const [footerReady, setFooterReady] = useState(false);
+  useEffect(() => {
+    if (!showFooter) {
+      setFooterReady(false);
+      return undefined;
+    }
+    let cancelled = false;
+    const reveal = () => {
+      if (cancelled) return;
+      window.setTimeout(() => {
+        if (!cancelled) setFooterReady(true);
+      }, 1200);
+    };
+    if (document.readyState === "complete") reveal();
+    else window.addEventListener("load", reveal, { once: true });
+    const fallback = window.setTimeout(reveal, 3500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallback);
+      window.removeEventListener("load", reveal);
+    };
+  }, [showFooter, location.pathname]);
+
   return (
     <>
       <ToastContainer
@@ -194,10 +245,13 @@ function LayoutWrapper() {
         pauseOnHover
         draggable
         limit={3}
+        style={{ zIndex: 99999 }}
       />
       <RouteSEO />
       <HomePageSEO />
       <GoogleMarketingScripts />
+      <GlobalSeoScripts />
+      <VisitorTracker />
       {!hideLayout && <Header bgColor={bgColor} />}
       {showSidebar && <Sidebar />}
 
@@ -206,21 +260,23 @@ function LayoutWrapper() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Lazy.Login />} />
         <Route path="/verification" element={<Lazy.Varification />} />
         <Route path="/account-verified" element={<Lazy.AccountVerified />} />
         <Route path="/verified-cancel" element={<Lazy.VerifiedCancel />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/recovery-password" element={<RecoveryPassword />} />
-        <Route path="/forgot-password" element={<RecoveryPassword />} />
+        <Route path="/register" element={<Lazy.Register />} />
+        <Route path="/recovery-password" element={<Lazy.RecoveryPassword />} />
+        <Route path="/forgot-password" element={<Lazy.RecoveryPassword />} />
         <Route path="/verify-otp" element={<Lazy.SendOtp />} />
         <Route path="/employer-register" element={<Lazy.EmployerRegister />} />
         <Route path="/employer-login" element={<Lazy.EmployerLogin />} />
         <Route path="/email-verification" element={<Lazy.EmailOTPVerification />} />
         <Route path="/contact-us" element={<Lazy.ContactUs />} />
+        <Route path="/support-tickets" element={<Lazy.SupportTickets />} />
+        <Route path="/tickets" element={<Lazy.SupportTickets />} />
         <Route path="/privacy-policy" element={<Lazy.PrivecyPolicy />} />
         <Route path="/terms-condition" element={<Lazy.TearmCondition />} />
-        <Route path="/companies" element={<Employers />} />
+        <Route path="/companies" element={<Lazy.Employers />} />
         <Route path="/faq/:type" element={<Lazy.Faq />} />{" "}
         <Route
           path="/applied-candidate-list"
@@ -237,7 +293,7 @@ function LayoutWrapper() {
           path="/employer-basic-info"
           element={<Lazy.EmployerBasicInformation />}
         />
-        <Route path="/jobs" element={<JobList />} />
+        <Route path="/jobs" element={<Lazy.JobList />} />
         <Route path="/job-details/:id" element={<LegacyJobRedirect />} />
         <Route
           path="/custom-resume-cover-letter"
@@ -359,8 +415,8 @@ function LayoutWrapper() {
             </PrivateRoute>
           }
         />
-        <Route path="/:companySlug" element={<CompanyDetailsPage />} />
-       <Route path="/job/:jobSlug" element={<JobDetails />} />
+        <Route path="/:companySlug" element={<Lazy.CompanyDetailsPage />} />
+       <Route path="/job/:jobSlug" element={<Lazy.JobDetails />} />
         <Route
           path="/job-details-list"
           element={
@@ -606,7 +662,7 @@ function LayoutWrapper() {
       </Routes>
       </Suspense>
       </main>
-      {showFooter && <Footer />}
+      {showFooter && footerReady && <Footer />}
     </>
   );
 }

@@ -130,6 +130,8 @@ function EmployerRegister() {
                       src="assets/images/logo/connect-work-ma-login.png"
                       className="main-logo"
                       alt={`${SITE.name} logo`}
+                      loading="eager"
+                      decoding="async"
                     />
                   </div>
                   <div className="container">
@@ -247,7 +249,7 @@ function EmployerRegister() {
                             className="linkeding-login-btn default-btn btn"
                             onClick={handleLinkedinLogin}
                           >
-                            <img src="assets/images/icon/linkedin-icon.png" />
+                            <img src="assets/images/icon/linkedin-icon.png" loading="lazy" decoding="async" />
                             {t("header.linkedin_register")}
                           </button>
                         </div>
@@ -261,6 +263,8 @@ function EmployerRegister() {
                   <img
                     src="assets/images/company/book-appointment-orignal.png"
                     alt={t("auth.employer_signup_title")}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>

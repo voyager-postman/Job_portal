@@ -66,6 +66,8 @@ const Faq = () => {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={formData.heading || t("header.FAQ")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -94,6 +96,7 @@ const Faq = () => {
                   src="/jobPortal/assets/images/faq-img.png"
                   alt={formData.subHeading || t("header.FAQ")}
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>

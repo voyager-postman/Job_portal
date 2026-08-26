@@ -106,6 +106,8 @@ const Setting = () => {
                                       src="/jobPortal/assets/images/logo.png"
                                       className="main-logo"
                                       alt={t("profile.image_preview")}
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                   </div>
                                   <div className="upload-company-input">

@@ -14,6 +14,13 @@ import {
   getApplicantCvSource,
   openApplicationFile,
 } from "../utils/applicationDocuments";
+import {
+  resolveMediaUrl,
+  resolveUserAvatarUrl,
+  handleUserAvatarError,
+  DEFAULT_USER_ICON,
+} from "../utils/companyLogo";
+import { downloadJobResumesZip } from "../Services/recruiterJobService";
 function ManagesApplicants() {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
@@ -102,6 +109,73 @@ function ManagesApplicants() {
   const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState(10000); // default
   const [totalResults, setTotalResults] = useState(0);
+  const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+
+  const handleDownloadApplicantsZip = async () => {
+    const targetJobId =
+      selectedJob ||
+      selectedCandidate?.jobId?._id ||
+      selectedCandidate?.jobId ||
+      candidates?.[0]?.jobId?._id ||
+      candidates?.[0]?.jobId;
+
+    if (!targetJobId) {
+      toast.error(t("jobs.select_job_to_download") || "Please select a job from the filter to download resumes.");
+      return;
+    }
+
+    if (!candidates || candidates.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Resumes Available",
+        text: t("jobs.no_resumes_available", { defaultValue: "No candidate resumes found for this job." }),
+        confirmButtonColor: "#fb761a",
+      });
+      return;
+    }
+
+    setIsDownloadingZip(true);
+    try {
+      toast.info(t("jobs.downloading_resumes_zip") || "Preparing resumes ZIP download...");
+      const result = await downloadJobResumesZip(targetJobId, {
+        status: status || "",
+        includeCoverLetters: true,
+      });
+      toast.success(t("jobs.download_resumes_success") || `Downloaded ${result.filename}`);
+    } catch (error) {
+      console.error("Bulk download resumes failed:", error);
+      const msg =
+        error.customMessage ||
+        error.response?.data?.message ||
+        t("jobs.download_resumes_failed") ||
+        "Failed to download resumes ZIP";
+
+      if (error.errorCode === "CANDIDATES_NOT_UNLOCKED") {
+        Swal.fire({
+          icon: "warning",
+          title: "Profiles Not Unlocked",
+          text: msg,
+          confirmButtonColor: "#fb761a",
+        });
+      } else if (
+        error.errorCode === "NO_RESUMES_FOUND" ||
+        error.response?.status === 404 ||
+        msg.toLowerCase().includes("no resume") ||
+        msg.toLowerCase().includes("not found")
+      ) {
+        Swal.fire({
+          icon: "info",
+          title: "No Resumes Found",
+          text: msg || t("jobs.no_resumes_available", { defaultValue: "No candidate resumes found for this job." }),
+          confirmButtonColor: "#fb761a",
+        });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setIsDownloadingZip(false);
+    }
+  };
   const statusFilters = [
     { label: "All", value: "" },
     { label: "New", value: "Applied" },
@@ -377,27 +451,7 @@ function ManagesApplicants() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    // ✅ Default local dashboard image
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
-      return url;
-    }
-
-    // ✅ Fix wrong stored URL like "/uploads/https://..."
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // ✅ External image (Google, GitHub, etc.)
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-
-    // ✅ Local uploaded image
-    return `${API_IMAGE_URL}${url}`;
-  };
+  const cleanImageUrl = (url) => resolveUserAvatarUrl(url);
 
   const filters = {
     selectedJob,
@@ -1031,43 +1085,65 @@ function ManagesApplicants() {
               >
                 Candidates ({totalResults || 0})
               </h3>
-              <div
-                className="d-flex bg-light rounded-pill p-1"
-                style={{ border: "1px solid rgb(233, 236, 239)" }}
-              >
-                {/* All Applicants */}
+              <div className="d-flex align-items-center gap-2 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("all")}
-                  className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "all"
-                    ? "bg-white shadow-sm text-primary"
-                    : "text-muted"
-                    }`}
+                  onClick={handleDownloadApplicantsZip}
+                  disabled={isDownloadingZip}
+                  className="btn btn-sm d-inline-flex align-items-center gap-2 px-3 py-2 fw-bold"
                   style={{
+                    backgroundColor: "#fb761a",
+                    color: "#fff",
                     border: "none",
-                    transition: "0.2s",
+                    borderRadius: "20px",
+                    fontSize: "13px",
                   }}
+                  title="Download candidate resumes as a .ZIP archive"
                 >
-                  <i className="fa-solid fa-list me-2" />
-                  All Applicants
+                  <i className={`fa-solid ${isDownloadingZip ? "fa-spinner fa-spin" : "fa-file-zipper"}`} />
+                  {isDownloadingZip
+                    ? t("jobs.downloading", { defaultValue: "Downloading (.ZIP)..." })
+                    : t("jobs.download_resumes_zip", { defaultValue: "Download Resumes (.ZIP)" })}
                 </button>
 
-                {/* Applicant Summary */}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("summary")}
-                  className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "summary"
-                    ? "bg-white shadow-sm text-primary"
-                    : "text-muted"
-                    }`}
-                  style={{
-                    border: "none",
-                    transition: "0.2s",
-                  }}
+                <div
+                  className="d-flex bg-light rounded-pill p-1"
+                  style={{ border: "1px solid rgb(233, 236, 239)" }}
                 >
-                  <i className="fa-solid fa-table me-2" />
-                  Applicant Summary
-                </button>
+                  {/* All Applicants */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("all")}
+                    className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "all"
+                      ? "bg-white shadow-sm text-primary"
+                      : "text-muted"
+                      }`}
+                    style={{
+                      border: "none",
+                      transition: "0.2s",
+                    }}
+                  >
+                    <i className="fa-solid fa-list me-2" />
+                    All Applicants
+                  </button>
+
+                  {/* Applicant Summary */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("summary")}
+                    className={`btn btn-sm rounded-pill px-3 fw-bold ${activeTab === "summary"
+                      ? "bg-white shadow-sm text-primary"
+                      : "text-muted"
+                      }`}
+                    style={{
+                      border: "none",
+                      transition: "0.2s",
+                    }}
+                  >
+                    <i className="fa-solid fa-table me-2" />
+                    Applicant Summary
+                  </button>
+                </div>
               </div>
               <div
                 className="d-none d-md-block"
@@ -2072,18 +2148,17 @@ function ManagesApplicants() {
                             <div className="d-flex align-items-center">
                               {/* PROFILE IMAGE */}
                               <img
-                                crossOrigin="anonymous"
                                 alt="user"
                                 className="rounded-circle me-3 shadow-sm border"
-                                src={
-                                  cleanImageUrl(item.userId?.profileImage) ||
-                                  "assets/images/userIcon.png"
-                                }
+                                src={resolveUserAvatarUrl(item.userId?.profileImage)}
+                                onError={handleUserAvatarError}
                                 style={{
                                   width: "55px",
                                   height: "55px",
                                   objectFit: "cover",
                                 }}
+                                loading="lazy"
+                                decoding="async"
                               />
 
                               <div className="flex-grow-1">
@@ -2305,7 +2380,6 @@ function ManagesApplicants() {
                         <div className="d-flex flex-column flex-md-row gap-4 mb-4 border-bottom pb-4 align-items-center align-items-md-start">
                           <div class="position-relative">
                             <img
-                              crossOrigin="anonymous"
                               alt="profile"
                               className="rounded shadow-sm"
                               style={{
@@ -2314,11 +2388,12 @@ function ManagesApplicants() {
                                 "object-fit": "cover",
                                 border: "3px solid rgb(255, 255, 255)",
                               }}
-                              src={
-                                cleanImageUrl(
-                                  selectedCandidate.userId?.profileImage,
-                                ) || "assets/images/userIcon.png"
-                              }
+                              src={resolveUserAvatarUrl(
+                                selectedCandidate?.userId?.profileImage,
+                              )}
+                              onError={handleUserAvatarError}
+                              loading="lazy"
+                              decoding="async"
                             />
                             <span
                               className="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
@@ -3763,17 +3838,19 @@ function ManagesApplicants() {
                                   <td className="py-3">
                                     <div className="d-flex align-items-center">
                                       <img
-                                        crossOrigin="anonymous"
                                         alt="user"
                                         className="rounded-circle me-2"
-                                        src={cleanImageUrl(
+                                        src={resolveUserAvatarUrl(
                                           item.userId?.profileImage,
                                         )}
+                                        onError={handleUserAvatarError}
                                         style={{
                                           width: "40px",
                                           height: "40px",
                                           objectFit: "cover",
                                         }}
+                                        loading="lazy"
+                                        decoding="async"
                                       />
 
                                       <div className="d-flex flex-column">

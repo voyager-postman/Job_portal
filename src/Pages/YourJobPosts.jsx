@@ -10,16 +10,47 @@ import Swal from "sweetalert2";
 import { green } from "@mui/material/colors";
 import { useTranslation } from "react-i18next";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
+import SafeHtml from "../components/SafeHtml";
+
+const MODERATION_FEEDBACK_DISMISS_KEY = "cw_dismissed_moderation_feedback";
+
+function readDismissedModerationMap() {
+  try {
+    const raw = localStorage.getItem(MODERATION_FEEDBACK_DISMISS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getModerationFeedbackToken(job) {
+  return String(job?.lastModeratedAt || job?.moderationComment || "");
+}
+
+function shouldShowModerationFeedback(job, dismissedMap) {
+  if (!job?.moderationComment) return false;
+  if (String(job.status || "").toLowerCase() !== "unpublished") return false;
+  const latest = Array.isArray(job.moderationHistory)
+    ? job.moderationHistory[job.moderationHistory.length - 1]
+    : null;
+  if (latest && String(latest.status || "").toLowerCase() === "published") {
+    return false;
+  }
+  return dismissedMap[job._id] !== getModerationFeedbackToken(job);
+}
 
 function YourJobPosts() {
   const { t, i18n } = useTranslation("global");
   const navigate = useNavigate();
   const location = useLocation();
-  // const [isPost, setIsPost] = useState("");
   const [cateroryList, setCategoryList] = useState([]);
+  const [jobTypeList, setJobTypeList] = useState([]);
+  const [selectedJobType, setSelectedJobType] = useState("");
   // add with your other useState hooks
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [sortOpen, setSortOpen] = useState(false);
   const [dashboardStats, setDashboardStats] = useState(null);
@@ -36,6 +67,18 @@ function YourJobPosts() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [perPage, setPerPage] = useState(10); // default
+  const [dismissedModeration, setDismissedModeration] = useState(() =>
+    readDismissedModerationMap(),
+  );
+
+  const dismissModerationFeedback = (job) => {
+    const next = {
+      ...readDismissedModerationMap(),
+      [job._id]: getModerationFeedbackToken(job),
+    };
+    localStorage.setItem(MODERATION_FEEDBACK_DISMISS_KEY, JSON.stringify(next));
+    setDismissedModeration(next);
+  };
 
   useEffect(() => {
     if (!location.state?.openModal) {
@@ -144,47 +187,40 @@ function YourJobPosts() {
     }
   };
 
+  const fetchJobTypes = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}getActiveJobTypeList`);
+      setJobTypeList(response.data?.data || []);
+    } catch (error) {
+      console.error("Error fetching job types:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCountryList();
+    fetchCategoryList();
+    fetchJobTypes();
   }, []);
 
-  // const fetchJobs = async (status, page = currentPage, limit = perPage) => {
-  //   try {
-  //     setLoading(true);
-  //     const token = localStorage.getItem("token");
-  //     const res = await axios.get(
-  //       `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}`,
-  //       {
-  //         ...getRequestConfig().headers,
-  //       },
-  //     );
-  //     setJobs(res.data.jobs || []);
-  //     setTotalPages(res?.data?.pagination?.totalPages || 1);
-  //     setTotalResults(res?.data?.pagination?.totalJobs || 0);
-  //     console.log(res.data.jobs || []);
-  //   } catch (err) {
-  //     console.error("Error fetching jobs:", err);
-  //     setJobs([]);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const fetchJobs = async (
-    status,
+    status = activeStatus,
     page = currentPage,
     limit = perPage,
     search = debouncedSearchTerm,
     sort = sortBy,
+    sDate = startDate,
+    eDate = endDate,
+    jType = selectedJobType,
   ) => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      let url = `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}&search=${encodeURIComponent(search || "")}&sort=${sort}`;
+      if (sDate) url += `&startDate=${sDate}`;
+      if (eDate) url += `&endDate=${eDate}`;
+      if (jType) url += `&jobType=${encodeURIComponent(jType)}`;
 
-      const res = await axios.get(
-        `${API_BASE_URL}getRecruiterJobList?status=${status}&page=${page}&limit=${limit}&search=${search}&sort=${sort}`,
-        getRequestConfig(),
-      );
+      const res = await axios.get(url, getRequestConfig());
 
       setJobs(res.data.jobs || []);
       setTotalPages(res?.data?.pagination?.totalPages || 1);
@@ -196,9 +232,11 @@ function YourJobPosts() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    fetchJobs(activeStatus, currentPage, perPage, debouncedSearchTerm, sortBy);
-  }, [activeStatus, currentPage, debouncedSearchTerm, sortBy]);
+    fetchJobs(activeStatus, currentPage, perPage, debouncedSearchTerm, sortBy, startDate, endDate, selectedJobType);
+  }, [activeStatus, currentPage, debouncedSearchTerm, sortBy, startDate, endDate, selectedJobType]);
+
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * perPage + 1;
   const endResult = Math.min(currentPage * perPage, totalResults);
 
@@ -207,16 +245,6 @@ function YourJobPosts() {
       setCurrentPage(page);
     }
   };
-
-  useEffect(() => {
-    fetchCategoryList();
-    setCurrentPage(1);
-    fetchJobs(activeStatus);
-  }, [activeStatus]);
-
-  useEffect(() => {
-    fetchJobs(activeStatus, currentPage, perPage);
-  }, [currentPage]);
 
   const getEmptyMessage = () => {
     switch (activeStatus) {
@@ -735,24 +763,21 @@ function YourJobPosts() {
               </div>
               <div className="col-lg-9 col-md-9">
                 <div className="your-job-post-detail-info">
-                  {/* Search + Sort */}
-                  <div className="row mb-4 align-items-center">
-                    <div className="col-lg-8 col-md-7">
-                      <div
-                        className="search-bar-container"
-                        style={{ position: "relative" }}
-                      >
+                  {/* Search + Job Type + Date Range + Sort in 1 clean row */}
+                  <div className="row mb-4 align-items-center g-2">
+                    {/* 1. Search by Job Title */}
+                    <div className="col-lg-3 col-md-6 col-12">
+                      <div className="position-relative">
                         <i
-                          className="fa-solid fa-magnifying-glass"
+                          className="fa-solid fa-magnifying-glass position-absolute"
                           style={{
-                            position: "absolute",
-                            left: "15px",
+                            left: "12px",
                             top: "50%",
                             transform: "translateY(-50%)",
                             color: "#8898aa",
+                            fontSize: "13px",
                           }}
                         />
-
                         <input
                           type="text"
                           className="form-control"
@@ -760,47 +785,138 @@ function YourJobPosts() {
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           style={{
-                            borderRadius: "12px",
-                            paddingLeft: "45px",
+                            borderRadius: "10px",
+                            paddingLeft: "34px",
+                            paddingRight: searchTerm ? "28px" : "10px",
                             border: "1px solid #e9ecef",
-                            height: "48px",
-                            fontSize: "15px",
+                            height: "44px",
+                            fontSize: "13px",
+                            backgroundColor: "#fff",
                           }}
                         />
+                        {searchTerm && (
+                          <button
+                            type="button"
+                            className="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted p-0 me-2"
+                            onClick={() => setSearchTerm("")}
+                            style={{ fontSize: "11px", textDecoration: "none" }}
+                          >
+                            <i className="fa-solid fa-xmark" />
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div className="col-lg-4 col-md-5 mt-3 mt-md-0">
-                      <div className="d-flex align-items-center justify-content-md-end gap-3">
-                        <span
-                          className="text-muted small font-weight-bold"
+                    {/* 2. Job Type Dropdown */}
+                    <div className="col-lg-2 col-md-6 col-12">
+                      <select
+                        className="form-select form-control"
+                        value={selectedJobType}
+                        onChange={(e) => {
+                          setSelectedJobType(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        style={{
+                          borderRadius: "10px",
+                          border: "1px solid #e9ecef",
+                          height: "44px",
+                          fontSize: "12.5px",
+                          backgroundColor: "#fff",
+                          cursor: "pointer",
+                          paddingLeft: "10px",
+                        }}
+                      >
+                        <option value="">{t("header.All_Job_Types", { defaultValue: "All Job Types" })}</option>
+                        {jobTypeList.map((type) => (
+                          <option key={type._id || type.name} value={type._id}>
+                            {type.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 3. Date Range Filter */}
+                    <div className="col-lg-4 col-md-6 col-12">
+                      <div
+                        className="d-flex align-items-center justify-content-center gap-1 px-2"
+                        style={{
+                          backgroundColor: "#fff",
+                          border: "1px solid #e9ecef",
+                          height: "44px",
+                          borderRadius: "10px",
+                        }}
+                      >
+                        <input
+                          type="date"
+                          className="form-control form-control-sm border-0 bg-transparent p-0"
+                          value={startDate}
+                          title={t("jobs.start_date") || "Start date"}
+                          onChange={(e) => {
+                            setStartDate(e.target.value);
+                            setCurrentPage(1);
+                          }}
                           style={{
-                            whiteSpace: "nowrap",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
+                            fontSize: "12px",
+                            color: "#495057",
+                            width: "116px",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <span className="text-muted small px-1">→</span>
+                        <input
+                          type="date"
+                          className="form-control form-control-sm border-0 bg-transparent p-0"
+                          value={endDate}
+                          title={t("jobs.end_date") || "End date"}
+                          onChange={(e) => {
+                            setEndDate(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          style={{
+                            fontSize: "12px",
+                            color: "#495057",
+                            width: "116px",
+                            cursor: "pointer",
+                          }}
+                        />
+                        {(startDate || endDate) && (
+                          <button
+                            type="button"
+                            className="btn btn-sm text-danger p-0 ms-1"
+                            title={t("jobs.clear_date") || "Clear dates"}
+                            onClick={() => {
+                              setStartDate("");
+                              setEndDate("");
+                              setCurrentPage(1);
+                            }}
+                            style={{ border: "none", background: "none", cursor: "pointer" }}
+                          >
+                            <i className="fa-solid fa-xmark" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 4. Sort By Dropdown */}
+                    <div className="col-lg-3 col-md-6 col-12">
+                      <div className="position-relative">
+                        <div
+                          onClick={() => setSortOpen(!sortOpen)}
+                          className="d-flex align-items-center justify-content-between px-3"
+                          style={{
+                            cursor: "pointer",
+                            border: "1px solid #e9ecef",
+                            backgroundColor: "#fff",
+                            height: "44px",
+                            borderRadius: "10px",
+                            fontSize: "12.5px",
                           }}
                         >
-                          {t("header.Sort_By")}
-                        </span>
-
-                        <div className="custom-dropdown-container position-relative">
-                          {/* Trigger */}
-                          <div
-                            className="custom-dropdown-trigger"
-                            onClick={() => setSortOpen(!sortOpen)}
-                            style={{
-                              cursor: "pointer",
-                              border: "1px solid #e9ecef",
-                              borderRadius: "10px",
-                              padding: "10px 14px",
-                              minWidth: "190px",
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              background: "#fff",
-                            }}
-                          >
-                            <span>
+                          <div className="d-flex align-items-center gap-1 text-truncate">
+                            <span className="text-muted small" style={{ fontSize: "11px", fontWeight: 600 }}>
+                              {t("header.Sort_By")}:
+                            </span>
+                            <span className="fw-semibold text-dark text-truncate">
                               {sortBy === "newest"
                                 ? "Recent First"
                                 : sortBy === "oldest"
@@ -811,93 +927,59 @@ function YourJobPosts() {
                                       ? "Z to A"
                                       : "Recent First"}
                             </span>
-
-                            <i
-                              className="fa-solid fa-chevron-down ms-2"
-                              style={{
-                                transition: "transform 0.3s",
-                                transform: sortOpen
-                                  ? "rotate(180deg)"
-                                  : "rotate(0deg)",
-                              }}
-                            />
                           </div>
-
-                          {/* Menu */}
-                          {sortOpen && (
-                            <div
-                              className="custom-dropdown-menu show"
-                              style={{
-                                position: "absolute",
-                                top: "105%",
-                                right: 0,
-                                width: "190px",
-                                background: "#fff",
-                                border: "1px solid #e9ecef",
-                                borderRadius: "10px",
-                                boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                                zIndex: 999,
-                                overflow: "hidden",
-                              }}
-                            >
-                              {/* Newest */}
-                              <div
-                                className={`custom-dropdown-item ${
-                                  sortBy === "newest" ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  setSortBy("newest");
-                                  setSortOpen(false);
-                                }}
-                              >
-                                <i className="fa-solid fa-clock me-2" />
-                                Recent First
-                              </div>
-
-                              {/* Oldest */}
-                              <div
-                                className={`custom-dropdown-item ${
-                                  sortBy === "oldest" ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  setSortBy("oldest");
-                                  setSortOpen(false);
-                                }}
-                              >
-                                <i className="fa-solid fa-history me-2" />
-                                Oldest First
-                              </div>
-
-                              {/* A-Z */}
-                              <div
-                                className={`custom-dropdown-item ${
-                                  sortBy === "a-z" ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  setSortBy("a-z");
-                                  setSortOpen(false);
-                                }}
-                              >
-                                <i className="fa-solid fa-arrow-down-a-z me-2" />
-                                A to Z
-                              </div>
-
-                              {/* Z-A */}
-                              <div
-                                className={`custom-dropdown-item ${
-                                  sortBy === "z-a" ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  setSortBy("z-a");
-                                  setSortOpen(false);
-                                }}
-                              >
-                                <i className="fa-solid fa-arrow-down-z-a me-2" />
-                                Z to A
-                              </div>
-                            </div>
-                          )}
+                          <i
+                            className="fa-solid fa-chevron-down text-muted"
+                            style={{
+                              fontSize: "10px",
+                              transition: "transform 0.2s",
+                              transform: sortOpen ? "rotate(180deg)" : "rotate(0deg)",
+                            }}
+                          />
                         </div>
+
+                        {/* Sort Dropdown Menu */}
+                        {sortOpen && (
+                          <div
+                            className="position-absolute end-0 mt-1 bg-white border shadow-lg"
+                            style={{
+                              zIndex: 1050,
+                              minWidth: "160px",
+                              borderRadius: "10px",
+                              overflow: "hidden",
+                              border: "1px solid #e9ecef",
+                            }}
+                          >
+                            {[
+                              { label: "Recent First", value: "newest", icon: "fa-clock" },
+                              { label: "Oldest First", value: "oldest", icon: "fa-history" },
+                              { label: "A to Z", value: "a-z", icon: "fa-arrow-down-a-z" },
+                              { label: "Z to A", value: "z-a", icon: "fa-arrow-down-z-a" },
+                            ].map((option) => (
+                              <div
+                                key={option.value}
+                                onClick={() => {
+                                  setSortBy(option.value);
+                                  setSortOpen(false);
+                                  setCurrentPage(1);
+                                }}
+                                className={`px-3 py-2 cursor-pointer small d-flex align-items-center gap-2 ${
+                                  sortBy === option.value
+                                    ? "bg-light text-primary fw-bold"
+                                    : "text-dark"
+                                }`}
+                                style={{
+                                  cursor: "pointer",
+                                  transition: "background 0.15s",
+                                  fontSize: "12px",
+                                }}
+                              >
+                                <i className={`fa-solid ${option.icon} text-muted`} style={{ fontSize: "11px" }} />
+                                {option.label}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1027,6 +1109,38 @@ function YourJobPosts() {
                               )}
                             </div>
 
+                            {/* Admin feedback only while unpublished; hide after publish/dismiss */}
+                            {shouldShowModerationFeedback(job, dismissedModeration) && (
+                              <div
+                                className="alert alert-warning d-flex align-items-start gap-2 mt-2 mb-2 p-2"
+                                style={{
+                                  borderRadius: "8px",
+                                  fontSize: "13px",
+                                  backgroundColor: "#fff8e1",
+                                  border: "1px solid #ffe082",
+                                  color: "#856404",
+                                }}
+                              >
+                                <i
+                                  className="fa-solid fa-triangle-exclamation mt-1"
+                                  style={{ color: "#d97706" }}
+                                />
+                                <div className="flex-grow-1">
+                                  <strong style={{ fontWeight: 600 }}>
+                                    {t("header.Admin_Feedback")}:{" "}
+                                  </strong>
+                                  <span>{job.moderationComment}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn-close"
+                                  aria-label={t("header.Close") || "Close"}
+                                  onClick={() => dismissModerationFeedback(job)}
+                                  style={{ fontSize: "10px" }}
+                                />
+                              </div>
+                            )}
+
                             {/* Bottom Tags */}
                             <div className="job-short-detail-tags">
                               <ul>
@@ -1044,17 +1158,29 @@ function YourJobPosts() {
 
                                 <li>
                                   <i className="fa-solid fa-file-invoice"></i>
-                                  {job.employmentType?.length > 0
+                                  {Array.isArray(job.employmentType) && job.employmentType.length > 0
                                     ? job.employmentType
-                                        .map((x) => x.name)
+                                        .map((x) => x?.name || x)
                                         .join(", ")
-                                    : "Not provided"}
+                                    : job.employmentType?.name ||
+                                      (typeof job.employmentType === "string"
+                                        ? job.employmentType
+                                        : "Not provided")}
                                 </li>
 
                                 <li>
                                   <i className="fa-solid fa-user-plus"></i>
                                   {job?.remote?.name || "Not provided"}
                                 </li>
+
+                                {/* Recruiter Name */}
+                                {(job.recruiterId?.name || job.recruiterId?.first_name) && (
+                                  <li>
+                                    <i className="fa-solid fa-user-tie"></i>
+                                    {job.recruiterId?.name ||
+                                      `${job.recruiterId?.first_name || ""} ${job.recruiterId?.last_name || ""}`.trim()}
+                                  </li>
+                                )}
 
                                 {/* Status */}
                                 <li>
@@ -1368,13 +1494,11 @@ function YourJobPosts() {
                 Job Description
               </h2>
 
-              <div
+              <SafeHtml
                 className="rich-text-content"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    viewData?.jobDetails?.jobDescription ||
-                    "<p>Not Provided</p>",
-                }}
+                html={viewData?.jobDetails?.jobDescription}
+                decode
+                fallback={<p>Not Provided</p>}
               />
             </div>
 

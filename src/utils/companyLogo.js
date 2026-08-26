@@ -1,7 +1,10 @@
 import { API_IMAGE_URL } from "../Url/Url";
 
-export const DEFAULT_COMPANY_LOGO =
-  "/jobPortal/assets/images/dashboard/images1.png";
+const PUBLIC_PREFIX = (process.env.PUBLIC_URL || "/jobPortal").replace(/\/$/, "");
+
+export const DEFAULT_COMPANY_LOGO = `${PUBLIC_PREFIX}/assets/images/dashboard/images1.png`;
+export const DEFAULT_USER_AVATAR = `${PUBLIC_PREFIX}/assets/images/userIcon.png`;
+export const DEFAULT_USER_ICON = `${PUBLIC_PREFIX}/assets/images/userIcon.png`;
 
 /**
  * High-quality landscape covers for the job hero (1600×700).
@@ -50,19 +53,50 @@ export const resolveMediaUrl = (path) => {
   const normalized = normalizeCoverPath(path);
   if (!normalized) return null;
 
-  if (normalized.includes("uploads/https")) {
-    return normalized.substring(normalized.indexOf("https"));
+  let clean = normalized.replace(/\\/g, "/").trim();
+
+  if (clean.includes("uploads/https")) {
+    clean = clean.substring(clean.indexOf("https"));
+  } else if (clean.includes("uploads/http")) {
+    clean = clean.substring(clean.indexOf("http"));
   }
 
-  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
-    return normalized;
+  // Handle local public asset paths
+  if (clean.startsWith("/jobPortal/") || clean.startsWith("/assets/") || clean.startsWith("assets/")) {
+    const withoutPrefix = clean.replace(/^\/?(jobPortal\/)?/, "");
+    return `${PUBLIC_PREFIX}/${withoutPrefix}`;
   }
 
-  if (normalized.startsWith("/jobPortal/")) {
-    return normalized;
+  if (/^https?:\/\//i.test(clean)) {
+    const isJobPortalUpload =
+      clean.includes("/job_portal/") ||
+      clean.includes("/uploads/") ||
+      clean.includes("192.168.1.112") ||
+      clean.includes("localhost");
+
+    if (!isJobPortalUpload) {
+      return clean;
+    }
   }
 
-  return `${API_IMAGE_URL}${normalized}`;
+  let relativePath = clean;
+
+  relativePath = relativePath.replace(/^https?:\/\/[^/]+/i, "");
+  relativePath = relativePath.replace(/^\/job_portal/i, "");
+
+  while (/^\/?uploads(\/|$)/i.test(relativePath)) {
+    relativePath = relativePath.replace(/^\/?uploads\/?/i, "");
+  }
+
+  relativePath = relativePath.replace(/^\/+/, "");
+
+  if (!relativePath) return null;
+
+  const base = (API_IMAGE_URL || "").endsWith("/")
+    ? API_IMAGE_URL
+    : `${API_IMAGE_URL}/`;
+
+  return `${base}${relativePath}`;
 };
 
 export const resolveCompanyLogoUrl = (logo) => {
@@ -185,6 +219,17 @@ export const resolveHeroCoverUrl = async (source, seed) => {
   }
 
   return fallback;
+};
+
+export const resolveUserAvatarUrl = (photo) => {
+  if (!photo) return DEFAULT_USER_ICON;
+  if (photo === DEFAULT_USER_ICON || photo === DEFAULT_USER_AVATAR) return photo;
+  return resolveMediaUrl(photo) || DEFAULT_USER_ICON;
+};
+
+export const handleUserAvatarError = (event) => {
+  event.currentTarget.onerror = null;
+  event.currentTarget.src = DEFAULT_USER_ICON;
 };
 
 export const handleCompanyLogoError = (event) => {

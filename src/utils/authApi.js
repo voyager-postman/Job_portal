@@ -8,6 +8,8 @@ import {
   preparePasswordFields,
 } from "./secureCredentials";
 
+import { getStoredVisitorId } from "./visitorTracker";
+
 const AUTH_AXIOS_CONFIG = { withCredentials: true };
 
 const buildAuthError = (code, message) => {
@@ -52,20 +54,24 @@ export const postUserLogin = async ({ email, password, role }) => {
 
 export const postUserRegister = async ({ email, password, ...rest }) => {
   const passwordField = await preparePasswordField(password);
+  const storedVisitorId = getStoredVisitorId();
 
   return securePost(`${API_BASE_URL}user/register`, {
     email,
     ...passwordField,
+    ...(storedVisitorId ? { visitorId: storedVisitorId } : {}),
     ...rest,
   });
 };
 
 export const postCompanyRegister = async ({ email, password, ...rest }) => {
   const passwordField = await preparePasswordField(password);
+  const storedVisitorId = getStoredVisitorId();
 
   return securePost(`${API_BASE_URL}register/company`, {
     email,
     ...passwordField,
+    ...(storedVisitorId ? { visitorId: storedVisitorId } : {}),
     ...rest,
   });
 };

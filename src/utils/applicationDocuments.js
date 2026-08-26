@@ -4,6 +4,7 @@ import {
   isProtectedDocumentPath,
   openProtectedDocument,
 } from "./protectedFile";
+import { resolveMediaUrl } from "./companyLogo";
 
 const normalizeDocumentValue = (value) => {
   if (!value) return null;
@@ -25,11 +26,7 @@ export const resolveApplicationFileUrl = (value) => {
   const path = normalizeDocumentValue(value);
   if (!path) return null;
 
-  if (/^https?:\/\//i.test(path)) return path;
-
-  const base = (API_IMAGE_URL || "").replace(/\/$/, "");
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${normalizedPath}`;
+  return resolveMediaUrl(path);
 };
 
 export const getApplicantCvUrl = (applicant) => {

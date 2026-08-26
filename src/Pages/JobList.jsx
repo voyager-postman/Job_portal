@@ -28,6 +28,10 @@ import JobApplyModal from "../components/JobApplyModal";
 import { useJobApply } from "../hooks/useJobApply";
 import { isJobHighlightedInListing } from "../utils/featuredJobDisplay";
 import { getJobApplyModalProps } from "../utils/jobApplyModalProps";
+import {
+  resolveCompanyLogoUrl,
+  DEFAULT_COMPANY_LOGO,
+} from "../utils/companyLogo";
 import { getRequestConfig } from "../utils/apiHeaders";
 import PageSEO from "../components/PageSEO";
 import { useJobsListingSeo } from "../hooks/useJobsListingSeo";
@@ -1401,11 +1405,36 @@ const JobList = () => {
     <>
       <PageSEO {...pageSeoProps} />
       <ToastContainer />
+      <section className="inner-banners-info-area">
+        <div className="inner-banners-img-area">
+          <img
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+            alt={pageTitle || "Browse Jobs"}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div className="inner-banners-title-info">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12">
+                <div className="inner-page-banner-title">
+                  <h1>{pageTitle || t("header.jobs") || "Browse Jobs"}</h1>
+                  <ul>
+                    <li className="menu-divide-arrow">
+                      <Link to="/">{t("header.home") || "Home"}</Link>
+                    </li>
+                    <li>{t("header.jobs") || "Jobs"}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="job-card-list-info-area">
         <div className="container">
-          <div className="job-list-page-header mb-3">
-            <h1 className="job-list-page-title">{pageTitle}</h1>
-          </div>
           <div className="row">
             <div className="col-lg-12 col-sm-12">
               <div className="manage-jobs-box">
@@ -1541,29 +1570,31 @@ const JobList = () => {
                             </ul>
                           </div>
 
-                          <div
-                            className="show-more-less-btn collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#techStackCollapse"
-                            aria-expanded="false"
-                            aria-controls="techStackCollapse"
-                          >
-                            <span className="show-more">
-                              {t("header.show_more")}{" "}
-                              <i
-                                className="fa fa-angle-down"
-                                aria-hidden="true"
-                              />
-                            </span>
-                            <span className="show-less">
-                              {t("header.show_less")}{" "}
-                              <i
-                                className="fa fa-angle-up"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          </div>
+                          {categories.length > 3 && (
+                            <div
+                              className="show-more-less-btn collapsed"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#techStackCollapse"
+                              aria-expanded="false"
+                              aria-controls="techStackCollapse"
+                            >
+                              <span className="show-more">
+                                {t("header.show_more")}{" "}
+                                <i
+                                  className="fa fa-angle-down"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                              <span className="show-less">
+                                {t("header.show_less")}{" "}
+                                <i
+                                  className="fa fa-angle-up"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1885,29 +1916,31 @@ const JobList = () => {
                             </ul>
                           </div>
 
-                          <div
-                            className="show-more-less-btn collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#salaryCollapse"
-                            aria-expanded="false"
-                            aria-controls="salaryCollapse"
-                          >
-                            <span className="show-more">
-                              {t("header.show_more")}{" "}
-                              <i
-                                className="fa fa-angle-down"
-                                aria-hidden="true"
-                              />
-                            </span>
-                            <span className="show-less">
-                              {t("header.show_less")}{" "}
-                              <i
-                                className="fa fa-angle-up"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          </div>
+                          {salaryRanges.length > 4 && (
+                            <div
+                              className="show-more-less-btn collapsed"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#salaryCollapse"
+                              aria-expanded="false"
+                              aria-controls="salaryCollapse"
+                            >
+                              <span className="show-more">
+                                {t("header.show_more")}{" "}
+                                <i
+                                  className="fa fa-angle-down"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                              <span className="show-less">
+                                {t("header.show_less")}{" "}
+                                <i
+                                  className="fa fa-angle-up"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="divder-line-info" />
@@ -2348,14 +2381,15 @@ const JobList = () => {
                                       <div className="modern-company-info">
                                         <div className="modern-logo-container">
                                           <img
-                                            crossOrigin="anonymous"
                                             alt={`${job?.brandName || job?.companyName || t("companies.company_logo")} logo`}
                                             className="modern-company-logo"
-                                            src={
-                                              job?.logo
-                                                ? `${API_IMAGE_URL}${job.logo}`
-                                                : "assets/images/dashboard/images1.png"
-                                            }
+                                            src={resolveCompanyLogoUrl(job?.logo)}
+                                            onError={(e) => {
+                                              e.currentTarget.onerror = null;
+                                              e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                                            }}
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                         </div>
 
@@ -2674,6 +2708,8 @@ const JobList = () => {
                                                       company,
                                                       company?._id,
                                                     )}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                   />
 
                                                   <div className="modern-company-cover-overlay"></div>
@@ -2682,12 +2718,13 @@ const JobList = () => {
                                                   <div className="modern-company-logo-badge">
                                                     <img
                                                       alt={`${company?.brandName || company?.companyName || t("companies.company_logo")} logo`}
-                                                      crossOrigin="anonymous"
-                                                      src={
-                                                        company?.logo
-                                                          ? `${API_IMAGE_URL}${company.logo}`
-                                                          : "/jobPortal/assets/images/icon/icon-25.png"
-                                                      }
+                                                      src={resolveCompanyLogoUrl(company?.logo)}
+                                                      onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                                                      }}
+                                                      loading="lazy"
+                                                      decoding="async"
                                                     />
                                                   </div>
                                                 </div>
@@ -2876,14 +2913,15 @@ const JobList = () => {
             <div className="side-panel-header">
               <div className="header-company-info">
                 <img
-                  crossOrigin="anonymous"
                   alt={`${selectedJob?.brandName || t("companies.company_logo")} logo`}
                   className="side-panel-logo"
-                  src={
-                    selectedJob?.logo
-                      ? `${API_IMAGE_URL}${selectedJob.logo}`
-                      : "assets/images/dashboard/images1.png"
-                  }
+                  src={resolveCompanyLogoUrl(selectedJob?.logo)}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                  }}
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <h2 className="side-panel-title">

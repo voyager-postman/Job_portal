@@ -303,64 +303,156 @@
 }
 
 .modern-filter-section {
-  padding: 24px;
+  padding: 20px 24px;
 }
 
 .modern-filter-section:not(:last-child) {
   border-bottom: 1px solid var(--border-color);
 }
 
-.modern-filter-section .job-filter-heading h4 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0;
+.modern-filter-section .job-filter-heading-cancel,
+.job-filter-heading-cancel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 6px !important;
 }
 
-.modern-filter-section .job-filter-heading h4 i {
-  color: var(--primary-color);
-  font-size: 18px;
+.modern-filter-section .job-filter-heading,
+.job-filter-heading {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
 }
 
-.modern-filter-section .job-filter-cancel-heading h4 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary-color);
-  opacity: 0.8;
-  cursor: pointer;
+.modern-filter-section .job-filter-heading h4,
+.job-filter-heading h4 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--text-main, #0f172a) !important;
+  margin: 0 !important;
+}
+
+.modern-filter-section .job-filter-heading h4 i,
+.job-filter-heading h4 i {
+  color: var(--primary-color, #2563eb) !important;
+  font-size: 16px !important;
+}
+
+.modern-filter-section .job-filter-cancel-heading,
+.job-filter-cancel-heading {
+  display: flex !important;
+  align-items: center !important;
+  margin-left: auto !important;
+}
+
+.modern-filter-section .job-filter-cancel-heading h4,
+.modern-filter-section .job-filter-clear-btn,
+.job-filter-cancel-heading h4,
+.job-filter-clear-btn {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--primary-color, #2563eb) !important;
+  opacity: 0.9;
+  cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+}
+
+.modern-filter-section .job-filter-cancel-heading h4:hover,
+.modern-filter-section .job-filter-clear-btn:hover,
+.job-filter-cancel-heading h4:hover,
+.job-filter-clear-btn:hover {
+  opacity: 1;
+  text-decoration: underline !important;
 }
 
 .modern-filter-section .job-filter-select-info ul {
-  margin-top: 15px !important;
+  margin-top: 12px !important;
+  margin-bottom: 0 !important;
   list-style: none;
   padding: 0;
 }
 
 .modern-filter-section .job-filter-select-info li {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .modern-filter-section .job-filter-select-info input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   cursor: pointer;
-  accent-color: var(--primary-color);
-  border: 2px solid var(--border-color);
+  accent-color: var(--primary-color, #2563eb);
+  border: 1.5px solid var(--border-color, #cbd5e1);
   border-radius: 4px;
 }
 
 .modern-filter-section .job-filter-select-info label {
   font-size: 14px;
-  color: var(--secondary-color);
+  color: var(--secondary-color, #334155);
   cursor: pointer;
   margin: 0;
   font-weight: 500;
+}
+
+/* Show More / Show Less Button */
+.show-more-less-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin-top: 12px !important;
+  cursor: pointer !important;
+  color: var(--primary-color, #2563eb) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 4px 0 !important;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.show-more-less-btn:hover {
+  color: var(--primary-color-hover, #1d4ed8) !important;
+}
+
+.show-more-less-btn.collapsed .show-less,
+.show-more-less-btn[aria-expanded="false"] .show-less {
+  display: none !important;
+}
+
+.show-more-less-btn.collapsed .show-more,
+.show-more-less-btn[aria-expanded="false"] .show-more {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+}
+
+.show-more-less-btn:not(.collapsed) .show-more,
+.show-more-less-btn[aria-expanded="true"] .show-more {
+  display: none !important;
+}
+
+.show-more-less-btn:not(.collapsed) .show-less,
+.show-more-less-btn[aria-expanded="true"] .show-less {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
 }
 
 /* Remove old modern-filter-card if it exists elsewhere, or we just won't use it */

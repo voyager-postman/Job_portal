@@ -8,6 +8,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 
 import { API_BASE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
+import SafeHtml from "../components/SafeHtml";
 
 function PrivecyPolicy() {
   const { t, i18n } = useTranslation("global");
@@ -58,8 +59,10 @@ function PrivecyPolicy() {
         <section className="inner-banners-info-area">
           <div className="inner-banners-img-area">
             <img
-              src="assets/images/banner/inner-banner-img.jpg"
+              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
               alt={t("legal.privacy_title")}
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="inner-banners-title-info">
@@ -95,9 +98,9 @@ function PrivecyPolicy() {
                       .
                     </p>
                   </div>
-                  <div
+                  <SafeHtml
                     className="terms-condition-privacy-policy-discription-info"
-                    dangerouslySetInnerHTML={{ __html: privacyData?.content }}
+                    html={privacyData?.content}
                   />
                 </div>
               </div>

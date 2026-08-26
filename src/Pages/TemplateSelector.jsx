@@ -44,6 +44,8 @@ const TemplateSelector = ({ setTemplate }) => {
                 src={tpl.img}
                 alt={tpl.name}
                 style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <button style={{ textAlign: "center" }} className="default-btn btn">

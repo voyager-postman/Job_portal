@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { openProtectedDocument } from "../utils/protectedFile";
 import { useTranslation } from "react-i18next";
 import { getRequestConfig } from "../utils/apiHeaders";
+import { resolveMediaUrl } from "../utils/companyLogo";
 
 function CandinateProfileDetails() {
   const { t } = useTranslation("global");
@@ -51,22 +52,7 @@ function CandinateProfileDetails() {
       setLoading(false);
     }
   };
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    // Case: wrong URL like "/uploads/https://..."
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // Case: full external URL
-    if (url.startsWith("http")) {
-      return url;
-    }
-
-    // Case: local upload (relative path)
-    return `${API_IMAGE_URL}${url}`;
-  };
+  const cleanImageUrl = (url) => resolveMediaUrl(url) || "";
 
   const getReviewsByUser = async (userId) => {
     try {
@@ -204,6 +190,8 @@ function CandinateProfileDetails() {
                       "assets/images/userIcon.png"
                     }
                     alt="Image"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="candidates-content">
@@ -659,6 +647,8 @@ function CandinateProfileDetails() {
                               (e.target.src =
                                 "/jobPortal/assets/images/dashboard/images1.png")
                             }
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
 

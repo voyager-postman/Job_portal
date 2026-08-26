@@ -148,6 +148,8 @@ function RecoveryPassword() {
               <img
                 src="assets/images/company/book-appointment-orignal.png"
                 alt="reset"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

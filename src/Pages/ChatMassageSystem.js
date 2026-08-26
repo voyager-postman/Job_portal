@@ -11,7 +11,9 @@ import { checkSearchRateLimit } from "../utils/searchRateLimit";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { getRequestConfig } from "../utils/apiHeaders";
+import { resolveMediaUrl } from "../utils/companyLogo";
 import { validateChatAttachmentFile } from "../utils/fileUploadLimits";
+import SafeHtml from "../components/SafeHtml";
 
 const CHAT_SEARCH_DEBOUNCE_MS = 600;
 
@@ -589,14 +591,7 @@ function ChatMassageSystem() {
 
   const getImageUrl = (url) => {
     if (!isValidImageUrl(url)) return image1;
-
-    const trimmed = String(url).trim();
-
-    if (trimmed.startsWith("http")) {
-      return trimmed;
-    }
-
-    return `${API_IMAGE_URL}${trimmed}`;
+    return resolveMediaUrl(url) || image1;
   };
 
   const handleImageError = (e) => {
@@ -686,6 +681,8 @@ function ChatMassageSystem() {
                               u?.otherUser?.logo || u?.otherUser?.profileImage,
                             )}
                             onError={handleImageError}
+                            loading="lazy"
+                            decoding="async"
                           />
 
                           <span
@@ -842,6 +839,8 @@ function ChatMassageSystem() {
                         className="header-avatar"
                         src={getImageUrl(activeUser?.image)}
                         onError={handleImageError}
+                        loading="lazy"
+                        decoding="async"
                       />
 
                       <div className="header-user-details">
@@ -919,6 +918,8 @@ function ChatMassageSystem() {
                         width: "40%",
                         opacity: 0.7,
                       }}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <h2>{t("messaging.ready_to_trade")}</h2>
@@ -977,6 +978,8 @@ function ChatMassageSystem() {
                                       : getImageUrl(activeUser?.image)
                                   }
                                   onError={handleImageError}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
 
                                 <div className="msg-content-wrapper">
@@ -1018,6 +1021,8 @@ function ChatMassageSystem() {
                                                 e.target.src,
                                               );
                                             }}
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                         </a>
                                       )}
@@ -1089,6 +1094,8 @@ function ChatMassageSystem() {
                             "https://cdn-icons-png.flaticon.com/512/337/337946.png"
                           }
                           alt="file"
+                          loading="lazy"
+                          decoding="async"
                         />
 
                         <div className="file-preview-info">
@@ -1182,6 +1189,8 @@ function ChatMassageSystem() {
                       className="info-panel-logo"
                       src={getImageUrl(activeUser?.image)}
                       onError={handleImageError}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <h4>{activeUser?.name}</h4>
@@ -1193,13 +1202,11 @@ function ChatMassageSystem() {
                     <div className="company-about">
                       <h5 className="section-title">{t("messaging.about_company")}</h5>
 
-                      <div
+                      <SafeHtml
                         className="info-description"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            activeUser?.aboutCompany ||
-                            t("messaging.no_company_description"),
-                        }}
+                        html={activeUser?.aboutCompany}
+                        decode
+                        fallback={t("messaging.no_company_description")}
                       />
                     </div>
 

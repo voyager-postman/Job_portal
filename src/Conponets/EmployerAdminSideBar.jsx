@@ -25,7 +25,7 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-1.svg" alt={t("sidebar.dashboard")} />
+                <img src="assets/images/svg-icon/icon-1.svg" alt={t("sidebar.dashboard")} loading="lazy" decoding="async" />
               </span>
               <span className="menu-title">{t("sidebar.dashboard")}</span>
             </NavLink>
@@ -39,7 +39,7 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-2.svg" alt={t("sidebar.job_search")} />
+                <img src="assets/images/svg-icon/icon-2.svg" alt={t("sidebar.job_search")} loading="lazy" decoding="async" />
               </span>
               <span className="menu-title">{t("sidebar.job_search")}</span>
             </NavLink>
@@ -53,7 +53,7 @@ function EmployerAdminSideBar() {
               }
             >
               <span className="icon">
-                <img src="assets/images/svg-icon/icon-8.svg" alt={t("sidebar.my_profile")} />
+                <img src="assets/images/svg-icon/icon-8.svg" alt={t("sidebar.my_profile")} loading="lazy" decoding="async" />
               </span>
               <span className="menu-title">{t("sidebar.my_profile")}</span>
             </NavLink>

@@ -17,6 +17,7 @@ import companyLogo from "../../src/images/images1.png";
 import "./JobDetailsModern.css";
 import { useTranslation } from "react-i18next";
 import JobApplyModal from "../components/JobApplyModal";
+import ReportJobModal from "../components/ReportJobModal";
 import { useJobApply } from "../hooks/useJobApply";
 import PageSEO from "../components/PageSEO";
 import {
@@ -26,13 +27,18 @@ import {
   buildJobPostingSchema,
   buildBreadcrumbSchema,
   stripHtml,
+  isJobExpired,
+  resolveJobSeoData,
   SITE,
 } from "../utils/seo";
-import { fetchJobRecord } from "../utils/jobRoutes";
+import { fetchJobRecord, resolveRedirectSlug } from "../utils/jobRoutes";
 import {
   resolveHeroCoverUrl,
   resolveJobCoverUrl,
+  resolveCompanyLogoUrl,
+  DEFAULT_COMPANY_LOGO,
 } from "../utils/companyLogo";
+import SafeHtml from "../components/SafeHtml";
 
 function JobDetails() {
   const { t } = useTranslation("global");
@@ -106,9 +112,23 @@ function JobDetails() {
       return;
     }
 
+    let redirected = false;
     try {
       setLoading(true);
       const responseData = await fetchJobRecord(lookup, token);
+
+      // Backend returns 301 / { redirect: true, slug|location } when the title (slug) changed.
+      if (responseData?.redirect) {
+        const newSlug =
+          resolveRedirectSlug(responseData.location || responseData.slug) ||
+          responseData.slug;
+        if (newSlug && newSlug !== jobSlug) {
+          redirected = true;
+          navigate(`/job/${newSlug}`, { replace: true });
+          return;
+        }
+      }
+
       const jobDetails = responseData?.jobDetails;
 
       if (
@@ -139,7 +159,9 @@ function JobDetails() {
         error?.response?.data?.message || "Unable to load job details.",
       );
     } finally {
-      setLoading(false);
+      if (!redirected) {
+        setLoading(false);
+      }
     }
   };
 
@@ -428,27 +450,6 @@ function JobDetails() {
     }
   };
 
-  function decodeHtml(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
-
-  // Optionally decode twice if double-encoded
-  const decodedHtml = decodeHtml(
-    decodeHtml(job?.jobDetails?.jobDescription || ""),
-  );
-
-  function decodeHtml1(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-  }
-
-  // Double decode for escaped HTML
-  const decodedHtml1 = decodeHtml1(
-    decodeHtml1(job?.jobDetails?.companyId?.aboutCompany || ""),
-  );
   console.log(job?.jobDetails);
 
   const handleStartTest = async () => {
@@ -563,30 +564,28 @@ function JobDetails() {
 
   const seoTitle = cleanTitleParts.join(" - ");
 
-  const seoDescription = job?.jobDetails
-    ? stripHtml(
-        job.jobDetails.shortDescription || job.jobDetails.jobDescription,
-      )
-    : SITE.defaultDescription;
-  const jobSchemas = [
-    job?.jobDetails
-      ? buildJobPostingSchema(job, canonicalUrl)
-      : null,
-    buildBreadcrumbSchema([
-      { name: t("header.home"), path: "/" },
-      { name: t("header.jobs"), path: "/jobs" },
-      { name: job?.jobDetails?.jobTitle || jobTitle, path: canonicalPath },
-    ]),
-  ];
+  const jobSeo = resolveJobSeoData(job, seoTitle, canonicalPath);
+  const expiredListing = isJobExpired(job);
+
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: t("header.home"), path: "/" },
+    { name: t("header.jobs"), path: "/jobs" },
+    { name: job?.jobDetails?.jobTitle || jobTitle, path: canonicalPath },
+  ]);
+
+  const jobSchemas = [jobSeo.jsonLd, breadcrumbSchema].filter(Boolean);
 
   return (
     <>
       <PageSEO
-        title={seoTitle}
-        description={seoDescription}
-        canonical={canonicalPath}
-        image={heroBgImage || SITE.defaultImage}
-        ogType="website"
+        title={jobSeo.title}
+        description={jobSeo.description}
+        canonical={jobSeo.canonical}
+        image={jobSeo.image || heroBgImage || SITE.defaultImage}
+        ogType={jobSeo.ogType || "article"}
+        robots={jobSeo.robots}
+        ogTitle={jobSeo.ogTitle}
+        ogDescription={jobSeo.ogDescription}
         jsonLd={jobSchemas}
       />
       <ToastContainer />
@@ -650,6 +649,8 @@ function JobDetails() {
               {...(String(heroBgImage || "").startsWith("http")
                 ? { crossOrigin: "anonymous" }
                 : {})}
+              loading="lazy"
+              decoding="async"
             />
           ) : null}
           <div className="job-hero-pattern" />
@@ -660,13 +661,14 @@ function JobDetails() {
               <div className="branding-top-row">
                 <div className="job-company-logo-small">
                   <img
-                    crossOrigin="anonymous"
                     alt={`${job?.jobDetails?.companyId?.brandName || t("jobs.unknown_company")} logo`}
-                    src={
-                      job?.jobDetails?.companyId?.logo
-                        ? `${API_IMAGE_URL}${job.jobDetails.companyId.logo}`
-                        : companyLogo
-                    }
+                    src={resolveCompanyLogoUrl(job?.jobDetails?.companyId?.logo)}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                    }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <Link
@@ -682,20 +684,28 @@ function JobDetails() {
                 </Link>
               </div>
               <div className="branding-title-row">
-                <h1>{job?.jobDetails?.jobTitle}</h1>
+                <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                  <h1 className="mb-0">{job?.jobDetails?.jobTitle}</h1>
+                  {expiredListing && (
+                    <span className="job-expired-pill-badge">
+                      <i className="fa-solid fa-clock-rotate-left me-1" />
+                      {t("jobs.applications_closed")}
+                    </span>
+                  )}
+                </div>
                 <div className="branding-meta-info">
                   <span>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        Posted{" "}
-                      </font>
-                    </font>
-                    <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        {moment(job?.jobDetails?.createdAt).fromNow()}
-                      </font>
-                    </font>
+                    <span>{t("jobs.posted")} </span>
+                    <span>{moment(job?.jobDetails?.createdAt).fromNow()}</span>
                   </span>
+                  {(job?.jobDetails?.expiresAt || job?.jobDetails?.expiryDate) && (
+                    <span className="ms-3">
+                      <i className="fa-regular fa-calendar-xmark me-1" />
+                      {expiredListing
+                        ? `${t("jobs.expired_on")} ${moment(job.jobDetails.expiresAt || job.jobDetails.expiryDate).format("LL")}`
+                        : `${t("jobs.expires_on")} ${moment(job.jobDetails.expiresAt || job.jobDetails.expiryDate).format("LL")}`}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="job-quick-facts-pills">
@@ -801,6 +811,41 @@ function JobDetails() {
           </div>
           <div className="job-grid-container">
             <div className="content-main">
+              {expiredListing && (
+                <div className="job-expired-alert-banner" role="alert">
+                  <div className="expired-alert-icon">
+                    <i className="fa-solid fa-triangle-exclamation" />
+                  </div>
+                  <div className="expired-alert-content">
+                    <h3 className="expired-alert-heading">
+                      {t("jobs.expired_banner_title")}
+                    </h3>
+                    <p className="expired-alert-message">
+                      {t("jobs.expired_banner_desc")}
+                    </p>
+                    {job?.similarJobs?.length > 0 ? (
+                      <a
+                        href="#similar-jobs-section"
+                        className="btn-expired-view-similar"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          document
+                            .getElementById("similar-jobs-section")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        <i className="fa-solid fa-arrow-down" />
+                        {t("jobs.view_similar_jobs")}
+                      </a>
+                    ) : (
+                      <Link to="/jobs" className="btn-expired-view-similar">
+                        <i className="fa-solid fa-briefcase" />
+                        {t("jobs.browse_all_jobs")}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )}
               {job?.jobDetails?.isAssessmentRequired && (
                 <div
                   className="modern-alert mb-5"
@@ -969,11 +1014,11 @@ function JobDetails() {
                 <div className="modern-content-block">
                   <h2>{t("header.Job_Description")}</h2>
 
-                  <div
+                  <SafeHtml
                     className="rich-text-content"
-                    dangerouslySetInnerHTML={{
-                      __html: decodedHtml || "<p>N/A</p>",
-                    }}
+                    html={job?.jobDetails?.jobDescription}
+                    decode
+                    fallback={<p>N/A</p>}
                   />
                 </div>
                 {job?.jobDetails?.recruitmentProcess?.length > 0 && (
@@ -1039,9 +1084,17 @@ function JobDetails() {
                 </div>
               </section>
               {job?.similarJobs?.length > 0 && (
-                <section className="job-modern-card">
+                <section className="job-modern-card" id="similar-jobs-section">
                   <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="mb-0">{t("jobs.similar_jobs")}</h2>
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                      <h2 className="mb-0">{t("jobs.similar_jobs")}</h2>
+                      {expiredListing && (
+                        <span className="similar-active-badge">
+                          <i className="fa-solid fa-circle-check me-1" />
+                          {t("jobs.active_recommendations")}
+                        </span>
+                      )}
+                    </div>
                     <div className="d-flex gap-2">
                       <button
                         onClick={() => sliderRef.current.slickPrev()}
@@ -1122,18 +1175,19 @@ function JobDetails() {
                                 }}
                               >
                                 <img
-                                  crossOrigin="anonymous"
-                                  src={
-                                    item?.companyId?.logo
-                                      ? `${API_IMAGE_URL}${item.companyId.logo}`
-                                      : companyLogo
-                                  }
+                                  src={resolveCompanyLogoUrl(item?.companyId?.logo)}
                                   alt={item?.companyId?.brandName || "Company"}
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                                  }}
                                   style={{
                                     width: "100%",
                                     height: "100%",
-                                    "object-fit": "contain",
+                                    objectFit: "contain",
                                   }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
                               <div className="card-header-text">
@@ -1294,8 +1348,25 @@ function JobDetails() {
             <aside className="job-sticky-sidebar">
               <div className="job-modern-card action-card">
                 <div className="apply-button-group">
-                  {/* 🔒 Already Applied */}
-                  {job?.jobDetails?.isApplied ? (
+                  {/* ⌛ Expired Job Notice & Disabled Button */}
+                  {expiredListing ? (
+                    <div className="job-expired-sidebar-wrap w-100">
+                      <button
+                        type="button"
+                        className="btn-modern-primary w-100 btn-job-expired-disabled"
+                        disabled
+                        aria-disabled="true"
+                        title={t("jobs.applications_closed")}
+                      >
+                        <i className="fa-solid fa-ban me-2" />
+                        {t("jobs.applications_closed")}
+                      </button>
+                      <p className="job-expired-sidebar-hint text-center mt-2 mb-0">
+                        <i className="fa-solid fa-circle-info me-1" />
+                        {t("jobs.expired_sidebar_note")}
+                      </p>
+                    </div>
+                  ) : job?.jobDetails?.isApplied ? (
                     <button className="btn-modern-primary w-100" disabled>
                       {job?.jobDetails?.applicationStatus || t("jobs.applied")}
                     </button>
@@ -1408,10 +1479,17 @@ function JobDetails() {
                     <i className="fa-solid fa-link" />
                     <span>{t("jobs.share")}</span>
                   </button>
-                  <a href="#" className="tool-item text-decoration-none">
-                    <i className="fa-solid fa-flag" />
-                    <span>{t("jobs.report")}</span>
-                  </a>
+                  <button
+                    type="button"
+                    className="tool-item text-decoration-none btn btn-link p-0 border-0"
+                    data-bs-toggle="modal"
+                    data-bs-target="#reportJobModal"
+                    title={t("jobs.report_job_tooltip") || "Report this job"}
+                    style={{ background: "transparent", color: "inherit" }}
+                  >
+                    <i className="fa-solid fa-flag text-danger" />
+                    <span>{t("jobs.report") || "Report"}</span>
+                  </button>
                 </div>
                 <div className="share-links mt-3">
                   <a
@@ -1473,12 +1551,11 @@ function JobDetails() {
                     </Link>
                   </p>
                   <div className="side-company-description rich-text-content company-description-clamped mt-3">
-                    <p
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          job?.jobDetails?.companyId?.aboutCompany ||
-                          t("jobs.no_company_description"),
-                      }}
+                    <SafeHtml
+                      as="p"
+                      html={job?.jobDetails?.companyId?.aboutCompany}
+                      decode
+                      fallback={t("jobs.no_company_description")}
                     />
                     <font
                       dir="auto"
@@ -1611,6 +1688,12 @@ function JobDetails() {
           onClose={resetApplyModal}
           onClearCustom={clearCustomFile}
           isSelectionMade={isSelectionMade()}
+        />
+        <ReportJobModal
+          modalId="reportJobModal"
+          jobId={job?.jobDetails?._id || id}
+          jobTitle={job?.jobDetails?.jobTitle}
+          companyName={job?.jobDetails?.companyId?.brandName}
         />
       </div>
       <div className="skill-assessment-test-allModal-area">

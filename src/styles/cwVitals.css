@@ -1,0 +1,153 @@
+/**
+ * Core Web Vitals helpers — CLS reserves without huge empty hero gaps.
+ */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+#main-content {
+  min-height: 70vh;
+}
+
+.navbar-area .main-logo,
+.navbar-area .white-logo {
+  width: auto;
+  height: 42px;
+  max-height: 42px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Search icons: fixed box so late glyph paint does not shove inputs */
+.banner-search-form .form-group {
+  position: relative;
+}
+
+.banner-search-form .form-group > i {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+/* Hero images: keep theme size/spacing (do not shrink with aspect-ratio boxes).
+   width/height attrs on <img> still help CLS; display follows style.css */
+.banner-image-content .banner-img-1 img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.companies-week-logo img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* Match previous Home cards: View Company centered (dashboard.css is deferred) */
+.companies-week-box-info .available-company-btn {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 4px;
+}
+
+.companies-week-box-info .available-company-btn .default-btn {
+  display: inline-block !important;
+  float: none !important;
+  margin: 0 auto;
+  width: auto !important;
+  max-width: 100%;
+  font-size: 14px;
+  padding: 8px 18px;
+}
+
+/* Home CTAs: orange like View Company (Read More, Contact, Upload CV, Search, etc.) */
+.cw-home-page .default-btn,
+.cw-home-page .default-btn.btn {
+  background-color: #ff6600 !important;
+  color: #ffffff !important;
+  border-color: #ff6600 !important;
+}
+
+.cw-home-page .default-btn::before,
+.cw-home-page .default-btn::after {
+  display: none;
+}
+
+.cw-home-page .default-btn:hover,
+.cw-home-page .default-btn:focus {
+  background-color: #e65c00 !important;
+  color: #ffffff !important;
+  border-color: #e65c00 !important;
+}
+
+/* Blog listing page — Read More orange (same as Home) */
+.blog-area .read-more.default-btn,
+.blog-area .read-more.default-btn.btn {
+  background-color: #ff6600 !important;
+  color: #ffffff !important;
+  border-color: #ff6600 !important;
+}
+
+.blog-area .read-more.default-btn::before,
+.blog-area .read-more.default-btn::after {
+  display: none;
+}
+
+.blog-area .read-more.default-btn:hover,
+.blog-area .read-more.default-btn:focus {
+  background-color: #e65c00 !important;
+  color: #ffffff !important;
+  border-color: #e65c00 !important;
+}
+
+/* Applied jobs / candidate search — Find button orange */
+.applied-jobs-search-box-info .default-btn,
+.employer-candidate-btn-area .default-btn {
+  background-color: #ff6600 !important;
+  color: #ffffff !important;
+  border-color: #ff6600 !important;
+}
+
+.applied-jobs-search-box-info .default-btn::before,
+.applied-jobs-search-box-info .default-btn::after,
+.employer-candidate-btn-area .default-btn::before,
+.employer-candidate-btn-area .default-btn::after {
+  display: none;
+}
+
+.applied-jobs-search-box-info .default-btn:hover,
+.applied-jobs-search-box-info .default-btn:focus,
+.employer-candidate-btn-area .default-btn:hover,
+.employer-candidate-btn-area .default-btn:focus {
+  background-color: #e65c00 !important;
+  color: #ffffff !important;
+  border-color: #e65c00 !important;
+}
+
+/* Below-fold slots: keep siblings from jumping when API data arrives */
+.cw-cls-companies,
+.cw-cls-companies-ph {
+  min-height: 420px;
+}
+
+.cw-cls-jobs {
+  min-height: 420px;
+}
+
+.cw-cls-partners {
+  min-height: 120px;
+}
+
+.cw-cls-candidates {
+  min-height: 280px;
+}

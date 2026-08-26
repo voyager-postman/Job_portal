@@ -417,6 +417,8 @@ const Employers = () => {
                   : "/jobPortal/assets/images/company/company-img-1.jpg"
               }
               alt={company?.brandName || t("companies.company_cover")}
+              loading="lazy"
+              decoding="async"
             />
             <div className="premium-overlay" />
           </div>
@@ -443,6 +445,8 @@ const Employers = () => {
                   height: "100%",
                   objectFit: "contain",
                 }}
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -615,141 +619,35 @@ const Employers = () => {
           ]),
         ]}
       />
-      <section
-        className="inner-banners-info-area"
-        style={{
-          height: "180px",
-          overflow: "hidden",
-          display: "flex",
-          "-webkit-align-items": "center",
-          "-webkit-box-align": "center",
-          "-ms-flex-align": "center",
-          "align-items": "center",
-          position: "relative",
-          "margin-top": "0px",
-        }}
-      >
-        <div
-          className="inner-banners-img-area"
-          style={{
-            position: "absolute",
-            top: "0px",
-            left: "0px",
-            width: "100%",
-            height: "100%",
-            "z-index": "1",
-          }}
-        >
+      <section className="inner-banners-info-area">
+        <div className="inner-banners-img-area">
           <img
+            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("companies.search_company_list", {
               defaultValue: "Our Partner Companies",
             })}
-            src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
-            style={{
-              width: "100%",
-              height: "100%",
-              "object-fit": "cover",
-              "object-position": "center center",
-              filter: "brightness(0.8)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: "0px",
-              left: "0px",
-              width: "100%",
-              height: "100%",
-              background:
-                "linear-gradient(to right, rgba(0, 102, 204, 0.6), rgba(0, 0, 0, 0.3))",
-            }}
+            loading="lazy"
+            decoding="async"
           />
         </div>
-        <div
-          className="inner-banners-title-info w-100"
-          style={{ position: "relative", "z-index": "2", bottom: "auto" }}
-        >
+        <div className="inner-banners-title-info">
           <div className="container">
-            <div className="row justify-content-center">
-              <div className="col-lg-8 col-md-10 text-center">
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12">
                 <div className="inner-page-banner-title">
-                  <h1
-                    className="fw-bold text-white mb-3"
-                    style={{
-                      "font-size": "2.5rem",
-                      "-webkit-text-shadow": "rgba(0, 0, 0, 0.5) 0px 2px 10px",
-                      "text-shadow": "rgba(0, 0, 0, 0.5) 0px 2px 10px",
-                      "letter-spacing": "1px",
-                    }}
-                  >
+                  <h1>
                     {t("companies.search_company_list", {
                       defaultValue: "Our Partner Companies",
                     })}
                   </h1>
-                  <ul
-                    className="d-inline-flex align-items-center justify-content-center px-4 py-2 rounded-pill shadow-sm m-0"
-                    style={{
-                      "background-color": "rgba(255, 255, 255, 0.2)",
-                      "backdrop-filter": "blur(8px)",
-                      border: "1px solid rgba(255, 255, 255, 0.3)",
-                      "list-style": "none",
-                    }}
-                  >
-                    <li
-                      className="menu-divide-arrow"
-                      style={{
-                        "margin-right": "25px",
-                        display: "flex",
-                        "-webkit-align-items": "center",
-                        "-webkit-box-align": "center",
-                        "-ms-flex-align": "center",
-                        "align-items": "center",
-                      }}
-                    >
-                      <a
-                        className="text-white text-decoration-none fw-medium"
-                        href="/jobPortal"
-                        style={{
-                          display: "flex",
-                          "-webkit-align-items": "center",
-                          "-webkit-box-align": "center",
-                          "-ms-flex-align": "center",
-                          "align-items": "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <i className="fa-solid fa-house" />
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          <font
-                            dir="auto"
-                            style={{ "vertical-align": "inherit" }}
-                          >
-                            Welcome
-                          </font>
-                        </font>
-                      </a>
+                  <ul>
+                    <li className="menu-divide-arrow">
+                      <Link to="/">{t("header.home") || "Home"}</Link>
                     </li>
-                    <li
-                      className="text-white fw-bold"
-                      style={{
-                        display: "flex",
-                        "-webkit-align-items": "center",
-                        "-webkit-box-align": "center",
-                        "-ms-flex-align": "center",
-                        "align-items": "center",
-                      }}
-                    >
-                      <font dir="auto" style={{ "vertical-align": "inherit" }}>
-                        <font
-                          dir="auto"
-                          style={{ "vertical-align": "inherit" }}
-                        >
-                          Companies
-                        </font>
-                      </font>
+                    <li>
+                      {t("companies.search_company_list", {
+                        defaultValue: "Companies",
+                      })}
                     </li>
                   </ul>
                 </div>
@@ -1027,6 +925,8 @@ const Employers = () => {
                                                 objectFit: "contain",
                                                 transition: "0.3s",
                                               }}
+                                              loading="lazy"
+                                              decoding="async"
                                             />
                                           </div>
                                         </div>
@@ -1245,6 +1145,8 @@ const Employers = () => {
                                         alt={
                                           company?.brandName || "Company Cover"
                                         }
+                                        loading="lazy"
+                                        decoding="async"
                                       />
 
                                       <div className="premium-overlay" />
@@ -1276,6 +1178,8 @@ const Employers = () => {
                                             width: "100%",
                                             height: "100%",
                                           }}
+                                          loading="lazy"
+                                          decoding="async"
                                         />
                                       </div>
 
@@ -1492,6 +1396,8 @@ const Employers = () => {
                                         alt={
                                           company?.brandName || "Company Cover"
                                         }
+                                        loading="lazy"
+                                        decoding="async"
                                       />
                                       <div className="premium-overlay" />
                                     </div>
@@ -1522,6 +1428,8 @@ const Employers = () => {
                                             height: "100%",
                                             objectFit: "contain",
                                           }}
+                                          loading="lazy"
+                                          decoding="async"
                                         />
                                       </div>
 

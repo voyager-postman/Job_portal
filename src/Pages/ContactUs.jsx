@@ -141,6 +141,8 @@ function ContactUs() {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("header.contactUs")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">
@@ -199,6 +201,39 @@ function ContactUs() {
                       {p}
                     </a>
                   ))}
+                </div>
+              </div>
+              <div
+                className="single-contact-info-box"
+                style={{
+                  background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
+                  color: "#fff",
+                }}
+              >
+                <div className="info-content">
+                  <div
+                    className="icon"
+                    style={{ background: "#fff", color: "#1e3c72" }}
+                  >
+                    <i className="fa-solid fa-headset" />
+                  </div>
+                  <h3 style={{ color: "#fff" }}>Help Desk & Tickets</h3>
+                  <p
+                    style={{
+                      color: "rgba(255,255,255,0.9)",
+                      fontSize: "0.85rem",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    Raise a support ticket or track existing requests
+                  </p>
+                  <Link
+                    to="/support-tickets"
+                    className="btn btn-sm btn-light"
+                    style={{ fontWeight: "bold", color: "#1e3c72" }}
+                  >
+                    Go to Support Tickets &rarr;
+                  </Link>
                 </div>
               </div>
               </div>

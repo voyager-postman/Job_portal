@@ -479,7 +479,7 @@ function MyProfile() {
   const importFromLinkedIn = () => {
     try {
       window.location.assign(
-        "https://sisccltd.com/job_portal/api/linkedin/parse",
+        `${API_BASE_URL}linkedin/parse`,
       );
     } catch (err) {
       console.error(err);

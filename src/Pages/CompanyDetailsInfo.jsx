@@ -25,6 +25,8 @@ function CompanyDetailsInfo() {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("breadcrumbs.company_details")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">
@@ -51,11 +53,11 @@ function CompanyDetailsInfo() {
           <section className="company-detail-info-area">
             <div className="company-img-short-detail">
               <div className="company-img-info">
-                <img src="assets/images/company/company-img-1.jpg" />
+                <img src="assets/images/company/company-img-1.jpg" loading="lazy" decoding="async" />
               </div>
               <div className="company-short-detail-info">
                 <div className="company-short-detail-img">
-                  <img src="assets/images/partner-logo/partner-logo-2.png" />
+                  <img src="assets/images/partner-logo/partner-logo-2.png" loading="lazy" decoding="async" />
                 </div>
                 <div className="company-about-short-detail">
                   <h4>Hauts De Seine Department</h4>

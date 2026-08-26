@@ -289,6 +289,23 @@
   margin-top: 36px;
 }
 
+.cw-jobs-empty {
+  min-height: 0;
+}
+
+.cw-jobs-empty-msg {
+  margin: 0;
+  width: 100%;
+}
+
+.cw-jobs-pro.is-empty {
+  padding-bottom: 48px;
+}
+
+.cw-jobs-pro.is-empty .cw-jobs-pro-cta {
+  margin-top: 16px;
+}
+
 @media (max-width: 767.98px) {
   .cw-jobs-pro {
     padding: 50px 0 60px;

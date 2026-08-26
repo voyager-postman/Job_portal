@@ -19,6 +19,11 @@ import {
   openApplicationFile,
 } from "../utils/applicationDocuments";
 import { getFetchAuthOptions, getRequestConfig } from "../utils/apiHeaders";
+import {
+  resolveUserAvatarUrl,
+  handleUserAvatarError,
+  DEFAULT_USER_ICON,
+} from "../utils/companyLogo";
 
 function EmployerCandinateList() {
   const { t } = useTranslation("global");
@@ -57,6 +62,8 @@ function EmployerCandinateList() {
     education: "",
     experienceLevel: "",
     salaryRange: "",
+    startDate: "",
+    endDate: "",
   });
 
   const degreeOptions = [
@@ -87,6 +94,8 @@ function EmployerCandinateList() {
     if (filters.experienceLevel)
       query.push(`experienceLevel=${filters.experienceLevel}`);
     if (filters.salaryRange) query.push(`salaryRange=${filters.salaryRange}`);
+    if (filters.startDate) query.push(`startDate=${filters.startDate}`);
+    if (filters.endDate) query.push(`endDate=${filters.endDate}`);
 
     const queryString = `?${query.join("&")}`;
 
@@ -150,6 +159,9 @@ function EmployerCandinateList() {
     query.push(`page=${page}`);
     query.push(`limit=${limit}`);
 
+    if (filters.startDate) query.push(`startDate=${filters.startDate}`);
+    if (filters.endDate) query.push(`endDate=${filters.endDate}`);
+
     const queryString = `?${query.join("&")}`;
     const res = await fetch(
       `${API_BASE_URL}getApplicantsByJob/${jobId}${queryString}`,
@@ -163,7 +175,7 @@ function EmployerCandinateList() {
 
   useEffect(() => {
     fetchCandidates2();
-  }, [page]);
+  }, [page, filters.startDate, filters.endDate]);
   const fetchATSScore = async (jobId, applicationId) => {
     if (!jobId || !applicationId) return;
 
@@ -338,6 +350,10 @@ function EmployerCandinateList() {
     }
   }, [filters.location]);
 
+  useEffect(() => {
+    fetchCandidates(selectedStatus);
+  }, [filters.startDate, filters.endDate, filters.skills, filters.education, filters.experienceLevel, filters.salaryRange]);
+
   const handleSortChange = (e) => {
     const status = e.target.value;
     setSelectedStatus(status);
@@ -496,7 +512,7 @@ function EmployerCandinateList() {
               </div>
             </div>
 
-            <div className="col-lg-3 col-sm-6">
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>{t("jobs.skills_heading")}</h3>
@@ -608,7 +624,7 @@ function EmployerCandinateList() {
               </div>
             </div>
 
-            <div className="col-lg-3 col-sm-6">
+            <div className="col-lg-2 col-sm-6">
               <div className="employer-candidate-filter-box">
                 <div className="single-sidebar-widget keyword">
                   <h3>{t("jobs.location_heading")}</h3>
@@ -666,6 +682,52 @@ function EmployerCandinateList() {
                           </li>
                         ))}
                       </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Date Range Filter (Point 47) */}
+            <div className="col-lg-2 col-sm-6">
+              <div className="employer-candidate-filter-box">
+                <div className="single-sidebar-widget keyword">
+                  <h3>{t("jobs.application_date")}</h3>
+                  <div className="d-flex align-items-center gap-1">
+                    <input
+                      type="date"
+                      className="form-control px-1"
+                      value={filters.startDate}
+                      title={t("jobs.start_date")}
+                      onChange={(e) => {
+                        setPage(1);
+                        setFilters({ ...filters, startDate: e.target.value });
+                      }}
+                      style={{ fontSize: "12px", height: "42px" }}
+                    />
+                    <span className="text-muted">-</span>
+                    <input
+                      type="date"
+                      className="form-control px-1"
+                      value={filters.endDate}
+                      title={t("jobs.end_date")}
+                      onChange={(e) => {
+                        setPage(1);
+                        setFilters({ ...filters, endDate: e.target.value });
+                      }}
+                      style={{ fontSize: "12px", height: "42px" }}
+                    />
+                    {(filters.startDate || filters.endDate) && (
+                      <span
+                        onClick={() => {
+                          setPage(1);
+                          setFilters({ ...filters, startDate: "", endDate: "" });
+                        }}
+                        style={{ cursor: "pointer", fontSize: "18px", color: "#dc3545", padding: "0 2px" }}
+                        title={t("jobs.clear_date")}
+                      >
+                        ×
+                      </span>
                     )}
                   </div>
                 </div>
@@ -746,17 +808,11 @@ function EmployerCandinateList() {
                         <div className="col-lg-4">
                           <div className="freelancer-img">
                             <img
-                              crossOrigin="anonymous"
-                              src={
-                                candidate?.userId?.profileImage
-                                  ? candidate.userId.profileImage.startsWith(
-                                      "http",
-                                    )
-                                    ? candidate.userId.profileImage // external URL → use directly
-                                    : `${API_IMAGE_URL}${candidate.userId.profileImage}` // local uploads
-                                  : "assets/images/userIcon.png"
-                              }
+                              src={resolveUserAvatarUrl(candidate?.userId?.profileImage)}
+                              onError={handleUserAvatarError}
                               alt="Image"
+                              loading="lazy"
+                              decoding="async"
                             />
                           </div>
                         </div>
@@ -901,17 +957,11 @@ function EmployerCandinateList() {
                     <div className="employer-candidate-img-content-info">
                       <div className="employer-candidate-img-info">
                         <img
-                          crossOrigin="anonymous"
-                          src={
-                            selectedCandidate?.userInfo?.profileImage
-                              ? selectedCandidate.userInfo.profileImage.startsWith(
-                                  "http",
-                                )
-                                ? selectedCandidate.userInfo.profileImage // external URL → use directly
-                                : `${API_IMAGE_URL}${selectedCandidate.userInfo.profileImage}` // local uploads
-                              : "assets/images/userIcon.png"
-                          }
+                          src={resolveUserAvatarUrl(selectedCandidate?.userInfo?.profileImage)}
+                          onError={handleUserAvatarError}
                           alt="Image"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
 

@@ -239,6 +239,8 @@ function AdminJobsListingSeoSettings() {
                       alt="OG preview"
                       className="mt-2"
                       style={{ maxHeight: 80 }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : null}
                 </div>

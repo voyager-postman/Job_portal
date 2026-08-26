@@ -1,0 +1,33 @@
+# ==============================================================================
+# Point 112 / Task 18-2: CDN & Edge Cache Headers (Cloudflare Pages / Netlify)
+# Public Website Only (Jobseeker / Visitor Portal)
+# ==============================================================================
+
+# Static JS/CSS build assets with content hashes - Immutable 1 year cache
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# Media & Image Assets
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# SEO & Crawling files - 1 day edge cache with background revalidation
+/robots.txt
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600
+  Content-Type: text/plain; charset=UTF-8
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=3600
+  Content-Type: application/xml; charset=UTF-8
+
+/manifest.json
+  Cache-Control: public, max-age=86400, stale-while-revalidate=3600
+
+/favicon.ico
+  Cache-Control: public, max-age=86400
+
+# HTML Shell - Revalidate immediately so new deployments update without stale cache
+/*
+  Cache-Control: public, max-age=0, must-revalidate

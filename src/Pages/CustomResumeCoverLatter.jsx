@@ -34,6 +34,8 @@ const CustomResumeCoverLatter = () => {
                   <img
                     src="assets/images/dashboard/dashboard-img-5.jpg"
                     alt="Image"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="custom-resume-cover-letter-img-edit-icon">
                     <i className="fas fa-pencil-alt" />

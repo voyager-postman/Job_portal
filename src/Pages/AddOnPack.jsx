@@ -475,6 +475,8 @@ const AddOnPack = () => {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt="breadcrumb Img"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">
@@ -482,7 +484,7 @@ const AddOnPack = () => {
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12">
                 <div className="inner-page-banner-title">
-                  <h2>{t("wallet.addOnPlan")}</h2>
+                  <h1>{t("wallet.addOnPlan")}</h1>
                   <ul>
                     <li className="menu-divide-arrow">
                       <Link to="/">{t("header.home")}</Link>

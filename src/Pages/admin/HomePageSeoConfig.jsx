@@ -245,6 +245,8 @@ function HomePageSeoConfig() {
                       alt="OG preview"
                       className="mt-2"
                       style={{ maxHeight: 80 }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : null}
                 </div>
@@ -369,6 +371,8 @@ function HomePageSeoConfig() {
                       alt="Organization logo"
                       className="mt-2"
                       style={{ maxHeight: 80 }}
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : null}
                 </div>

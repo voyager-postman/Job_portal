@@ -2954,6 +2954,8 @@ const EmployerWallet = () => {
                       className="logo-img-v2"
                       src={getCompanyLogoUrl()}
                       onError={handleCompanyLogoError}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="text-center mt-3">

@@ -11,6 +11,8 @@ function JobDetalsInfo() {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt="breadcrumb Img"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div class="inner-banners-title-info">

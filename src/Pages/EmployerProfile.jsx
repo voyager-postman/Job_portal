@@ -449,6 +449,8 @@ function EmployerProfile() {
           src={`https://flagcdn.com/w20/${country.iso2.toLowerCase()}.png`}
           alt={country.name}
           style={{ marginRight: 8, borderRadius: 4 }}
+          loading="lazy"
+          decoding="async"
         />
         {country.emoji} +{country.phonecode} {country.name}
       </div>
@@ -2374,6 +2376,8 @@ function EmployerProfile() {
                                         src={preview}
                                         className="main-logo"
                                         alt={t("profile.image_preview")}
+                                        loading="lazy"
+                                        decoding="async"
                                       />
                                     </div>
                                     <div className="upload-company-input">
@@ -2411,6 +2415,8 @@ function EmployerProfile() {
                                         src={preview1}
                                         className="main-logo"
                                         alt={t("profile.image_preview")}
+                                        loading="lazy"
+                                        decoding="async"
                                       />
                                     </div>
                                     <div className="upload-company-input">
@@ -2798,6 +2804,8 @@ function EmployerProfile() {
                                               objectFit: "cover",
                                               borderRadius: "5px",
                                             }}
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                           <button
                                             type="button"
@@ -2855,6 +2863,8 @@ function EmployerProfile() {
                                             objectFit: "cover",
                                             borderRadius: "5px",
                                           }}
+                                          loading="lazy"
+                                          decoding="async"
                                         />
                                         <button
                                           type="button"
@@ -2952,6 +2962,8 @@ function EmployerProfile() {
                                         height: "150px",
                                         objectFit: "cover",
                                       }}
+                                      loading="lazy"
+                                      decoding="async"
                                     />
 
                                     <div className="card-body p-3">
@@ -3245,6 +3257,8 @@ function EmployerProfile() {
                                             border:
                                               "1px solid rgb(221, 221, 221)",
                                           }}
+                                          loading="lazy"
+                                          decoding="async"
                                         />
                                       </div>
                                     )}
@@ -3402,6 +3416,8 @@ function EmployerProfile() {
                                                 objectFit: "cover",
                                                 border: "1px solid #ddd",
                                               }}
+                                              loading="lazy"
+                                              decoding="async"
                                             />
                                           )}
                                         </div>
@@ -3556,6 +3572,8 @@ function EmployerProfile() {
                                             borderRadius: "50%",
                                             objectFit: "cover",
                                           }}
+                                          loading="lazy"
+                                          decoding="async"
                                         />
                                       )}
                                     </div>
@@ -3726,6 +3744,8 @@ function EmployerProfile() {
                                                 borderRadius: "50%",
                                                 objectFit: "cover",
                                               }}
+                                              loading="lazy"
+                                              decoding="async"
                                             />
                                           )}
                                         </div>

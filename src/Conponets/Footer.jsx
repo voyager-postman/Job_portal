@@ -65,13 +65,17 @@ function Footer() {
                   <div className="footer-logo">
                     <Link className="navbar-brand" to="/">
                       <img
-                        crossorigin="anonymous"
+                        crossOrigin="anonymous"
                         src={
                           homeData?.footerSection?.image
                             ? `${API_IMAGE_URL}${homeData.footerSection.image}`
                             : "/jobPortal/assets/images/white-logo.png"
                         }
                         alt={`${SITE.name} logo`}
+                        width={160}
+                        height={42}
+                        loading="lazy"
+                        decoding="async"
                       />
                     </Link>
                   </div>

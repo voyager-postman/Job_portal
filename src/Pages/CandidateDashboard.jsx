@@ -13,6 +13,7 @@ import {
   Autoplay,
 } from "swiper/modules";
 import "./CandidateDashboardModern.css";
+import "./JobCardModern.css";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import "swiper/css";
 import "swiper/css/navigation";
@@ -568,6 +569,8 @@ function CandidateDashboard() {
                                       className="modern-company-logo"
                                       src={resolveJobCompanyLogoUrl(job)}
                                       onError={handleCompanyLogoError}
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                   </div>
 
@@ -797,6 +800,8 @@ function CandidateDashboard() {
                       alt="No jobs found"
                       className="mb-4"
                       style={{ maxWidth: "100%", opacity: 0.8 }}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <h4>No jobs found</h4>
@@ -964,6 +969,8 @@ function CandidateDashboard() {
                                   borderRadius: "50%",
                                   objectFit: "cover",
                                 }}
+                                loading="lazy"
+                                decoding="async"
                               />
                             ) : (
                               <i className="fa-solid fa-building" />
@@ -1066,6 +1073,8 @@ function CandidateDashboard() {
                   className="side-panel-logo"
                   src={resolveJobCompanyLogoUrl(selectedJob)}
                   onError={handleCompanyLogoError}
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <h2 className="side-panel-title">

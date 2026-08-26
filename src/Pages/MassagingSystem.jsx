@@ -13,6 +13,7 @@ import { checkSearchRateLimit } from "../utils/searchRateLimit";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { getRequestConfig } from "../utils/apiHeaders";
+import { resolveMediaUrl } from "../utils/companyLogo";
 import { validateChatAttachmentFile } from "../utils/fileUploadLimits";
 
 const MESSAGING_SEARCH_DEBOUNCE_MS = 600;
@@ -274,14 +275,7 @@ function MassagingSystem() {
 
   const getImageUrl = (url) => {
     if (!isValidImageUrl(url)) return image1;
-
-    const trimmed = String(url).trim();
-
-    if (trimmed.startsWith("http")) {
-      return trimmed;
-    }
-
-    return `${API_IMAGE_URL}${trimmed}`;
+    return resolveMediaUrl(url) || image1;
   };
 
   const handleImageError = (e) => {
@@ -933,6 +927,8 @@ function MassagingSystem() {
                             crossOrigin="anonymous"
                             src={getImageUrl(u?.otherUser?.profileImage)}
                             onError={handleImageError}
+                            loading="lazy"
+                            decoding="async"
                           />
 
                           <span
@@ -1076,6 +1072,8 @@ function MassagingSystem() {
                         className="header-avatar"
                         src={getImageUrl(activeUser?.image)}
                         onError={handleImageError}
+                        loading="lazy"
+                        decoding="async"
                       />
 
                       <div className="header-user-details">
@@ -1151,6 +1149,8 @@ function MassagingSystem() {
                         width: "40%",
                         opacity: 0.7,
                       }}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <h2>{t("messaging.ready_to_trade")}</h2>
@@ -1209,6 +1209,8 @@ function MassagingSystem() {
                                       : getImageUrl(activeUser?.image)
                                   }
                                   onError={handleImageError}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
 
                                 <div className="msg-content-wrapper">
@@ -1250,6 +1252,8 @@ function MassagingSystem() {
                                                 e.target.src,
                                               );
                                             }}
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                         </a>
                                       )}
@@ -1329,6 +1333,8 @@ function MassagingSystem() {
                             "https://cdn-icons-png.flaticon.com/512/337/337946.png"
                           }
                           alt=""
+                          loading="lazy"
+                          decoding="async"
                         />
 
                         <div className="file-preview-info">
@@ -1426,6 +1432,8 @@ function MassagingSystem() {
                       className="info-panel-logo"
                       src={getImageUrl(activeUser?.image)}
                       onError={handleImageError}
+                      loading="lazy"
+                      decoding="async"
                     />
 
                     <h4>{activeUser?.name}</h4>

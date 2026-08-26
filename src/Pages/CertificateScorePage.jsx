@@ -34,6 +34,8 @@ function CertificateScorePage() {
                           src="assets/images/logo/connect-work-ma-login.png"
                           className="main-logo"
                           alt="logo"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div className="certificates-scores-detail">
@@ -53,7 +55,7 @@ function CertificateScorePage() {
                         </div>
                         <div className="authorized-signature-info">
                           <div className="authorized-signature-img">
-                            <img src="assets/images/company/signatureImg.png" alt="authorized-signature" />
+                            <img src="assets/images/company/signatureImg.png" alt="authorized-signature" loading="lazy" decoding="async" />
                           </div>
                           <h6>Thomas Thorsell Arntsen</h6>
                           <h6>{t("assessment.for_connect_work")}</h6>

@@ -284,6 +284,8 @@ const EmployerBasicInformation = () => {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("profile.breadcrumb_img")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div class="inner-banners-title-info">

@@ -205,6 +205,7 @@ function JobDetailsForm() {
         : ""
       : "0",
     status: jobFromState.status || "draft",
+    moderationComment: jobFromState.moderationComment || "",
   }));
 
   const [selectedCities, setSelectedCities] = useState(
@@ -285,6 +286,7 @@ function JobDetailsForm() {
                 : ""
               : "0",
             status: job.status || "draft",
+            moderationComment: job.moderationComment || "",
           }));
           if (job.expiresAt) {
             setExpiresAt(new Date(job.expiresAt).toISOString().split("T")[0]);
@@ -1160,6 +1162,36 @@ function JobDetailsForm() {
                   <div className="job-details-form-heading">
                     <h3>{t("jobs.job_details")}</h3>
                   </div>
+
+                  {/* Admin feedback only while the job is still unpublished */}
+                  {formData.moderationComment &&
+                    String(formData.status || "").toLowerCase() === "unpublished" && (
+                    <div
+                      className="alert alert-warning d-flex align-items-start gap-2 mb-4 p-3"
+                      style={{
+                        borderRadius: "10px",
+                        backgroundColor: "#fff8e1",
+                        border: "1px solid #ffe082",
+                        color: "#856404",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <i
+                        className="fa-solid fa-triangle-exclamation mt-1 fs-5"
+                        style={{ color: "#d97706" }}
+                      />
+                      <div>
+                        <h6 className="mb-1" style={{ fontWeight: 700, color: "#92400e" }}>
+                          {t("header.Admin_Moderation_Feedback") || "Admin Moderation Feedback"}
+                        </h6>
+                        <p className="mb-0">
+                          {t("header.unpublished_reason_prefix") || "This job was unpublished by admin:"}{" "}
+                          <strong>{formData.moderationComment}</strong>.{" "}
+                          {t("header.unpublished_action_hint") || "Please update the required details and republish."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <form>
                     <div className="job-details-input-form-info">

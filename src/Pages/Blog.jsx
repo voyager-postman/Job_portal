@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { API_BASE_URL, API_IMAGE_URL } from "../Url/Url";
 import { useTranslation } from "react-i18next";
+import { resolveMediaUrl } from "../utils/companyLogo";
 
 function Blog() {
   const { t, i18n } = useTranslation("global");
@@ -37,23 +38,7 @@ function Blog() {
     getBlogList(pageNumber);
   }, [pageNumber]);
 
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
-      return url;
-    }
-
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-
-    return `${API_IMAGE_URL}${url}`;
-  };
+  const cleanImageUrl = (url) => resolveMediaUrl(url) || "";
 
   return (
     <>
@@ -62,6 +47,8 @@ function Blog() {
           <img
             src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
             alt={t("header.blog")}
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="inner-banners-title-info">
@@ -103,6 +90,7 @@ function Blog() {
                         src={cleanImageUrl(blog.bannerImage)}
                         alt={blog.title || t("header.blog")}
                         loading="lazy"
+                        decoding="async"
                       />
                     </Link>
                   </div>

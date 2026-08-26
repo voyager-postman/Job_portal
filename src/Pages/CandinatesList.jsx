@@ -9,6 +9,7 @@ import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
 import { getCandidateCoverLetterSource } from "../utils/applicationDocuments";
 import { openProtectedDocument } from "../utils/protectedFile";
 import { getRequestConfig } from "../utils/apiHeaders";
+import { resolveMediaUrl } from "../utils/companyLogo";
 
 const getExperienceYearsLabel = (value) => {
   if (value == null || value === "") return null;
@@ -723,22 +724,7 @@ function CandinatesList() {
     perPage,
   ]);
 
-  const cleanImageUrl = (url) => {
-    if (!url) return "";
-
-    // Case: wrong URL like "/uploads/https://..."
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // Case: full external URL
-    if (url.startsWith("http")) {
-      return url;
-    }
-
-    // Case: local upload (relative path)
-    return `${API_IMAGE_URL}${url}`;
-  };
+  const cleanImageUrl = (url) => resolveMediaUrl(url) || "";
   const averageRating =
     reviews && reviews.length > 0
       ? (
@@ -1758,6 +1744,8 @@ function CandinatesList() {
                                   height: "50px",
                                   objectFit: "cover",
                                 }}
+                                loading="lazy"
+                                decoding="async"
                               />
 
                               <div className="flex-grow-1">
@@ -1997,6 +1985,8 @@ function CandinatesList() {
                                   candidateDetails.userId?.profileImage,
                                 ) || "assets/images/userIcon.png"
                               }
+                              loading="lazy"
+                              decoding="async"
                             />
                             <span
                               className="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"

@@ -10,54 +10,220 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/jobPortal/assets/images/logoBg.png" />
   <link rel="manifest" href="/jobPortal/manifest.json" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <!-- CSS Files -->
-  <link rel="stylesheet" href="/jobPortal/assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/meanmenu.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/owl.carousel.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/owl.theme.default.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/magnific-popup.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/flaticon.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/fontawesome.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/metismenu.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/simplebar.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/odometer.min.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/aos.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/style.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/dashboard.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/dark.css" />
-  <link rel="stylesheet" href="/jobPortal/assets/css/muistyle.css" />
 
+  <!-- Faster DNS for CDNs / image host used by LCP hero -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+  <link rel="preconnect" href="https://sisccltd.com" crossorigin />
+  <link rel="dns-prefetch" href="https://sisccltd.com" />
+
+  <!-- Warm homepage API early; do not CORS-preload remote images (ORB / NotSameOrigin) -->
+  <script>
+    (function () {
+      try {
+        fetch("https://sisccltd.com/job_portal/api/getHomePage", {
+          credentials: "omit",
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (payload) {
+            var imgs =
+              payload &&
+              payload.data &&
+              payload.data.firstSection &&
+              payload.data.firstSection.firstSectionImages;
+            if (!imgs || !imgs.length) return;
+            var normalized = imgs.map(function (p) {
+              return String(p).replace(/^\//, "");
+            });
+            sessionStorage.setItem("cw_hero_images", JSON.stringify(normalized));
+            sessionStorage.setItem(
+              "cw_hero_lcp_url",
+              "https://sisccltd.com/job_portal/uploads/" + normalized[0],
+            );
+          })
+          .catch(function () {});
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Same-origin logo preload only (safe for LCP) -->
+  <link
+    rel="preload"
+    as="image"
+    href="/jobPortal/assets/images/logo.png"
+    fetchpriority="high"
+  />
+
+  <!--
+    Critical CSS: paints brand shell immediately so FCP can fire before
+    the large stylesheet waterfall and React bundle finish loading.
+    Target: FCP < 1.8s (Google CWV / questionnaire point 86).
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #1a1a2e;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    #root {
+      min-height: 100vh;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    .navbar-area .main-logo,
+    .navbar-area .white-logo {
+      height: 42px;
+      width: auto;
+      object-fit: contain;
+    }
+    .cw-boot-shell {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px;
+      box-sizing: border-box;
+      background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 55%);
+      /* Fixed overlay — does not push page layout (avoids huge CLS on React mount) */
+      pointer-events: none;
+    }
+    .cw-boot-shell.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease;
+    }
+    .cw-boot-shell__brand {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #0f2b5b;
+      margin: 0;
+    }
+    .cw-boot-shell__tag {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #5b6b7c;
+      text-align: center;
+      max-width: 28rem;
+    }
+    .cw-boot-shell__bar {
+      width: 120px;
+      height: 3px;
+      border-radius: 999px;
+      background: #d7e0ea;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .cw-boot-shell__bar > span {
+      display: block;
+      height: 100%;
+      width: 40%;
+      background: #2563eb;
+      animation: cw-boot-slide 1s ease-in-out infinite;
+    }
+    @keyframes cw-boot-slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(280%); }
+    }
+  </style>
+
+  <!-- Critical layout CSS only on first paint (CLS: avoid late global CSS swap) -->
+  <link rel="stylesheet" href="/jobPortal/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/jobPortal/assets/css/style.css" />
   <link rel="stylesheet" href="/jobPortal/assets/css/responsive.css" />
+  <link rel="stylesheet" href="/jobPortal/assets/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="/jobPortal/assets/css/flaticon.css" />
+  <noscript>
+    <link rel="stylesheet" href="/jobPortal/assets/css/dashboard.css" />
+  </noscript>
 </head>
 
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
+  <!-- Fixed overlay for FCP only — outside #root so React mount does not cause CLS -->
+  <div id="cw-boot" class="cw-boot-shell" role="status" aria-live="polite">
+    <p class="cw-boot-shell__brand">Connect Work</p>
+    <p class="cw-boot-shell__tag">Find jobs and hire talent</p>
+    <div class="cw-boot-shell__bar" aria-hidden="true"><span></span></div>
+  </div>
   <div id="root"></div>
 
-  <!-- JS Files (deferred — non-blocking) -->
+  <!-- Core plugins after parse; heavy theme scripts only on interaction / late idle -->
   <script defer src="/jobPortal/assets/js/jquery.min.js"></script>
   <script defer src="/jobPortal/assets/js/bootstrap.bundle.min.js"></script>
-  <script defer src="/jobPortal/assets/js/jquery.meanmenu.js"></script>
-  <script defer src="/jobPortal/assets/js/owl.carousel.min.js"></script>
-  <script defer src="/jobPortal/assets/js/carousel-thumbs.min.js"></script>
-  <script defer src="/jobPortal/assets/js/jquery.magnific-popup.min.js"></script>
-  <script defer src="/jobPortal/assets/js/aos.js"></script>
-  <script defer src="/jobPortal/assets/js/mixitup.min.js"></script>
-  <script defer src="/jobPortal/assets/js/scrollmagic.min.js"></script>
-  <script defer src="/jobPortal/assets/js/animation.gsap.min.js"></script>
-  <script defer src="/jobPortal/assets/js/debug.addIndicators.min.js"></script>
-  <script defer src="/jobPortal/assets/js/tweenmax.min.js"></script>
-  <script defer src="/jobPortal/assets/js/progresscircle.min.js"></script>
-  <script defer src="/jobPortal/assets/js/jquery-ui.min.js"></script>
-  <script defer src="/jobPortal/assets/js/simplebar.min.js"></script>
-  <script defer src="/jobPortal/assets/js/metismenu.min.js"></script>
-  <script defer src="/jobPortal/assets/js/odometer.min.js"></script>
-  <script defer src="/jobPortal/assets/js/appear.min.js"></script>
-  <script defer src="/jobPortal/assets/js/form-validator.min.js"></script>
-  <script defer src="/jobPortal/assets/js/contact-form-script.js"></script>
-  <script defer src="/jobPortal/assets/js/ajaxchimp.min.js"></script>
-  <script defer src="/jobPortal/assets/js/custom.js"></script>
+  <script>
+    (function () {
+      var secondary = [
+        "/jobPortal/assets/js/jquery.meanmenu.js",
+        "/jobPortal/assets/js/owl.carousel.min.js",
+        "/jobPortal/assets/js/carousel-thumbs.min.js",
+        "/jobPortal/assets/js/jquery.magnific-popup.min.js",
+        "/jobPortal/assets/js/aos.js",
+        "/jobPortal/assets/js/mixitup.min.js",
+        "/jobPortal/assets/js/scrollmagic.min.js",
+        "/jobPortal/assets/js/animation.gsap.min.js",
+        "/jobPortal/assets/js/debug.addIndicators.min.js",
+        "/jobPortal/assets/js/tweenmax.min.js",
+        "/jobPortal/assets/js/progresscircle.min.js",
+        "/jobPortal/assets/js/jquery-ui.min.js",
+        "/jobPortal/assets/js/simplebar.min.js",
+        "/jobPortal/assets/js/metismenu.min.js",
+        "/jobPortal/assets/js/odometer.min.js",
+        "/jobPortal/assets/js/appear.min.js",
+        "/jobPortal/assets/js/form-validator.min.js",
+        "/jobPortal/assets/js/contact-form-script.js",
+        "/jobPortal/assets/js/ajaxchimp.min.js",
+        "/jobPortal/assets/js/custom.js"
+      ];
+      var started = false;
+
+      function loadScript(src) {
+        return new Promise(function (resolve) {
+          var s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.onload = s.onerror = function () { resolve(); };
+          document.body.appendChild(s);
+        });
+      }
+
+      /* Yield between scripts so one long task does not block main thread (TBT) */
+      function loadSecondary() {
+        var i = 0;
+        function next() {
+          if (i >= secondary.length) return;
+          loadScript(secondary[i++]).then(function () {
+            setTimeout(next, 75);
+          });
+        }
+        next();
+      }
+
+      function start() {
+        if (started) return;
+        started = true;
+        loadSecondary();
+      }
+
+      function schedule() {
+        /* Interaction only — timed load of meanmenu/AOS/custom.js caused large CLS */
+        ["scroll", "click", "touchstart", "keydown"].forEach(function (evt) {
+          window.addEventListener(evt, start, { once: true, passive: true });
+        });
+      }
+
+      if (document.readyState === "complete") schedule();
+      else window.addEventListener("load", schedule);
+    })();
+  </script>
 </body>
 
 </html>

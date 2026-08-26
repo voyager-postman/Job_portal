@@ -10,6 +10,7 @@ const resolveApiBaseUrl = () => {
   }
 
   return "https://sisccltd.com/job_portal/api/";
+  // return "http://192.168.1.112:4000/api/";
 };
 
 const resolveUploadsBaseUrl = (apiBaseUrl) => {

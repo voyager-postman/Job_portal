@@ -9,18 +9,26 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
+import {
+  buildDashboardReportSections,
+  exportDashboardCsv,
+  exportDashboardExcel,
+  exportDashboardPdf,
+} from "../utils/dashboardReportExport";
+import { resolveMediaUrl } from "../utils/companyLogo";
+
 function EmployerDashboard() {
   const { t, i18n } = useTranslation("global");
   const [activity, setActivity] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
-  const [filter, setFilter] = useState("week");
-  const today = new Date();
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [filter, setFilter] = useState("all"); // 'all', 'today', 'monthly', 'custom'
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [stats, setStats] = useState(null);
   const [profileData, setProfileData] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const userRole = localStorage.getItem("user_role");
   const fName = localStorage.getItem("first_name");
   const lName = localStorage.getItem("last_name");
@@ -135,14 +143,14 @@ function EmployerDashboard() {
     companyData();
   }, []);
 
+  const PUBLIC_PREFIX = (process.env.PUBLIC_URL || "/jobPortal").replace(/\/$/, "");
+  const DEFAULT_COMPANY_LOGO = `${PUBLIC_PREFIX}/assets/images/dashboard/images1.png`;
+
   const getImageUrl = (url) => {
-    if (!url) return "assets/images/userIcon.png";
-
-    if (url.includes("http") && url.includes("uploads/http")) {
-      return url.replace(`${API_IMAGE_URL}`, "");
+    if (!url || url === "null" || url === "undefined" || url === "assets/images/userIcon.png") {
+      return DEFAULT_COMPANY_LOGO;
     }
-
-    return url.startsWith("http") ? url : `${API_IMAGE_URL}${url}`;
+    return resolveMediaUrl(url) || DEFAULT_COMPANY_LOGO;
   };
 
   const updateLineChart = (performance) => {
@@ -280,6 +288,57 @@ function EmployerDashboard() {
     fetchJobList();
   }, [page, limit, debouncedSearch, createdAt]);
 
+  const fetchJobsForExport = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}getCompanyJobOverview`,
+        getRequestConfig({
+          params: {
+            page: 1,
+            limit: 1000,
+            search: debouncedSearch,
+            createdAt,
+          },
+        }),
+      );
+      return Array.isArray(response.data?.data) ? response.data.data : [];
+    } catch (error) {
+      console.error("Error fetching jobs for export:", error);
+      return activity;
+    }
+  };
+
+  const handleExportReport = async (format) => {
+    if (!stats) {
+      toast.error(t("header.export_no_data"));
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const jobs = await fetchJobsForExport();
+      const report = buildDashboardReportSections({
+        stats,
+        jobs,
+        companyName: profileData?.brandName || "",
+        filter,
+        startDate,
+        endDate,
+      });
+
+      if (format === "csv") exportDashboardCsv(report);
+      else if (format === "excel") exportDashboardExcel(report);
+      else if (format === "pdf") exportDashboardPdf(report);
+
+      toast.success(t("header.export_success"));
+    } catch (error) {
+      console.error("Dashboard export failed:", error);
+      toast.error(t("header.export_failed"));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <>
       <div className="main-dashboard-content d-flex flex-column">
@@ -307,14 +366,19 @@ function EmployerDashboard() {
               <div className="company-branding">
                 <div className="company-logo">
                   <img
-                    crossOrigin="anonymous"
                     alt="Company Logo"
                     src={getImageUrl(profileData?.logo)}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_COMPANY_LOGO;
+                    }}
                     style={{
                       width: "100%",
                       height: "100%",
-                      "object-fit": "contain",
+                      objectFit: "contain",
                     }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="company-info">
@@ -334,7 +398,7 @@ function EmployerDashboard() {
                 </div>
               )}
             </div>
-            <div className="d-flex align-items-center justify-content-end mb-4 gap-2">
+            <div className="d-flex align-items-center justify-content-end mb-4 gap-2 flex-wrap">
               <div className="btn-group" role="group">
                 <button
                   type="button"
@@ -393,6 +457,52 @@ function EmployerDashboard() {
                   />
                 </div>
               )}
+              <div className="dropdown">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  disabled={isExporting || !stats}
+                >
+                  <i className="fa-solid fa-download me-1" />
+                  {isExporting
+                    ? t("header.exporting")
+                    : t("header.export_report")}
+                </button>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={() => handleExportReport("pdf")}
+                      disabled={isExporting}
+                    >
+                      {t("header.export_pdf")}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={() => handleExportReport("excel")}
+                      disabled={isExporting}
+                    >
+                      {t("header.export_excel")}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={() => handleExportReport("csv")}
+                      disabled={isExporting}
+                    >
+                      {t("header.export_csv")}
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
             <div className="row mb-4">
               <div className="col-lg-4">

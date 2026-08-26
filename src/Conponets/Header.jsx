@@ -25,6 +25,7 @@ import {
   getNotificationMeta,
   getNotificationRoute,
 } from "../utils/notifications";
+import { resolveMediaUrl } from "../utils/companyLogo";
 
 function Header({ bgColor }) {
   const { t, i18n } = useTranslation("global");
@@ -419,38 +420,27 @@ function Header({ bgColor }) {
 
     flow: "implicit",
   });
-  const DEFAULT_JOBSEEKER_IMG = "/jobPortal/assets/images/dashboard/images.png";
-
-  const DEFAULT_COMPANY_IMG = "/jobPortal/assets/images/dashboard/images1.png";
+  const PUBLIC_PREFIX = (process.env.PUBLIC_URL || "/jobPortal").replace(/\/$/, "");
+  const DEFAULT_JOBSEEKER_IMG = `${PUBLIC_PREFIX}/assets/images/dashboard/images.png`;
+  const DEFAULT_COMPANY_IMG = `${PUBLIC_PREFIX}/assets/images/dashboard/images1.png`;
 
   const user_role = localStorage.getItem("user_role");
   // "JobSeeker" | "Company"
 
   const cleanImageUrl = (url) => {
-    // ✅ If empty, return role-based default
-    if (!url || url === "null" || url === "undefined") {
-      return user_role === "Company"
-        ? DEFAULT_COMPANY_IMG
-        : DEFAULT_JOBSEEKER_IMG;
+    const defaultImg = user_role === "Company" ? DEFAULT_COMPANY_IMG : DEFAULT_JOBSEEKER_IMG;
+    if (!url || url === "null" || url === "undefined" || url === "assets/images/userIcon.png") {
+      return defaultImg;
     }
 
-    // ✅ If already a default dashboard image → return as-is
     if (url === DEFAULT_JOBSEEKER_IMG || url === DEFAULT_COMPANY_IMG) {
       return url;
     }
 
-    // ✅ Fix wrongly stored upload URLs
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    // ✅ External image
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-
-    // ✅ Backend uploaded image
-    return `${API_IMAGE_URL}${url}`;
+    return (
+      resolveMediaUrl(url) ||
+      defaultImg
+    );
   };
 
   return (
@@ -467,11 +457,21 @@ function Header({ bgColor }) {
                   src="/jobPortal/assets/images/logo.png"
                   className="main-logo"
                   alt={`${SITE.name} logo`}
+                  width={160}
+                  height={42}
+                  decoding="async"
+                  fetchPriority="high"
+                  loading="eager"
                 />
                 <img
                   src="/jobPortal/assets/images/white-logo.png"
                   className="white-logo"
                   alt={`${SITE.name} logo`}
+                  width={160}
+                  height={42}
+                  decoding="async"
+                  fetchPriority="low"
+                  loading="eager"
                 />
               </Link>
               <button
@@ -494,11 +494,21 @@ function Header({ bgColor }) {
                   src="/jobPortal/assets/images/logo.png"
                   className="main-logo"
                   alt={`${SITE.name} logo`}
+                  width={160}
+                  height={42}
+                  decoding="async"
+                  fetchPriority="high"
+                  loading="eager"
                 />
                 <img
                   src="/jobPortal/assets/images/white-logo.png"
                   className="white-logo"
                   alt={`${SITE.name} logo`}
+                  width={160}
+                  height={42}
+                  decoding="async"
+                  fetchPriority="low"
+                  loading="eager"
                 />
               </Link>
               <div
@@ -740,10 +750,15 @@ function Header({ bgColor }) {
                           >
                             <div className="menu-profile">
                               <img
-                                crossorigin="anonymous"
                                 src={cleanImageUrl(profileImage)}
                                 className="rounded-circle"
                                 alt="Profile"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = user_role === "Company" ? DEFAULT_COMPANY_IMG : DEFAULT_JOBSEEKER_IMG;
+                                }}
+                                loading="lazy"
+                                decoding="async"
                               />
                               <span className="name">
                                 {t("header.myAccount")}
@@ -755,10 +770,15 @@ function Header({ bgColor }) {
                             <div className="dropdown-header d-flex flex-column align-items-center">
                               <div className="figure mb-3">
                                 <img
-                                  crossorigin="anonymous"
                                   src={cleanImageUrl(profileImage)}
                                   className="rounded-circle"
                                   alt="Profile"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = user_role === "Company" ? DEFAULT_COMPANY_IMG : DEFAULT_JOBSEEKER_IMG;
+                                  }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
                               <div className="info text-center">
@@ -851,6 +871,8 @@ function Header({ bgColor }) {
                                           <img
                                             src="/jobPortal/assets/images/svg-icon/icon-1.svg"
                                             alt="Dashboard"
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                         </span>
                                         <span className="menu-title">
@@ -882,6 +904,8 @@ function Header({ bgColor }) {
                                             src="/jobPortal/assets/images/svg-icon/icon-9.svg"
                                             alt=""
                                             aria-hidden="true"
+                                            loading="lazy"
+                                            decoding="async"
                                           />
                                         </span>
                                         <span>
@@ -908,6 +932,8 @@ function Header({ bgColor }) {
                                       src="/jobPortal/assets/images/svg-icon/icon-11.svg"
                                       alt=""
                                       aria-hidden="true"
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                     <span>{t("header.logout")}</span>
                                   </button>
@@ -1302,6 +1328,8 @@ function Header({ bgColor }) {
                         <img
                           src="/jobPortal/assets/images/icon/linkedin-icon.png"
                           alt="LinkedIn"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </button>
@@ -1311,6 +1339,8 @@ function Header({ bgColor }) {
                         <img
                           src="/jobPortal/assets/images/icon/Google-icon.png"
                           alt="Google"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </button>
@@ -1323,6 +1353,8 @@ function Header({ bgColor }) {
                         <img
                           src="/jobPortal/assets/images/icon/github-icon.png"
                           alt="GitHub"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </button>
@@ -1387,12 +1419,12 @@ function Header({ bgColor }) {
                       onClick={handleLinkedinLogin}
                     >
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/linkedin-icon.png" />
+                        <img src="/jobPortal/assets/images/icon/linkedin-icon.png" loading="lazy" decoding="async" />
                       </div>
                     </button>
                     <button className="default-btn btn" onClick={() => login()}>
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/Google-icon.png" />
+                        <img src="/jobPortal/assets/images/icon/Google-icon.png" loading="lazy" decoding="async" />
                       </div>
                     </button>
                     <button
@@ -1400,7 +1432,7 @@ function Header({ bgColor }) {
                       onClick={handleGithubLogin}
                     >
                       <div className="social-icon">
-                        <img src="/jobPortal/assets/images/icon/github-icon.png" />
+                        <img src="/jobPortal/assets/images/icon/github-icon.png" loading="lazy" decoding="async" />
                       </div>
                     </button>
                   </div>

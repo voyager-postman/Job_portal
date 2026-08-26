@@ -10,6 +10,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination"; // MUI one
 import "./ManagesJobApplicationModern.css";
+import "./JobCardModern.css";
 
 import Swal from "sweetalert2";
 import { useDebounce, SEARCH_DEBOUNCE_MS } from "../hooks/useDebounce";
@@ -1182,6 +1183,8 @@ function ManagesJobApplication() {
                                           ? `${API_IMAGE_URL}${company.logo}`
                                           : "assets/images/dashboard/images1.png"
                                       }
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                   </div>
 
@@ -1484,6 +1487,8 @@ function ManagesJobApplication() {
                                     borderRadius: "50%",
                                     objectFit: "cover",
                                   }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
 
@@ -1596,6 +1601,8 @@ function ManagesJobApplication() {
                                           ? `${API_IMAGE_URL}${jobData?.companyId?.logo}`
                                           : "assets/images/dashboard/images1.png"
                                       }
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                   </div>
 
@@ -1893,6 +1900,8 @@ function ManagesJobApplication() {
                                     borderRadius: "50%",
                                     objectFit: "cover",
                                   }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
 
@@ -3125,6 +3134,8 @@ function ManagesJobApplication() {
                                     borderRadius: "50%",
                                     objectFit: "cover",
                                   }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
 
@@ -3510,6 +3521,8 @@ function ManagesJobApplication() {
                                           borderRadius: "50%",
                                           objectFit: "cover",
                                         }}
+                                        loading="lazy"
+                                        decoding="async"
                                       />
                                     </div>
                                   </div>
@@ -3753,6 +3766,8 @@ function ManagesJobApplication() {
                                     borderRadius: "50%",
                                     objectFit: "cover",
                                   }}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               </div>
 

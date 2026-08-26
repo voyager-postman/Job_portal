@@ -11,6 +11,8 @@ import {
   stripHtml,
   SITE,
 } from "../utils/seo";
+import SafeHtml from "../components/SafeHtml";
+import { resolveMediaUrl } from "../utils/companyLogo";
 
 const POPULAR_POSTS_LIMIT = 5;
 
@@ -22,23 +24,10 @@ function BlogDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const cleanImageUrl = useCallback((url) => {
-    if (!url) return "";
-
-    if (url === "/jobPortal/assets/images/dashboard/images1.png") {
-      return url;
-    }
-
-    if (url.includes("uploads/https")) {
-      return url.substring(url.indexOf("https"));
-    }
-
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return url;
-    }
-
-    return `${API_IMAGE_URL}${url}`;
-  }, []);
+  const cleanImageUrl = useCallback(
+    (url) => resolveMediaUrl(url) || "",
+    [],
+  );
 
   const formatPublishDate = (date) => {
     if (!date) return "";
@@ -158,22 +147,36 @@ function BlogDetails() {
         ]}
       />
       <article>
-        <div className="page-banner-area bg-f0f4fc">
-          <div className="container">
-            <div className="page-banner-content">
-              <h1>{blog.title}</h1>
-              <ul>
-                <li>
-                  <Link to="/">{t("header.home")}</Link>
-                </li>
-                <li>
-                  <Link to="/blog">{t("header.blog")}</Link>
-                </li>
-                <li>{blog.title}</li>
-              </ul>
+        <section className="inner-banners-info-area">
+          <div className="inner-banners-img-area">
+            <img
+              src="/jobPortal/assets/images/banner/inner-banner-img.jpg"
+              alt={blog.title}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div className="inner-banners-title-info">
+            <div className="container">
+              <div className="row">
+                <div className="col-lg-12 col-md-12 col-sm-12">
+                  <header className="inner-page-banner-title">
+                    <h1>{blog.title}</h1>
+                    <ul>
+                      <li className="menu-divide-arrow">
+                        <Link to="/">{t("header.home")}</Link>
+                      </li>
+                      <li className="menu-divide-arrow">
+                        <Link to="/blog">{t("header.blog")}</Link>
+                      </li>
+                      <li>{blog.title}</li>
+                    </ul>
+                  </header>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <div className="blog-area pt-100 pb-70">
           <div className="container">
@@ -186,6 +189,8 @@ function BlogDetails() {
                         crossOrigin="anonymous"
                         src={cleanImageUrl(blog.bannerImage)}
                         alt={blog?.title}
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="info">
@@ -200,18 +205,14 @@ function BlogDetails() {
                         </li>
                       </ul>
                     </div>
-                    <div
+                    <SafeHtml
                       className="blog-article-body"
-                      dangerouslySetInnerHTML={{ __html: blog.content }}
+                      html={blog.content}
                     />
                   </div>
                   {blog.additionalContent && (
                     <div className="blog-deails-content">
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: blog.additionalContent,
-                        }}
-                      />
+                      <SafeHtml html={blog.additionalContent} />
                     </div>
                   )}
                 </div>
@@ -235,6 +236,8 @@ function BlogDetails() {
                                   src={cleanImageUrl(post.bannerImage)}
                                   alt={post.title}
                                   className="fullimage cover"
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               ) : (
                                 <span

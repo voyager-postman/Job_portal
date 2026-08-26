@@ -25,7 +25,7 @@ const TemplateTwo = ({ data }) => {
     <section className="professional-two-page-template template-variant-two">
       <div className="resume-page-sheet">
         <header className="resume-page-header">
-          <img crossOrigin="anonymous" src={profileImage} alt="Profile" />
+          <img crossOrigin="anonymous" src={profileImage} alt="Profile" loading="lazy" decoding="async" />
           <div>
             <h2>{fullName || "Candidate Name"}</h2>
             <h4>{personal?.career_goals?.DesiredJobTitle || "Professional Title"}</h4>
